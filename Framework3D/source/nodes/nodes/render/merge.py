@@ -1,5 +1,6 @@
 import os
-import re
+
+replacements = 0
 
 def replace_text_in_file(file_path, replacements):
     try:
@@ -8,8 +9,7 @@ def replace_text_in_file(file_path, replacements):
         
         new_content = content
         for old_text, new_text in replacements:
-            # Use regular expression to match whole words
-            new_content = re.sub(rf'\b{re.escape(old_text)}\b', new_text, new_content)
+            new_content = new_content.replace(old_text, new_text)
         
         if new_content != content:
             with open(file_path, 'w', encoding='utf-8') as file:

@@ -153,3 +153,7 @@
 #include <nvrhi/nvrhi.h>
 
 using namespace nvrhi;
+
+using Device = IDevice;
+using Texture = ITexture;
+using Buffer = IBuffer;
