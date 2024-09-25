@@ -60,10 +60,10 @@ public:
      */
     void execute(
         RenderContext* pRenderContext,
-        ref<Buffer> pData,
+        nvrhi::BufferHandle pData,
         uint32_t elementCount,
         uint32_t* pTotalSum = nullptr,
-        ref<Buffer> pTotalSumBuffer = nullptr,
+        nvrhi::BufferHandle pTotalSumBuffer = nullptr,
         uint64_t pTotalSumOffset = 0
     );
 
@@ -78,8 +78,8 @@ private:
     ref<Program> mpPrefixSumFinalizeProgram;
     ref<ProgramVars> mpPrefixSumFinalizeVars;
 
-    ref<Buffer> mpPrefixGroupSums; ///< Temporary buffer for prefix sum computation.
-    ref<Buffer> mpTotalSum;        ///< Temporary buffer for total sum of an iteration.
-    ref<Buffer> mpPrevTotalSum;    ///< Temporary buffer for prev total sum of an iteration.
+    nvrhi::BufferHandle mpPrefixGroupSums; ///< Temporary buffer for prefix sum computation.
+    nvrhi::BufferHandle mpTotalSum;        ///< Temporary buffer for total sum of an iteration.
+    nvrhi::BufferHandle mpPrevTotalSum;    ///< Temporary buffer for prev total sum of an iteration.
 };
 } // namespace Falcor

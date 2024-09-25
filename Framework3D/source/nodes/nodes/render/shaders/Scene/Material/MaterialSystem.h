@@ -155,13 +155,13 @@ namespace Falcor
             \param[in] pBuffer The buffer.
             \return The ID of the buffer.
         */
-        uint32_t addBuffer(const ref<Buffer>& pBuffer);
+        uint32_t addBuffer(const nvrhi::BufferHandle& pBuffer);
 
         /** Replace a previously managed buffer by a new buffer.
             \param[in] id The ID of the buffer.
             \param[in] pBuffer The buffer.
         */
-        void replaceBuffer(uint32_t id, const ref<Buffer>& pBuffer);
+        void replaceBuffer(uint32_t id, const nvrhi::BufferHandle& pBuffer);
 
         /** Get the total number of managed buffers.
         */
@@ -295,10 +295,10 @@ namespace Falcor
         // GPU resources
         ref<Fence> mpFence;
         ref<ParameterBlock> mpMaterialsBlock;                       ///< Parameter block for binding all material resources.
-        ref<Buffer> mpMaterialDataBuffer;                           ///< GPU buffer holding all material data.
+        nvrhi::BufferHandle mpMaterialDataBuffer;                           ///< GPU buffer holding all material data.
         nvrhi::SamplerHandle mpDefaultTextureSampler;                       ///< Default texture sampler to use for all materials.
         std::vector<nvrhi::SamplerHandle> mTextureSamplers;                 ///< Texture sampler states. These are indexed by ID in the materials.
-        std::vector<ref<Buffer>> mBuffers;                          ///< Buffers used by the materials. These are indexed by ID in the materials.
+        std::vector<nvrhi::BufferHandle> mBuffers;                          ///< Buffers used by the materials. These are indexed by ID in the materials.
         std::vector<nvrhi::TextureHandle> mTextures3D;                      ///< 3D textures used by the materials. These are indexed by ID in the materials.
 
         // UI variables

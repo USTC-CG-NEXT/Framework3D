@@ -51,7 +51,7 @@ BitonicSort::BitonicSort(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
     mSort.pVars = ProgramVars::create(mpDevice, mSort.pProgram.get());
 }
 
-bool BitonicSort::execute(RenderContext* pRenderContext, ref<Buffer> pData, uint32_t totalSize, uint32_t chunkSize, uint32_t groupSize)
+bool BitonicSort::execute(RenderContext* pRenderContext, nvrhi::BufferHandle pData, uint32_t totalSize, uint32_t chunkSize, uint32_t groupSize)
 {
     FALCOR_PROFILE(pRenderContext, "BitonicSort::execute");
 

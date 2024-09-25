@@ -49,7 +49,7 @@ const Vertex kVertices[] = {
 
 struct FullScreenPass::SharedData
 {
-    ref<Buffer> pVertexBuffer;
+    nvrhi::BufferHandle pVertexBuffer;
     ref<Vao> pVao;
     uint64_t objectCount = 0;
 

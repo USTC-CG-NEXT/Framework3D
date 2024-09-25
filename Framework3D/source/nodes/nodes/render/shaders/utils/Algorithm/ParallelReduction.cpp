@@ -78,7 +78,7 @@ void ParallelReduction::execute(
     const nvrhi::TextureHandle& pInput,
     Type operation,
     T* pResult,
-    ref<Buffer> pResultBuffer,
+    nvrhi::BufferHandle pResultBuffer,
     uint64_t resultOffset
 )
 {
@@ -223,8 +223,8 @@ uint64_t ParallelReduction::getMemoryUsageInBytes() const
 
 // Explicit template instantiation of the supported types.
 // clang-format off
-template FALCOR_API void ParallelReduction::execute<float4>(RenderContext* pRenderContext, const nvrhi::TextureHandle& pInput, Type operation, float4* pResult, ref<Buffer> pResultBuffer, uint64_t resultOffset);
-template FALCOR_API void ParallelReduction::execute<int4>(RenderContext* pRenderContext, const nvrhi::TextureHandle& pInput, Type operation, int4* pResult, ref<Buffer> pResultBuffer, uint64_t resultOffset);
-template FALCOR_API void ParallelReduction::execute<uint4>(RenderContext* pRenderContext, const nvrhi::TextureHandle& pInput, Type operation, uint4* pResult, ref<Buffer> pResultBuffer, uint64_t resultOffset);
+template FALCOR_API void ParallelReduction::execute<float4>(RenderContext* pRenderContext, const nvrhi::TextureHandle& pInput, Type operation, float4* pResult, nvrhi::BufferHandle pResultBuffer, uint64_t resultOffset);
+template FALCOR_API void ParallelReduction::execute<int4>(RenderContext* pRenderContext, const nvrhi::TextureHandle& pInput, Type operation, int4* pResult, nvrhi::BufferHandle pResultBuffer, uint64_t resultOffset);
+template FALCOR_API void ParallelReduction::execute<uint4>(RenderContext* pRenderContext, const nvrhi::TextureHandle& pInput, Type operation, uint4* pResult, nvrhi::BufferHandle pResultBuffer, uint64_t resultOffset);
 // clang-format on
 } // namespace Falcor

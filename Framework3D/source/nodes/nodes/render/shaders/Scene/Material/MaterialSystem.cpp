@@ -169,7 +169,7 @@ namespace Falcor
         return samplerID;
     }
 
-    uint32_t MaterialSystem::addBuffer(const ref<Buffer>& pBuffer)
+    uint32_t MaterialSystem::addBuffer(const nvrhi::BufferHandle& pBuffer)
     {
         FALCOR_ASSERT(pBuffer);
 
@@ -193,7 +193,7 @@ namespace Falcor
         return bufferID;
     }
 
-    void MaterialSystem::replaceBuffer(uint32_t id, const ref<Buffer>& pBuffer)
+    void MaterialSystem::replaceBuffer(uint32_t id, const nvrhi::BufferHandle& pBuffer)
     {
         FALCOR_ASSERT(pBuffer);
         FALCOR_CHECK(id < mBuffers.size(), "'id' is out of bounds.");

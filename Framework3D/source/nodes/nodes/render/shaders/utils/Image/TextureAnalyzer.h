@@ -114,7 +114,7 @@ public:
         const nvrhi::TextureHandle pInput,
         uint32_t mipLevel,
         uint32_t arraySlice,
-        ref<Buffer> pResult,
+        nvrhi::BufferHandle pResult,
         uint64_t resultOffset = 0,
         bool clearResult = true
     );
@@ -129,7 +129,7 @@ public:
      * @param[in] pResult GPU buffer to where the result is written. This is expected to have UAV bind flag.
      * @param[in] clearResult Flag indicating whether the function should clear the result buffer first.
      */
-    void analyze(RenderContext* pRenderContext, const std::vector<nvrhi::TextureHandle>& inputs, ref<Buffer> pResult, bool clearResult = true);
+    void analyze(RenderContext* pRenderContext, const std::vector<nvrhi::TextureHandle>& inputs, nvrhi::BufferHandle pResult, bool clearResult = true);
 
     /**
      * Helper function to clear the results buffer.
@@ -138,7 +138,7 @@ public:
      * @param[in] resultOffset Offset into result buffer to where the first result is stored.
      * @param[in] resultsCount Number of result structs.
      */
-    void clear(RenderContext* pRenderContext, ref<Buffer> pResult, uint64_t resultOffset, size_t resultCount) const;
+    void clear(RenderContext* pRenderContext, nvrhi::BufferHandle pResult, uint64_t resultOffset, size_t resultCount) const;
 
     /**
      * Returns the size of the generated result for one texture in bytes.

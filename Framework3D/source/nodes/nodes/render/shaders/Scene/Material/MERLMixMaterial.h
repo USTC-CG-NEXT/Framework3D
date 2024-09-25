@@ -86,7 +86,7 @@ namespace Falcor
         std::vector<BRDFDesc> mBRDFs;       ///< List of loaded BRDFs.
 
         MERLMixMaterialData mData;          ///< Material parameters.
-        ref<Buffer> mpBRDFData;             ///< GPU buffer holding all BRDF data as float3 arrays.
+        nvrhi::BufferHandle mpBRDFData;             ///< GPU buffer holding all BRDF data as float3 arrays.
         nvrhi::TextureHandle mpAlbedoLUT;           ///< Precomputed albedo lookup table.
         nvrhi::SamplerHandle mpLUTSampler;          ///< Sampler for accessing the LUT texture.
         nvrhi::SamplerHandle mpIndexSampler;        ///< Sampler for accessing the index map.

@@ -77,7 +77,7 @@ private:
 
     uint32_t mCount;       ///< Number of items in the alias table.
     double mWeightSum;     ///< Total weight of all elements used to create the alias table.
-    ref<Buffer> mpItems;   ///< Buffer containing table items.
-    ref<Buffer> mpWeights; ///< Buffer containing item weights.
+    nvrhi::BufferHandle mpItems;   ///< Buffer containing table items.
+    nvrhi::BufferHandle mpWeights; ///< Buffer containing item weights.
 };
 } // namespace Falcor

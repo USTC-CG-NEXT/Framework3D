@@ -163,14 +163,14 @@ namespace Falcor
         mutable bool                            mStatsValid = false;    ///< True when stats are valid.
 
         // GPU resources for the mesh lights and emissive triangles.
-        ref<Buffer>                             mpTriangleData;         ///< Per-triangle geometry data for emissive triangles (mTriangleCount elements).
-        ref<Buffer>                             mpActiveTriangleList;   ///< List of active (non-culled) emissive triangle.
-        ref<Buffer>                             mpTriToActiveList;      ///< Mapping of all light triangles to index in mActiveTriangleList.
-        ref<Buffer>                             mpFluxData;             ///< Per-triangle flux data for emissive triangles (mTriangleCount elements).
-        ref<Buffer>                             mpMeshData;             ///< Per-mesh data for emissive meshes (mMeshLights.size() elements).
-        ref<Buffer>                             mpPerMeshInstanceOffset; ///< Per-mesh instance offset into emissive triangles array (Scene::getMeshInstanceCount() elements).
+        nvrhi::BufferHandle                             mpTriangleData;         ///< Per-triangle geometry data for emissive triangles (mTriangleCount elements).
+        nvrhi::BufferHandle                             mpActiveTriangleList;   ///< List of active (non-culled) emissive triangle.
+        nvrhi::BufferHandle                             mpTriToActiveList;      ///< Mapping of all light triangles to index in mActiveTriangleList.
+        nvrhi::BufferHandle                             mpFluxData;             ///< Per-triangle flux data for emissive triangles (mTriangleCount elements).
+        nvrhi::BufferHandle                             mpMeshData;             ///< Per-mesh data for emissive meshes (mMeshLights.size() elements).
+        nvrhi::BufferHandle                             mpPerMeshInstanceOffset; ///< Per-mesh instance offset into emissive triangles array (Scene::getMeshInstanceCount() elements).
 
-        mutable ref<Buffer>                     mpStagingBuffer;        ///< Staging buffer used for retrieving the vertex positions, texture coordinates and light IDs from the GPU.
+        mutable nvrhi::BufferHandle                     mpStagingBuffer;        ///< Staging buffer used for retrieving the vertex positions, texture coordinates and light IDs from the GPU.
         ref<Fence>                              mpStagingFence;         ///< Fence used for waiting on the staging buffer being filled in.
 
         nvrhi::SamplerHandle                            mpSamplerState;         ///< Material sampler for emissive textures.
@@ -182,7 +182,7 @@ namespace Falcor
             ref<ProgramVars>                    pVars;
             ref<GraphicsState>                  pState;
             nvrhi::SamplerHandle                        pPointSampler;      ///< Point sampler for fetching individual texels in integrator. Must use same wrap mode etc. as material sampler.
-            ref<Buffer>                         pResultBuffer;      ///< The output of the integration pass is written here. Using raw buffer for fp32 compatibility.
+            nvrhi::BufferHandle                         pResultBuffer;      ///< The output of the integration pass is written here. Using raw buffer for fp32 compatibility.
         } mIntegrator;
 
         ref<ComputePass>                        mpTriangleListBuilder;

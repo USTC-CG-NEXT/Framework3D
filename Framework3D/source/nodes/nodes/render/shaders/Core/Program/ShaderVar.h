@@ -244,20 +244,20 @@ struct FALCOR_API ShaderVar
      * Throws an exception if this variable doesn't point at a buffer or the
      * buffer has incompatible bind flags.
      */
-    void setBuffer(const ref<Buffer>& pBuffer) const;
+    void setBuffer(const nvrhi::BufferHandle& pBuffer) const;
 
     /**
      * Get the buffer bound to this variable.
      * Throws an exception if this variable doesn't point at a buffer.
      */
-    ref<Buffer> getBuffer() const;
+    nvrhi::BufferHandle getBuffer() const;
 
     /**
      * Implicit conversion from a shader variable to a buffer.
      * This operation allows a bound buffer to be queried using the `[]` syntax:
      * pBuffer = pVars["someBuffer"];
      */
-    operator ref<Buffer>() const { return getBuffer(); }
+    operator nvrhi::BufferHandle() const { return getBuffer(); }
 
     /**
      * Bind a texture to this variable.
@@ -455,7 +455,7 @@ private:
 
     void setImpl(const nvrhi::TextureHandle& pTexture) const;
     void setImpl(const nvrhi::SamplerHandle& pSampler) const;
-    void setImpl(const ref<Buffer>& pBuffer) const;
+    void setImpl(const nvrhi::BufferHandle& pBuffer) const;
     void setImpl(const ref<ParameterBlock>& pBlock) const;
 
     template<typename T>

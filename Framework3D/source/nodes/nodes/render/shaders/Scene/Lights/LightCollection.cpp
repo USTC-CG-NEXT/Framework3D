@@ -330,7 +330,7 @@ namespace Falcor
 
         // 1st pass: Rasterize emissive triangles in texture space to find maximum texel value.
         // The maximum is needed to rescale the texels to fixed-point format in the accumulation pass.
-        ref<Buffer> pTexelMax;
+        nvrhi::BufferHandle pTexelMax;
         {
             // Allocate intermediate buffer.
             // Move into a member variable if we're integrating multiple times to avoid re-allocation.

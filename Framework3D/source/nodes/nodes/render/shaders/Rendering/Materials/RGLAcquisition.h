@@ -61,18 +61,18 @@ namespace Falcor
         ref<ComputePass> mpComputeVNDFPass;
         ref<ComputePass> mpAcquireBRDFPass;
 
-        ref<Buffer> mpNDFDirectionsBuffer;      ///< Stores hemispherical directions of entries in the NDF table.
-        ref<Buffer> mpRetroBuffer;              ///< 2D table storing measured retroreflecton of BRDF.
-        ref<Buffer> mpNDFKernelBuffer;          ///< Stores kernel matrix of Fredholm problem for retrieving NDF.
-        ref<Buffer> mpNDFBuffer;                ///< 2D table storing the retrieved NDF.
-        ref<Buffer> mpNDFBufferTmp;
-        ref<Buffer> mpSigmaBuffer;              ///< 2D table of projected microfacet area, integrated numerically.
-        ref<Buffer> mpThetaBuffer;              ///< 1D tables storing angles at which measurements are taken.
-        ref<Buffer> mpPhiBuffer;
-        ref<Buffer> mpVNDFBuffer;               ///< 4D table (over wi x wo domains) containing the visible distribution of normals.
-        ref<Buffer> mpVNDFMargBuffer;           ///< Auxiliary buffers for sampling the VNDF.
-        ref<Buffer> mpVNDFCondBuffer;
-        ref<Buffer> mpLumiBuffer;               ///< 4D table of measured luminance and RGB reflectance of RGB.
-        ref<Buffer> mpRGBBuffer;
+        nvrhi::BufferHandle mpNDFDirectionsBuffer;      ///< Stores hemispherical directions of entries in the NDF table.
+        nvrhi::BufferHandle mpRetroBuffer;              ///< 2D table storing measured retroreflecton of BRDF.
+        nvrhi::BufferHandle mpNDFKernelBuffer;          ///< Stores kernel matrix of Fredholm problem for retrieving NDF.
+        nvrhi::BufferHandle mpNDFBuffer;                ///< 2D table storing the retrieved NDF.
+        nvrhi::BufferHandle mpNDFBufferTmp;
+        nvrhi::BufferHandle mpSigmaBuffer;              ///< 2D table of projected microfacet area, integrated numerically.
+        nvrhi::BufferHandle mpThetaBuffer;              ///< 1D tables storing angles at which measurements are taken.
+        nvrhi::BufferHandle mpPhiBuffer;
+        nvrhi::BufferHandle mpVNDFBuffer;               ///< 4D table (over wi x wo domains) containing the visible distribution of normals.
+        nvrhi::BufferHandle mpVNDFMargBuffer;           ///< Auxiliary buffers for sampling the VNDF.
+        nvrhi::BufferHandle mpVNDFCondBuffer;
+        nvrhi::BufferHandle mpLumiBuffer;               ///< 4D table of measured luminance and RGB reflectance of RGB.
+        nvrhi::BufferHandle mpRGBBuffer;
     };
 }

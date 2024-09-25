@@ -199,7 +199,7 @@ namespace Falcor
 
         /** Returns an AABB buffer that can be used to create an accelerations strucure using this SDF grid.
         */
-        virtual const ref<Buffer>& getAABBBuffer() const = 0;
+        virtual const nvrhi::BufferHandle& getAABBBuffer() const = 0;
 
         /** Return the number of AABBs used to create this SDF grid.
         */
@@ -250,7 +250,7 @@ namespace Falcor
         std::unordered_map<uint32_t, uint32_t> mPrimitiveIDToIndex;
         uint32_t                mNextPrimitiveID = 0;
         bool                    mPrimitivesDirty = false;           ///< True if the primitives have changed.
-        ref<Buffer>             mpPrimitivesBuffer;                 ///< Holds the primitives that should be rendered.
+        nvrhi::BufferHandle             mpPrimitivesBuffer;                 ///< Holds the primitives that should be rendered.
         uint32_t                mPrimitivesExcludedFromBuffer = 0;  ///< Number of primitives to exclude from the primitive buffer.
         uint32_t                mBakedPrimitiveCount = 0;           ///< Number of primitives that will be baked into the value representation.
         bool                    mBakePrimitives = false;            ///< True if the primitives should be baked into the value representation.

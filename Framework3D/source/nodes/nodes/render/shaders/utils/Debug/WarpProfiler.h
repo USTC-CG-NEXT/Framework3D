@@ -94,8 +94,8 @@ private:
     void readBackData();
 
     ref<Fence> mpFence;
-    ref<Buffer> mpHistogramBuffer;
-    ref<Buffer> mpHistogramStagingBuffer;
+    nvrhi::BufferHandle mpHistogramBuffer;
+    nvrhi::BufferHandle mpHistogramStagingBuffer;
 
     const uint32_t mBinCount;          ///< Number of profiling bins.
     std::vector<uint32_t> mHistograms; ///< Histograms for all profiling bins.

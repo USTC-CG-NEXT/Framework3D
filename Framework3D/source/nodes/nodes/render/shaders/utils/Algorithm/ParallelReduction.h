@@ -87,7 +87,7 @@ public:
         const nvrhi::TextureHandle& pInput,
         Type operation,
         T* pResult = nullptr,
-        ref<Buffer> pResultBuffer = nullptr,
+        nvrhi::BufferHandle pResultBuffer = nullptr,
         uint64_t resultOffset = 0
     );
 
@@ -103,6 +103,6 @@ private:
     ref<Program> mpFinalProgram;
     ref<ProgramVars> mpVars;
 
-    ref<Buffer> mpBuffers[2]; ///< Intermediate buffers for reduction iterations.
+    nvrhi::BufferHandle mpBuffers[2]; ///< Intermediate buffers for reduction iterations.
 };
 } // namespace Falcor

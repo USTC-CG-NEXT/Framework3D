@@ -50,7 +50,7 @@ namespace Falcor
 
         virtual void createResources(RenderContext* pRenderContext, bool deleteScratchData = true) override;
 
-        virtual const ref<Buffer>& getAABBBuffer() const override { return mpVoxelAABBBuffer; }
+        virtual const nvrhi::BufferHandle& getAABBBuffer() const override { return mpVoxelAABBBuffer; }
         virtual uint32_t getAABBCount() const override { return mVoxelCount; }
 
         virtual void bindShaderData(const ShaderVar& var) const override;
@@ -63,8 +63,8 @@ namespace Falcor
         std::vector<int8_t> mValues;
 
         // Specs.
-        ref<Buffer> mpVoxelAABBBuffer;
-        ref<Buffer> mpVoxelBuffer;
+        nvrhi::BufferHandle mpVoxelAABBBuffer;
+        nvrhi::BufferHandle mpVoxelBuffer;
         uint32_t mVoxelCount = 0;
 
         // Compute passes used to build the SVS.
@@ -72,7 +72,7 @@ namespace Falcor
         ref<ComputePass> mpSDFSVSVoxelizerPass;
 
         // Scratch data used for building.
-        ref<Buffer> mpSurfaceVoxelCounter;
+        nvrhi::BufferHandle mpSurfaceVoxelCounter;
         nvrhi::TextureHandle mpSDFGridTexture;
     };
 }

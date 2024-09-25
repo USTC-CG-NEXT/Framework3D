@@ -35,7 +35,7 @@ namespace Falcor
     struct NDSDFGrid::SharedData
     {
         nvrhi::SamplerHandle pSampler;
-        ref<Buffer> pUnitAABBBuffer;
+        nvrhi::BufferHandle pUnitAABBBuffer;
 
         SharedData(nvrhi::DeviceHandle pDevice)
         {
@@ -106,7 +106,7 @@ namespace Falcor
         }
     }
 
-    const ref<Buffer>& NDSDFGrid::getAABBBuffer() const
+    const nvrhi::BufferHandle& NDSDFGrid::getAABBBuffer() const
     {
         return mpSharedData->pUnitAABBBuffer;
     }

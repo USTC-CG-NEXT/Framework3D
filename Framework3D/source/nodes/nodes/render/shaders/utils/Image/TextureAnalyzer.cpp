@@ -60,7 +60,7 @@ void TextureAnalyzer::analyze(
     const nvrhi::TextureHandle pInput,
     uint32_t mipLevel,
     uint32_t arraySlice,
-    ref<Buffer> pResult,
+    nvrhi::BufferHandle pResult,
     uint64_t resultOffset,
     bool clearResult
 )
@@ -92,7 +92,7 @@ void TextureAnalyzer::analyze(
     mpAnalyzePass->execute(pRenderContext, uint3(dim, 1));
 }
 
-void TextureAnalyzer::analyze(RenderContext* pRenderContext, const std::vector<nvrhi::TextureHandle>& inputs, ref<Buffer> pResult, bool clearResult)
+void TextureAnalyzer::analyze(RenderContext* pRenderContext, const std::vector<nvrhi::TextureHandle>& inputs, nvrhi::BufferHandle pResult, bool clearResult)
 {
     FALCOR_ASSERT(pRenderContext && !inputs.empty());
     FALCOR_ASSERT(pResult && inputs.size() * getResultSize() <= pResult->getSize());
@@ -111,7 +111,7 @@ void TextureAnalyzer::analyze(RenderContext* pRenderContext, const std::vector<n
     }
 }
 
-void TextureAnalyzer::clear(RenderContext* pRenderContext, ref<Buffer> pResult, uint64_t resultOffset, size_t resultCount) const
+void TextureAnalyzer::clear(RenderContext* pRenderContext, nvrhi::BufferHandle pResult, uint64_t resultOffset, size_t resultCount) const
 {
     FALCOR_ASSERT(pRenderContext);
     FALCOR_ASSERT(pResult && resultOffset + resultCount * getResultSize() <= pResult->getSize());

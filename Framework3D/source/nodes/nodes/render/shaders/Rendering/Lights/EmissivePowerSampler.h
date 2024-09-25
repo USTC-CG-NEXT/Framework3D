@@ -46,7 +46,7 @@ namespace Falcor
         {
             float weightSum;                ///< Total weight of all elements used to create the alias table
             uint32_t N;                     ///< Number of entries in the alias table (and # elements in the buffers)
-            ref<Buffer> fullTable;          ///< A compressed/packed merged table.  Max 2^24 (16 million) entries per table.
+            nvrhi::BufferHandle fullTable;          ///< A compressed/packed merged table.  Max 2^24 (16 million) entries per table.
         };
 
         /** Creates a EmissivePowerSampler for a given scene.

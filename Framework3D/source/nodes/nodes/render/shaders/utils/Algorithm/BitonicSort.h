@@ -62,7 +62,7 @@ public:
      * fastest.
      * @return True if successful, false if an error occured.
      */
-    bool execute(RenderContext* pRenderContext, ref<Buffer> pData, uint32_t totalSize, uint32_t chunkSize, uint32_t groupSize = 256);
+    bool execute(RenderContext* pRenderContext, nvrhi::BufferHandle pData, uint32_t totalSize, uint32_t chunkSize, uint32_t groupSize = 256);
 
 private:
     nvrhi::DeviceHandle mpDevice;

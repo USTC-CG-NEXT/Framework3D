@@ -231,7 +231,7 @@ private:
  */
 struct InteropBuffer
 {
-    ref<Buffer> buffer;                     // Falcor buffer
+    nvrhi::BufferHandle buffer;                     // Falcor buffer
     CUdeviceptr devicePtr = (CUdeviceptr)0; // CUDA pointer to buffer
 
     void free()

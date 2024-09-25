@@ -71,10 +71,10 @@ namespace Falcor
         ref<Scene> mpScene;
         ref<ComputePass> mpIntegrationPass;         ///< Integration pass.
         ref<ComputePass> mpFinalPass;               ///< Final reduction pass.
-        ref<Buffer> mpCosThetaBuffer;               ///< Buffer for uploading incident cos theta angles.
-        ref<Buffer> mpResultBuffer;                 ///< Buffer for intermediate results.
-        ref<Buffer> mpFinalResultBuffer;            ///< Buffer for final results after reduction.
-        ref<Buffer> mpStagingBuffer;                ///< Staging buffer for readback of final results.
+        nvrhi::BufferHandle mpCosThetaBuffer;               ///< Buffer for uploading incident cos theta angles.
+        nvrhi::BufferHandle mpResultBuffer;                 ///< Buffer for intermediate results.
+        nvrhi::BufferHandle mpFinalResultBuffer;            ///< Buffer for final results after reduction.
+        nvrhi::BufferHandle mpStagingBuffer;                ///< Staging buffer for readback of final results.
         uint32_t mResultCount;                      ///< Number of intermediate results per integration grid.
     };
 }

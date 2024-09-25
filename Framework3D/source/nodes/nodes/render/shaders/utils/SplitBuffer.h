@@ -166,7 +166,7 @@ public:
                 continue;
             }
 
-            ref<Buffer> buffer = mpDevice->createStructuredBuffer(
+            nvrhi::BufferHandle buffer = mpDevice->createStructuredBuffer(
                 sizeof(T), mCpuBuffers[i].size(), bindFlags, MemoryType::DeviceLocal, mCpuBuffers[i].data(), false
             );
             buffer->setName(fmt::format("SplitBuffer:{}:[{}]", mBufferName, i));
@@ -242,7 +242,7 @@ public:
     bool hasCpuData() const { return !mCpuBuffers.empty(); }
 
     /// Return a GPU buffer, indexed by buffer index.
-    ref<Buffer> getGpuBuffer(uint32_t bufferIndex) const { return mGpuBuffers[bufferIndex]; }
+    nvrhi::BufferHandle getGpuBuffer(uint32_t bufferIndex) const { return mGpuBuffers[bufferIndex]; }
 
     const std::vector<T>& getCpuBuffer(uint32_t bufferIndex) const { return mCpuBuffers[bufferIndex]; }
 
@@ -290,7 +290,7 @@ private:
     std::string mBufferName;
     std::string mBufferCountDefinePrefix;
     std::vector<std::vector<T>> mCpuBuffers;
-    std::vector<ref<Buffer>> mGpuBuffers;
+    std::vector<nvrhi::BufferHandle> mGpuBuffers;
 
     friend class SceneCache;
 };

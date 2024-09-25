@@ -61,7 +61,7 @@ namespace Falcor
 
         virtual void createResources(RenderContext* pRenderContext, bool deleteScratchData = true) override;
 
-        virtual const ref<Buffer>& getAABBBuffer() const override { return mpBrickAABBsBuffer; }
+        virtual const nvrhi::BufferHandle& getAABBBuffer() const override { return mpBrickAABBsBuffer; }
         virtual uint32_t getAABBCount() const override { return mBrickCount; }
 
         virtual void bindShaderData(const ShaderVar& var) const override;
@@ -82,7 +82,7 @@ namespace Falcor
 
         void createSDFGridTexture(RenderContext* pRenderContext, const std::vector<int8_t>& sdField);
 
-        uint32_t fetchCount(RenderContext* pRenderContext, const ref<Buffer>& pBuffer);
+        uint32_t fetchCount(RenderContext* pRenderContext, const nvrhi::BufferHandle& pBuffer);
 
         void compactifyChunks(RenderContext* pRenderContext, uint32_t chunkCount);
 
@@ -108,7 +108,7 @@ namespace Falcor
         bool mBuildEmptyGrid = false;
 
         // GPU data.
-        ref<Buffer> mpBrickAABBsBuffer;                 ///< A compact buffer containing AABBs for each brick.
+        nvrhi::BufferHandle mpBrickAABBsBuffer;                 ///< A compact buffer containing AABBs for each brick.
         nvrhi::TextureHandle mpIndirectionTexture;              ///< An indirection texture to map from virtual brick coords to actual brick ID.
         nvrhi::TextureHandle mpBrickTexture;                    ///< A texture of SDF bricks with data at corners.
         std::shared_ptr<SharedData> mpSharedData;       ///< Shared data among all instances.
@@ -137,23 +137,23 @@ namespace Falcor
 
         // Scratch data used for building from signed distance field.
         nvrhi::TextureHandle mpBrickScratchTexture;
-        ref<Buffer> mpIndirectionBuffer;
-        ref<Buffer> mpValidityBuffer;
+        nvrhi::BufferHandle mpIndirectionBuffer;
+        nvrhi::BufferHandle mpValidityBuffer;
 
-        ref<Buffer> mpCountBuffer;
+        nvrhi::BufferHandle mpCountBuffer;
 
         // Scratch data used for building from primitives.
-        ref<Buffer> mpChunkIndirectionBuffer;
-        ref<Buffer> mpChunkCoordsBuffer;
-        ref<Buffer> mpSubChunkValidityBuffer;
-        ref<Buffer> mpSubChunkCoordsBuffer;
-        ref<Buffer> mpSubdivisionArgBuffer;
+        nvrhi::BufferHandle mpChunkIndirectionBuffer;
+        nvrhi::BufferHandle mpChunkCoordsBuffer;
+        nvrhi::BufferHandle mpSubChunkValidityBuffer;
+        nvrhi::BufferHandle mpSubChunkCoordsBuffer;
+        nvrhi::BufferHandle mpSubdivisionArgBuffer;
         ref<Fence> mpReadbackFence;
 
         // Scratch data used for building from the SD Field and primitives.
         nvrhi::TextureHandle mpOldSDFGridTexture;
         nvrhi::TextureHandle mpSDFGridTextureModified;
         std::vector<nvrhi::TextureHandle> mIntervalSDFieldMaps;
-        ref<Buffer> mpCountStagingBuffer;
+        nvrhi::BufferHandle mpCountStagingBuffer;
     };
 }

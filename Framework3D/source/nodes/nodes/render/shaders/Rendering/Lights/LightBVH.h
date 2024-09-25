@@ -162,10 +162,10 @@ namespace Falcor
         mutable bool                          mIsCpuDataValid = false;  ///< Indicates whether the CPU-side data matches the GPU buffers.
 
         // GPU resources
-        ref<Buffer>                           mpBVHNodesBuffer;         ///< Buffer holding all BVH nodes.
-        ref<Buffer>                           mpTriangleIndicesBuffer;  ///< Triangle indices sorted by leaf node. Each leaf node refers to a contiguous array of triangle indices.
-        ref<Buffer>                           mpTriangleBitmasksBuffer; ///< Array containing the per triangle bit pattern retracing the tree traversal to reach the triangle: 0=left child, 1=right child.
-        ref<Buffer>                           mpNodeIndicesBuffer;      ///< Buffer holding all node indices sorted by tree depth. This is used for BVH refit.
+        nvrhi::BufferHandle                           mpBVHNodesBuffer;         ///< Buffer holding all BVH nodes.
+        nvrhi::BufferHandle                           mpTriangleIndicesBuffer;  ///< Triangle indices sorted by leaf node. Each leaf node refers to a contiguous array of triangle indices.
+        nvrhi::BufferHandle                           mpTriangleBitmasksBuffer; ///< Array containing the per triangle bit pattern retracing the tree traversal to reach the triangle: 0=left child, 1=right child.
+        nvrhi::BufferHandle                           mpNodeIndicesBuffer;      ///< Buffer holding all node indices sorted by tree depth. This is used for BVH refit.
 
         friend LightBVHBuilder;
     };

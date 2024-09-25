@@ -67,7 +67,7 @@ public:
      * Create a new object that holds a value of the given type.
      */
     static ref<ParameterBlock> create(
-        ref<Device> pDevice,
+        nvrhi::DeviceHandle pDevice,
         const ref<const ProgramVersion>& pProgramVersion,
         const ref<const ReflectionType>& pType
     );
@@ -75,14 +75,14 @@ public:
     /**
      * Create a new object that holds a value described by the given reflector.
      */
-    static ref<ParameterBlock> create(ref<Device> pDevice, const ref<const ParameterBlockReflection>& pReflection);
+    static ref<ParameterBlock> create(nvrhi::DeviceHandle pDevice, const ref<const ParameterBlockReflection>& pReflection);
 
     /**
      * Create a new object that holds a value of the type with the given name in the given program.
      * @param[in] pProgramVersion Program version object.
      * @param[in] typeName Name of the type. If the type does not exist an exception is thrown.
      */
-    static ref<ParameterBlock> create(ref<Device> pDevice, const ref<const ProgramVersion>& pProgramVersion, const std::string& typeName);
+    static ref<ParameterBlock> create(nvrhi::DeviceHandle pDevice, const ref<const ProgramVersion>& pProgramVersion, const std::string& typeName);
 
     gfx::IShaderObject* getShaderObject() const { return mpShaderObject.get(); }
 
@@ -134,7 +134,7 @@ public:
      * @param[in] name The name of the variable to bind to.
      * @param[in] pBuffer The buffer object.
      */
-    void setBuffer(std::string_view name, const ref<Buffer>& pBuffer);
+    void setBuffer(std::string_view name, const nvrhi::BufferHandle& pBuffer);
 
     /**
      * Bind a buffer to a variable by bind location.
@@ -142,7 +142,7 @@ public:
      * @param[in] bindLocation The bind location of the variable to bind to.
      * @param[in] pBuffer The buffer object.
      */
-    void setBuffer(const BindLocation& bindLocation, const ref<Buffer>& pBuffer);
+    void setBuffer(const BindLocation& bindLocation, const nvrhi::BufferHandle& pBuffer);
 
     /**
      * Get the buffer bound to a variable by name.
@@ -150,7 +150,7 @@ public:
      * @param[in] name The name of the variable.
      * @return The bound buffer or nullptr if none is bound.
      */
-    ref<Buffer> getBuffer(std::string_view name) const;
+    nvrhi::BufferHandle getBuffer(std::string_view name) const;
 
     /**
      * Get the buffer bound to a variable by bind location.
@@ -158,7 +158,7 @@ public:
      * @param[in] bindLocation The bind location of the variable.
      * @return The bound buffer or nullptr if none is bound.
      */
-    ref<Buffer> getBuffer(const BindLocation& bindLocation) const;
+    nvrhi::BufferHandle getBuffer(const BindLocation& bindLocation) const;
 
     //
     // Texture
@@ -170,7 +170,7 @@ public:
      * @param[in] name The name of the variable to bind to.
      * @param[in] pTexture The texture object.
      */
-    void setTexture(std::string_view name, const ref<Texture>& pTexture);
+    void setTexture(std::string_view name, const nvrhi::TextureHandle& pTexture);
 
     /**
      * Bind a texture to a variable by bind location.
@@ -178,7 +178,7 @@ public:
      * @param[in] bindLocation The bind location of the variable to bind to.
      * @param[in] pTexture The texture object.
      */
-    void setTexture(const BindLocation& bindLocation, const ref<Texture>& pTexture);
+    void setTexture(const BindLocation& bindLocation, const nvrhi::TextureHandle& pTexture);
 
     /**
      * Get the texture bound to a variable by name.
@@ -186,7 +186,7 @@ public:
      * @param[in] name The name of the variable.
      * @return The bound texture or nullptr if none is bound.
      */
-    ref<Texture> getTexture(std::string_view name) const;
+    nvrhi::TextureHandle getTexture(std::string_view name) const;
 
     /**
      * Get the texture bound to a variable by bind location.
@@ -194,7 +194,7 @@ public:
      * @param[in] bindLocation The bind location of the variable.
      * @return The bound texture or nullptr if none is bound.
      */
-    ref<Texture> getTexture(const BindLocation& bindLocation) const;
+    nvrhi::TextureHandle getTexture(const BindLocation& bindLocation) const;
 
     //
     // ResourceView
@@ -238,7 +238,9 @@ public:
      * @param[in] name The name of the variable to bind to.
      * @param[in] pAccel The acceleration structure object.
      */
-    void setAccelerationStructure(const BindLocation& bindLocation, const ref<RtAccelerationStructure>& pAccl);
+    void setAccelerationStructure(
+        const BindLocation& bindLocation,
+        const nvrhi::rt::AccelStructHandle& pAccl);
 
     /**
      * Get the acceleration structure bound to a variable by bind location.
@@ -246,7 +248,7 @@ public:
      * @param[in] bindLocation The bind location of the variable.
      * @return The bound acceleration structure or nullptr if none is bound.
      */
-    ref<RtAccelerationStructure> getAccelerationStructure(const BindLocation& bindLocation) const;
+    nvrhi::rt::AccelStructHandle getAccelerationStructure(const BindLocation& bindLocation) const;
 
     //
     // Sampler
@@ -258,7 +260,7 @@ public:
      * @param[in] name The name of the variable to bind to.
      * @param[in] pSampler The sampler object.
      */
-    void setSampler(std::string_view name, const ref<Sampler>& pSampler);
+    void setSampler(std::string_view name, const nvrhi::SamplerHandle& pSampler);
 
     /**
      * Bind a sampler to a variable by bind location.
@@ -266,7 +268,7 @@ public:
      * @param[in] bindLocation The bind location of the variable to bind to.
      * @param[in] pSampler The sampler object.
      */
-    void setSampler(const BindLocation& bindLocation, const ref<Sampler>& pSampler);
+    void setSampler(const BindLocation& bindLocation, const nvrhi::SamplerHandle& pSampler);
 
     /**
      * Get the sampler bound to a variable by bind location.
@@ -274,7 +276,7 @@ public:
      * @param[in] bindLocation The bind location of the variable.
      * @return The bound sampler or nullptr if none is bound.
      */
-    ref<Sampler> getSampler(const BindLocation& bindLocation) const;
+    nvrhi::SamplerHandle getSampler(const BindLocation& bindLocation) const;
 
     /**
      * Get the sampler bound to a variable by name.
@@ -282,7 +284,7 @@ public:
      * @param[in] name The name of the variable.
      * @return The bound sampler or nullptr if none is bound.
      */
-    ref<Sampler> getSampler(std::string_view name) const;
+    nvrhi::SamplerHandle getSampler(std::string_view name) const;
 
     //
     // ParameterBlock
@@ -376,12 +378,12 @@ public:
 
 protected:
     ParameterBlock(
-        ref<Device> pDevice,
+        nvrhi::DeviceHandle pDevice,
         const ref<const ProgramVersion>& pProgramVersion,
         const ref<const ParameterBlockReflection>& pReflection
     );
 
-    ParameterBlock(ref<Device> pDevice, const ref<const ProgramReflection>& pReflector);
+    ParameterBlock(nvrhi::DeviceHandle pDevice, const ref<const ProgramReflection>& pReflector);
 
     void initializeResourceBindings();
     void createConstantBuffers(const ShaderVar& var);
@@ -403,8 +405,8 @@ protected:
     std::map<gfx::ShaderOffset, ref<ShaderResourceView>> mSRVs;
     std::map<gfx::ShaderOffset, ref<UnorderedAccessView>> mUAVs;
     std::map<gfx::ShaderOffset, ref<Resource>> mResources;
-    std::map<gfx::ShaderOffset, ref<Sampler>> mSamplers;
-    std::map<gfx::ShaderOffset, ref<RtAccelerationStructure>> mAccelerationStructures;
+    std::map<gfx::ShaderOffset, nvrhi::SamplerHandle> mSamplers;
+    std::map<gfx::ShaderOffset, nvrhi::rt::AccelerationStructure> mAccelerationStructures;
 };
 
 template<typename T>

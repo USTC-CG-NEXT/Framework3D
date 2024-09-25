@@ -157,7 +157,7 @@ namespace Falcor
         nanovdb::FloatGrid* mpFloatGrid;
         nanovdb::FloatGrid::AccessorType mAccessor;
         // Device data.
-        ref<Buffer> mpBuffer;
+        nvrhi::BufferHandle mpBuffer;
         BrickedGrid mBrickedGrid;
 
         friend class SceneCache;

@@ -343,18 +343,18 @@ namespace Falcor
 
         // Resources.
 
-        ref<Buffer>       mpAnalyticLightIDBuffer;                  ///< Buffer storing a list of analytic light IDs used in the scene.
-        ref<Buffer>       mpLightInfoBuffer;                        ///< Buffer storing information about all the lights in the scene.
+        nvrhi::BufferHandle       mpAnalyticLightIDBuffer;                  ///< Buffer storing a list of analytic light IDs used in the scene.
+        nvrhi::BufferHandle       mpLightInfoBuffer;                        ///< Buffer storing information about all the lights in the scene.
         nvrhi::TextureHandle      mpLocalLightPdfTexture;                   ///< Texture storing the PDF for sampling local lights proportional to radiant flux.
         nvrhi::TextureHandle      mpEnvLightLuminanceTexture;               ///< Texture storing luminance of the environment light.
         nvrhi::TextureHandle      mpEnvLightPdfTexture;                     ///< Texture storing the PDF for sampling the environment light proportional to luminance (times solid angle).
 
-        ref<Buffer>       mpLightTileBuffer;                        ///< Buffer storing precomputed light tiles (see presampleLights()). This is called "ris buffer" in RTXDI.
-        ref<Buffer>       mpCompactLightInfoBuffer;                 ///< Optional buffer storing compact light info for samples in the light tile buffer for improved coherence.
+        nvrhi::BufferHandle       mpLightTileBuffer;                        ///< Buffer storing precomputed light tiles (see presampleLights()). This is called "ris buffer" in RTXDI.
+        nvrhi::BufferHandle       mpCompactLightInfoBuffer;                 ///< Optional buffer storing compact light info for samples in the light tile buffer for improved coherence.
 
-        ref<Buffer>       mpReservoirBuffer;                        ///< Buffer storing light reservoirs between kernels (and between frames)
-        ref<Buffer>       mpSurfaceDataBuffer;                      ///< Buffer storing the surface data for the current and previous frames.
-        ref<Buffer>       mpNeighborOffsetsBuffer;                  ///< Buffer storing a poisson(-ish) distribution of offsets for sampling randomized neighbors.
+        nvrhi::BufferHandle       mpReservoirBuffer;                        ///< Buffer storing light reservoirs between kernels (and between frames)
+        nvrhi::BufferHandle       mpSurfaceDataBuffer;                      ///< Buffer storing the surface data for the current and previous frames.
+        nvrhi::BufferHandle       mpNeighborOffsetsBuffer;                  ///< Buffer storing a poisson(-ish) distribution of offsets for sampling randomized neighbors.
 
         // Compute passes.
 

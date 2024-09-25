@@ -1007,7 +1007,7 @@ namespace Falcor
         mHasGridRepresentation = true;
     }
 
-    uint32_t SDFSBS::fetchCount(RenderContext* pRenderContext, const ref<Buffer>& pBuffer)
+    uint32_t SDFSBS::fetchCount(RenderContext* pRenderContext, const nvrhi::BufferHandle& pBuffer)
     {
         if (!mpCountStagingBuffer)
         {

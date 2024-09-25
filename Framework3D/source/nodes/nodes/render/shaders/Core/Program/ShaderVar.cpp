@@ -202,12 +202,12 @@ void ShaderVar::setBlob(void const* data, size_t size) const
 // Resource binding
 //
 
-void ShaderVar::setBuffer(const ref<Buffer>& pBuffer) const
+void ShaderVar::setBuffer(const nvrhi::BufferHandle& pBuffer) const
 {
     mpBlock->setBuffer(mOffset, pBuffer);
 }
 
-ref<Buffer> ShaderVar::getBuffer() const
+nvrhi::BufferHandle ShaderVar::getBuffer() const
 {
     return mpBlock->getBuffer(mOffset);
 }
@@ -386,7 +386,7 @@ void ShaderVar::setImpl(const nvrhi::SamplerHandle& pSampler) const
     mpBlock->setSampler(mOffset, pSampler);
 }
 
-void ShaderVar::setImpl(const ref<Buffer>& pBuffer) const
+void ShaderVar::setImpl(const nvrhi::BufferHandle& pBuffer) const
 {
     mpBlock->setBuffer(mOffset, pBuffer);
 }
@@ -410,7 +410,7 @@ FALCOR_SCRIPT_BINDING(ShaderVar)
     shaderVar.def("__setitem__", [](ShaderVar& self, std::string_view name, type value) { self[name] = value; }); \
     shaderVar.def("__setattr__", [](ShaderVar& self, std::string_view name, type value) { self[name] = value; });
 
-    def_setter(ref<Buffer>);
+    def_setter(nvrhi::BufferHandle);
     def_setter(nvrhi::TextureHandle);
     def_setter(nvrhi::SamplerHandle);
 

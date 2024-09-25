@@ -55,7 +55,7 @@ namespace Falcor
 
         virtual void createResources(RenderContext* pRenderContext, bool deleteScratchData = true) override;
 
-        virtual const ref<Buffer>& getAABBBuffer() const override;
+        virtual const nvrhi::BufferHandle& getAABBBuffer() const override;
         virtual uint32_t getAABBCount() const override { return 1; }
 
         virtual void bindShaderData(const ShaderVar& var) const override;
@@ -74,7 +74,7 @@ namespace Falcor
         uint32_t mSVOIndexBitCount = 0;
 
         // GPU Data.
-        ref<Buffer> mpSVOBuffer;
+        nvrhi::BufferHandle mpSVOBuffer;
         std::shared_ptr<SharedData> mpSharedData; ///< Shared data among all instances.
 
         // Compute passes used to build the SVO.
@@ -87,12 +87,12 @@ namespace Falcor
 
         // Scratch data used for building.
         nvrhi::TextureHandle mpSDFGridTexture;
-        ref<Buffer> mpSurfaceVoxelCounter;
-        ref<Buffer> mpSurfaceVoxelCounterStagingBuffer;
-        ref<Buffer> mpVoxelCountPerLevelBuffer;
-        ref<Buffer> mpVoxelCountPerLevelStagingBuffer;
-        ref<Buffer> mpHashTableBuffer;
-        ref<Buffer> mpLocationCodesBuffer;
+        nvrhi::BufferHandle mpSurfaceVoxelCounter;
+        nvrhi::BufferHandle mpSurfaceVoxelCounterStagingBuffer;
+        nvrhi::BufferHandle mpVoxelCountPerLevelBuffer;
+        nvrhi::BufferHandle mpVoxelCountPerLevelStagingBuffer;
+        nvrhi::BufferHandle mpHashTableBuffer;
+        nvrhi::BufferHandle mpLocationCodesBuffer;
         ref<Fence> mpReadbackFence;
     };
 }

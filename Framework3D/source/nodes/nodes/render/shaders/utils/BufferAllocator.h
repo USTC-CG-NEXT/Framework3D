@@ -195,7 +195,7 @@ public:
      * Get GPU buffer. The buffer is updated and ready for use.
      * The buffer is transient and only valid until the next allocation operation.
      */
-    ref<Buffer> getGPUBuffer(nvrhi::DeviceHandle pDevice);
+    nvrhi::BufferHandle getGPUBuffer(nvrhi::DeviceHandle pDevice);
 
 private:
     void computeAndAllocatePadding(size_t byteSize);
@@ -229,6 +229,6 @@ private:
     Range mDirty;
 
     std::vector<uint8_t> mBuffer; ///< CPU buffer holding a copy of the data.
-    ref<Buffer> mpGpuBuffer;      ///< GPU buffer holding the data.
+    nvrhi::BufferHandle mpGpuBuffer;      ///< GPU buffer holding the data.
 };
 } // namespace Falcor

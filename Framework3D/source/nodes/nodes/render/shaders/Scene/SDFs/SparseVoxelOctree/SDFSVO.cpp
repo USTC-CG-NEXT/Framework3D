@@ -59,7 +59,7 @@ namespace Falcor
 
     struct SDFSVO::SharedData
     {
-        ref<Buffer> pUnitAABBBuffer;
+        nvrhi::BufferHandle pUnitAABBBuffer;
 
         SharedData(nvrhi::DeviceHandle pDevice)
         {
@@ -392,7 +392,7 @@ namespace Falcor
         }
     }
 
-    const ref<Buffer>& SDFSVO::getAABBBuffer() const
+    const nvrhi::BufferHandle& SDFSVO::getAABBBuffer() const
     {
         return mpSharedData->pUnitAABBBuffer;
     }

@@ -658,13 +658,13 @@ namespace Falcor
             \param[in] meshID Mesh ID.
             \param[in] buffers Map of buffers containing mesh data: "triangleIndices", "positions", and "texcrds" are required.
         */
-        void getMeshVerticesAndIndices(MeshID meshID, const std::map<std::string, ref<Buffer>>& buffers);
+        void getMeshVerticesAndIndices(MeshID meshID, const std::map<std::string, nvrhi::BufferHandle>& buffers);
 
         /** Set mesh vertex data and update the acceleration structures.
             \param[in] meshID Mesh ID.
             \param[in] buffers Map of buffers containing mesh data: "positions", "normals", "tangents", and "texcrds" are required.
         */
-        void setMeshVertices(MeshID meshID, const std::map<std::string, ref<Buffer>>& buffers);
+        void setMeshVertices(MeshID meshID, const std::map<std::string, nvrhi::BufferHandle>& buffers);
 
         /** Get the number of curves.
         */
@@ -1229,7 +1229,7 @@ namespace Falcor
 
         struct DrawArgs
         {
-            ref<Buffer> pBuffer;            ///< Buffer holding the draw-indirect arguments.
+            nvrhi::BufferHandle pBuffer;            ///< Buffer holding the draw-indirect arguments.
             uint32_t count = 0;             ///< Number of draws.
             bool ccw = true;                ///< True if counterclockwise triangle winding.
             ResourceFormat ibFormat = ResourceFormat::Unknown;  ///< Index buffer format.
@@ -1266,9 +1266,9 @@ namespace Falcor
             struct DisplacementMeshData { uint32_t AABBOffset = 0; uint32_t AABBCount = 0; };
             std::vector<DisplacementMeshData> meshData;             ///< List of displacement mesh data (reference to AABBs).
             std::vector<DisplacementUpdateTask> updateTasks;        ///< List of displacement AABB update tasks.
-            ref<Buffer> pUpdateTasksBuffer;                         ///< GPU Buffer with list of displacement AABB update tasks.
+            nvrhi::BufferHandle pUpdateTasksBuffer;                         ///< GPU Buffer with list of displacement AABB update tasks.
             ref<ComputePass> pUpdatePass;                           ///< Comput epass to update displacement AABB data.
-            ref<Buffer> pAABBBuffer;                                ///< GPU Buffer of raw displacement AABB data. Used for acceleration structure creation, and bound to the Scene for access in shaders.
+            nvrhi::BufferHandle pAABBBuffer;                                ///< GPU Buffer of raw displacement AABB data. Used for acceleration structure creation, and bound to the Scene for access in shaders.
         } mDisplacement;
 
         // Curves
@@ -1292,7 +1292,7 @@ namespace Falcor
 
         // The following array and buffer records the AABBs of all procedural primitives, including custom primitives, curves, etc.
         std::vector<RtAABB> mRtAABBRaw;                             ///< Raw AABB data (min, max) for all procedural primitives.
-        ref<Buffer> mpRtAABBBuffer;                                 ///< GPU Buffer of raw AABB data. Used for acceleration structure creation, and bound to the Scene for access in shaders.
+        nvrhi::BufferHandle mpRtAABBBuffer;                                 ///< GPU Buffer of raw AABB data. Used for acceleration structure creation, and bound to the Scene for access in shaders.
 
         // Materials
         std::unique_ptr<MaterialSystem> mpMaterials;                ///< Material system. This holds data and resources for all materials.
@@ -1323,12 +1323,12 @@ namespace Falcor
         TypeConformanceList mTypeConformances;             ///< Current list of type conformances that need to be set on any program accessing the scene.
 
         // Scene block resources
-        ref<Buffer> mpGeometryInstancesBuffer;
-        ref<Buffer> mpMeshesBuffer;
-        ref<Buffer> mpCurvesBuffer;
-        ref<Buffer> mpCustomPrimitivesBuffer;
-        ref<Buffer> mpLightsBuffer;
-        ref<Buffer> mpGridVolumesBuffer;
+        nvrhi::BufferHandle mpGeometryInstancesBuffer;
+        nvrhi::BufferHandle mpMeshesBuffer;
+        nvrhi::BufferHandle mpCurvesBuffer;
+        nvrhi::BufferHandle mpCustomPrimitivesBuffer;
+        nvrhi::BufferHandle mpLightsBuffer;
+        nvrhi::BufferHandle mpGridVolumesBuffer;
         ref<ParameterBlock> mpSceneBlock;
 
         // Camera
@@ -1370,13 +1370,13 @@ namespace Falcor
         struct TlasData
         {
             nvrhi::rt::AccelStructHandle pTlasObject;
-            ref<Buffer> pTlasBuffer;
+            nvrhi::BufferHandle pTlasBuffer;
             UpdateMode updateMode = UpdateMode::Rebuild;    ///< Update mode this TLAS was created with.
         };
 
         std::unordered_map<uint32_t, TlasData> mTlasCache;  ///< Top Level Acceleration Structure for scene data cached per shader ray type count.
                                                             ///< Number of ray types in program affects Shader Table indexing.
-        ref<Buffer> mpTlasScratch;                          ///< Scratch buffer used for TLAS builds. Can be shared as long as instance desc count is the same, which for now it is.
+        nvrhi::BufferHandle mpTlasScratch;                          ///< Scratch buffer used for TLAS builds. Can be shared as long as instance desc count is the same, which for now it is.
         RtAccelerationStructurePrebuildInfo mTlasPrebuildInfo; ///< This can be reused as long as the number of instance descs doesn't change.
         uint32_t mTlasLastBuiltRayCount = 0;                ///< RayTypeCount of the last built TLAS, zero if there is none
 
@@ -1420,15 +1420,15 @@ namespace Falcor
             uint64_t scratchByteSize = 0;                   ///< Maximum scratch data size for all BLASes in the group, including padding.
             uint64_t finalByteSize = 0;                     ///< Size of the final BLASes in the group post-compaction, including padding.
 
-            ref<Buffer> pBlas;                              ///< Buffer containing all final BLASes in the group.
+            nvrhi::BufferHandle pBlas;                              ///< Buffer containing all final BLASes in the group.
         };
 
         // BLAS Data is ordered as all mesh BLAS's first, followed by one BLAS containing all AABBs.
         std::vector<nvrhi::rt::AccelStructHandle> mBlasObjects; ///< BLAS API objects.
         std::vector<BlasData> mBlasData;                    ///< All data related to the scene's BLASes.
         std::vector<BlasGroup> mBlasGroups;                 ///< BLAS group data.
-        ref<Buffer> mpBlasScratch;                          ///< Scratch buffer used for BLAS builds.
-        ref<Buffer> mpBlasStaticWorldMatrices;              ///< Object-to-world transform matrices in row-major format. Only valid for static meshes.
+        nvrhi::BufferHandle mpBlasScratch;                          ///< Scratch buffer used for BLAS builds.
+        nvrhi::BufferHandle mpBlasStaticWorldMatrices;              ///< Object-to-world transform matrices in row-major format. Only valid for static meshes.
         bool mBlasDataValid = false;                        ///< Flag to indicate if the BLAS data is valid. This will be reset when geometry is changed.
         bool mRebuildBlas = true;                           ///< Flag to indicate BLASes need to be rebuilt.
 

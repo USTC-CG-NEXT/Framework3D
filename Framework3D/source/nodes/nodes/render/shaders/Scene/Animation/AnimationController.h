@@ -133,12 +133,12 @@ namespace Falcor
         /** Get the previous vertex data buffer for dynamic meshes.
             \return Buffer containing the previous vertex data, or nullptr if no dynamic meshes exist.
         */
-        ref<Buffer> getPrevVertexData() const { return mpPrevVertexData; }
+        nvrhi::BufferHandle getPrevVertexData() const { return mpPrevVertexData; }
 
         /** Get the previous curve vertex data buffer for dynamic curves.
             \return Buffer containing the previous curve vertex data, or nullptr if no dynamic curves exist.
         */
-        ref<Buffer> getPrevCurveVertexData() const { return mpVertexCache ? mpVertexCache->getPrevCurveVertexData() : nullptr; }
+        nvrhi::BufferHandle getPrevCurveVertexData() const { return mpVertexCache ? mpVertexCache->getPrevCurveVertexData() : nullptr; }
 
         /** Get the total GPU memory usage in bytes.
         */
@@ -178,10 +178,10 @@ namespace Falcor
         double mGlobalAnimationLength = 0;
         Scene* mpScene = nullptr;
 
-        ref<Buffer> mpWorldMatricesBuffer;
-        ref<Buffer> mpPrevWorldMatricesBuffer;
-        ref<Buffer> mpInvTransposeWorldMatricesBuffer;
-        ref<Buffer> mpPrevInvTransposeWorldMatricesBuffer;
+        nvrhi::BufferHandle mpWorldMatricesBuffer;
+        nvrhi::BufferHandle mpPrevWorldMatricesBuffer;
+        nvrhi::BufferHandle mpInvTransposeWorldMatricesBuffer;
+        nvrhi::BufferHandle mpPrevInvTransposeWorldMatricesBuffer;
 
         // Skinning
         ref<ComputePass> mpSkinningPass;
@@ -190,12 +190,12 @@ namespace Falcor
         std::vector<float4x4> mInvTransposeSkinningMatrices;
         uint32_t mSkinningDispatchSize = 0;
 
-        ref<Buffer> mpMeshBindMatricesBuffer;
-        ref<Buffer> mpMeshInvBindMatricesBuffer;
-        ref<Buffer> mpSkinningMatricesBuffer;
-        ref<Buffer> mpInvTransposeSkinningMatricesBuffer;
-        ref<Buffer> mpSkinningVertexData;
-        ref<Buffer> mpPrevVertexData;
+        nvrhi::BufferHandle mpMeshBindMatricesBuffer;
+        nvrhi::BufferHandle mpMeshInvBindMatricesBuffer;
+        nvrhi::BufferHandle mpSkinningMatricesBuffer;
+        nvrhi::BufferHandle mpInvTransposeSkinningMatricesBuffer;
+        nvrhi::BufferHandle mpSkinningVertexData;
+        nvrhi::BufferHandle mpPrevVertexData;
         SplitVertexBuffer mStaticVertexData;
 
         // Animated vertex caches

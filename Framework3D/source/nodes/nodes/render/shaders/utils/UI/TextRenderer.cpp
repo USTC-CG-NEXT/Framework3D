@@ -52,7 +52,7 @@ const float2 kVertexPos[] = {
 
 const uint32_t kMaxCharCount = 1000;
 
-ref<Vao> createVAO(const ref<Buffer>& pVB)
+ref<Vao> createVAO(const nvrhi::BufferHandle& pVB)
 {
     ref<VertexLayout> pLayout = VertexLayout::create();
     ref<VertexBufferLayout> pBufLayout = VertexBufferLayout::create();
@@ -72,7 +72,7 @@ TextRenderer::TextRenderer(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
     {
         // Create a vertex buffer
         const uint32_t vbSize = (uint32_t)(sizeof(Vertex) * kMaxCharCount * std::size(kVertexPos));
-        ref<Buffer> pVb = mpDevice->createBuffer(vbSize, ResourceBindFlags::Vertex, MemoryType::Upload, nullptr);
+        nvrhi::BufferHandle pVb = mpDevice->createBuffer(vbSize, ResourceBindFlags::Vertex, MemoryType::Upload, nullptr);
         mpVaos[i] = createVAO(pVb);
     }
 

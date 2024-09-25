@@ -86,7 +86,7 @@ namespace Falcor
         auto flags = Material::UpdateFlags::None;
         if (mUpdates != Material::UpdateFlags::None)
         {
-            auto checkBuffer = [&](ref<Buffer>& buf, uint& handle)
+            auto checkBuffer = [&](nvrhi::BufferHandle& buf, uint& handle)
             {
                 // If a BRDF was already loaded and we're just updating data,
                 // then buffer handles are already assigned.

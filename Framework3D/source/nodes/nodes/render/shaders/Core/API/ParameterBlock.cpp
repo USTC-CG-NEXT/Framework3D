@@ -28,7 +28,6 @@
 #include "ParameterBlock.h"
 #include "Device.h"
 #include "CopyContext.h"
-#include "GFXAPI.h"
 #include "Core/Error.h"
 #include "Core/Program/ProgramVersion.h"
 #include "Utils/Logger.h"
@@ -128,7 +127,7 @@ bool isConstantBufferType(const ReflectionType* pType)
 } // namespace
 
 ref<ParameterBlock> ParameterBlock::create(
-    ref<Device> pDevice,
+    nvrhi::DeviceHandle pDevice,
     const ref<const ProgramVersion>& pProgramVersion,
     const ref<const ReflectionType>& pElementType
 )
@@ -138,7 +137,7 @@ ref<ParameterBlock> ParameterBlock::create(
     return create(pDevice, pReflection);
 }
 
-ref<ParameterBlock> ParameterBlock::create(ref<Device> pDevice, const ref<const ParameterBlockReflection>& pReflection)
+ref<ParameterBlock> ParameterBlock::create(nvrhi::DeviceHandle pDevice, const ref<const ParameterBlockReflection>& pReflection)
 {
     FALCOR_ASSERT(pReflection);
     // TODO(@skallweit) we convert the weak pointer to a shared pointer here because we tie
@@ -148,7 +147,7 @@ ref<ParameterBlock> ParameterBlock::create(ref<Device> pDevice, const ref<const 
 }
 
 ref<ParameterBlock> ParameterBlock::create(
-    ref<Device> pDevice,
+    nvrhi::DeviceHandle pDevice,
     const ref<const ProgramVersion>& pProgramVersion,
     const std::string& typeName
 )
@@ -205,7 +204,7 @@ void ParameterBlock::createConstantBuffers(const ShaderVar& var)
         {
         case ReflectionResourceType::Type::ConstantBuffer:
         {
-            auto pCB = ParameterBlock::create(ref<Device>(mpDevice), pResourceType->getParameterBlockReflector());
+            auto pCB = ParameterBlock::create(nvrhi::DeviceHandle(mpDevice), pResourceType->getParameterBlockReflector());
             var.setParameterBlock(pCB);
         }
         break;
@@ -249,7 +248,7 @@ void ParameterBlock::prepareResource(CopyContext* pContext, Resource* pResource,
 
 ParameterBlock::~ParameterBlock() {}
 
-ParameterBlock::ParameterBlock(ref<Device> pDevice, const ref<const ProgramReflection>& pReflector)
+ParameterBlock::ParameterBlock(nvrhi::DeviceHandle pDevice, const ref<const ProgramReflection>& pReflector)
     : mpDevice(pDevice.get()), mpProgramVersion(pReflector->getProgramVersion()), mpReflector(pReflector->getDefaultParameterBlock())
 {
     FALCOR_GFX_CALL(mpDevice->getGfxDevice()->createMutableRootShaderObject(
@@ -260,7 +259,7 @@ ParameterBlock::ParameterBlock(ref<Device> pDevice, const ref<const ProgramRefle
 }
 
 ParameterBlock::ParameterBlock(
-    ref<Device> pDevice,
+    nvrhi::DeviceHandle pDevice,
     const ref<const ProgramVersion>& pProgramVersion,
     const ref<const ParameterBlockReflection>& pReflection
 )
@@ -475,12 +474,12 @@ FALCOR_API void ParameterBlock::setVariable(const BindLocation& bindLocation, co
 // Buffer
 //
 
-void ParameterBlock::setBuffer(std::string_view name, const ref<Buffer>& pBuffer)
+void ParameterBlock::setBuffer(std::string_view name, const nvrhi::BufferHandle& pBuffer)
 {
     getRootVar()[name].setBuffer(pBuffer);
 }
 
-void ParameterBlock::setBuffer(const BindLocation& bindLoc, const ref<Buffer>& pBuffer)
+void ParameterBlock::setBuffer(const BindLocation& bindLoc, const nvrhi::BufferHandle& pBuffer)
 {
     gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLoc);
     if (isUavType(bindLoc.getType()))
@@ -507,12 +506,12 @@ void ParameterBlock::setBuffer(const BindLocation& bindLoc, const ref<Buffer>& p
     }
 }
 
-ref<Buffer> ParameterBlock::getBuffer(std::string_view name) const
+nvrhi::BufferHandle ParameterBlock::getBuffer(std::string_view name) const
 {
     return getRootVar()[name].getBuffer();
 }
 
-ref<Buffer> ParameterBlock::getBuffer(const BindLocation& bindLoc) const
+nvrhi::BufferHandle ParameterBlock::getBuffer(const BindLocation& bindLoc) const
 {
     gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLoc);
     if (isUavType(bindLoc.getType()))
@@ -541,12 +540,12 @@ ref<Buffer> ParameterBlock::getBuffer(const BindLocation& bindLoc) const
 // Texture
 //
 
-void ParameterBlock::setTexture(std::string_view name, const ref<Texture>& pTexture)
+void ParameterBlock::setTexture(std::string_view name, const nvrhi::TextureHandle& pTexture)
 {
     getRootVar()[name].setTexture(pTexture);
 }
 
-void ParameterBlock::setTexture(const BindLocation& bindLocation, const ref<Texture>& pTexture)
+void ParameterBlock::setTexture(const BindLocation& bindLocation, const nvrhi::TextureHandle& pTexture)
 {
     gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
     if (isUavType(bindLocation.getType()))
@@ -573,12 +572,12 @@ void ParameterBlock::setTexture(const BindLocation& bindLocation, const ref<Text
     }
 }
 
-ref<Texture> ParameterBlock::getTexture(std::string_view name) const
+nvrhi::TextureHandle ParameterBlock::getTexture(std::string_view name) const
 {
     return getRootVar()[name].getTexture();
 }
 
-ref<Texture> ParameterBlock::getTexture(const BindLocation& bindLocation) const
+nvrhi::TextureHandle ParameterBlock::getTexture(const BindLocation& bindLocation) const
 {
     gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
     if (isUavType(bindLocation.getType()))
@@ -671,7 +670,7 @@ ref<UnorderedAccessView> ParameterBlock::getUav(const BindLocation& bindLocation
     }
 }
 
-void ParameterBlock::setAccelerationStructure(const BindLocation& bindLocation, const ref<RtAccelerationStructure>& pAccl)
+void ParameterBlock::setAccelerationStructure(const BindLocation& bindLocation, const nvrhi::rt::AccelerationStructure& pAccl)
 {
     if (isAccelerationStructureType(bindLocation.getType()))
     {
@@ -685,7 +684,7 @@ void ParameterBlock::setAccelerationStructure(const BindLocation& bindLocation, 
     }
 }
 
-ref<RtAccelerationStructure> ParameterBlock::getAccelerationStructure(const BindLocation& bindLocation) const
+nvrhi::rt::AccelerationStructure ParameterBlock::getAccelerationStructure(const BindLocation& bindLocation) const
 {
     if (isAccelerationStructureType(bindLocation.getType()))
     {
@@ -705,17 +704,17 @@ ref<RtAccelerationStructure> ParameterBlock::getAccelerationStructure(const Bind
 // Sampler
 //
 
-void ParameterBlock::setSampler(std::string_view name, const ref<Sampler>& pSampler)
+void ParameterBlock::setSampler(std::string_view name, const nvrhi::SamplerHandle& pSampler)
 {
     getRootVar()[name].setSampler(pSampler);
 }
 
-void ParameterBlock::setSampler(const BindLocation& bindLocation, const ref<Sampler>& pSampler)
+void ParameterBlock::setSampler(const BindLocation& bindLocation, const nvrhi::SamplerHandle& pSampler)
 {
     if (isSamplerType(bindLocation.getType()))
     {
         gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
-        const ref<Sampler>& pBoundSampler = pSampler ? pSampler : mpDevice->getDefaultSampler();
+        const nvrhi::SamplerHandle& pBoundSampler = pSampler ? pSampler : mpDevice->getDefaultSampler();
         mSamplers[gfxOffset] = pBoundSampler;
         FALCOR_GFX_CALL(mpShaderObject->setSampler(gfxOffset, pBoundSampler->getGfxSamplerState()));
     }
@@ -725,12 +724,12 @@ void ParameterBlock::setSampler(const BindLocation& bindLocation, const ref<Samp
     }
 }
 
-ref<Sampler> ParameterBlock::getSampler(std::string_view name) const
+nvrhi::SamplerHandle ParameterBlock::getSampler(std::string_view name) const
 {
     return getRootVar()[name].getSampler();
 }
 
-ref<Sampler> ParameterBlock::getSampler(const BindLocation& bindLocation) const
+nvrhi::SamplerHandle ParameterBlock::getSampler(const BindLocation& bindLocation) const
 {
     if (isSamplerType(bindLocation.getType()))
     {

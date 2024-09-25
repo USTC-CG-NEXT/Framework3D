@@ -73,7 +73,7 @@ namespace Falcor
     class FALCOR_API AnimatedVertexCache
     {
     public:
-        AnimatedVertexCache(nvrhi::DeviceHandle pDevice, Scene* pScene, const ref<Buffer>& pPrevVertexData, std::vector<CachedCurve>&& cachedCurves, std::vector<CachedMesh>&& cachedMeshes);
+        AnimatedVertexCache(nvrhi::DeviceHandle pDevice, Scene* pScene, const nvrhi::BufferHandle& pPrevVertexData, std::vector<CachedCurve>&& cachedCurves, std::vector<CachedMesh>&& cachedMeshes);
         ~AnimatedVertexCache() = default;
 
         void setIsLooped(bool looped) { mLoopAnimations = looped; }
@@ -94,7 +94,7 @@ namespace Falcor
 
         void copyToPrevVertices(RenderContext* pContext);
 
-        ref<Buffer> getPrevCurveVertexData() const { return mpPrevCurveVertexBuffer; }
+        nvrhi::BufferHandle getPrevCurveVertexData() const { return mpPrevCurveVertexBuffer; }
 
         uint64_t getMemoryUsageInBytes() const;
 
@@ -130,7 +130,7 @@ namespace Falcor
         double mGlobalCurveAnimationLength = 0;
         double mGlobalMeshAnimationLength = 0;
         Scene* mpScene = nullptr;
-        ref<Buffer> mpPrevVertexData; ///< Owned by AnimationController
+        nvrhi::BufferHandle mpPrevVertexData; ///< Owned by AnimationController
         Animation::Behavior mPreInfinityBehavior = Animation::Behavior::Constant; // How the animation behaves before the first keyframe.
 
         std::vector<CachedCurve> mCachedCurves;
@@ -146,9 +146,9 @@ namespace Falcor
         uint32_t mCurveIndexCount = 0;
         uint32_t mCurveAABBOffset = 0;
 
-        std::vector<ref<Buffer>> mpCurveVertexBuffers;
-        ref<Buffer> mpPrevCurveVertexBuffer;
-        ref<Buffer> mpCurveIndexBuffer;
+        std::vector<nvrhi::BufferHandle> mpCurveVertexBuffers;
+        nvrhi::BufferHandle mpPrevCurveVertexBuffer;
+        nvrhi::BufferHandle mpCurveIndexBuffer;
 
         // Cached curve (poly-tube mesh) animation.
         ref<ComputePass> mpCurvePolyTubeVertexUpdatePass;
@@ -157,10 +157,10 @@ namespace Falcor
         uint32_t mCurvePolyTubeIndexCount = 0;
         uint32_t mMaxCurvePolyTubeVertexCount = 0; ///< Greatest vertex count a curve has
 
-        std::vector<ref<Buffer>> mpCurvePolyTubeVertexBuffers;
-        ref<Buffer> mpCurvePolyTubeStrandIndexBuffer;
-        ref<Buffer> mpCurvePolyTubeCurveMetadataBuffer;
-        ref<Buffer> mpCurvePolyTubeMeshMetadataBuffer;
+        std::vector<nvrhi::BufferHandle> mpCurvePolyTubeVertexBuffers;
+        nvrhi::BufferHandle mpCurvePolyTubeStrandIndexBuffer;
+        nvrhi::BufferHandle mpCurvePolyTubeCurveMetadataBuffer;
+        nvrhi::BufferHandle mpCurvePolyTubeMeshMetadataBuffer;
 
 
         // Cached mesh animations
@@ -171,8 +171,8 @@ namespace Falcor
         uint32_t mMeshKeyframeCount = 0; ///< Total count of all keyframes for all meshes
         uint32_t mMaxMeshVertexCount = 0; ///< Greatest vertex count a mesh has
 
-        std::vector<ref<Buffer>> mpMeshVertexBuffers;
-        ref<Buffer> mpMeshInterpolationBuffer;
-        ref<Buffer> mpMeshMetadataBuffer;
+        std::vector<nvrhi::BufferHandle> mpMeshVertexBuffers;
+        nvrhi::BufferHandle mpMeshInterpolationBuffer;
+        nvrhi::BufferHandle mpMeshMetadataBuffer;
     };
 }

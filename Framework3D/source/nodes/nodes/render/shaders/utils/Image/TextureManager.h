@@ -361,7 +361,7 @@ private:
     std::vector<size_t> mFreeUdimRanges;
 
     mutable bool mUdimIndirectionDirty = true;
-    mutable ref<Buffer> mpUdimIndirection;
+    mutable nvrhi::BufferHandle mpUdimIndirection;
 
     using Objects = std::set<const Object*>;
     using Handles = std::set<CpuTextureHandle>;

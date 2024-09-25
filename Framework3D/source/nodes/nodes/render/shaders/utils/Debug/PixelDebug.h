@@ -94,10 +94,10 @@ protected:
     // Internal state
     nvrhi::DeviceHandle mpDevice;
     ref<Program> mpReflectProgram; ///< Program for reflection of types.
-    ref<Buffer> mpCounterBuffer;   ///< Counter buffer (print, assert) on the GPU.
-    ref<Buffer> mpPrintBuffer;     ///< Print buffer on the GPU.
-    ref<Buffer> mpAssertBuffer;    ///< Assert buffer on the GPU.
-    ref<Buffer> mpReadbackBuffer;  ///< Staging buffer for async readback of all data.
+    nvrhi::BufferHandle mpCounterBuffer;   ///< Counter buffer (print, assert) on the GPU.
+    nvrhi::BufferHandle mpPrintBuffer;     ///< Print buffer on the GPU.
+    nvrhi::BufferHandle mpAssertBuffer;    ///< Assert buffer on the GPU.
+    nvrhi::BufferHandle mpReadbackBuffer;  ///< Staging buffer for async readback of all data.
     ref<Fence> mpFence;            ///< GPU fence for sychronizing readback.
 
     // Configuration

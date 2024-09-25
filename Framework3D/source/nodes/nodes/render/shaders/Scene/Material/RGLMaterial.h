@@ -69,17 +69,17 @@ namespace Falcor
 
         bool mBRDFUploaded = false;         ///< True if BRDF data buffers have been uploaded to the material system.
         RGLMaterialData mData;              ///< Material parameters.
-        ref<Buffer> mpThetaBuf;
-        ref<Buffer> mpPhiBuf;
-        ref<Buffer> mpSigmaBuf;
-        ref<Buffer> mpNDFBuf;
-        ref<Buffer> mpVNDFBuf;
-        ref<Buffer> mpLumiBuf;
-        ref<Buffer> mpRGBBuf;
-        ref<Buffer> mpVNDFMarginalBuf;
-        ref<Buffer> mpLumiMarginalBuf;
-        ref<Buffer> mpVNDFConditionalBuf;
-        ref<Buffer> mpLumiConditionalBuf;
+        nvrhi::BufferHandle mpThetaBuf;
+        nvrhi::BufferHandle mpPhiBuf;
+        nvrhi::BufferHandle mpSigmaBuf;
+        nvrhi::BufferHandle mpNDFBuf;
+        nvrhi::BufferHandle mpVNDFBuf;
+        nvrhi::BufferHandle mpLumiBuf;
+        nvrhi::BufferHandle mpRGBBuf;
+        nvrhi::BufferHandle mpVNDFMarginalBuf;
+        nvrhi::BufferHandle mpLumiMarginalBuf;
+        nvrhi::BufferHandle mpVNDFConditionalBuf;
+        nvrhi::BufferHandle mpLumiConditionalBuf;
         nvrhi::TextureHandle mpAlbedoLUT;           ///< Precomputed albedo lookup table.
         nvrhi::SamplerHandle mpSampler;             ///< Sampler for accessing BRDF textures.
 

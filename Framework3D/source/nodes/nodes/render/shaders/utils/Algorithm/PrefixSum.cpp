@@ -76,10 +76,10 @@ PrefixSum::PrefixSum(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 
 void PrefixSum::execute(
     RenderContext* pRenderContext,
-    ref<Buffer> pData,
+    nvrhi::BufferHandle pData,
     uint32_t elementCount,
     uint32_t* pTotalSum,
-    ref<Buffer> pTotalSumBuffer,
+    nvrhi::BufferHandle pTotalSumBuffer,
     uint64_t pTotalSumOffset
 )
 {

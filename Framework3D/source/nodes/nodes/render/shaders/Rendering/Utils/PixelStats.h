@@ -114,7 +114,7 @@ namespace Falcor
 
         // Internal state
         std::unique_ptr<ParallelReduction>  mpParallelReduction;            ///< Helper for parallel reduction on the GPU.
-        ref<Buffer>                         mpReductionResult;              ///< Results buffer for stats readback (CPU mappable).
+        nvrhi::BufferHandle                         mpReductionResult;              ///< Results buffer for stats readback (CPU mappable).
         ref<Fence>                          mpFence;                        ///< GPU fence for sychronizing readback.
 
         // Configuration

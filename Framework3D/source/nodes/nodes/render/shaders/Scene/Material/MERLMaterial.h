@@ -65,7 +65,7 @@ namespace Falcor
         std::string mBRDFName;              ///< This is the file basename without extension.
 
         MERLMaterialData mData;             ///< Material parameters.
-        ref<Buffer> mpBRDFData;             ///< GPU buffer holding all BRDF data as float3 array.
+        nvrhi::BufferHandle mpBRDFData;             ///< GPU buffer holding all BRDF data as float3 array.
         nvrhi::TextureHandle mpAlbedoLUT;           ///< Precomputed albedo lookup table.
         nvrhi::SamplerHandle mpLUTSampler;          ///< Sampler for accessing the LUT texture.
     };
