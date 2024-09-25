@@ -154,7 +154,7 @@ public:
 
     /// Creates the GPU buffers, locking further inserts.
     /// Will clear any existing GPU buffers.
-    void createGpuBuffers(const ref<Device>& mpDevice, ResourceBindFlags bindFlags)
+    void createGpuBuffers(const nvrhi::DeviceHandle& mpDevice, ResourceBindFlags bindFlags)
     {
         mGpuBuffers.clear();
         mGpuBuffers.reserve(mCpuBuffers.size());

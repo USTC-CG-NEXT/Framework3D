@@ -157,7 +157,7 @@ public:
     /**
      * Constructor.
      */
-    Profiler(ref<Device> pDevice);
+    Profiler(nvrhi::DeviceHandle pDevice);
 
     const Device* getDevice() const { return mpDevice.get(); }
 
@@ -261,7 +261,7 @@ private:
      */
     Event* findEvent(const std::string& name);
 
-    BreakableReference<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
 
     bool mEnabled = false;
     bool mPaused = false;

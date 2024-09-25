@@ -129,7 +129,7 @@ public:
 
     virtual ~IScene() = default;
 
-    virtual const ref<Device>& getDevice() const = 0;
+    virtual const nvrhi::DeviceHandle& getDevice() const = 0;
 
     using UpdateFlagsSignal = sigs::Signal<void(IScene::UpdateFlags)>;
 
@@ -186,7 +186,7 @@ public:
 
     /// Allows changing the default texture sampler based on the pass requirements.
     /// This will be applied to all materials, old and new.
-    virtual void setDefaultTextureSampler(const ref<Sampler>& pSampler) = 0;
+    virtual void setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler) = 0;
 
 public: /// Compatibility calls
     /// Convenience function when the Scene wants to do something besides just calling raytrace.

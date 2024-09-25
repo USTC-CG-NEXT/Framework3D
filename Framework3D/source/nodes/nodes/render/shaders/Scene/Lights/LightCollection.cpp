@@ -50,7 +50,7 @@ namespace Falcor
         const char kFinalizeIntegrationFile[] = "Scene/Lights/FinalizeIntegration.cs.slang";
     }
 
-    LightCollection::LightCollection(ref<Device> pDevice, RenderContext* pRenderContext, Scene* pScene)
+    LightCollection::LightCollection(nvrhi::DeviceHandle pDevice, RenderContext* pRenderContext, Scene* pScene)
         : mpDevice(pDevice)
         , mpScene(pScene)
     {

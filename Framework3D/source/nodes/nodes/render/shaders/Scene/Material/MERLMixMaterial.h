@@ -47,9 +47,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(MERLMixMaterial)
     public:
-        static ref<MERLMixMaterial> create(ref<Device> pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths) { return make_ref<MERLMixMaterial>(pDevice, name, paths); }
+        static ref<MERLMixMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths) { return make_ref<MERLMixMaterial>(pDevice, name, paths); }
 
-        MERLMixMaterial(ref<Device> pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths);
+        MERLMixMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths);
 
         bool renderUI(Gui::Widgets& widget) override;
         Material::UpdateFlags update(MaterialSystem* pOwner) override;
@@ -59,12 +59,12 @@ namespace Falcor
         TypeConformanceList getTypeConformances() const override;
         size_t getMaxBufferCount() const override { return 1; }
 
-        bool setTexture(const TextureSlot slot, const ref<Texture>& pTexture) override;
-        void setDefaultTextureSampler(const ref<Sampler>& pSampler) override;
-        ref<Sampler> getDefaultTextureSampler() const override { return mpDefaultSampler; }
+        bool setTexture(const TextureSlot slot, const nvrhi::TextureHandle& pTexture) override;
+        void setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler) override;
+        nvrhi::SamplerHandle getDefaultTextureSampler() const override { return mpDefaultSampler; }
 
-        void setNormalMap(const ref<Texture>& pNormalMap) { setTexture(TextureSlot::Normal, pNormalMap); }
-        ref<Texture> getNormalMap() const { return getTexture(TextureSlot::Normal); }
+        void setNormalMap(const nvrhi::TextureHandle& pNormalMap) { setTexture(TextureSlot::Normal, pNormalMap); }
+        nvrhi::TextureHandle getNormalMap() const { return getTexture(TextureSlot::Normal); }
 
     protected:
         void updateNormalMapType();
@@ -87,9 +87,9 @@ namespace Falcor
 
         MERLMixMaterialData mData;          ///< Material parameters.
         ref<Buffer> mpBRDFData;             ///< GPU buffer holding all BRDF data as float3 arrays.
-        ref<Texture> mpAlbedoLUT;           ///< Precomputed albedo lookup table.
-        ref<Sampler> mpLUTSampler;          ///< Sampler for accessing the LUT texture.
-        ref<Sampler> mpIndexSampler;        ///< Sampler for accessing the index map.
-        ref<Sampler> mpDefaultSampler;
+        nvrhi::TextureHandle mpAlbedoLUT;           ///< Precomputed albedo lookup table.
+        nvrhi::SamplerHandle mpLUTSampler;          ///< Sampler for accessing the LUT texture.
+        nvrhi::SamplerHandle mpIndexSampler;        ///< Sampler for accessing the index map.
+        nvrhi::SamplerHandle mpDefaultSampler;
     };
 }

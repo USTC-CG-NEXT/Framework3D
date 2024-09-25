@@ -91,7 +91,7 @@ namespace Falcor
             All = AABBsChanged | BuffersReallocated,
         };
 
-        SDFGrid(ref<Device> pDevice);
+        SDFGrid(nvrhi::DeviceHandle pDevice);
         virtual ~SDFGrid() = default;
 
         /** Set SDF primitives to be used to construct the SDF grid.
@@ -240,7 +240,7 @@ namespace Falcor
 
         void updatePrimitivesBuffer();
 
-        ref<Device>             mpDevice;
+        nvrhi::DeviceHandle             mpDevice;
 
         std::string             mName;
         uint32_t                mGridWidth = 0;
@@ -257,7 +257,7 @@ namespace Falcor
         bool                    mHasGridRepresentation = false;     ///< True if a value representation exists.
         bool                    mInitializedWithPrimitives = false; ///< True if the grid was initialized with primitives.
 
-        ref<Texture>            mpSDFGridTexture;                   ///< A texture on the GPU holding the value representation.
+        nvrhi::TextureHandle            mpSDFGridTexture;                   ///< A texture on the GPU holding the value representation.
         ref<ComputePass>        mpEvaluatePrimitivesPass;
 
         friend class Scene;

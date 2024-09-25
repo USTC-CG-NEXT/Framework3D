@@ -34,7 +34,7 @@
 #include <type_traits>
 #include <array>
 
-#include <nlohmann/json.hpp>
+#include <Utils/json.hpp>
 
 #include <fmt/format.h>
 

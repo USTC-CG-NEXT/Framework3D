@@ -114,7 +114,7 @@ FALCOR_API bool freeSharedDevicePtr(void* ptr);
  * @param usageFlags The requested flags to be bound to the mipmapped array
  * @return Returns the imported mipmapped array.
  */
-FALCOR_API cudaMipmappedArray_t importTextureToMipmappedArray(ref<Texture> pTex, uint32_t cudaUsageFlags);
+FALCOR_API cudaMipmappedArray_t importTextureToMipmappedArray(nvrhi::TextureHandle pTex, uint32_t cudaUsageFlags);
 
 /**
  * Maps a texture to a surface object which can be read and written within a CUDA kernel.
@@ -125,7 +125,7 @@ FALCOR_API cudaMipmappedArray_t importTextureToMipmappedArray(ref<Texture> pTex,
  * surface object
  * @return The surface object that the input texture is bound to.
  */
-FALCOR_API cudaSurfaceObject_t mapTextureToSurface(ref<Texture> pTex, uint32_t usageFlags);
+FALCOR_API cudaSurfaceObject_t mapTextureToSurface(nvrhi::TextureHandle pTex, uint32_t usageFlags);
 
 /// Wraps a CUDA device, context and stream.
 class FALCOR_API CudaDevice : public Object
@@ -244,7 +244,7 @@ struct InteropBuffer
     }
 };
 
-inline InteropBuffer createInteropBuffer(ref<Device> pDevice, size_t byteSize)
+inline InteropBuffer createInteropBuffer(nvrhi::DeviceHandle pDevice, size_t byteSize)
 {
     InteropBuffer interop;
 

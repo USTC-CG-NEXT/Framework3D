@@ -256,7 +256,7 @@ namespace Falcor
         if (fs.bad()) FALCOR_THROW("Failed to write scene cache file to '{}'.", cachePath);
     }
 
-    Scene::SceneData SceneCache::readCache(ref<Device> pDevice, const Key& key)
+    Scene::SceneData SceneCache::readCache(nvrhi::DeviceHandle pDevice, const Key& key)
     {
         auto cachePath = getCachePath(key);
 
@@ -404,7 +404,7 @@ namespace Falcor
         writeMarker(stream, "End");
     }
 
-    Scene::SceneData SceneCache::readSceneData(InputStream& stream, ref<Device> pDevice)
+    Scene::SceneData SceneCache::readSceneData(InputStream& stream, nvrhi::DeviceHandle pDevice)
     {
         Scene::SceneData sceneData;
         sceneData.pMaterials = std::make_unique<MaterialSystem>(pDevice);
@@ -737,7 +737,7 @@ namespace Falcor
         writeSampler(stream, pMaterial->mpDisplacementMaxSampler);
     }
 
-    void SceneCache::readMaterials(InputStream& stream, MaterialSystem& materialSystem, MaterialTextureLoader& materialTextureLoader, ref<Device> pDevice)
+    void SceneCache::readMaterials(InputStream& stream, MaterialSystem& materialSystem, MaterialTextureLoader& materialTextureLoader, nvrhi::DeviceHandle pDevice)
     {
         uint32_t materialCount = 0;
         stream.read(materialCount);
@@ -749,7 +749,7 @@ namespace Falcor
         }
     }
 
-    ref<Material> SceneCache::readMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, ref<Device> pDevice)
+    ref<Material> SceneCache::readMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, nvrhi::DeviceHandle pDevice)
     {
         // Create derived material class of the right type.
         ref<Material> pMaterial;
@@ -801,7 +801,7 @@ namespace Falcor
         return pMaterial;
     }
 
-    void SceneCache::readBasicMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, const ref<BasicMaterial>& pMaterial, ref<Device> pDevice)
+    void SceneCache::readBasicMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, const ref<BasicMaterial>& pMaterial, nvrhi::DeviceHandle pDevice)
     {
         stream.read(pMaterial->mData);
         stream.read(pMaterial->mAlphaRange);
@@ -814,7 +814,7 @@ namespace Falcor
         pMaterial->mpDisplacementMaxSampler = readSampler(stream, pDevice);
     }
 
-    void SceneCache::writeSampler(OutputStream& stream, const ref<Sampler>& pSampler)
+    void SceneCache::writeSampler(OutputStream& stream, const nvrhi::SamplerHandle& pSampler)
     {
         bool valid = pSampler != nullptr;
         stream.write(valid);
@@ -824,7 +824,7 @@ namespace Falcor
         }
     }
 
-    ref<Sampler> SceneCache::readSampler(InputStream& stream, ref<Device> pDevice)
+    nvrhi::SamplerHandle SceneCache::readSampler(InputStream& stream, nvrhi::DeviceHandle pDevice)
     {
         bool valid = stream.read<bool>();
         if (valid)
@@ -859,7 +859,7 @@ namespace Falcor
         stream.write(pGridVolume->mData);
     }
 
-    ref<GridVolume> SceneCache::readGridVolume(InputStream& stream, const std::vector<ref<Grid>>& grids, ref<Device> pDevice)
+    ref<GridVolume> SceneCache::readGridVolume(InputStream& stream, const std::vector<ref<Grid>>& grids, nvrhi::DeviceHandle pDevice)
     {
         ref<GridVolume> pGridVolume = GridVolume::create(pDevice, "");
 
@@ -894,7 +894,7 @@ namespace Falcor
         stream.write(buffer.data(), buffer.size());
     }
 
-    ref<Grid> SceneCache::readGrid(InputStream& stream, ref<Device> pDevice)
+    ref<Grid> SceneCache::readGrid(InputStream& stream, nvrhi::DeviceHandle pDevice)
     {
         uint64_t size = stream.read<uint64_t>();
         auto buffer = nanovdb::HostBuffer::create(size);
@@ -912,7 +912,7 @@ namespace Falcor
         stream.write(pEnvMap->mRotation);
     }
 
-    ref<EnvMap> SceneCache::readEnvMap(InputStream& stream, ref<Device> pDevice)
+    ref<EnvMap> SceneCache::readEnvMap(InputStream& stream, nvrhi::DeviceHandle pDevice)
     {
         auto path = stream.read<std::filesystem::path>();
         auto pEnvMap = EnvMap::createFromFile(pDevice, path);

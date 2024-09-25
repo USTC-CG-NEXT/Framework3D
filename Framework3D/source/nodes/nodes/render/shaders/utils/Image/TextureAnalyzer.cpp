@@ -49,7 +49,7 @@ size_t TextureAnalyzer::getResultSize()
     return sizeof(TextureAnalyzer::Result);
 }
 
-TextureAnalyzer::TextureAnalyzer(ref<Device> pDevice) : mpDevice(pDevice)
+TextureAnalyzer::TextureAnalyzer(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 {
     mpClearPass = ComputePass::create(mpDevice, kShaderFilename, "clear");
     mpAnalyzePass = ComputePass::create(mpDevice, kShaderFilename, "analyze");
@@ -57,7 +57,7 @@ TextureAnalyzer::TextureAnalyzer(ref<Device> pDevice) : mpDevice(pDevice)
 
 void TextureAnalyzer::analyze(
     RenderContext* pRenderContext,
-    const ref<Texture> pInput,
+    const nvrhi::TextureHandle pInput,
     uint32_t mipLevel,
     uint32_t arraySlice,
     ref<Buffer> pResult,
@@ -92,7 +92,7 @@ void TextureAnalyzer::analyze(
     mpAnalyzePass->execute(pRenderContext, uint3(dim, 1));
 }
 
-void TextureAnalyzer::analyze(RenderContext* pRenderContext, const std::vector<ref<Texture>>& inputs, ref<Buffer> pResult, bool clearResult)
+void TextureAnalyzer::analyze(RenderContext* pRenderContext, const std::vector<nvrhi::TextureHandle>& inputs, ref<Buffer> pResult, bool clearResult)
 {
     FALCOR_ASSERT(pRenderContext && !inputs.empty());
     FALCOR_ASSERT(pResult && inputs.size() * getResultSize() <= pResult->getSize());
@@ -126,7 +126,7 @@ void TextureAnalyzer::clear(RenderContext* pRenderContext, ref<Buffer> pResult, 
     mpClearPass->execute(pRenderContext, uint3(resultCount, 1, 1));
 }
 
-void TextureAnalyzer::checkFormatSupport(const ref<Texture> pInput, uint32_t mipLevel, uint32_t arraySlice) const
+void TextureAnalyzer::checkFormatSupport(const nvrhi::TextureHandle pInput, uint32_t mipLevel, uint32_t arraySlice) const
 {
     // Validate that input is supported.
     if (pInput->getDepth() > 1)

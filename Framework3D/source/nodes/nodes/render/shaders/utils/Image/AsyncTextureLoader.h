@@ -38,7 +38,7 @@
 #include <queue>
 #include <thread>
 #include <vector>
-#include <fstd/span.h>
+#include <span>
 
 namespace Falcor
 {
@@ -50,13 +50,13 @@ class Barrier;
 class FALCOR_API AsyncTextureLoader
 {
 public:
-    using LoadCallback = std::function<void(ref<Texture> pTexture)>;
+    using LoadCallback = std::function<void(nvrhi::TextureHandle pTexture)>;
 
     /**
      * Constructor.
      * @param[in] threadCount Number of worker threads.
      */
-    AsyncTextureLoader(ref<Device> pDevice, size_t threadCount = std::thread::hardware_concurrency());
+    AsyncTextureLoader(nvrhi::DeviceHandle pDevice, size_t threadCount = std::thread::hardware_concurrency());
 
     /**
      * Destructor.
@@ -73,8 +73,8 @@ public:
      * @param[in] callback Function called after the texture load has finished.
      * @return A future to a new texture, or nullptr if the texture failed to load.
      */
-    std::future<ref<Texture>> loadMippedFromFiles(
-        fstd::span<const std::filesystem::path> paths,
+    std::future<nvrhi::TextureHandle> loadMippedFromFiles(
+        std::span<const std::filesystem::path> paths,
         bool loadAsSRGB,
         ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource,
         Bitmap::ImportFlags importFlags = Bitmap::ImportFlags::None,
@@ -91,7 +91,7 @@ public:
      * @param[in] callback Function called after the texture load has finished.
      * @return A future to a new texture, or nullptr if the texture failed to load.
      */
-    std::future<ref<Texture>> loadFromFile(
+    std::future<nvrhi::TextureHandle> loadFromFile(
         const std::filesystem::path& path,
         bool generateMipLevels,
         bool loadAsSRGB,
@@ -113,10 +113,10 @@ private:
         ResourceBindFlags bindFlags;
         Bitmap::ImportFlags importFlags;
         LoadCallback callback;
-        std::promise<ref<Texture>> promise;
+        std::promise<nvrhi::TextureHandle> promise;
     };
 
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
 
     std::mutex mMutex;                      ///< Mutex for synchronizing access to shared resources.
     std::condition_variable mCondition;     ///< Condition variable for workers to wait on.

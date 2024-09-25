@@ -311,7 +311,7 @@ void Profiler::Capture::finalize()
 
 // Profiler
 
-Profiler::Profiler(ref<Device> pDevice) : mpDevice(pDevice)
+Profiler::Profiler(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 {
     mpFence = mpDevice->createFence();
     mpFence->breakStrongReferenceToDevice();

@@ -67,15 +67,15 @@ namespace Falcor
             \param[in] pScene The scene.
             \return A pointer to a new light collection object, or throws an exception if creation failed.
         */
-        static ref<LightCollection> create(ref<Device> pDevice, RenderContext* pRenderContext, Scene* pScene)
+        static ref<LightCollection> create(nvrhi::DeviceHandle pDevice, RenderContext* pRenderContext, Scene* pScene)
         {
             return make_ref<LightCollection>(pDevice, pRenderContext, pScene);
         }
 
-        LightCollection(ref<Device> pDevice, RenderContext* pRenderContext, Scene* pScene);
+        LightCollection(nvrhi::DeviceHandle pDevice, RenderContext* pRenderContext, Scene* pScene);
         ~LightCollection() = default;
 
-        const ref<Device>& getDevice() const override { return mpDevice; }
+        const nvrhi::DeviceHandle& getDevice() const override { return mpDevice; }
 
         /** Updates the light collection to the current state of the scene.
             \param[in] pRenderContext The render context.
@@ -149,7 +149,7 @@ namespace Falcor
         void syncCPUData(RenderContext* pRenderContext) const;
 
         // Internal state
-        ref<Device>                             mpDevice;
+        nvrhi::DeviceHandle                             mpDevice;
         Scene*                                  mpScene;                ///< Unowning pointer to scene (scene owns LightCollection).
 
         std::vector<MeshLightData>              mMeshLights;            ///< List of all mesh lights.
@@ -173,7 +173,7 @@ namespace Falcor
         mutable ref<Buffer>                     mpStagingBuffer;        ///< Staging buffer used for retrieving the vertex positions, texture coordinates and light IDs from the GPU.
         ref<Fence>                              mpStagingFence;         ///< Fence used for waiting on the staging buffer being filled in.
 
-        ref<Sampler>                            mpSamplerState;         ///< Material sampler for emissive textures.
+        nvrhi::SamplerHandle                            mpSamplerState;         ///< Material sampler for emissive textures.
 
         // Shader programs.
         struct
@@ -181,7 +181,7 @@ namespace Falcor
             ref<Program>                        pProgram;
             ref<ProgramVars>                    pVars;
             ref<GraphicsState>                  pState;
-            ref<Sampler>                        pPointSampler;      ///< Point sampler for fetching individual texels in integrator. Must use same wrap mode etc. as material sampler.
+            nvrhi::SamplerHandle                        pPointSampler;      ///< Point sampler for fetching individual texels in integrator. Must use same wrap mode etc. as material sampler.
             ref<Buffer>                         pResultBuffer;      ///< The output of the integration pass is written here. Using raw buffer for fp32 compatibility.
         } mIntegrator;
 

@@ -31,8 +31,8 @@
 #include "Core/Enum.h"
 #include "Utils/Math/VectorTypes.h"
 
-// Do not include the full "nlohmann/json.hpp" header here, it will increase compile time considerably.
-#include <nlohmann/json_fwd.hpp>
+// Do not include the full "Utils/json.hpp" header here, it will increase compile time considerably.
+#include <Utils/json.hpp>
 #include <pybind11/pytypes.h>
 #include <fmt/core.h>
 

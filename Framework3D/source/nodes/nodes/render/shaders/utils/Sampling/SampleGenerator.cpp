@@ -29,10 +29,10 @@
 
 namespace Falcor
 {
-static std::map<uint32_t, std::function<ref<SampleGenerator>(ref<Device>)>> sFactory;
+static std::map<uint32_t, std::function<ref<SampleGenerator>(nvrhi::DeviceHandle)>> sFactory;
 static Gui::DropdownList sGuiDropdownList;
 
-ref<SampleGenerator> SampleGenerator::create(ref<Device> pDevice, uint32_t type)
+ref<SampleGenerator> SampleGenerator::create(nvrhi::DeviceHandle pDevice, uint32_t type)
 {
     if (auto it = sFactory.find(type); it != sFactory.end())
     {
@@ -56,7 +56,7 @@ const Gui::DropdownList& SampleGenerator::getGuiDropdownList()
     return sGuiDropdownList;
 }
 
-void SampleGenerator::registerType(uint32_t type, const std::string& name, std::function<ref<SampleGenerator>(ref<Device>)> createFunc)
+void SampleGenerator::registerType(uint32_t type, const std::string& name, std::function<ref<SampleGenerator>(nvrhi::DeviceHandle)> createFunc)
 {
     sGuiDropdownList.push_back({type, name});
     sFactory[type] = createFunc;
@@ -67,12 +67,12 @@ void SampleGenerator::registerAll()
     registerType(
         SAMPLE_GENERATOR_TINY_UNIFORM,
         "Tiny uniform (32-bit)",
-        [](ref<Device> pDevice) { return ref<SampleGenerator>(new SampleGenerator(pDevice, SAMPLE_GENERATOR_TINY_UNIFORM)); }
+        [](nvrhi::DeviceHandle pDevice) { return ref<SampleGenerator>(new SampleGenerator(pDevice, SAMPLE_GENERATOR_TINY_UNIFORM)); }
     );
     registerType(
         SAMPLE_GENERATOR_UNIFORM,
         "Uniform (128-bit)",
-        [](ref<Device> pDevice) { return ref<SampleGenerator>(new SampleGenerator(pDevice, SAMPLE_GENERATOR_UNIFORM)); }
+        [](nvrhi::DeviceHandle pDevice) { return ref<SampleGenerator>(new SampleGenerator(pDevice, SAMPLE_GENERATOR_UNIFORM)); }
     );
 }
 

@@ -36,7 +36,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/PBRT/PBRTCoatedDiffuseMaterial.slang";
     }
 
-    PBRTCoatedDiffuseMaterial::PBRTCoatedDiffuseMaterial(ref<Device> pDevice, const std::string& name)
+    PBRTCoatedDiffuseMaterial::PBRTCoatedDiffuseMaterial(nvrhi::DeviceHandle pDevice, const std::string& name)
         : BasicMaterial(pDevice, name, MaterialType::PBRTCoatedDiffuse)
     {
         // Setup additional texture slots.

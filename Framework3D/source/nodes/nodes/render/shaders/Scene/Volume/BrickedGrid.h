@@ -32,8 +32,8 @@ namespace Falcor
 {
     struct BrickedGrid
     {
-        ref<Texture> range;
-        ref<Texture> indirection;
-        ref<Texture> atlas;
+        nvrhi::TextureHandle range;
+        nvrhi::TextureHandle indirection;
+        nvrhi::TextureHandle atlas;
     };
 }

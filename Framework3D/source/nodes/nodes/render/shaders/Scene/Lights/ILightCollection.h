@@ -114,7 +114,7 @@ namespace Falcor
 
         virtual ~ILightCollection() = default;
 
-        virtual const ref<Device>& getDevice() const = 0;
+        virtual const nvrhi::DeviceHandle& getDevice() const = 0;
 
         /** Updates the light collection to the current state of the scene.
             \param[in] pRenderContext The render context.

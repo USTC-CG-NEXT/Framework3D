@@ -67,7 +67,7 @@ namespace Falcor
             \param[in] blendRange Range in voxels to blend from 0 to 1 (starting at surface inwards).
             \return A new grid.
         */
-        static ref<Grid> createSphere(ref<Device> pDevice, float radius, float voxelSize, float blendRange = 3.f);
+        static ref<Grid> createSphere(nvrhi::DeviceHandle pDevice, float radius, float voxelSize, float blendRange = 3.f);
 
         /** Create a box voxel grid.
             \param[in] pDevice GPU device.
@@ -78,7 +78,7 @@ namespace Falcor
             \param[in] blendRange Range in voxels to blend from 0 to 1 (starting at surface inwards).
             \return A new grid.
         */
-        static ref<Grid> createBox(ref<Device> pDevice, float width, float height, float depth, float voxelSize, float blendRange = 3.f);
+        static ref<Grid> createBox(nvrhi::DeviceHandle pDevice, float width, float height, float depth, float voxelSize, float blendRange = 3.f);
 
         /** Create a grid from a file.
             Currently only OpenVDB and NanoVDB grids of type float are supported.
@@ -87,7 +87,7 @@ namespace Falcor
             \param[in] gridname Name of the grid to load.
             \return A new grid, or nullptr if the grid failed to load.
         */
-        static ref<Grid> createFromFile(ref<Device> pDevice, const std::filesystem::path& path, const std::string& gridname);
+        static ref<Grid> createFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const std::string& gridname);
 
         /** Render the UI.
         */
@@ -145,12 +145,12 @@ namespace Falcor
         float4x4 getInvTransform() const;
 
     private:
-        Grid(ref<Device> pDevice, nanovdb::GridHandle<nanovdb::HostBuffer> gridHandle);
+        Grid(nvrhi::DeviceHandle pDevice, nanovdb::GridHandle<nanovdb::HostBuffer> gridHandle);
 
-        static ref<Grid> createFromNanoVDBFile(ref<Device>, const std::filesystem::path& path, const std::string& gridname);
-        static ref<Grid> createFromOpenVDBFile(ref<Device>, const std::filesystem::path& path, const std::string& gridname);
+        static ref<Grid> createFromNanoVDBFile(nvrhi::DeviceHandle, const std::filesystem::path& path, const std::string& gridname);
+        static ref<Grid> createFromOpenVDBFile(nvrhi::DeviceHandle, const std::filesystem::path& path, const std::string& gridname);
 
-        ref<Device> mpDevice;
+        nvrhi::DeviceHandle mpDevice;
 
         // Host data.
         nanovdb::GridHandle<nanovdb::HostBuffer> mGridHandle;

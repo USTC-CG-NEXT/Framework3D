@@ -47,7 +47,7 @@ public:
      * @param[in] weights The weights we'd like to sample each entry proportional to.
      * @param[in] rng The random number generator to use when creating the table.
      */
-    AliasTable(ref<Device> pDevice, std::vector<float> weights, std::mt19937& rng);
+    AliasTable(nvrhi::DeviceHandle pDevice, std::vector<float> weights, std::mt19937& rng);
 
     /**
      * Bind the alias table data to a given shader var.

@@ -86,6 +86,7 @@ target_link_libraries(nodes PUBLIC CUDA::toolkit)
 
 target_include_directories(nodes PRIVATE ${CMAKE_CURRENT_LIST_DIR}/intern)
 target_include_directories(nodes PRIVATE ${PROJECT_SOURCE_DIR}/source/RCore/hd_USTC_CG_GL)
+target_include_directories(nodes PRIVATE ${CMAKE_CURRENT_LIST_DIR}/nodes/render/shaders)
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

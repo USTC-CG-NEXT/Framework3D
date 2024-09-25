@@ -37,7 +37,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/PBRT/PBRTDiffuseMaterial.slang";
     }
 
-    PBRTDiffuseMaterial::PBRTDiffuseMaterial(ref<Device> pDevice, const std::string& name)
+    PBRTDiffuseMaterial::PBRTDiffuseMaterial(nvrhi::DeviceHandle pDevice, const std::string& name)
         : BasicMaterial(pDevice, name, MaterialType::PBRTDiffuse)
     {
         // Setup additional texture slots.
@@ -83,7 +83,7 @@ namespace Falcor
         };
         material.def(pybind11::init(create), "name"_a = ""); // PYTHONDEPRECATED
         material.def(pybind11::init(
-            [](ref<Device> device, const std::string& name)
+            [](nvrhi::DeviceHandle device, const std::string& name)
             {
                 return PBRTDiffuseMaterial::create(device, name);
             }),

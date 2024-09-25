@@ -62,7 +62,7 @@ namespace Falcor
         }
     }
 
-    MaterialSystem::MaterialSystem(ref<Device> pDevice)
+    MaterialSystem::MaterialSystem(nvrhi::DeviceHandle pDevice)
         : mpDevice(pDevice)
     {
         FALCOR_ASSERT(kMaxSamplerCount <= mpDevice->getLimits().maxShaderVisibleSamplers);
@@ -134,7 +134,7 @@ namespace Falcor
             });
     }
 
-    void MaterialSystem::setDefaultTextureSampler(const ref<Sampler>& pSampler)
+    void MaterialSystem::setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler)
     {
         mpDefaultTextureSampler = pSampler;
         for (const auto& pMaterial : mMaterials)
@@ -143,10 +143,10 @@ namespace Falcor
         }
     }
 
-    uint32_t MaterialSystem::addTextureSampler(const ref<Sampler>& pSampler)
+    uint32_t MaterialSystem::addTextureSampler(const nvrhi::SamplerHandle& pSampler)
     {
         FALCOR_ASSERT(pSampler);
-        auto isEqual = [&pSampler](const ref<Sampler>& pOther) {
+        auto isEqual = [&pSampler](const nvrhi::SamplerHandle& pOther) {
             return pSampler->getDesc() == pOther->getDesc();
         };
 
@@ -202,7 +202,7 @@ namespace Falcor
         mBuffersChanged = true;
     }
 
-    uint32_t MaterialSystem::addTexture3D(const ref<Texture>& pTexture)
+    uint32_t MaterialSystem::addTexture3D(const nvrhi::TextureHandle& pTexture)
     {
         FALCOR_ASSERT(pTexture && pTexture->getType() == Texture::Type::Texture3D && pTexture->getSampleCount() == 1);
 
@@ -381,7 +381,7 @@ namespace Falcor
     {
         // Gather a list of all textures to analyze.
         std::vector<std::pair<ref<Material>, Material::TextureSlot>> materialSlots;
-        std::vector<ref<Texture>> textures;
+        std::vector<nvrhi::TextureHandle> textures;
         size_t maxCount = mMaterials.size() * (size_t)Material::TextureSlot::Count;
         materialSlots.reserve(maxCount);
         textures.reserve(maxCount);

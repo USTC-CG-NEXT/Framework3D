@@ -33,7 +33,6 @@
 #include "Utils/Math/AABB.h"
 #include "Utils/Math/Ray.h"
 #include "Utils/SampleGenerators/CPUSampleGenerator.h"
-#include "Utils/UI/Gui.h"
 #include "Scene/Animation/Animatable.h"
 #include <string>
 
@@ -256,10 +255,6 @@ namespace Falcor
         const CameraData& getData() const { calculateCameraParameters(); return mData; }
 
         void updateFromAnimation(const float4x4& transform) override;
-
-        /** Render the UI
-        */
-        void renderUI(Gui::Widgets& widget);
 
         enum class Changes
         {

@@ -76,7 +76,7 @@ namespace Falcor
             \param[in] pDevice GPU device.
             \param[in] pLightCollection The light collection around which the BVH will be built.
         */
-        LightBVH(ref<Device> pDevice, const ref<const ILightCollection>& pLightCollection);
+        LightBVH(nvrhi::DeviceHandle pDevice, const ref<const ILightCollection>& pLightCollection);
 
         /** Returns the LightCollection the LightBVH is built on.
          */
@@ -146,7 +146,7 @@ namespace Falcor
         };
 
         // Internal state
-        ref<Device>                           mpDevice;
+        nvrhi::DeviceHandle                           mpDevice;
         ref<const ILightCollection>           mpLightCollection;
 
         ref<ComputePass>                      mLeafUpdater;             ///< Compute pass for refitting the leaf nodes.

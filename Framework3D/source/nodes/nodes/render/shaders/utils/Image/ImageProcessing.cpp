@@ -36,7 +36,7 @@ namespace
 const char kCopyColorChannelShader[] = "Utils/Image/CopyColorChannel.cs.slang";
 }
 
-ImageProcessing::ImageProcessing(ref<Device> pDevice) : mpDevice(pDevice) {}
+ImageProcessing::ImageProcessing(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice) {}
 
 void ImageProcessing::copyColorChannel(
     RenderContext* pRenderContext,

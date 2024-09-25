@@ -56,7 +56,7 @@ namespace Falcor
         }
     }
 
-    PixelStats::PixelStats(ref<Device> pDevice)
+    PixelStats::PixelStats(nvrhi::DeviceHandle pDevice)
         : mpDevice(pDevice)
     {
         mpComputeRayCount = ComputePass::create(mpDevice, kComputeRayCountFilename, "main");
@@ -208,7 +208,7 @@ namespace Falcor
         return true;
     }
 
-    const ref<Texture> PixelStats::getRayCountTexture(RenderContext* pRenderContext)
+    const nvrhi::TextureHandle PixelStats::getRayCountTexture(RenderContext* pRenderContext)
     {
         FALCOR_ASSERT(!mRunning);
         if (!mStatsBuffersValid) return nullptr;
@@ -242,19 +242,19 @@ namespace Falcor
         mRayCountTextureValid = true;
     }
 
-    const ref<Texture> PixelStats::getPathLengthTexture() const
+    const nvrhi::TextureHandle PixelStats::getPathLengthTexture() const
     {
         FALCOR_ASSERT(!mRunning);
         return mStatsBuffersValid ? mpStatsPathLength : nullptr;
     }
 
-    const ref<Texture> PixelStats::getPathVertexCountTexture() const
+    const nvrhi::TextureHandle PixelStats::getPathVertexCountTexture() const
     {
         FALCOR_ASSERT(!mRunning);
         return mStatsBuffersValid ? mpStatsPathVertexCount : nullptr;
     }
 
-    const ref<Texture> PixelStats::getVolumeLookupCountTexture() const
+    const nvrhi::TextureHandle PixelStats::getVolumeLookupCountTexture() const
     {
         FALCOR_ASSERT(!mRunning);
         return mStatsBuffersValid ? mpStatsVolumeLookupCount : nullptr;

@@ -182,13 +182,13 @@ namespace Falcor
     }
 
 
-    LightProfile::LightProfile(ref<Device> pDevice, const std::string& name, const std::vector<float>& rawData)
+    LightProfile::LightProfile(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<float>& rawData)
         : mpDevice(pDevice)
         , mName(name)
         , mRawData(rawData)
     {}
 
-    ref<LightProfile> LightProfile::createFromIesProfile(ref<Device> pDevice, const std::filesystem::path& path, bool normalize)
+    ref<LightProfile> LightProfile::createFromIesProfile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, bool normalize)
     {
         std::ifstream ifs(path);
         if (!ifs.good())

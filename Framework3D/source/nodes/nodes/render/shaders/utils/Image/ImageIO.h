@@ -88,7 +88,7 @@ public:
      * changed.
      * @return Texture object containing image data if loading was successful. Otherwise, nullptr.
      */
-    static ref<Texture> loadTextureFromDDS(ref<Device> pDevice, const std::filesystem::path& path, bool loadAsSrgb);
+    static nvrhi::TextureHandle loadTextureFromDDS(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, bool loadAsSrgb);
 
     /**
      * Saves a bitmap to a DDS file.
@@ -120,7 +120,7 @@ public:
     static void saveToDDS(
         CopyContext* pContext,
         const std::filesystem::path& path,
-        const ref<Texture>& pTexture,
+        const nvrhi::TextureHandle& pTexture,
         CompressionMode mode = CompressionMode::None,
         bool generateMips = false
     );

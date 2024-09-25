@@ -94,7 +94,7 @@ public:
     /**
      * Constructor. Throws an exception if creation failed.
      */
-    TextureAnalyzer(ref<Device> pDevice);
+    TextureAnalyzer(nvrhi::DeviceHandle pDevice);
 
     /**
      * Analyze 2D texture to check if it has a constant color.
@@ -111,7 +111,7 @@ public:
      */
     void analyze(
         RenderContext* pRenderContext,
-        const ref<Texture> pInput,
+        const nvrhi::TextureHandle pInput,
         uint32_t mipLevel,
         uint32_t arraySlice,
         ref<Buffer> pResult,
@@ -129,7 +129,7 @@ public:
      * @param[in] pResult GPU buffer to where the result is written. This is expected to have UAV bind flag.
      * @param[in] clearResult Flag indicating whether the function should clear the result buffer first.
      */
-    void analyze(RenderContext* pRenderContext, const std::vector<ref<Texture>>& inputs, ref<Buffer> pResult, bool clearResult = true);
+    void analyze(RenderContext* pRenderContext, const std::vector<nvrhi::TextureHandle>& inputs, ref<Buffer> pResult, bool clearResult = true);
 
     /**
      * Helper function to clear the results buffer.
@@ -146,9 +146,9 @@ public:
     static size_t getResultSize();
 
 private:
-    void checkFormatSupport(const ref<Texture> pInput, uint32_t mipLevel, uint32_t arraySlice) const;
+    void checkFormatSupport(const nvrhi::TextureHandle pInput, uint32_t mipLevel, uint32_t arraySlice) const;
 
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
     ref<ComputePass> mpClearPass;
     ref<ComputePass> mpAnalyzePass;
 };

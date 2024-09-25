@@ -52,7 +52,7 @@ namespace Falcor
 
         /** Constructor. Throws an exception if creation failed.
         */
-        AnimationController(ref<Device> pDevice, Scene* pScene, const SkinningVertexVector& skinningVertexData, uint32_t prevVertexCount, const std::vector<ref<Animation>>& animations);
+        AnimationController(nvrhi::DeviceHandle pDevice, Scene* pScene, const SkinningVertexVector& skinningVertexData, uint32_t prevVertexCount, const std::vector<ref<Animation>>& animations);
 
         /** Add animated vertex caches (curves and meshes) to the controller.
         */
@@ -158,7 +158,7 @@ namespace Falcor
         void createSkinningPass(const SkinningVertexVector& skinningVertexData);
         void executeSkinningPass(RenderContext* pRenderContext, bool initPrev = false);
 
-        ref<Device> mpDevice;
+        nvrhi::DeviceHandle mpDevice;
 
         // Animation
         std::vector<ref<Animation>> mAnimations;

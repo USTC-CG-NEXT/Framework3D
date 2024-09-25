@@ -60,9 +60,9 @@ namespace Falcor
 
     struct SDFSBS::SharedData
     {
-        ref<Sampler> pSampler;
+        nvrhi::SamplerHandle pSampler;
 
-        SharedData(ref<Device> pDevice)
+        SharedData(nvrhi::DeviceHandle pDevice)
         {
             Sampler::Desc samplerDesc;
             samplerDesc.setFilterMode(TextureFilteringMode::Linear, TextureFilteringMode::Linear, TextureFilteringMode::Linear);
@@ -73,7 +73,7 @@ namespace Falcor
 
     static SharedCache<SDFSBS::SharedData, Device*> sSharedCache;
 
-    SDFSBS::SDFSBS(ref<Device> pDevice, uint32_t brickWidth, bool compressed, uint32_t defaultGridWidth)
+    SDFSBS::SDFSBS(nvrhi::DeviceHandle pDevice, uint32_t brickWidth, bool compressed, uint32_t defaultGridWidth)
         : SDFGrid(pDevice)
         , mDefaultGridWidth(defaultGridWidth)
         , mBrickWidth(brickWidth)

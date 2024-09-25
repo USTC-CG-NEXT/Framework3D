@@ -100,7 +100,7 @@ namespace Falcor
 
         struct TextureSlotData
         {
-            ref<Texture>  pTexture;                           ///< Texture bound to texture slot.
+            nvrhi::TextureHandle  pTexture;                           ///< Texture bound to texture slot.
 
             bool hasData() const { return pTexture != nullptr; }
             bool operator==(const TextureSlotData& rhs) const { return pTexture == rhs.pTexture; }
@@ -234,7 +234,7 @@ namespace Falcor
             \param[in] pTexture The texture.
             \return True if the texture slot was changed, false otherwise.
         */
-        virtual bool setTexture(const TextureSlot slot, const ref<Texture>& pTexture);
+        virtual bool setTexture(const TextureSlot slot, const nvrhi::TextureHandle& pTexture);
 
         /** Load one of the available texture slots.
             The call is ignored with a warning if the slot doesn't exist.
@@ -255,7 +255,7 @@ namespace Falcor
             \param[in] The texture slot.
             \return Texture object if bound, or nullptr if unbound or slot doesn't exist.
         */
-        virtual ref<Texture> getTexture(const TextureSlot slot) const;
+        virtual nvrhi::TextureHandle getTexture(const TextureSlot slot) const;
 
         /** Optimize texture usage for the given texture slot.
             This function may replace constant textures by uniform material parameters etc.
@@ -271,11 +271,11 @@ namespace Falcor
 
         /** Set the default texture sampler for the material.
         */
-        virtual void setDefaultTextureSampler(const ref<Sampler>& pSampler) {}
+        virtual void setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler) {}
 
         /** Get the default texture sampler for the material.
         */
-        virtual ref<Sampler> getDefaultTextureSampler() const { return nullptr; }
+        virtual nvrhi::SamplerHandle getDefaultTextureSampler() const { return nullptr; }
 
         /** Set the material texture transform.
         */
@@ -350,18 +350,18 @@ namespace Falcor
         virtual void setRoughnessMollification( float factor ) {};
 
     protected:
-        Material(ref<Device> pDevice, const std::string& name, MaterialType type);
+        Material(nvrhi::DeviceHandle pDevice, const std::string& name, MaterialType type);
 
         using UpdateCallback = std::function<void(Material::UpdateFlags)>;
         void registerUpdateCallback(const UpdateCallback& updateCallback) { mUpdateCallback = updateCallback; }
         void markUpdates(UpdateFlags updates);
         bool hasTextureSlotData(const TextureSlot slot) const;
-        void updateTextureHandle(MaterialSystem* pOwner, const ref<Texture>& pTexture, TextureHandle& handle);
+        void updateTextureHandle(MaterialSystem* pOwner, const nvrhi::TextureHandle& pTexture, TextureHandle& handle);
         void updateTextureHandle(MaterialSystem* pOwner, const TextureSlot slot, TextureHandle& handle);
-        void updateDefaultTextureSamplerID(MaterialSystem* pOwner, const ref<Sampler>& pSampler);
+        void updateDefaultTextureSamplerID(MaterialSystem* pOwner, const nvrhi::SamplerHandle& pSampler);
         bool isBaseEqual(const Material& other) const;
 
-        static NormalMapType detectNormalMapType(const ref<Texture>& pNormalMap);
+        static NormalMapType detectNormalMapType(const nvrhi::TextureHandle& pNormalMap);
 
         template<typename T>
         MaterialDataBlob prepareDataBlob(const T& data) const
@@ -374,7 +374,7 @@ namespace Falcor
             return blob;
         }
 
-        ref<Device> mpDevice;
+        nvrhi::DeviceHandle mpDevice;
 
         std::string mName;                          ///< Name of the material.
         MaterialHeader mHeader;                     ///< Material header data available in all material types.

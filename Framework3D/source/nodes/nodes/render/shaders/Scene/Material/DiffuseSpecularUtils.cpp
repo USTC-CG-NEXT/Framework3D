@@ -29,7 +29,7 @@
 #include "DiffuseSpecularData.slang"
 #include "Utils/Logger.h"
 #include "Utils/Color/ColorHelpers.slang"
-#include <nlohmann/json.hpp>
+#include <Utils/json.hpp>
 #include <fstream>
 
 using json = nlohmann::json;

@@ -58,7 +58,7 @@ public:
      * @param[in] type The type of sample generator. See SampleGeneratorType.slangh.
      * @return New object, or throws an exception on error.
      */
-    static ref<SampleGenerator> create(ref<Device> pDevice, uint32_t type);
+    static ref<SampleGenerator> create(nvrhi::DeviceHandle pDevice, uint32_t type);
 
     /**
      * Get macro definitions for this sample generator.
@@ -92,7 +92,7 @@ public:
      * @param[in] pRenderContext Render context.
      * @param[in] pRenderOutput Rendered output.
      */
-    virtual void endFrame(RenderContext* pRenderContext, const ref<Texture>& pRenderOutput) {}
+    virtual void endFrame(RenderContext* pRenderContext, const nvrhi::TextureHandle& pRenderOutput) {}
 
     /**
      * Returns a GUI dropdown list of all available sample generators.
@@ -105,12 +105,12 @@ public:
      * @param[in] name Descriptive name used in the UI.
      * @param[in] createFunc Function to create an instance of the sample generator.
      */
-    static void registerType(uint32_t type, const std::string& name, std::function<ref<SampleGenerator>(ref<Device>)> createFunc);
+    static void registerType(uint32_t type, const std::string& name, std::function<ref<SampleGenerator>(nvrhi::DeviceHandle)> createFunc);
 
 protected:
-    SampleGenerator(ref<Device> pDevice, uint32_t type) : mpDevice(pDevice), mType(type) {}
+    SampleGenerator(nvrhi::DeviceHandle pDevice, uint32_t type) : mpDevice(pDevice), mType(type) {}
 
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
     const uint32_t mType; ///< Type of sample generator. See SampleGeneratorType.slangh.
 
 private:

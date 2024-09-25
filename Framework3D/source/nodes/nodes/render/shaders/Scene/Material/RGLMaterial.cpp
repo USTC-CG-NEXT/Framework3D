@@ -50,7 +50,7 @@ namespace Falcor
         const std::string kLoadFile = "load";
     }
 
-    RGLMaterial::RGLMaterial(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path)
+    RGLMaterial::RGLMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path)
         : Material(pDevice, name, MaterialType::RGL)
     {
         FALCOR_CHECK(!path.empty(), "Missing path.");

@@ -71,7 +71,7 @@ public:
      * @param[in] printCapacity Maximum number of shader print() statements per frame.
      * @param[in] assertCapacity Maximum number of shader assert() statements per frame.
      */
-    PixelDebug(ref<Device> pDevice, uint32_t printCapacity = 100, uint32_t assertCapacity = 100);
+    PixelDebug(nvrhi::DeviceHandle pDevice, uint32_t printCapacity = 100, uint32_t assertCapacity = 100);
 
     void beginFrame(RenderContext* pRenderContext, const uint2& frameDim);
     void endFrame(RenderContext* pRenderContext);
@@ -92,7 +92,7 @@ protected:
     bool copyDataToCPU();
 
     // Internal state
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
     ref<Program> mpReflectProgram; ///< Program for reflection of types.
     ref<Buffer> mpCounterBuffer;   ///< Counter buffer (print, assert) on the GPU.
     ref<Buffer> mpPrintBuffer;     ///< Print buffer on the GPU.

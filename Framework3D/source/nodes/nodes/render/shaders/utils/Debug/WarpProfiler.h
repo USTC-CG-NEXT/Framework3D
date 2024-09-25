@@ -53,7 +53,7 @@ public:
      * @param[in] pDevice GPU device.
      * @param[in] binCount Number of profiling bins.
      */
-    WarpProfiler(ref<Device> pDevice, const uint32_t binCount);
+    WarpProfiler(nvrhi::DeviceHandle pDevice, const uint32_t binCount);
 
     /**
      * @brief Binds the profiler data to shader vars.

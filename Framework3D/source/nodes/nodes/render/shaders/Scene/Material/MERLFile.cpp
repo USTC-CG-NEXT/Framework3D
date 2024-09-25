@@ -142,7 +142,7 @@ namespace Falcor
         if (nanCount > 0) logWarning("MERL BRDF {} has {} samples with NaN values. Sample set to zero.", mDesc.name, nanCount);
     }
 
-    const std::vector<float4>& MERLFile::prepareAlbedoLUT(ref<Device> pDevice)
+    const std::vector<float4>& MERLFile::prepareAlbedoLUT(nvrhi::DeviceHandle pDevice)
     {
         if (!mAlbedoLUT.empty())
             return mAlbedoLUT;
@@ -183,7 +183,7 @@ namespace Falcor
         return mAlbedoLUT;
     }
 
-    void MERLFile::computeAlbedoLUT(ref<Device> pDevice, const size_t binCount)
+    void MERLFile::computeAlbedoLUT(nvrhi::DeviceHandle pDevice, const size_t binCount)
     {
         logInfo("MERLFile: Computing albedo LUT for MERL BRDF '{}'...", mDesc.name);
 

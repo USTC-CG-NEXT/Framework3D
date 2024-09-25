@@ -32,8 +32,7 @@
 #include "Utils/Math/Vector.h"
 #include "Utils/Math/Matrix.h"
 #include "Utils/Math/Quaternion.h"
-#include "Utils/UI/Gui.h"
-#include <fstd/span.h>
+#include <span>
 #include <memory>
 #include <string>
 #include <vector>
@@ -141,7 +140,7 @@ namespace Falcor
         /** Gets all the keyframes in the animation.
             \return Returns span of keyframes.
         */
-        fstd::span<const Keyframe> getKeyframes() const { return mKeyframes; }
+        std::span<const Keyframe> getKeyframes() const { return mKeyframes; }
 
         /** Check if a keyframe exists at the specified time.
             \param[in] time Time of the keyframe.
@@ -154,10 +153,6 @@ namespace Falcor
             \return Returns the animation's transform matrix for the specified time.
         */
         float4x4 animate(double currentTime);
-
-        /* Render the UI.
-        */
-        void renderUI(Gui::Widgets& widget);
 
     private:
         Keyframe interpolate(InterpolationMode mode, double time) const;

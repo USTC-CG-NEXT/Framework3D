@@ -31,7 +31,7 @@
 #include "Utils/Logger.h"
 #include "Utils/Math/Common.h"
 #include "Utils/Timing/Profiler.h"
-#include <fstd/bit.h> // TODO C++20: Replace with <bit>
+#include <bit> // TODO C++20: Replace with <bit>
 
 namespace Falcor
 {
@@ -246,7 +246,7 @@ namespace Falcor
 #endif
     }
 
-    void RTXDI::update(RenderContext* pRenderContext, const ref<Texture>& pMotionVectors)
+    void RTXDI::update(RenderContext* pRenderContext, const nvrhi::TextureHandle& pMotionVectors)
     {
 #if FALCOR_HAS_RTXDI
         FALCOR_PROFILE(pRenderContext, "RTXDI::update");
@@ -294,7 +294,7 @@ namespace Falcor
 
 #if FALCOR_HAS_RTXDI
 
-    void RTXDI::bindShaderDataInternal(const ShaderVar& rootVar, const ref<Texture>& pMotionVectors, bool bindScene)
+    void RTXDI::bindShaderDataInternal(const ShaderVar& rootVar, const nvrhi::TextureHandle& pMotionVectors, bool bindScene)
     {
         auto var = rootVar["gRTXDI"];
 
@@ -513,8 +513,8 @@ namespace Falcor
             auto& pPdfTexture = mpEnvLightPdfTexture;
 
             // RTXDI expects power-of-two textures.
-            uint32_t width = fstd::bit_ceil(pEnvMap->getWidth());
-            uint32_t height = fstd::bit_ceil(pEnvMap->getHeight());
+            uint32_t width = std::bit_ceil(pEnvMap->getWidth());
+            uint32_t height = std::bit_ceil(pEnvMap->getHeight());
 
             // Create luminance texture if it doesn't exist yet or has the wrong dimensions.
             if (!pLuminanceTexture || pLuminanceTexture->getWidth() != width || pLuminanceTexture->getHeight() != height)
@@ -617,7 +617,7 @@ namespace Falcor
         return inputID;
     }
 
-    uint32_t RTXDI::temporalResampling(RenderContext* pRenderContext, const ref<Texture>& pMotionVectors,
+    uint32_t RTXDI::temporalResampling(RenderContext* pRenderContext, const nvrhi::TextureHandle& pMotionVectors,
         uint32_t candidateReservoirID, uint32_t lastFrameReservoirID)
     {
         FALCOR_PROFILE(pRenderContext, "temporalResampling");
@@ -637,7 +637,7 @@ namespace Falcor
         return outputReservoirID;
     }
 
-    uint32_t RTXDI::spatiotemporalResampling(RenderContext* pRenderContext, const ref<Texture>& pMotionVectors,
+    uint32_t RTXDI::spatiotemporalResampling(RenderContext* pRenderContext, const nvrhi::TextureHandle& pMotionVectors,
         uint32_t candidateReservoirID, uint32_t lastFrameReservoirID)
     {
         FALCOR_PROFILE(pRenderContext, "spatiotemporalResampling");

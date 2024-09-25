@@ -35,7 +35,7 @@
 #include <string>
 #include <string_view>
 
-#include <nlohmann/json.hpp>
+#include <Utils/json.hpp>
 
 namespace Falcor
 {

@@ -45,7 +45,7 @@ namespace Falcor
 // The main complexity is dealing with corner cases, thanks to numerical precision issues, where you don't
 // have 2 valid entries to combine.  By definition, in these corner cases, all remaining unhandled samples
 // actually have the average weight (within numerical precision limits)
-AliasTable::AliasTable(ref<Device> pDevice, std::vector<float> weights, std::mt19937& rng) : mCount((uint32_t)weights.size())
+AliasTable::AliasTable(nvrhi::DeviceHandle pDevice, std::vector<float> weights, std::mt19937& rng) : mCount((uint32_t)weights.size())
 {
     // Use >= since we reserve 0xFFFFFFFFu as an invalid flag marker during construction.
     if (weights.size() >= std::numeric_limits<uint32_t>::max())

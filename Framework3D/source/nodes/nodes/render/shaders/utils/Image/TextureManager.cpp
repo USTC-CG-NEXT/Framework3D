@@ -45,13 +45,13 @@ const size_t kMaxTextureHandleCount = std::numeric_limits<uint32_t>::max();
 static_assert(TextureManager::CpuTextureHandle::kInvalidID >= kMaxTextureHandleCount);
 } // namespace
 
-TextureManager::TextureManager(ref<Device> pDevice, size_t maxTextureCount, size_t threadCount)
+TextureManager::TextureManager(nvrhi::DeviceHandle pDevice, size_t maxTextureCount, size_t threadCount)
     : mpDevice(pDevice), mAsyncTextureLoader(pDevice, threadCount), mMaxTextureCount(std::min(maxTextureCount, kMaxTextureHandleCount))
 {}
 
 TextureManager::~TextureManager() {}
 
-TextureManager::CpuTextureHandle TextureManager::addTexture(const ref<Texture>& pTexture)
+TextureManager::CpuTextureHandle TextureManager::addTexture(const nvrhi::TextureHandle& pTexture)
 {
     FALCOR_ASSERT(pTexture);
     if (pTexture->getType() != Resource::Type::Texture2D || pTexture->getSampleCount() != 1)
@@ -295,7 +295,7 @@ TextureManager::CpuTextureHandle TextureManager::loadTexture(
 
         // Function called by the async texture loader when loading finishes.
         // It's called by a worker thread so needs to acquire the mutex before changing any state.
-        auto callback = [=](ref<Texture> pTexture)
+        auto callback = [=](nvrhi::TextureHandle pTexture)
         {
             std::unique_lock<std::mutex> lock(mMutex);
 
@@ -323,7 +323,7 @@ TextureManager::CpuTextureHandle TextureManager::loadTexture(
         }
 #else
         // Load texture from main thread.
-        ref<Texture> pTexture;
+        nvrhi::TextureHandle pTexture;
         if (paths.size() > 1)
         {
             pTexture = Texture::createMippedFromFiles(mpDevice, paths, loadAsSRGB, bindFlags, importFlags);
@@ -587,7 +587,7 @@ void TextureManager::bindShaderData(const ShaderVar& texturesVar, const size_t d
         FALCOR_THROW("Descriptor array size ({}) is too small for the required number of textures ({})", descCount, mTextureDescs.size());
     }
 
-    ref<Texture> nullTexture;
+    nvrhi::TextureHandle nullTexture;
     for (size_t i = 0; i < mTextureDescs.size(); i++)
     {
         texturesVar[i] = mTextureDescs[i].pTexture;

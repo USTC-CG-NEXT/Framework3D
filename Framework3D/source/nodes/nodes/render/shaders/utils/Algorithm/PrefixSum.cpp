@@ -39,7 +39,7 @@ const char kShaderFile[] = "Utils/Algorithm/PrefixSum.cs.slang";
 const uint32_t kGroupSize = 1024;
 } // namespace
 
-PrefixSum::PrefixSum(ref<Device> pDevice) : mpDevice(pDevice)
+PrefixSum::PrefixSum(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 {
     // Create shaders and state.
     DefineList defines = {{"GROUP_SIZE", std::to_string(kGroupSize)}};

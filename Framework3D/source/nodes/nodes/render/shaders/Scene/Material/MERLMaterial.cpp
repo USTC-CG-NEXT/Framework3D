@@ -43,7 +43,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/MERLMaterial.slang";
     }
 
-    MERLMaterial::MERLMaterial(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path)
+    MERLMaterial::MERLMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path)
         : Material(pDevice, name, MaterialType::MERL)
     {
         FALCOR_CHECK(!path.empty(), "Missing path.");
@@ -58,7 +58,7 @@ namespace Falcor
         mpAlbedoLUT = mpDevice->createTexture2D((uint32_t)lut.size(), 1, MERLFile::kAlbedoLUTFormat, 1, 1, lut.data(), ResourceBindFlags::ShaderResource);
     }
 
-    MERLMaterial::MERLMaterial(ref<Device> pDevice, const MERLFile& merlFile)
+    MERLMaterial::MERLMaterial(nvrhi::DeviceHandle pDevice, const MERLFile& merlFile)
         : Material(pDevice, "", MaterialType::MERL)
     {
         init(merlFile);

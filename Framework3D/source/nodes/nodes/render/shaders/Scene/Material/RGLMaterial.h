@@ -43,9 +43,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(RGLMaterial)
     public:
-        static ref<RGLMaterial> create(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path) { return make_ref<RGLMaterial>(pDevice, name, path); }
+        static ref<RGLMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path) { return make_ref<RGLMaterial>(pDevice, name, path); }
 
-        RGLMaterial(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path);
+        RGLMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path);
 
         bool renderUI(Gui::Widgets& widget) override;
         Material::UpdateFlags update(MaterialSystem* pOwner) override;
@@ -80,8 +80,8 @@ namespace Falcor
         ref<Buffer> mpLumiMarginalBuf;
         ref<Buffer> mpVNDFConditionalBuf;
         ref<Buffer> mpLumiConditionalBuf;
-        ref<Texture> mpAlbedoLUT;           ///< Precomputed albedo lookup table.
-        ref<Sampler> mpSampler;             ///< Sampler for accessing BRDF textures.
+        nvrhi::TextureHandle mpAlbedoLUT;           ///< Precomputed albedo lookup table.
+        nvrhi::SamplerHandle mpSampler;             ///< Sampler for accessing BRDF textures.
 
         ref<ComputePass> mBRDFTesting;
     };

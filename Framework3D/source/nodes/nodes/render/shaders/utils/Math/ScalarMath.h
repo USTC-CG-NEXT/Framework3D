@@ -28,7 +28,7 @@
 #pragma once
 
 #include "ScalarTypes.h"
-#include <fstd/bit.h> // TODO C++20: Replace with <bit>
+#include <bit> // TODO C++20: Replace with <bit>
 #include <cmath>
 
 namespace Falcor
@@ -263,13 +263,13 @@ template<typename T, std::enable_if_t<is_floating_point_v<T>, bool> = false>
 [[nodiscard]] inline float f16tof32(uint v) noexcept { return float16ToFloat32(v & 0xffff); }
 [[nodiscard]] inline uint f32tof16(float v) noexcept { return float32ToFloat16(v); }
 
-[[nodiscard]] inline float asfloat(uint32_t i) noexcept { return fstd::bit_cast<float>(i); }
-[[nodiscard]] inline float asfloat(int32_t i) noexcept { return fstd::bit_cast<float>(i); }
-[[nodiscard]] inline float16_t asfloat16(uint16_t i) noexcept { return fstd::bit_cast<float16_t>(i); }
+[[nodiscard]] inline float asfloat(uint32_t i) noexcept { return std::bit_cast<float>(i); }
+[[nodiscard]] inline float asfloat(int32_t i) noexcept { return std::bit_cast<float>(i); }
+[[nodiscard]] inline float16_t asfloat16(uint16_t i) noexcept { return std::bit_cast<float16_t>(i); }
 
-[[nodiscard]] inline uint32_t asuint(float f) noexcept { return fstd::bit_cast<uint32_t>(f); }
-[[nodiscard]] inline int32_t asint(float f) noexcept { return fstd::bit_cast<int32_t>(f); }
-[[nodiscard]] inline uint16_t asuint16(float16_t f) noexcept { return fstd::bit_cast<uint16_t>(f); }
+[[nodiscard]] inline uint32_t asuint(float f) noexcept { return std::bit_cast<uint32_t>(f); }
+[[nodiscard]] inline int32_t asint(float f) noexcept { return std::bit_cast<int32_t>(f); }
+[[nodiscard]] inline uint16_t asuint16(float16_t f) noexcept { return std::bit_cast<uint16_t>(f); }
 // clang-format on
 
 } // namespace math

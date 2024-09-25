@@ -49,9 +49,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(HairMaterial)
     public:
-        static ref<HairMaterial> create(ref<Device> pDevice, const std::string& name) { return make_ref<HairMaterial>(pDevice, name); };
+        static ref<HairMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name) { return make_ref<HairMaterial>(pDevice, name); };
 
-        HairMaterial(ref<Device> pDevice, const std::string& name);
+        HairMaterial(nvrhi::DeviceHandle pDevice, const std::string& name);
 
         ProgramDesc::ShaderModuleList getShaderModules() const override;
         TypeConformanceList getTypeConformances() const override;

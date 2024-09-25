@@ -49,7 +49,7 @@ class FALCOR_API BitonicSort
 {
 public:
     /// Constructor. Throws an exception on error.
-    BitonicSort(ref<Device> pDevice);
+    BitonicSort(nvrhi::DeviceHandle pDevice);
 
     /**
      * In-place bitonic sort in chunks of N elements. Each chunk is sorted in ascending order.
@@ -65,7 +65,7 @@ public:
     bool execute(RenderContext* pRenderContext, ref<Buffer> pData, uint32_t totalSize, uint32_t chunkSize, uint32_t groupSize = 256);
 
 private:
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
 
     struct
     {

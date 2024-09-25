@@ -47,7 +47,7 @@ public:
      * Constructor. Throws an exception if creation failed.
      * @param[in] path File path without extension.
      */
-    Font(ref<Device> pDevice, const std::filesystem::path& path);
+    Font(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path);
 
     ~Font();
 
@@ -63,7 +63,7 @@ public:
     /**
      * Get the texture containing the characters
      */
-    ref<Texture> getTexture() const { return mpTexture; }
+    nvrhi::TextureHandle getTexture() const { return mpTexture; }
 
     /**
      * Get the character descriptor
@@ -93,14 +93,14 @@ private:
     Font(const Font&) = delete;
     Font& operator=(const Font&) = delete;
 
-    bool loadFromFile(ref<Device> pDevice, const std::filesystem::path& path);
+    bool loadFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path);
 
     static const char mFirstChar = '!';
     static const char mLastChar = '~';
     static const uint32_t mCharCount = mLastChar - mFirstChar + 1;
     static const uint32_t mTexWidth = 1024;
 
-    ref<Texture> mpTexture;
+    nvrhi::TextureHandle mpTexture;
     CharTexCrdDesc mCharDesc[mCharCount];
     float mFontHeight;
     float mTabWidth;

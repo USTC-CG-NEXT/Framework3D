@@ -62,7 +62,7 @@ namespace Falcor
             float    avgVolumeLookups = 0.f;
         };
 
-        PixelStats(ref<Device> pDevice);
+        PixelStats(nvrhi::DeviceHandle pDevice);
 
         void setEnabled(bool enabled) { mEnabled = enabled; }
         bool isEnabled() const { return mEnabled; }
@@ -87,22 +87,22 @@ namespace Falcor
             \param[in] pRenderContext The render context.
             \return Texture in R32Uint format containing per-pixel ray counts, or nullptr if not available.
         */
-        const ref<Texture> getRayCountTexture(RenderContext* pRenderContext);
+        const nvrhi::TextureHandle getRayCountTexture(RenderContext* pRenderContext);
 
         /** Returns the per-pixel path length texture or nullptr if not available.
             \return Texture in R32Uint format containing per-pixel path length, or nullptr if not available.
         */
-        const ref<Texture> getPathLengthTexture() const;
+        const nvrhi::TextureHandle getPathLengthTexture() const;
 
         /** Returns the per-pixel path vertex count texture or nullptr if not available.
             \return Texture in R32Uint format containing per-pixel path vertex counts, or nullptr if not available.
         */
-        const ref<Texture> getPathVertexCountTexture() const;
+        const nvrhi::TextureHandle getPathVertexCountTexture() const;
 
         /** Returns the per-pixel volume lookup count texture or nullptr if not available.
             \return Texture in R32Uint format containing per-pixel volume lookup counts, or nullptr if not available.
         */
-        const ref<Texture> getVolumeLookupCountTexture() const;
+        const nvrhi::TextureHandle getVolumeLookupCountTexture() const;
 
     protected:
         void copyStatsToCPU();
@@ -110,7 +110,7 @@ namespace Falcor
 
         static const uint32_t kRayTypeCount = (uint32_t)PixelStatsRayType::Count;
 
-        ref<Device>                         mpDevice;
+        nvrhi::DeviceHandle                         mpDevice;
 
         // Internal state
         std::unique_ptr<ParallelReduction>  mpParallelReduction;            ///< Helper for parallel reduction on the GPU.
@@ -130,11 +130,11 @@ namespace Falcor
         bool                                mRayCountTextureValid = false;  ///< True if total ray count texture is valid.
         Stats                               mStats;                         ///< Traversal stats.
 
-        ref<Texture>                        mpStatsRayCount[kRayTypeCount]; ///< Buffers for per-pixel ray count stats.
-        ref<Texture>                        mpStatsRayCountTotal;           ///< Buffer for per-pixel total ray count. Only generated if getRayCountTexture() is called.
-        ref<Texture>                        mpStatsPathLength;              ///< Buffer for per-pixel path length stats.
-        ref<Texture>                        mpStatsPathVertexCount;         ///< Buffer for per-pixel path vertex count.
-        ref<Texture>                        mpStatsVolumeLookupCount;       ///< Buffer for per-pixel volume lookup count.
+        nvrhi::TextureHandle                        mpStatsRayCount[kRayTypeCount]; ///< Buffers for per-pixel ray count stats.
+        nvrhi::TextureHandle                        mpStatsRayCountTotal;           ///< Buffer for per-pixel total ray count. Only generated if getRayCountTexture() is called.
+        nvrhi::TextureHandle                        mpStatsPathLength;              ///< Buffer for per-pixel path length stats.
+        nvrhi::TextureHandle                        mpStatsPathVertexCount;         ///< Buffer for per-pixel path vertex count.
+        nvrhi::TextureHandle                        mpStatsVolumeLookupCount;       ///< Buffer for per-pixel volume lookup count.
         bool                                mStatsBuffersValid = false;     ///< True if per-pixel stats buffers contain valid data.
 
         ref<ComputePass>                    mpComputeRayCount;              ///< Pass for computing per-pixel total ray count.

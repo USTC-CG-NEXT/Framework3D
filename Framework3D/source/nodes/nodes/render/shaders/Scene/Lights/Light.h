@@ -30,7 +30,6 @@
 #include "Core/Macros.h"
 #include "Utils/Math/Vector.h"
 #include "Utils/Math/Matrix.h"
-#include "Utils/UI/Gui.h"
 #include "Scene/Animation/Animatable.h"
 #include <memory>
 #include <string>
@@ -51,10 +50,6 @@ namespace Falcor
         /** Set the light parameters into a shader variable. To use this you need to include/import 'ShaderCommon' inside your shader.
         */
         virtual void bindShaderData(const ShaderVar& var);
-
-        /** Render UI elements for this light.
-        */
-        virtual void renderUI(Gui::Widgets& widget);
 
         /** Get total light power
         */
@@ -152,10 +147,6 @@ namespace Falcor
         PointLight(const std::string& name);
         ~PointLight() = default;
 
-        /** Render UI elements for this light.
-        */
-        void renderUI(Gui::Widgets& widget) override;
-
         /** Get total light power (needed for light picking)
         */
         float getPower() const override;
@@ -209,10 +200,6 @@ namespace Falcor
         DirectionalLight(const std::string& name);
         ~DirectionalLight() = default;
 
-        /** Render UI elements for this light.
-        */
-        void renderUI(Gui::Widgets& widget) override;
-
         /** Set the light's world-space direction.
             \param[in] dir Light direction. Does not have to be normalized.
         */
@@ -243,10 +230,6 @@ namespace Falcor
 
         DistantLight(const std::string& name);
         ~DistantLight() = default;
-
-        /** Render UI elements for this light.
-        */
-        void renderUI(Gui::Widgets& widget) override;
 
         /** Set the half-angle subtended by the light
             \param[in] theta Light angle

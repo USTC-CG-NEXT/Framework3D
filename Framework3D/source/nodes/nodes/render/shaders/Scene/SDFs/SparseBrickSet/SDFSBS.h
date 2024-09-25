@@ -40,14 +40,14 @@ namespace Falcor
     public:
         struct SharedData;
 
-        static ref<SDFSBS> create(ref<Device> pDevice, uint32_t brickWidth = 7, bool compressed = false, uint32_t defaultGridWidth = 256) { return make_ref<SDFSBS>(pDevice, brickWidth, compressed, defaultGridWidth); }
+        static ref<SDFSBS> create(nvrhi::DeviceHandle pDevice, uint32_t brickWidth = 7, bool compressed = false, uint32_t defaultGridWidth = 256) { return make_ref<SDFSBS>(pDevice, brickWidth, compressed, defaultGridWidth); }
 
         /** Create an empty SDF sparse brick set.
             \param[in] brickWidth The width of a brick in voxels.
             \param[in] compressed Selects if bricks should be compressed using lossy BC4 compression. brickWidth + 1 must be a multiple of 4 to enable compression.
             \param[in] defaultGridWidth The grid width used if the data was not loaded from a file (it is empty).
         */
-        SDFSBS(ref<Device> pDevice, uint32_t brickWidth, bool compressed, uint32_t defaultGridWidth);
+        SDFSBS(nvrhi::DeviceHandle pDevice, uint32_t brickWidth, bool compressed, uint32_t defaultGridWidth);
 
         virtual UpdateFlags update(RenderContext* pRenderContext) override;
 
@@ -109,8 +109,8 @@ namespace Falcor
 
         // GPU data.
         ref<Buffer> mpBrickAABBsBuffer;                 ///< A compact buffer containing AABBs for each brick.
-        ref<Texture> mpIndirectionTexture;              ///< An indirection texture to map from virtual brick coords to actual brick ID.
-        ref<Texture> mpBrickTexture;                    ///< A texture of SDF bricks with data at corners.
+        nvrhi::TextureHandle mpIndirectionTexture;              ///< An indirection texture to map from virtual brick coords to actual brick ID.
+        nvrhi::TextureHandle mpBrickTexture;                    ///< A texture of SDF bricks with data at corners.
         std::shared_ptr<SharedData> mpSharedData;       ///< Shared data among all instances.
 
         // Compute passes used to build the SBS from signed distance field.
@@ -136,7 +136,7 @@ namespace Falcor
         std::unique_ptr<PrefixSum> mpPrefixSumPass;
 
         // Scratch data used for building from signed distance field.
-        ref<Texture> mpBrickScratchTexture;
+        nvrhi::TextureHandle mpBrickScratchTexture;
         ref<Buffer> mpIndirectionBuffer;
         ref<Buffer> mpValidityBuffer;
 
@@ -151,9 +151,9 @@ namespace Falcor
         ref<Fence> mpReadbackFence;
 
         // Scratch data used for building from the SD Field and primitives.
-        ref<Texture> mpOldSDFGridTexture;
-        ref<Texture> mpSDFGridTextureModified;
-        std::vector<ref<Texture>> mIntervalSDFieldMaps;
+        nvrhi::TextureHandle mpOldSDFGridTexture;
+        nvrhi::TextureHandle mpSDFGridTextureModified;
+        std::vector<nvrhi::TextureHandle> mIntervalSDFieldMaps;
         ref<Buffer> mpCountStagingBuffer;
     };
 }

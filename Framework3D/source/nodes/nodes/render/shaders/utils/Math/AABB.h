@@ -26,39 +26,47 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Core/Macros.h"
-#include "Core/API/Raytracing.h"
-#include "Utils/Math/Matrix.h"
-#include "Utils/Math/Vector.h"
 #include <limits>
 
-namespace Falcor
-{
+#include "Core/Macros.h"
+#include "Utils/Math/Matrix.h"
+#include "Utils/Math/Vector.h"
+
+namespace Falcor {
 /**
  * Axis-aligned bounding box (AABB) stored by its min/max points.
  *
  * The user is responsible for checking the validity of returned AABBs.
  * There is an equivalent GPU-side implementation in the AABB.slang module.
  */
-struct AABB
-{
-    float3 minPoint = float3(std::numeric_limits<float>::infinity());  ///< Minimum point.
-    float3 maxPoint = float3(-std::numeric_limits<float>::infinity()); ///< Maximum point. If any minPoint > maxPoint the box is invalid.
+struct AABB {
+    float3 minPoint =
+        float3(std::numeric_limits<float>::infinity());  ///< Minimum point.
+    float3 maxPoint = float3(
+        -std::numeric_limits<float>::infinity());  ///< Maximum point. If any
+                                                   ///< minPoint > maxPoint the
+                                                   ///< box is invalid.
 
     /// Construct bounding box initialized to +/-inf.
     AABB() = default;
 
     /// Construct bounding box initialized to single point.
-    AABB(const float3& p) : minPoint(p), maxPoint(p) {}
+    AABB(const float3& p) : minPoint(p), maxPoint(p)
+    {
+    }
 
     /// Construct bounding box initialized to min/max point.
-    AABB(const float3& pmin, const float3& pmax) : minPoint(pmin), maxPoint(pmax) {}
-
-    /// Construct bounding box initialized to min/max point.
-    explicit AABB(const RtAABB& aabb) : minPoint(aabb.min), maxPoint(aabb.max) {}
+    AABB(const float3& pmin, const float3& pmax)
+        : minPoint(pmin),
+          maxPoint(pmax)
+    {
+    }
 
     /// Set box to single point.
-    void set(const float3& p) { minPoint = maxPoint = p; }
+    void set(const float3& p)
+    {
+        minPoint = maxPoint = p;
+    }
 
     /// Set the box corners explicitly.
     void set(const float3& pmin, const float3& pmax)
@@ -75,7 +83,11 @@ struct AABB
     }
 
     /// Returns true if bounding box is valid (all dimensions zero or larger).
-    bool valid() const { return maxPoint.x >= minPoint.x && maxPoint.y >= minPoint.y && maxPoint.z >= minPoint.z; }
+    bool valid() const
+    {
+        return maxPoint.x >= minPoint.x && maxPoint.y >= minPoint.y &&
+               maxPoint.z >= minPoint.z;
+    }
 
     /// Grows the box to include the point p.
     AABB& include(const float3& p)
@@ -119,13 +131,19 @@ struct AABB
      * Returns the box center.
      * @return Center of the box if valid, undefined otherwise.
      */
-    float3 center() const { return (minPoint + maxPoint) * 0.5f; }
+    float3 center() const
+    {
+        return (minPoint + maxPoint) * 0.5f;
+    }
 
     /**
      * Returns the box extent.
      * @return Size of the box if valid, undefined otherwise.
      */
-    float3 extent() const { return maxPoint - minPoint; }
+    float3 extent() const
+    {
+        return maxPoint - minPoint;
+    }
 
     /**
      * Returns the surface area of the box.
@@ -149,9 +167,13 @@ struct AABB
 
     /**
      * Returns the radius of the minimal sphere that encloses the box.
-     * @return Radius of minimal bounding sphere, or undefined if box is invalid.
+     * @return Radius of minimal bounding sphere, or undefined if box is
+     * invalid.
      */
-    float radius() const { return 0.5f * length(extent()); }
+    float radius() const
+    {
+        return 0.5f * length(extent());
+    }
 
     /**
      * Calculates the bounding box transformed by a matrix.
@@ -185,13 +207,22 @@ struct AABB
     }
 
     /// Checks whether two bounding boxes are equal.
-    bool operator==(const AABB& rhs) const { return all(minPoint == rhs.minPoint) && all(maxPoint == rhs.maxPoint); }
+    bool operator==(const AABB& rhs) const
+    {
+        return all(minPoint == rhs.minPoint) && all(maxPoint == rhs.maxPoint);
+    }
 
     /// Checks whether two bounding boxes are not equal.
-    bool operator!=(const AABB& rhs) const { return any(minPoint != rhs.minPoint) || any(maxPoint != rhs.maxPoint); }
+    bool operator!=(const AABB& rhs) const
+    {
+        return any(minPoint != rhs.minPoint) || any(maxPoint != rhs.maxPoint);
+    }
 
     /// Union of two boxes.
-    AABB& operator|=(const AABB& rhs) { return include(rhs); }
+    AABB& operator|=(const AABB& rhs)
+    {
+        return include(rhs);
+    }
 
     /// Union of two boxes.
     AABB operator|(const AABB& rhs) const
@@ -201,7 +232,10 @@ struct AABB
     }
 
     /// Intersection of two boxes.
-    AABB& operator&=(const AABB& rhs) { return intersection(rhs); }
+    AABB& operator&=(const AABB& rhs)
+    {
+        return intersection(rhs);
+    }
 
     /// Intersection of two boxes.
     AABB operator&(const AABB& rhs) const
@@ -209,8 +243,5 @@ struct AABB
         AABB bb = *this;
         return bb &= rhs;
     }
-
-    /// Conversion to RtAABB.
-    explicit operator RtAABB() const { return {minPoint, maxPoint}; }
 };
-} // namespace Falcor
+}  // namespace Falcor

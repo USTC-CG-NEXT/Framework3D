@@ -36,7 +36,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/ClothMaterial.slang";
     }
 
-    ClothMaterial::ClothMaterial(ref<Device> pDevice, const std::string& name)
+    ClothMaterial::ClothMaterial(nvrhi::DeviceHandle pDevice, const std::string& name)
         : BasicMaterial(pDevice, name, MaterialType::Cloth)
     {
         // Setup additional texture slots.

@@ -39,10 +39,10 @@ namespace Falcor
     class FALCOR_API SDFSVS : public SDFGrid
     {
     public:
-        static ref<SDFSVS> create(ref<Device> pDevice) { return make_ref<SDFSVS>(pDevice); }
+        static ref<SDFSVS> create(nvrhi::DeviceHandle pDevice) { return make_ref<SDFSVS>(pDevice); }
 
         /// Create am empty SDF sparse voxel set.
-        SDFSVS(ref<Device> pDevice) : SDFGrid(pDevice) {}
+        SDFSVS(nvrhi::DeviceHandle pDevice) : SDFGrid(pDevice) {}
 
         virtual size_t getSize() const override;
         virtual uint32_t getMaxPrimitiveIDBits() const override;
@@ -73,6 +73,6 @@ namespace Falcor
 
         // Scratch data used for building.
         ref<Buffer> mpSurfaceVoxelCounter;
-        ref<Texture> mpSDFGridTexture;
+        nvrhi::TextureHandle mpSDFGridTexture;
     };
 }

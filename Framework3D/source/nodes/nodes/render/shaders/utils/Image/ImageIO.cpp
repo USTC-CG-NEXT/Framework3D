@@ -577,7 +577,7 @@ Bitmap::UniqueConstPtr ImageIO::loadBitmapFromDDS(const std::filesystem::path& p
     return Bitmap::create(data.width, data.height, data.format, data.imageData.data());
 }
 
-ref<Texture> ImageIO::loadTextureFromDDS(ref<Device> pDevice, const std::filesystem::path& path, bool loadAsSrgb)
+nvrhi::TextureHandle ImageIO::loadTextureFromDDS(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, bool loadAsSrgb)
 {
     ImportData data;
     try
@@ -590,7 +590,7 @@ ref<Texture> ImageIO::loadTextureFromDDS(ref<Device> pDevice, const std::filesys
         return nullptr;
     }
 
-    ref<Texture> pTex;
+    nvrhi::TextureHandle pTex;
     // TODO: Automatic mip generation
     switch (data.type)
     {
@@ -698,7 +698,7 @@ void ImageIO::saveToDDS(const std::filesystem::path& path, const Bitmap& bitmap,
 void ImageIO::saveToDDS(
     CopyContext* pContext,
     const std::filesystem::path& path,
-    const ref<Texture>& pTexture,
+    const nvrhi::TextureHandle& pTexture,
     CompressionMode mode,
     bool generateMips
 )

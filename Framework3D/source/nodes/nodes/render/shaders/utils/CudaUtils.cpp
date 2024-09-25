@@ -247,7 +247,7 @@ bool freeSharedDevicePtr(void* ptr)
     return cudaSuccess == cudaFree(ptr);
 }
 
-cudaMipmappedArray_t importTextureToMipmappedArray(ref<Texture> pTex, uint32_t cudaUsageFlags)
+cudaMipmappedArray_t importTextureToMipmappedArray(nvrhi::TextureHandle pTex, uint32_t cudaUsageFlags)
 {
     SharedResourceApiHandle sharedHandle = pTex->getSharedApiHandle();
     FALCOR_CHECK(sharedHandle, "Texture shared handle creation failed");
@@ -283,7 +283,7 @@ cudaMipmappedArray_t importTextureToMipmappedArray(ref<Texture> pTex, uint32_t c
     return mipmappedArray;
 }
 
-cudaSurfaceObject_t mapTextureToSurface(ref<Texture> pTex, uint32_t cudaUsageFlags)
+cudaSurfaceObject_t mapTextureToSurface(nvrhi::TextureHandle pTex, uint32_t cudaUsageFlags)
 {
     // Create a mipmapped array from the texture
     cudaMipmappedArray_t mipmap = importTextureToMipmappedArray(pTex, cudaUsageFlags);

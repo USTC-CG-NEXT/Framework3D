@@ -32,7 +32,7 @@
 #include "Core/Program/ShaderVar.h"
 #include "Utils/Logger.h"
 #include "Utils/UI/InputTypes.h"
-#include <fstd/bit.h> // TODO: Replace with C++20 <bit> when available on all targets
+#include <bit> // TODO: Replace with C++20 <bit> when available on all targets
 #include <sstream>
 #include <iomanip>
 
@@ -43,7 +43,7 @@ namespace
 static_assert(sizeof(PrintRecord) % 16 == 0, "PrintRecord size should be a multiple of 16B");
 } // namespace
 
-PixelDebug::PixelDebug(ref<Device> pDevice, uint32_t printCapacity, uint32_t assertCapacity)
+PixelDebug::PixelDebug(nvrhi::DeviceHandle pDevice, uint32_t printCapacity, uint32_t assertCapacity)
     : mpDevice(pDevice), mPrintCapacity(printCapacity), mAssertCapacity(assertCapacity)
 {}
 
@@ -66,7 +66,7 @@ void PixelDebug::beginFrame(RenderContext* pRenderContext, const uint2& frameDim
         if (!mpPrintBuffer)
         {
             // Allocate GPU buffers.
-            const ref<Device>& pDevice = pRenderContext->getDevice();
+            const nvrhi::DeviceHandle& pDevice = pRenderContext->getDevice();
             mpCounterBuffer = pDevice->createBuffer(sizeof(uint32_t) * 2);
             mpPrintBuffer = pDevice->createStructuredBuffer(sizeof(PrintRecord), mPrintCapacity);
             mpAssertBuffer = pDevice->createStructuredBuffer(sizeof(AssertRecord), mAssertCapacity);
@@ -196,7 +196,7 @@ void PixelDebug::renderUI(Gui::Widgets* widget)
                     oss << bits;
                     break;
                 case PrintValueType::Float:
-                    oss << fstd::bit_cast<float>(bits);
+                    oss << std::bit_cast<float>(bits);
                     break;
                 default:
                     oss << "INVALID VALUE";

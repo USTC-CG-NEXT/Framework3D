@@ -78,7 +78,7 @@ namespace Falcor
 
         // Internal state
         const EmissiveLightSamplerType mType;       ///< Type of emissive sampler. See EmissiveLightSamplerType.slangh.
-        ref<Device> mpDevice;
+        nvrhi::DeviceHandle mpDevice;
         ref<ILightCollection> mpLightCollection;
         sigs::Connection mUpdateFlagsConnection;
         ILightCollection::UpdateFlags mLightCollectionUpdateFlags = ILightCollection::UpdateFlags::None;

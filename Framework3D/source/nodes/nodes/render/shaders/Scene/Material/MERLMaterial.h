@@ -44,10 +44,10 @@ namespace Falcor
     {
         FALCOR_OBJECT(MERLMaterial)
     public:
-        static ref<MERLMaterial> create(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path) { return make_ref<MERLMaterial>(pDevice, name, path); }
+        static ref<MERLMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path) { return make_ref<MERLMaterial>(pDevice, name, path); }
 
-        MERLMaterial(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path);
-        MERLMaterial(ref<Device> pDevice, const MERLFile& merlFile);
+        MERLMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path);
+        MERLMaterial(nvrhi::DeviceHandle pDevice, const MERLFile& merlFile);
 
         bool renderUI(Gui::Widgets& widget) override;
         Material::UpdateFlags update(MaterialSystem* pOwner) override;
@@ -66,7 +66,7 @@ namespace Falcor
 
         MERLMaterialData mData;             ///< Material parameters.
         ref<Buffer> mpBRDFData;             ///< GPU buffer holding all BRDF data as float3 array.
-        ref<Texture> mpAlbedoLUT;           ///< Precomputed albedo lookup table.
-        ref<Sampler> mpLUTSampler;          ///< Sampler for accessing the LUT texture.
+        nvrhi::TextureHandle mpAlbedoLUT;           ///< Precomputed albedo lookup table.
+        nvrhi::SamplerHandle mpLUTSampler;          ///< Sampler for accessing the LUT texture.
     };
 }

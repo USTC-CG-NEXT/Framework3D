@@ -35,7 +35,7 @@ namespace Falcor
 {
 static const char kShaderFilename[] = "Utils/Algorithm/BitonicSort.cs.slang";
 
-BitonicSort::BitonicSort(ref<Device> pDevice) : mpDevice(pDevice)
+BitonicSort::BitonicSort(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 {
 #if !FALCOR_NVAPI_AVAILABLE
     FALCOR_THROW("BitonicSort requires NVAPI. See installation instructions in README.");

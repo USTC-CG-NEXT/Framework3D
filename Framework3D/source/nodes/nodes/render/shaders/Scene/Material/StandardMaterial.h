@@ -69,12 +69,12 @@ namespace Falcor
     {
         FALCOR_OBJECT(StandardMaterial)
     public:
-        static ref<StandardMaterial> create(ref<Device> pDevice, const std::string& name = "", ShadingModel shadingModel = ShadingModel::MetalRough)
+        static ref<StandardMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name = "", ShadingModel shadingModel = ShadingModel::MetalRough)
         {
             return make_ref<StandardMaterial>(pDevice, name, shadingModel);
         }
 
-        StandardMaterial(ref<Device> pDevice, const std::string& name, ShadingModel shadingModel);
+        StandardMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, ShadingModel shadingModel);
 
         /** Render the UI.
             \return True if the material was modified.

@@ -59,7 +59,7 @@ namespace Falcor
         return all(lhs.packedData == rhs.packedData);
     }
 
-    Material::Material(ref<Device> pDevice, const std::string& name, MaterialType type)
+    Material::Material(nvrhi::DeviceHandle pDevice, const std::string& name, MaterialType type)
         : mpDevice(pDevice)
         , mName(name)
     {
@@ -171,7 +171,7 @@ namespace Falcor
         return mTextureSlotData[(size_t)slot].pTexture != nullptr;
     }
 
-    bool Material::setTexture(const TextureSlot slot, const ref<Texture>& pTexture)
+    bool Material::setTexture(const TextureSlot slot, const nvrhi::TextureHandle& pTexture)
     {
         if (!hasTextureSlot(slot))
         {
@@ -191,7 +191,7 @@ namespace Falcor
         return true;
     }
 
-    ref<Texture> Material::getTexture(const TextureSlot slot) const
+    nvrhi::TextureHandle Material::getTexture(const TextureSlot slot) const
     {
         if (!hasTextureSlot(slot)) return nullptr;
 
@@ -256,7 +256,7 @@ namespace Falcor
         if (mUpdateCallback) mUpdateCallback(updates);
     }
 
-    void Material::updateTextureHandle(MaterialSystem* pOwner, const ref<Texture>& pTexture, TextureHandle& handle)
+    void Material::updateTextureHandle(MaterialSystem* pOwner, const nvrhi::TextureHandle& pTexture, TextureHandle& handle)
     {
         TextureHandle prevHandle = handle;
 
@@ -291,7 +291,7 @@ namespace Falcor
         }
     }
 
-    void Material::updateDefaultTextureSamplerID(MaterialSystem* pOwner, const ref<Sampler>& pSampler)
+    void Material::updateDefaultTextureSamplerID(MaterialSystem* pOwner, const nvrhi::SamplerHandle& pSampler)
     {
         const uint32_t samplerID = pOwner->addTextureSampler(pSampler);
 
@@ -328,7 +328,7 @@ namespace Falcor
         return true;
     }
 
-    NormalMapType Material::detectNormalMapType(const ref<Texture>& pNormalMap)
+    NormalMapType Material::detectNormalMapType(const nvrhi::TextureHandle& pNormalMap)
     {
         NormalMapType type = NormalMapType::None;
         if (pNormalMap != nullptr)

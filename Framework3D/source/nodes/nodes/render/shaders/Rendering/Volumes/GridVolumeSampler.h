@@ -30,7 +30,6 @@
 #include "Core/Macros.h"
 #include "Core/Program/DefineList.h"
 #include "Utils/Properties.h"
-#include "Utils/UI/Gui.h"
 #include "Scene/Scene.h"
 
 namespace Falcor
@@ -81,11 +80,6 @@ namespace Falcor
             \param[in] var Shader variable.
         */
         void bindShaderData(const ShaderVar& var) const;
-
-        /** Render the GUI.
-            \return True if options were changed, false otherwise.
-        */
-        bool renderUI(Gui::Widgets& widget);
 
         /** Returns the current configuration.
         */

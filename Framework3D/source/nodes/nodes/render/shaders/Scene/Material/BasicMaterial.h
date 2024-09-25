@@ -80,7 +80,7 @@ namespace Falcor
             \param[in] pTexture The texture.
             \return True if the texture slot was changed, false otherwise.
         */
-        bool setTexture(const TextureSlot slot, const ref<Texture>& pTexture) override;
+        bool setTexture(const TextureSlot slot, const nvrhi::TextureHandle& pTexture) override;
 
         /** Optimize texture usage for the given texture slot.
             This function may replace constant textures by uniform material parameters etc.
@@ -92,11 +92,11 @@ namespace Falcor
 
         /** Set the default texture sampler for the material.
         */
-        void setDefaultTextureSampler(const ref<Sampler>& pSampler) override;
+        void setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler) override;
 
         /** Get the default texture sampler for the material.
         */
-        ref<Sampler> getDefaultTextureSampler() const override { return mpDefaultSampler; }
+        nvrhi::SamplerHandle getDefaultTextureSampler() const override { return mpDefaultSampler; }
 
         /** Get the material data blob for uploading to the GPU.
         */
@@ -107,51 +107,51 @@ namespace Falcor
 
         /** Set the base color texture.
         */
-        void setBaseColorTexture(const ref<Texture>& pBaseColor) { setTexture(TextureSlot::BaseColor, pBaseColor); }
+        void setBaseColorTexture(const nvrhi::TextureHandle& pBaseColor) { setTexture(TextureSlot::BaseColor, pBaseColor); }
 
         /** Get the base color texture.
         */
-        ref<Texture> getBaseColorTexture() const { return getTexture(TextureSlot::BaseColor); }
+        nvrhi::TextureHandle getBaseColorTexture() const { return getTexture(TextureSlot::BaseColor); }
 
         /** Set the specular texture.
         */
-        void setSpecularTexture(const ref<Texture>& pSpecular) { setTexture(TextureSlot::Specular, pSpecular); }
+        void setSpecularTexture(const nvrhi::TextureHandle& pSpecular) { setTexture(TextureSlot::Specular, pSpecular); }
 
         /** Get the specular texture.
         */
-        ref<Texture> getSpecularTexture() const { return getTexture(TextureSlot::Specular); }
+        nvrhi::TextureHandle getSpecularTexture() const { return getTexture(TextureSlot::Specular); }
 
         /** Set the emissive texture.
         */
-        void setEmissiveTexture(const ref<Texture>& pEmissive) { setTexture(TextureSlot::Emissive, pEmissive); }
+        void setEmissiveTexture(const nvrhi::TextureHandle& pEmissive) { setTexture(TextureSlot::Emissive, pEmissive); }
 
         /** Get the emissive texture.
         */
-        ref<Texture> getEmissiveTexture() const { return getTexture(TextureSlot::Emissive); }
+        nvrhi::TextureHandle getEmissiveTexture() const { return getTexture(TextureSlot::Emissive); }
 
         /** Set the specular transmission texture.
         */
-        void setTransmissionTexture(const ref<Texture>& pTransmission) { setTexture(TextureSlot::Transmission, pTransmission); }
+        void setTransmissionTexture(const nvrhi::TextureHandle& pTransmission) { setTexture(TextureSlot::Transmission, pTransmission); }
 
         /** Get the specular transmission texture.
         */
-        ref<Texture> getTransmissionTexture() const { return getTexture(TextureSlot::Transmission); }
+        nvrhi::TextureHandle getTransmissionTexture() const { return getTexture(TextureSlot::Transmission); }
 
         /** Set the normal map.
         */
-        void setNormalMap(const ref<Texture>& pNormalMap) { setTexture(TextureSlot::Normal, pNormalMap); }
+        void setNormalMap(const nvrhi::TextureHandle& pNormalMap) { setTexture(TextureSlot::Normal, pNormalMap); }
 
         /** Get the normal map.
         */
-        ref<Texture> getNormalMap() const { return getTexture(TextureSlot::Normal); }
+        nvrhi::TextureHandle getNormalMap() const { return getTexture(TextureSlot::Normal); }
 
         /** Set the displacement map.
         */
-        void setDisplacementMap(const ref<Texture>& pDisplacementMap) { setTexture(TextureSlot::Displacement, pDisplacementMap); }
+        void setDisplacementMap(const nvrhi::TextureHandle& pDisplacementMap) { setTexture(TextureSlot::Displacement, pDisplacementMap); }
 
         /** Get the displacement map.
         */
-        ref<Texture> getDisplacementMap() const { return getTexture(TextureSlot::Displacement); }
+        nvrhi::TextureHandle getDisplacementMap() const { return getTexture(TextureSlot::Displacement); }
 
         /** Set the displacement scale.
         */
@@ -249,7 +249,7 @@ namespace Falcor
         bool operator==(const BasicMaterial& other) const;
 
     protected:
-        BasicMaterial(ref<Device> pDevice, const std::string& name, MaterialType type);
+        BasicMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, MaterialType type);
 
         bool isAlphaSupported() const;
         void prepareDisplacementMapForRendering();
@@ -264,9 +264,9 @@ namespace Falcor
 
         BasicMaterialData mData;                    ///< Material parameters.
 
-        ref<Sampler> mpDefaultSampler;
-        ref<Sampler> mpDisplacementMinSampler;
-        ref<Sampler> mpDisplacementMaxSampler;
+        nvrhi::SamplerHandle mpDefaultSampler;
+        nvrhi::SamplerHandle mpDisplacementMinSampler;
+        nvrhi::SamplerHandle mpDisplacementMaxSampler;
 
         // Additional data for texture usage.
         float2 mAlphaRange = float2(0.f, 1.f);      ///< Conservative range of opacity (alpha) values for the material.

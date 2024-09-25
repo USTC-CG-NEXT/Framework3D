@@ -83,9 +83,9 @@ namespace Falcor
             Blackbody,
         };
 
-        static ref<GridVolume> create(ref<Device> pDevice, const std::string& name) { return make_ref<GridVolume>(pDevice, name); }
+        static ref<GridVolume> create(nvrhi::DeviceHandle pDevice, const std::string& name) { return make_ref<GridVolume>(pDevice, name); }
 
-        GridVolume(ref<Device> pDevice, const std::string& name);
+        GridVolume(nvrhi::DeviceHandle pDevice, const std::string& name);
 
         /** Render the UI.
             \return True if the volume was modified.
@@ -124,7 +124,7 @@ namespace Falcor
             \param[in] keepEmpty Add empty (nullptr) grids to the sequence if one cannot be loaded from the file.
             \return Returns the resulting GridSequence
         */
-        static GridSequence createGridSequence(ref<Device> pDevice, const std::vector<std::filesystem::path>& paths, const std::string& gridname, bool keepEmpty = true);
+        static GridSequence createGridSequence(nvrhi::DeviceHandle pDevice, const std::vector<std::filesystem::path>& paths, const std::string& gridname, bool keepEmpty = true);
 
         /** Load a sequence of grids from files to a grid slot.
             Note: This will replace any existing grid sequence for that slot.
@@ -289,7 +289,7 @@ namespace Falcor
         void markUpdates(UpdateFlags updates);
         void setFlags(uint32_t flags);
 
-        ref<Device> mpDevice;
+        nvrhi::DeviceHandle mpDevice;
         std::string mName;
         std::array<GridSequence, (size_t)GridSlot::Count> mGrids;
         uint32_t mGridFrame = 0;

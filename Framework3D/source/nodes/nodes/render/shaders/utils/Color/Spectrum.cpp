@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "Spectrum.h"
 #include "Core/Error.h"
-#include <fstd/span.h> // TODO C++20: Replace with <span>
+#include <span> // TODO C++20: Replace with <span>
 #include <unordered_map>
 
 namespace Falcor
@@ -36,7 +36,7 @@ namespace Falcor
 // PiecewiseLinearSpectrum
 // ------------------------------------------------------------------------
 
-PiecewiseLinearSpectrum::PiecewiseLinearSpectrum(fstd::span<const float> wavelengths, fstd::span<const float> values)
+PiecewiseLinearSpectrum::PiecewiseLinearSpectrum(std::span<const float> wavelengths, std::span<const float> values)
     : mWavelengths(wavelengths.begin(), wavelengths.end())
     , mValues(values.begin(), values.end())
     , mMaxValue(*std::max_element(values.begin(), values.end()))
@@ -44,7 +44,7 @@ PiecewiseLinearSpectrum::PiecewiseLinearSpectrum(fstd::span<const float> wavelen
     FALCOR_CHECK(wavelengths.size() == values.size(), "'wavelengths' and 'values' need to contain the same number of elements");
 }
 
-PiecewiseLinearSpectrum PiecewiseLinearSpectrum::fromInterleaved(fstd::span<const float> interleaved, bool normalize)
+PiecewiseLinearSpectrum PiecewiseLinearSpectrum::fromInterleaved(std::span<const float> interleaved, bool normalize)
 {
     FALCOR_CHECK(interleaved.size() % 2 == 0, "'interleaved' must have an even number of elements.");
 

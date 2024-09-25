@@ -76,7 +76,7 @@ namespace Falcor
             \param[in] key Cache key.
             \return Returns the loaded scene data.
         */
-        static Scene::SceneData readCache(ref<Device> pDevice, const Key& key);
+        static Scene::SceneData readCache(nvrhi::DeviceHandle pDevice, const Key& key);
 
     private:
         class OutputStream;
@@ -85,7 +85,7 @@ namespace Falcor
         static std::filesystem::path getCachePath(const Key& key);
 
         static void writeSceneData(OutputStream& stream, const Scene::SceneData& sceneData);
-        static Scene::SceneData readSceneData(InputStream& stream, ref<Device> pDevice);
+        static Scene::SceneData readSceneData(InputStream& stream, nvrhi::DeviceHandle pDevice);
 
         static void writeMetadata(OutputStream& stream, const Scene::Metadata& metadata);
         static Scene::Metadata readMetadata(InputStream& stream);
@@ -99,21 +99,21 @@ namespace Falcor
         static void writeMaterials(OutputStream& stream, const MaterialSystem& materialSystem);
         static void writeMaterial(OutputStream& stream, const ref<Material>& pMaterial);
         static void writeBasicMaterial(OutputStream& stream, const ref<BasicMaterial>& pMaterial);
-        static void readMaterials(InputStream& stream, MaterialSystem& materialSystem, MaterialTextureLoader& materialTextureLoader, ref<Device> pDevice);
-        static ref<Material> readMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, ref<Device> pDevice);
-        static void readBasicMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, const ref<BasicMaterial>& pMaterial, ref<Device> pDevice);
+        static void readMaterials(InputStream& stream, MaterialSystem& materialSystem, MaterialTextureLoader& materialTextureLoader, nvrhi::DeviceHandle pDevice);
+        static ref<Material> readMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, nvrhi::DeviceHandle pDevice);
+        static void readBasicMaterial(InputStream& stream, MaterialTextureLoader& materialTextureLoader, const ref<BasicMaterial>& pMaterial, nvrhi::DeviceHandle pDevice);
 
-        static void writeSampler(OutputStream& stream, const ref<Sampler>& pSampler);
-        static ref<Sampler> readSampler(InputStream& stream, ref<Device> pDevice);
+        static void writeSampler(OutputStream& stream, const nvrhi::SamplerHandle& pSampler);
+        static nvrhi::SamplerHandle readSampler(InputStream& stream, nvrhi::DeviceHandle pDevice);
 
         static void writeGridVolume(OutputStream& stream, const ref<GridVolume>& pVolume, const std::vector<ref<Grid>>& grids);
-        static ref<GridVolume> readGridVolume(InputStream& stream, const std::vector<ref<Grid>>& grids, ref<Device> pDevice);
+        static ref<GridVolume> readGridVolume(InputStream& stream, const std::vector<ref<Grid>>& grids, nvrhi::DeviceHandle pDevice);
 
         static void writeGrid(OutputStream& stream, const ref<Grid>& pGrid);
-        static ref<Grid> readGrid(InputStream& stream, ref<Device> pDevice);
+        static ref<Grid> readGrid(InputStream& stream, nvrhi::DeviceHandle pDevice);
 
         static void writeEnvMap(OutputStream& stream, const ref<EnvMap>& pEnvMap);
-        static ref<EnvMap> readEnvMap(InputStream& stream, ref<Device> pDevice);
+        static ref<EnvMap> readEnvMap(InputStream& stream, nvrhi::DeviceHandle pDevice);
 
         static void writeTransform(OutputStream& stream, const Transform& transform);
         static Transform readTransform(InputStream& stream);

@@ -133,7 +133,7 @@ public:
     struct TextureDesc
     {
         TextureState state = TextureState::Invalid; ///< Current state of the texture.
-        ref<Texture> pTexture;                      ///< Valid texture object when state is 'Loaded', or nullptr if loading failed.
+        nvrhi::TextureHandle pTexture;                      ///< Valid texture object when state is 'Loaded', or nullptr if loading failed.
 
         bool isValid() const { return state != TextureState::Invalid; }
     };
@@ -144,7 +144,7 @@ public:
      * @param[in] maxTextureCount Maximum number of textures that can be simultaneously managed.
      * @param[in] threadCount Number of worker threads.
      */
-    TextureManager(ref<Device> pDevice, size_t maxTextureCount, size_t threadCount = std::thread::hardware_concurrency());
+    TextureManager(nvrhi::DeviceHandle pDevice, size_t maxTextureCount, size_t threadCount = std::thread::hardware_concurrency());
 
     ~TextureManager();
 
@@ -154,7 +154,7 @@ public:
      * @param[in] pTexture The texture resource.
      * @return Unique handle to the texture.
      */
-    CpuTextureHandle addTexture(const ref<Texture>& pTexture);
+    CpuTextureHandle addTexture(const nvrhi::TextureHandle& pTexture);
 
     /**
      * Requst loading a texture from file.
@@ -223,9 +223,9 @@ public:
      * @param[in] handle Texture handle.
      * @return Texture if loaded, or nullptr if handle doesn't exist or texture isn't yet loaded.
      */
-    ref<Texture> getTexture(const CpuTextureHandle& handle) const { return getTextureDesc(handle).pTexture; }
-    ref<Texture> getTexture(const CpuTextureHandle& handle, const float2& uv) const { return getTextureDesc(handle, uv).pTexture; }
-    ref<Texture> getTexture(const CpuTextureHandle& handle, const uint32_t udimID) const { return getTextureDesc(handle, udimID).pTexture; }
+    nvrhi::TextureHandle getTexture(const CpuTextureHandle& handle) const { return getTextureDesc(handle).pTexture; }
+    nvrhi::TextureHandle getTexture(const CpuTextureHandle& handle, const float2& uv) const { return getTextureDesc(handle, uv).pTexture; }
+    nvrhi::TextureHandle getTexture(const CpuTextureHandle& handle, const uint32_t udimID) const { return getTextureDesc(handle, udimID).pTexture; }
 
     /**
      * Get a texture desc.
@@ -343,7 +343,7 @@ private:
     TextureDesc& getDesc(const CpuTextureHandle& handle);
     void registerOwner(const CpuTextureHandle& handle, const Object* owner);
 
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
 
     mutable std::mutex mMutex;          ///< Mutex for synchronizing access to shared resources.
     std::condition_variable mCondition; ///< Condition variable to wait on for loading to finish.

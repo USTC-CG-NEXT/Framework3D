@@ -55,7 +55,7 @@ public:
     };
 
     /// Constructor. Throws an exception on failure.
-    ParallelReduction(ref<Device> pDevice);
+    ParallelReduction(nvrhi::DeviceHandle pDevice);
 
     /**
      * Perform parallel reduction.
@@ -84,7 +84,7 @@ public:
     template<typename T>
     void execute(
         RenderContext* pRenderContext,
-        const ref<Texture>& pInput,
+        const nvrhi::TextureHandle& pInput,
         Type operation,
         T* pResult = nullptr,
         ref<Buffer> pResultBuffer = nullptr,
@@ -96,7 +96,7 @@ public:
 private:
     void allocate(uint32_t elementCount, uint32_t elementSize);
 
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
 
     ref<ComputeState> mpState;
     ref<Program> mpInitialProgram;

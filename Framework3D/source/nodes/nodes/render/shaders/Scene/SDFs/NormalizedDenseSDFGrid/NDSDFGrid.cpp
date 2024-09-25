@@ -34,10 +34,10 @@ namespace Falcor
 {
     struct NDSDFGrid::SharedData
     {
-        ref<Sampler> pSampler;
+        nvrhi::SamplerHandle pSampler;
         ref<Buffer> pUnitAABBBuffer;
 
-        SharedData(ref<Device> pDevice)
+        SharedData(nvrhi::DeviceHandle pDevice)
         {
             Sampler::Desc sdfGridSamplerDesc;
             sdfGridSamplerDesc.setFilterMode(TextureFilteringMode::Linear, TextureFilteringMode::Linear, TextureFilteringMode::Linear);
@@ -51,7 +51,7 @@ namespace Falcor
 
     static SharedCache<NDSDFGrid::SharedData, Device*> sSharedCache;
 
-    NDSDFGrid::NDSDFGrid(ref<Device> pDevice, float narrowBandThickness)
+    NDSDFGrid::NDSDFGrid(nvrhi::DeviceHandle pDevice, float narrowBandThickness)
         : SDFGrid(pDevice)
         , mNarrowBandThickness(std::max(narrowBandThickness, 1.0f))
     {
@@ -62,7 +62,7 @@ namespace Falcor
     {
         size_t totalSize = mpSharedData->pUnitAABBBuffer->getSize();
 
-        for (const ref<Texture>& pNormalizedVolumeTexture : mNDSDFTextures)
+        for (const nvrhi::TextureHandle& pNormalizedVolumeTexture : mNDSDFTextures)
         {
             totalSize += pNormalizedVolumeTexture->getTextureSizeInBytes();
         }
@@ -94,7 +94,7 @@ namespace Falcor
         {
             uint32_t lodWidth = 1 + (mCoarsestLODGridWidth << lod);
 
-            ref<Texture>& pNDSDFTexture = mNDSDFTextures[lod];
+            nvrhi::TextureHandle& pNDSDFTexture = mNDSDFTextures[lod];
             if (pNDSDFTexture && pNDSDFTexture->getWidth() == lodWidth)
             {
                 pRenderContext->updateTextureData(pNDSDFTexture.get(), mValues[lod].data());

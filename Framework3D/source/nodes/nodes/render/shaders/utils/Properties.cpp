@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "Properties.h"
 
-#include <nlohmann/json.hpp>
+#include <Utils/json.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl/filesystem.h>
 

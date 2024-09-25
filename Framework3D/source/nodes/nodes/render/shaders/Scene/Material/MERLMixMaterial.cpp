@@ -46,7 +46,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/MERLMixMaterial.slang";
     }
 
-    MERLMixMaterial::MERLMixMaterial(ref<Device> pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths)
+    MERLMixMaterial::MERLMixMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths)
         : Material(pDevice, name, MaterialType::MERLMix)
     {
         FALCOR_CHECK(!paths.empty(), "MERLMixMaterial: Expected at least one path.");
@@ -245,7 +245,7 @@ namespace Falcor
         return { {{"MERLMixMaterial", "IMaterial"}, (uint32_t)MaterialType::MERLMix} };
     }
 
-    bool MERLMixMaterial::setTexture(const TextureSlot slot, const ref<Texture>& pTexture)
+    bool MERLMixMaterial::setTexture(const TextureSlot slot, const nvrhi::TextureHandle& pTexture)
     {
         if (!Material::setTexture(slot, pTexture)) return false;
 
@@ -265,7 +265,7 @@ namespace Falcor
         return true;
     }
 
-    void MERLMixMaterial::setDefaultTextureSampler(const ref<Sampler>& pSampler)
+    void MERLMixMaterial::setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler)
     {
         if (pSampler != mpDefaultSampler)
         {

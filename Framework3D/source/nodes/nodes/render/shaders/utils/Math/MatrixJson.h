@@ -39,7 +39,7 @@
 
 #include "Core/Error.h"
 
-#include <nlohmann/json.hpp>
+#include <Utils/json.hpp>
 
 namespace Falcor
 {

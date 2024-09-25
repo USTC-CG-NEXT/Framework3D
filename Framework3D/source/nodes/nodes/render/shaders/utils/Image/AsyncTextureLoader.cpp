@@ -36,7 +36,7 @@ namespace
 constexpr size_t kUploadsPerFlush = 16; ///< Number of texture uploads before issuing a flush (to keep upload heap from growing).
 }
 
-AsyncTextureLoader::AsyncTextureLoader(ref<Device> pDevice, size_t threadCount) : mpDevice(pDevice)
+AsyncTextureLoader::AsyncTextureLoader(nvrhi::DeviceHandle pDevice, size_t threadCount) : mpDevice(pDevice)
 {
     runWorkers(threadCount);
 }
@@ -48,8 +48,8 @@ AsyncTextureLoader::~AsyncTextureLoader()
     mpDevice->wait();
 }
 
-std::future<ref<Texture>> AsyncTextureLoader::loadMippedFromFiles(
-    fstd::span<const std::filesystem::path> paths,
+std::future<nvrhi::TextureHandle> AsyncTextureLoader::loadMippedFromFiles(
+    std::span<const std::filesystem::path> paths,
     bool loadAsSrgb,
     ResourceBindFlags bindFlags,
     Bitmap::ImportFlags importFlags,
@@ -62,7 +62,7 @@ std::future<ref<Texture>> AsyncTextureLoader::loadMippedFromFiles(
     return mLoadRequestQueue.back().promise.get_future();
 }
 
-std::future<ref<Texture>> AsyncTextureLoader::loadFromFile(
+std::future<nvrhi::TextureHandle> AsyncTextureLoader::loadFromFile(
     const std::filesystem::path& path,
     bool generateMipLevels,
     bool loadAsSrgb,
@@ -133,7 +133,7 @@ void AsyncTextureLoader::runWorker()
         lock.unlock();
 
         // Load the textures (this part is running in parallel).
-        ref<Texture> pTexture;
+        nvrhi::TextureHandle pTexture;
         if (request.paths.size() == 1)
         {
             pTexture = Texture::createFromFile(

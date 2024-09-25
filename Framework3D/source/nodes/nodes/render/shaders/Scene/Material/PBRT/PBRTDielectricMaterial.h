@@ -53,9 +53,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(PBRTDielectricMaterial)
     public:
-        static ref<PBRTDielectricMaterial> create(ref<Device> pDevice, const std::string& name) { return make_ref<PBRTDielectricMaterial>(pDevice, name); }
+        static ref<PBRTDielectricMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name) { return make_ref<PBRTDielectricMaterial>(pDevice, name); }
 
-        PBRTDielectricMaterial(ref<Device> pDevice, const std::string& name);
+        PBRTDielectricMaterial(nvrhi::DeviceHandle pDevice, const std::string& name);
 
         ProgramDesc::ShaderModuleList getShaderModules() const override;
         TypeConformanceList getTypeConformances() const override;

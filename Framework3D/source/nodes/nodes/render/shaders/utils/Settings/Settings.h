@@ -30,7 +30,7 @@
 #include "Core/Macros.h"
 #include "Core/Error.h"
 
-#include <nlohmann/json.hpp>
+#include <Utils/json.hpp>
 
 #include <optional>
 #include <map>

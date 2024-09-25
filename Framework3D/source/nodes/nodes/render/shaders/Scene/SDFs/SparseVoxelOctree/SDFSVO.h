@@ -41,10 +41,10 @@ namespace Falcor
     public:
         struct SharedData;
 
-        static ref<SDFSVO> create(ref<Device> pDevice) { return make_ref<SDFSVO>(pDevice); }
+        static ref<SDFSVO> create(nvrhi::DeviceHandle pDevice) { return make_ref<SDFSVO>(pDevice); }
 
         /// Create an empty SDFSVO.
-        SDFSVO(ref<Device> pDevice);
+        SDFSVO(nvrhi::DeviceHandle pDevice);
 
         uint32_t getSVOIndexBitCount() const { return mSVOIndexBitCount; }
 
@@ -86,7 +86,7 @@ namespace Falcor
         ref<ComputePass> mpBuildOctreePass;
 
         // Scratch data used for building.
-        ref<Texture> mpSDFGridTexture;
+        nvrhi::TextureHandle mpSDFGridTexture;
         ref<Buffer> mpSurfaceVoxelCounter;
         ref<Buffer> mpSurfaceVoxelCounterStagingBuffer;
         ref<Buffer> mpVoxelCountPerLevelBuffer;

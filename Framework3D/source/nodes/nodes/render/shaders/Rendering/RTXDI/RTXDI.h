@@ -265,7 +265,7 @@ namespace Falcor
             \param[in] pRenderContext Render context.
             \param[in] pMotionVectors Motion vectors for temporal reprojection.
         */
-        void update(RenderContext* pRenderContext, const ref<Texture>& pMotionVectors);
+        void update(RenderContext* pRenderContext, const nvrhi::TextureHandle& pMotionVectors);
 
         /** Get the pixel debug component.
             \return Returns the pixel debug component.
@@ -274,7 +274,7 @@ namespace Falcor
 
     private:
         ref<IScene>                         mpScene;                ///< Scene (set on initialization).
-        ref<Device>                         mpDevice;               ///< GPU device.
+        nvrhi::DeviceHandle                         mpDevice;               ///< GPU device.
         Options                             mOptions;               ///< Configuration options.
 
         std::unique_ptr<PixelDebug>         mpPixelDebug;           ///< Pixel debug component.
@@ -345,9 +345,9 @@ namespace Falcor
 
         ref<Buffer>       mpAnalyticLightIDBuffer;                  ///< Buffer storing a list of analytic light IDs used in the scene.
         ref<Buffer>       mpLightInfoBuffer;                        ///< Buffer storing information about all the lights in the scene.
-        ref<Texture>      mpLocalLightPdfTexture;                   ///< Texture storing the PDF for sampling local lights proportional to radiant flux.
-        ref<Texture>      mpEnvLightLuminanceTexture;               ///< Texture storing luminance of the environment light.
-        ref<Texture>      mpEnvLightPdfTexture;                     ///< Texture storing the PDF for sampling the environment light proportional to luminance (times solid angle).
+        nvrhi::TextureHandle      mpLocalLightPdfTexture;                   ///< Texture storing the PDF for sampling local lights proportional to radiant flux.
+        nvrhi::TextureHandle      mpEnvLightLuminanceTexture;               ///< Texture storing luminance of the environment light.
+        nvrhi::TextureHandle      mpEnvLightPdfTexture;                     ///< Texture storing the PDF for sampling the environment light proportional to luminance (times solid angle).
 
         ref<Buffer>       mpLightTileBuffer;                        ///< Buffer storing precomputed light tiles (see presampleLights()). This is called "ris buffer" in RTXDI.
         ref<Buffer>       mpCompactLightInfoBuffer;                 ///< Optional buffer storing compact light info for samples in the light tile buffer for improved coherence.
@@ -379,15 +379,15 @@ namespace Falcor
 
         // Compute pass launches.
 
-        void bindShaderDataInternal(const ShaderVar& rootVar, const ref<Texture>& pMotionVectors, bool bindScene = true);
+        void bindShaderDataInternal(const ShaderVar& rootVar, const nvrhi::TextureHandle& pMotionVectors, bool bindScene = true);
         void updateLights(RenderContext* pRenderContext);
         void updateEnvLight(RenderContext* pRenderContext);
         void presampleLights(RenderContext* pRenderContext);
         void generateCandidates(RenderContext* pRenderContext, uint32_t outputReservoirID);
         void testCandidateVisibility(RenderContext* pRenderContext, uint32_t candidateReservoirID);
         uint32_t spatialResampling(RenderContext* pRenderContext, uint32_t inputReservoirID);
-        uint32_t temporalResampling(RenderContext* pRenderContext, const ref<Texture>& pMotionVectors, uint32_t candidateReservoirID, uint32_t lastFrameReservoirID);
-        uint32_t spatiotemporalResampling(RenderContext* pRenderContext, const ref<Texture>& pMotionVectors, uint32_t candidateReservoirID, uint32_t lastFrameReservoirID);
+        uint32_t temporalResampling(RenderContext* pRenderContext, const nvrhi::TextureHandle& pMotionVectors, uint32_t candidateReservoirID, uint32_t lastFrameReservoirID);
+        uint32_t spatiotemporalResampling(RenderContext* pRenderContext, const nvrhi::TextureHandle& pMotionVectors, uint32_t candidateReservoirID, uint32_t lastFrameReservoirID);
 
         // Internal routines.
 

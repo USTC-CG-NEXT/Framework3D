@@ -31,7 +31,7 @@
 
 #include <unordered_map>
 #include <vector>
-#include <fstd/span.h>
+#include <span>
 
 namespace Falcor
 {
@@ -85,12 +85,12 @@ public:
     /**
      * @brief Get the set of unique data items.
      */
-    fstd::span<const T> getValues() const { return mValues; }
+    std::span<const T> getValues() const { return mValues; }
 
     /**
      * @brief Get the ordered list of item indices.
      */
-    fstd::span<const I> getIndices() const { return mIndices; }
+    std::span<const I> getIndices() const { return mIndices; }
 
 private:
     std::unordered_map<T, I, H, E> mIndexMap;

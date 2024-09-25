@@ -41,7 +41,7 @@ namespace Falcor
         const uint32_t kDefaultSpp = 64;
     }
 
-    EnvMapSampler::EnvMapSampler(ref<Device> pDevice, ref<EnvMap> pEnvMap)
+    EnvMapSampler::EnvMapSampler(nvrhi::DeviceHandle pDevice, ref<EnvMap> pEnvMap)
         : mpDevice(pDevice)
         , mpEnvMap(pEnvMap)
     {

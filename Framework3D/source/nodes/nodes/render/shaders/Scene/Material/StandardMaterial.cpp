@@ -38,7 +38,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/StandardMaterial.slang";
     }
 
-    StandardMaterial::StandardMaterial(ref<Device> pDevice, const std::string& name, ShadingModel shadingModel)
+    StandardMaterial::StandardMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, ShadingModel shadingModel)
         : BasicMaterial(pDevice, name, MaterialType::Standard)
     {
         setShadingModel(shadingModel);

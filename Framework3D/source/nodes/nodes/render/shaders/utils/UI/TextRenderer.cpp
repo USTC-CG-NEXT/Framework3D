@@ -66,7 +66,7 @@ ref<Vao> createVAO(const ref<Buffer>& pVB)
 
 } // namespace
 
-TextRenderer::TextRenderer(ref<Device> pDevice) : mpDevice(pDevice)
+TextRenderer::TextRenderer(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 {
     for (uint32_t i = 0; i < kVaoCount; ++i)
     {

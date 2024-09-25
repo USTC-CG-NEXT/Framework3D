@@ -53,9 +53,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(PBRTDiffuseTransmissionMaterial)
     public:
-        static ref<PBRTDiffuseTransmissionMaterial> create(ref<Device> pDevice, const std::string& name) { return make_ref<PBRTDiffuseTransmissionMaterial>(pDevice, name); }
+        static ref<PBRTDiffuseTransmissionMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name) { return make_ref<PBRTDiffuseTransmissionMaterial>(pDevice, name); }
 
-        PBRTDiffuseTransmissionMaterial(ref<Device> pDevice, const std::string& name);
+        PBRTDiffuseTransmissionMaterial(nvrhi::DeviceHandle pDevice, const std::string& name);
 
         ProgramDesc::ShaderModuleList getShaderModules() const override;
         TypeConformanceList getTypeConformances() const override;

@@ -37,7 +37,7 @@ namespace
 
 namespace Falcor
 {
-    LightBVH::LightBVH(ref<Device> pDevice, const ref<const ILightCollection>& pLightCollection)
+    LightBVH::LightBVH(nvrhi::DeviceHandle pDevice, const ref<const ILightCollection>& pLightCollection)
         : mpDevice(pDevice)
         , mpLightCollection(pLightCollection)
     {

@@ -45,7 +45,7 @@ namespace Falcor
     {
         FALCOR_OBJECT(LightProfile)
     public:
-        static ref<LightProfile> createFromIesProfile(ref<Device> pDevice, const std::filesystem::path& path, bool normalize);
+        static ref<LightProfile> createFromIesProfile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, bool normalize);
 
         void bake(RenderContext* pRenderContext);
 
@@ -58,13 +58,13 @@ namespace Falcor
         void renderUI(Gui::Widgets& widget) const;
 
     private:
-        LightProfile(ref<Device> pDevice, const std::string& name, const std::vector<float>& rawData);
+        LightProfile(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<float>& rawData);
 
-        ref<Device> mpDevice;
+        nvrhi::DeviceHandle mpDevice;
         std::string mName;
         std::vector<float> mRawData;
-        ref<Texture> mpTexture;
-        ref<Sampler> mpSampler;
+        nvrhi::TextureHandle mpTexture;
+        nvrhi::SamplerHandle mpSampler;
         float mFluxFactor = 0.f;
     };
 }

@@ -74,7 +74,7 @@ namespace Falcor
 
         /** Constructor. Throws an exception if creation failed.
         */
-        MaterialSystem(ref<Device> pDevice);
+        MaterialSystem(nvrhi::DeviceHandle pDevice);
 
         /** Render the UI.
         */
@@ -134,14 +134,14 @@ namespace Falcor
 
         /** Set a default texture sampler to use for all materials.
         */
-        void setDefaultTextureSampler(const ref<Sampler>& pSampler);
+        void setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler);
 
         /** Add a texture sampler.
             If an identical sampler already exists, the sampler is not added and the existing ID returned.
             \param[in] pSampler The sampler.
             \return The ID of the sampler.
         */
-        uint32_t addTextureSampler(const ref<Sampler>& pSampler);
+        uint32_t addTextureSampler(const nvrhi::SamplerHandle& pSampler);
 
         /** Get the total number of texture samplers.
         */
@@ -149,7 +149,7 @@ namespace Falcor
 
         /** Get a texture sampler by ID.
         */
-        const ref<Sampler>& getTextureSampler(const uint32_t samplerID) const { return mTextureSamplers[samplerID]; }
+        const nvrhi::SamplerHandle& getTextureSampler(const uint32_t samplerID) const { return mTextureSamplers[samplerID]; }
 
         /** Add a buffer resource to be managed.
             \param[in] pBuffer The buffer.
@@ -171,7 +171,7 @@ namespace Falcor
             \param[in] pTexture The texture.
             \return The ID of the texture.
         */
-        uint32_t addTexture3D(const ref<Texture>& pTexture);
+        uint32_t addTexture3D(const nvrhi::TextureHandle& pTexture);
 
         /** Get the total number of 3D textures.
         */
@@ -262,7 +262,7 @@ namespace Falcor
         void createParameterBlock();
         void uploadMaterial(const uint32_t materialID);
 
-        ref<Device> mpDevice;
+        nvrhi::DeviceHandle mpDevice;
 
         std::vector<ref<Material>> mMaterials;                      ///< List of all materials.
         std::vector<Material::UpdateFlags> mMaterialsUpdateFlags;   ///< List of all material update flags, after the update() calls
@@ -296,10 +296,10 @@ namespace Falcor
         ref<Fence> mpFence;
         ref<ParameterBlock> mpMaterialsBlock;                       ///< Parameter block for binding all material resources.
         ref<Buffer> mpMaterialDataBuffer;                           ///< GPU buffer holding all material data.
-        ref<Sampler> mpDefaultTextureSampler;                       ///< Default texture sampler to use for all materials.
-        std::vector<ref<Sampler>> mTextureSamplers;                 ///< Texture sampler states. These are indexed by ID in the materials.
+        nvrhi::SamplerHandle mpDefaultTextureSampler;                       ///< Default texture sampler to use for all materials.
+        std::vector<nvrhi::SamplerHandle> mTextureSamplers;                 ///< Texture sampler states. These are indexed by ID in the materials.
         std::vector<ref<Buffer>> mBuffers;                          ///< Buffers used by the materials. These are indexed by ID in the materials.
-        std::vector<ref<Texture>> mTextures3D;                      ///< 3D textures used by the materials. These are indexed by ID in the materials.
+        std::vector<nvrhi::TextureHandle> mTextures3D;                      ///< 3D textures used by the materials. These are indexed by ID in the materials.
 
         // UI variables
         std::vector<uint32_t> mSortedMaterialIndices;               ///< Indices of materials, sorted alphabetically by case-insensitive name.

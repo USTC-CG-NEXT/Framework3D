@@ -53,14 +53,14 @@ namespace Falcor
             \param[in] pDevice GPU device.
             \param[in] texture The environment map texture.
         */
-        static ref<EnvMap> create(ref<Device> pDevice, const ref<Texture>& texture);
+        static ref<EnvMap> create(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& texture);
 
         /** Create a new environment map from file.
             \param[in] pDevice GPU device.
             \param[in] path The environment map texture file path (absolute or relative to working directory).
             \return A new object, or nullptr if the environment map failed to load.
         */
-        static ref<EnvMap> createFromFile(ref<Device> pDevice, const std::filesystem::path& path);
+        static ref<EnvMap> createFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path);
 
         /** Render the GUI.
         */
@@ -99,8 +99,8 @@ namespace Falcor
         */
         const std::filesystem::path& getPath() const { return mpEnvMap->getSourcePath(); }
 
-        const ref<Texture>& getEnvMap() const { return mpEnvMap; }
-        const ref<Sampler>& getEnvSampler() const { return mpEnvSampler; }
+        const nvrhi::TextureHandle& getEnvMap() const { return mpEnvMap; }
+        const nvrhi::SamplerHandle& getEnvSampler() const { return mpEnvSampler; }
 
         /** Bind the environment map to a given shader variable.
             \param[in] var Shader variable.
@@ -127,11 +127,11 @@ namespace Falcor
         uint64_t getMemoryUsageInBytes() const;
 
     protected:
-        EnvMap(ref<Device> pDevice, const ref<Texture>& texture);
+        EnvMap(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& texture);
 
-        ref<Device>             mpDevice;
-        ref<Texture>            mpEnvMap;           ///< Loaded environment map (RGB).
-        ref<Sampler>            mpEnvSampler;       ///< Texture sampler for the environment map.
+        nvrhi::DeviceHandle             mpDevice;
+        nvrhi::TextureHandle            mpEnvMap;           ///< Loaded environment map (RGB).
+        nvrhi::SamplerHandle            mpEnvSampler;       ///< Texture sampler for the environment map.
 
         EnvMapData              mData;
         EnvMapData              mPrevData;

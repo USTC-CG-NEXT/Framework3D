@@ -30,7 +30,7 @@
 #include "Utils/Math/Common.h"
 #include "Utils/Math/Vector.h"
 #include "Utils/Color/ColorUtils.h"
-#include <fstd/span.h> // TODO C++20: Replace with <span>
+#include <span> // TODO C++20: Replace with <span>
 #include <algorithm>
 #include <filesystem>
 #include <optional>
@@ -50,7 +50,7 @@ public:
      * @param[in] wavelengths Wavelengths in nm.
      * @param[in] values Values.
      */
-    PiecewiseLinearSpectrum(fstd::span<const float> wavelengths, fstd::span<const float> values);
+    PiecewiseLinearSpectrum(std::span<const float> wavelengths, std::span<const float> values);
 
     /**
      * Create a spectrum from interleaved data:
@@ -59,7 +59,7 @@ public:
      * @param[in] normalize Normalize spectrum to have luminance of 1.
      * @return The spectrum.
      */
-    static PiecewiseLinearSpectrum fromInterleaved(fstd::span<const float> interleaved, bool normalize);
+    static PiecewiseLinearSpectrum fromInterleaved(std::span<const float> interleaved, bool normalize);
 
     /**
      * Create a spectrum from a text file that contains interleaved data:
@@ -125,7 +125,7 @@ private:
 class FALCOR_API DenseleySampledSpectrum
 {
 public:
-    DenseleySampledSpectrum(float minWavelength, float maxWavelength, fstd::span<const float> values)
+    DenseleySampledSpectrum(float minWavelength, float maxWavelength, std::span<const float> values)
         : mMinWavelength(minWavelength)
         , mMaxWavelength(maxWavelength)
         , mWavelengthStep((maxWavelength - minWavelength) / (values.size() - 1))

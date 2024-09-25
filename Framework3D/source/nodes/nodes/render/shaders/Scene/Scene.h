@@ -397,18 +397,18 @@ namespace Falcor
             \param[in] settings Optional settings.
             \return Scene object, or throws an ImporterError if import went wrong.
         */
-        static ref<Scene> create(ref<Device> pDevice, const std::filesystem::path& path, const Settings& settings = Settings());
+        static ref<Scene> create(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const Settings& settings = Settings());
 
         /** Create scene from in-memory representation.
             \param[in] pDevice GPU device.
             \param[in] sceneData All scene data.
             \return Scene object or throws on error.
         */
-        static ref<Scene> create(ref<Device> pDevice, SceneData&& sceneData);
+        static ref<Scene> create(nvrhi::DeviceHandle pDevice, SceneData&& sceneData);
 
         /** Return the associated GPU device.
         */
-        const ref<Device>& getDevice() const override { return mpDevice; }
+        const nvrhi::DeviceHandle& getDevice() const override { return mpDevice; }
 
         /** Bind the scene to a given shader var.
             Note that the scene may change between calls to update().
@@ -786,7 +786,7 @@ namespace Falcor
             mpMaterials->replaceMaterial(materialID, pReplacement);
         }
 
-        void setDefaultTextureSampler(const ref<Sampler>& pSampler) override
+        void setDefaultTextureSampler(const nvrhi::SamplerHandle& pSampler) override
         {
             mpMaterials->setDefaultTextureSampler(pSampler);
         }
@@ -1221,9 +1221,9 @@ namespace Falcor
         void bindSelectedCamera();
         void bindParameterBlock();
 
-        Scene(ref<Device> pDevice, SceneData&& sceneData);
+        Scene(nvrhi::DeviceHandle pDevice, SceneData&& sceneData);
 
-        ref<Device> mpDevice; ///< GPU device the scene resides on.
+        nvrhi::DeviceHandle mpDevice; ///< GPU device the scene resides on.
 
         // Scene Geometry
 
@@ -1369,7 +1369,7 @@ namespace Falcor
 
         struct TlasData
         {
-            ref<RtAccelerationStructure> pTlasObject;
+            nvrhi::rt::AccelStructHandle pTlasObject;
             ref<Buffer> pTlasBuffer;
             UpdateMode updateMode = UpdateMode::Rebuild;    ///< Update mode this TLAS was created with.
         };
@@ -1424,7 +1424,7 @@ namespace Falcor
         };
 
         // BLAS Data is ordered as all mesh BLAS's first, followed by one BLAS containing all AABBs.
-        std::vector<ref<RtAccelerationStructure>> mBlasObjects; ///< BLAS API objects.
+        std::vector<nvrhi::rt::AccelStructHandle> mBlasObjects; ///< BLAS API objects.
         std::vector<BlasData> mBlasData;                    ///< All data related to the scene's BLASes.
         std::vector<BlasGroup> mBlasGroups;                 ///< BLAS group data.
         ref<Buffer> mpBlasScratch;                          ///< Scratch buffer used for BLAS builds.
