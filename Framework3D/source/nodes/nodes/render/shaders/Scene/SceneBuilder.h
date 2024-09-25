@@ -37,7 +37,7 @@
 
 #include "Core/Macros.h"
 #include "Core/AssetResolver.h"
-#include "Core/API/VAO.h"
+
 #include "Utils/Math/AABB.h"
 #include "Utils/Math/Vector.h"
 #include "Utils/Math/Matrix.h"

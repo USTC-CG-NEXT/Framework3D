@@ -34,11 +34,11 @@
 #include "Core/Macros.h"
 #include "Core/Error.h"
 #include "Core/Object.h"
-#include "Core/API/Formats.h"
-#include "Core/API/Texture.h"
-#include "Core/API/Sampler.h"
+
+
+
 #include "Utils/Image/TextureAnalyzer.h"
-#include "Utils/UI/Gui.h"
+
 #include "Scene/Transform.h"
 #include "MaterialTypeRegistry.h"
 #include <array>

@@ -31,7 +31,7 @@
 #include "Core/Object.h"
 #include "Core/Program/DefineList.h"
 #include "Core/Program/ShaderVar.h"
-#include "Utils/UI/Gui.h"
+
 #include <functional>
 #include <memory>
 

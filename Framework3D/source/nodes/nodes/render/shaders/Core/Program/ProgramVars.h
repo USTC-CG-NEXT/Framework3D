@@ -29,11 +29,9 @@
 #include <memory>
 #include <vector>
 
-#include "Core/API/ParameterBlock.h"
-#include "Core/API/ShaderTable.h"
-#include "Core/API/fwd.h"
 #include "Core/Macros.h"
 #include "RtBindingTable.h"
+#include "Core/API/ParameterBlock.h"
 
 namespace Falcor {
 class Program;
@@ -105,7 +103,7 @@ class FALCOR_API RtProgramVars : public ProgramVars {
 
     bool prepareShaderTable(RenderContext* pCtx, RtStateObject* pRtso);
 
-    ShaderTablePtr getShaderTable() const
+    nvrhi::rt::ShaderTableHandle getShaderTable() const
     {
         return mpShaderTable;
     }
@@ -153,7 +151,7 @@ class FALCOR_API RtProgramVars : public ProgramVars {
                                         ///< groups that we use in the
                                         ///< associated program.
 
-    mutable ShaderTablePtr mpShaderTable;  ///< GPU shader table.
+    mutable nvrhi::rt::ShaderTableHandle mpShaderTable;  ///< GPU shader table.
     mutable RtStateObject* mpCurrentRtStateObject =
         nullptr;  ///< The RtStateObject used to create the current shader
                   ///< table.

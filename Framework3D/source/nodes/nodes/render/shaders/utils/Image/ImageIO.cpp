@@ -27,9 +27,9 @@
  **************************************************************************/
 #include "ImageIO.h"
 #include "Core/Error.h"
-#include "Core/API/Device.h"
-#include "Core/API/CopyContext.h"
-#include "Core/API/NativeFormats.h"
+
+
+
 #include "Core/Platform/MemoryMappedFile.h"
 #include "Utils/Math/ScalarMath.h"
 #include "Utils/Logger.h"
@@ -46,7 +46,7 @@ namespace
 struct ImportData
 {
     // Commonly used values converted or casted for cleaner access
-    ResourceFormat format;
+    nvrhi::Format format;
     Resource::Type type;
     uint32_t width;
     uint32_t height;
@@ -63,7 +63,7 @@ struct ExportData
 {
     // Commonly used values converted or casted for cleaner access
     nvtt::TextureType type;
-    ResourceFormat format;
+    nvrhi::Format format;
     uint32_t width;
     uint32_t height;
     uint32_t depth;
@@ -74,31 +74,31 @@ struct ExportData
     std::vector<nvtt::Surface> images;
 };
 
-ImageIO::CompressionMode convertFormatToMode(ResourceFormat format)
+ImageIO::CompressionMode convertFormatToMode(nvrhi::Format format)
 {
     switch (format)
     {
-    case ResourceFormat::BC1Unorm:
-    case ResourceFormat::BC1UnormSrgb:
+    case nvrhi::Format::BC1Unorm:
+    case nvrhi::Format::BC1UnormSrgb:
         return ImageIO::CompressionMode::BC1;
-    case ResourceFormat::BC2Unorm:
-    case ResourceFormat::BC2UnormSrgb:
+    case nvrhi::Format::BC2Unorm:
+    case nvrhi::Format::BC2UnormSrgb:
         return ImageIO::CompressionMode::BC2;
-    case ResourceFormat::BC3Unorm:
-    case ResourceFormat::BC3UnormSrgb:
+    case nvrhi::Format::BC3Unorm:
+    case nvrhi::Format::BC3UnormSrgb:
         return ImageIO::CompressionMode::BC3;
-    case ResourceFormat::BC4Unorm:
+    case nvrhi::Format::BC4Unorm:
         return ImageIO::CompressionMode::BC4;
-    case ResourceFormat::BC5Snorm:
-    case ResourceFormat::BC5Unorm:
+    case nvrhi::Format::BC5Snorm:
+    case nvrhi::Format::BC5Unorm:
         return ImageIO::CompressionMode::BC5;
-    case ResourceFormat::BC6HS16:
+    case nvrhi::Format::BC6HS16:
         return ImageIO::CompressionMode::BC6;
-    case ResourceFormat::BC7Unorm:
-    case ResourceFormat::BC7UnormSrgb:
+    case nvrhi::Format::BC7Unorm:
+    case nvrhi::Format::BC7UnormSrgb:
         return ImageIO::CompressionMode::BC7;
     default:
-        FALCOR_THROW("No corresponding compression mode for the provided ResourceFormat.");
+        FALCOR_THROW("No corresponding compression mode for the provided nvrhi::Format.");
     }
 }
 
@@ -128,39 +128,39 @@ nvtt::Format convertModeToNvttFormat(ImageIO::CompressionMode mode)
     }
 }
 
-// Returns the corresponding NVTT compression format for the provided ResourceFormat. This conversion function should be used to convert
+// Returns the corresponding NVTT compression format for the provided nvrhi::Format. This conversion function should be used to convert
 // formats for compressed textures.
-nvtt::Format convertFormatToNvttFormat(ResourceFormat format)
+nvtt::Format convertFormatToNvttFormat(nvrhi::Format format)
 {
     switch (format)
     {
-    case ResourceFormat::BC1Unorm:
-    case ResourceFormat::BC1UnormSrgb:
+    case nvrhi::Format::BC1Unorm:
+    case nvrhi::Format::BC1UnormSrgb:
         return nvtt::Format::Format_BC1;
-    case ResourceFormat::BC2Unorm:
-    case ResourceFormat::BC2UnormSrgb:
+    case nvrhi::Format::BC2Unorm:
+    case nvrhi::Format::BC2UnormSrgb:
         return nvtt::Format::Format_BC2;
-    case ResourceFormat::BC3Unorm:
-    case ResourceFormat::BC3UnormSrgb:
+    case nvrhi::Format::BC3Unorm:
+    case nvrhi::Format::BC3UnormSrgb:
         return nvtt::Format::Format_BC3;
-    case ResourceFormat::BC4Unorm:
+    case nvrhi::Format::BC4Unorm:
         return nvtt::Format::Format_BC4;
-    case ResourceFormat::BC5Snorm:
-    case ResourceFormat::BC5Unorm:
+    case nvrhi::Format::BC5Snorm:
+    case nvrhi::Format::BC5Unorm:
         return nvtt::Format::Format_BC5;
-    case ResourceFormat::BC6HS16:
+    case nvrhi::Format::BC6HS16:
         return nvtt::Format::Format_BC6S;
-    case ResourceFormat::BC7Unorm:
-    case ResourceFormat::BC7UnormSrgb:
+    case nvrhi::Format::BC7Unorm:
+    case nvrhi::Format::BC7UnormSrgb:
         return nvtt::Format::Format_BC7;
     default:
-        FALCOR_THROW("No corresponding NVTT compression format for the specified ResourceFormat.");
+        FALCOR_THROW("No corresponding NVTT compression format for the specified nvrhi::Format.");
     }
 }
 
-// Returns the corresponding NVTT input format for the provided ResourceFormat. Should only be used to convert formats for non-compressed
+// Returns the corresponding NVTT input format for the provided nvrhi::Format. Should only be used to convert formats for non-compressed
 // textures.
-nvtt::InputFormat convertToNvttInputFormat(ResourceFormat format)
+nvtt::InputFormat convertToNvttInputFormat(nvrhi::Format format)
 {
     uint32_t channelCount = getFormatChannelCount(format);
     uint32_t xBits = getNumChannelBits(format, 0);
@@ -202,7 +202,7 @@ nvtt::InputFormat convertToNvttInputFormat(ResourceFormat format)
             return nvtt::InputFormat::InputFormat_RGBA_32F;
     }
 
-    FALCOR_THROW("Image is in an unsupported ResourceFormat.");
+    FALCOR_THROW("Image is in an unsupported nvrhi::Format.");
 }
 
 // Check if any of base image dimensions need to be clamped to a multiple of 4.
@@ -264,12 +264,12 @@ void setImage(
     T alpha = T(0);
 
     // Need to flip red and blue channels for all 8 bit formats that aren't BGRA/BGRX as NVTT only supports BGRA inputs for these cases
-    bool reverseRB = getNumChannelBits(image.format, 0) == 8 && image.format != ResourceFormat::BGRA8Unorm &&
-                     image.format != ResourceFormat::BGRA8UnormSrgb && image.format != ResourceFormat::BGRX8Unorm &&
-                     image.format != ResourceFormat::BGRX8UnormSrgb;
+    bool reverseRB = getNumChannelBits(image.format, 0) == 8 && image.format != nvrhi::Format::BGRA8Unorm &&
+                     image.format != nvrhi::Format::BGRA8UnormSrgb && image.format != nvrhi::Format::BGRX8Unorm &&
+                     image.format != nvrhi::Format::BGRX8UnormSrgb;
     // Need to fill the alpha channel with 1's for all formats that do not have an alpha channel
-    bool fillAlpha = channelCount == 2 || channelCount == 3 || image.format == ResourceFormat::BGRX8Unorm ||
-                     image.format == ResourceFormat::BGRX8UnormSrgb;
+    bool fillAlpha = channelCount == 2 || channelCount == 3 || image.format == nvrhi::Format::BGRX8Unorm ||
+                     image.format == nvrhi::Format::BGRX8UnormSrgb;
 
     modified.resize(4 * pixelCount);
 
@@ -341,7 +341,7 @@ void exportDDS(const std::filesystem::path& path, ExportData& image, ImageIO::Co
         if (getFormatType(image.format) == FormatType::Float)
         {
             compressionOptions.setPixelType(nvtt::PixelType::PixelType_Float);
-            if (image.format == ResourceFormat::R32Float)
+            if (image.format == nvrhi::Format::R32Float)
             {
                 compressionOptions.setPixelFormat(32, 0, 0, 0);
             }
@@ -444,7 +444,7 @@ void readDDSHeader(ImportData& data, const void* pHeaderData, size_t& headerSize
         {
             FALCOR_THROW("Array size cannot be zero.");
         }
-        data.format = getResourceFormat(pDX10Header->dxgiFormat);
+        data.format = getnvrhi::Format(pDX10Header->dxgiFormat);
         switch (pDX10Header->resourceDimension)
         {
         case DDS_DIMENSION_TEXTURE1D:
@@ -510,7 +510,7 @@ void readDDSHeader(ImportData& data, const void* pHeaderData, size_t& headerSize
             }
         }
 
-        data.format = getResourceFormat(GetDXGIFormat(pixelFormat));
+        data.format = getnvrhi::Format(GetDXGIFormat(pixelFormat));
     }
 
     if (loadAsSrgb)

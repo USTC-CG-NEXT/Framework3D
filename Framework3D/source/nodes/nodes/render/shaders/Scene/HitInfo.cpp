@@ -117,8 +117,8 @@ namespace Falcor
         return defines;
     }
 
-    ResourceFormat HitInfo::getFormat() const
+    nvrhi::Format HitInfo::getFormat() const
     {
-        return mUseCompression ? ResourceFormat::RG32Uint : ResourceFormat::RGBA32Uint;
+        return mUseCompression ? nvrhi::Format::RG32Uint : nvrhi::Format::RGBA32Uint;
     }
 }

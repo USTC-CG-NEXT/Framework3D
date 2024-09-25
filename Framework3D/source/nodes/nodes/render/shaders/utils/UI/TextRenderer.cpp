@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "TextRenderer.h"
-#include "Core/API/RenderContext.h"
+
 #include "Core/Pass/RasterPass.h"
 #include "Utils/UI/Font.h"
 
@@ -56,8 +56,8 @@ ref<Vao> createVAO(const nvrhi::BufferHandle& pVB)
 {
     ref<VertexLayout> pLayout = VertexLayout::create();
     ref<VertexBufferLayout> pBufLayout = VertexBufferLayout::create();
-    pBufLayout->addElement("POSITION", 0, ResourceFormat::RG32Float, 1, 0);
-    pBufLayout->addElement("TEXCOORD", 8, ResourceFormat::RG32Float, 1, 1);
+    pBufLayout->addElement("POSITION", 0, nvrhi::Format::RG32Float, 1, 0);
+    pBufLayout->addElement("TEXCOORD", 8, nvrhi::Format::RG32Float, 1, 1);
     pLayout->addBufferLayout(0, pBufLayout);
     Vao::BufferVec buffers{pVB};
 

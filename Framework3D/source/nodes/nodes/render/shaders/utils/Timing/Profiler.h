@@ -28,8 +28,8 @@
 #pragma once
 #include "CpuTimer.h"
 #include "Core/Macros.h"
-#include "Core/API/GpuTimer.h"
-#include "Core/API/Fence.h"
+
+
 #include <filesystem>
 #include <memory>
 #include <string>

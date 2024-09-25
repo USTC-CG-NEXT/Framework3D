@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 #include "IScene.h"
-#include "Core/API/RenderContext.h"
+
 #include "Core/Program/ShaderVar.h"
 #include "Core/Program/ProgramVars.h"
 

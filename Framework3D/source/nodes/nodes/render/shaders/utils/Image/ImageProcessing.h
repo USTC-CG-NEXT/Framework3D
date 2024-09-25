@@ -27,8 +27,8 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Core/API/Formats.h"
-#include "Core/API/ResourceViews.h"
+
+
 #include "Core/Pass/ComputePass.h"
 #include <memory>
 
@@ -57,8 +57,8 @@ public:
      */
     void copyColorChannel(
         RenderContext* pRenderContxt,
-        const ref<ShaderResourceView>& pSrc,
-        const ref<UnorderedAccessView>& pDst,
+        const nvrhi::BindingSetItem& pSrc,
+        const nvrhi::BindingSetItem& pDst,
         const TextureChannelFlags srcMask
     );
 

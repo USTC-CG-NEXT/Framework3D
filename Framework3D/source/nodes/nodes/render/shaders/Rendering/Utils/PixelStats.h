@@ -28,11 +28,11 @@
 #pragma once
 #include "PixelStatsShared.slang"
 #include "Core/Macros.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Texture.h"
-#include "Core/API/Fence.h"
+
+
+
 #include "Core/Pass/ComputePass.h"
-#include "Utils/UI/Gui.h"
+
 #include "Utils/Algorithm/ParallelReduction.h"
 #include <memory>
 

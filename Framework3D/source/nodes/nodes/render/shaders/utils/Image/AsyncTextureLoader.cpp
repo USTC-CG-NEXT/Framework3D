@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "AsyncTextureLoader.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Threading.h"
 
 namespace Falcor

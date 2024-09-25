@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Core/API/Buffer.h"
+
 #include "Core/State/ComputeState.h"
 #include "Core/Program/Program.h"
 #include "Core/Program/ProgramVars.h"

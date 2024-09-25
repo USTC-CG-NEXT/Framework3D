@@ -30,7 +30,7 @@
 #include "MaterialSystem.h"
 #include "MaterialTypeRegistry.h"
 #include "GlobalState.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Scripting/ScriptBindings.h"
 #include "Rendering/Materials/LobeType.slang"

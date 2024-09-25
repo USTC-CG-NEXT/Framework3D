@@ -46,13 +46,13 @@
 
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "Core/API/VAO.h"
-#include "Core/API/RtAccelerationStructure.h"
+
+
 #include "Utils/Math/AABB.h"
 #include "Utils/Math/Rectangle.h"
 #include "Utils/Math/Vector.h"
 #include "Utils/Math/Matrix.h"
-#include "Utils/UI/Gui.h"
+
 #include "Utils/Settings/Settings.h"
 #include "Utils/SplitBuffer.h"
 
@@ -1232,7 +1232,7 @@ namespace Falcor
             nvrhi::BufferHandle pBuffer;            ///< Buffer holding the draw-indirect arguments.
             uint32_t count = 0;             ///< Number of draws.
             bool ccw = true;                ///< True if counterclockwise triangle winding.
-            ResourceFormat ibFormat = ResourceFormat::Unknown;  ///< Index buffer format.
+            nvrhi::Format ibFormat = nvrhi::Format::Unknown;  ///< Index buffer format.
         };
 
         GeometryTypeFlags mGeometryTypes;                           ///< Set of geometry types that exist in the scene.

@@ -26,8 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "ComputePass.h"
-#include "Core/API/ComputeContext.h"
-#include "Core/API/PythonHelpers.h"
+
+
 #include "Utils/Math/Common.h"
 #include "Utils/Scripting/ScriptBindings.h"
 

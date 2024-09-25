@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "RGLAcquisition.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Math/Vector.h"
 #include "Scene/Material/RGLCommon.h"

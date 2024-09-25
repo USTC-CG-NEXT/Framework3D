@@ -26,15 +26,15 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "ProgramReflection.h"
-#include "Core/Macros.h"
-#include "Utils/Math/Vector.h"
+#include <cstddef>
 #include <memory>
 #include <string_view>
-#include <cstddef>
 
-namespace Falcor
-{
+#include "Core/Macros.h"
+#include "ProgramReflection.h"
+#include "Utils/Math/Vector.h"
+
+namespace Falcor {
 class ParameterBlock;
 
 /**
@@ -59,7 +59,8 @@ class ParameterBlock;
  *
  * ShaderVar myVar = pObj["myVar"];                // works like &myVar
  * ShaderVar arrayElement = myVar[2];              // works like &myVar[2]
- * ShaderVar someField = arrayElement["someField"] // works like &myVar[2].someField
+ * ShaderVar someField = arrayElement["someField"] // works like
+ * &myVar[2].someField
  *
  * Once you have a `ShaderVar` that refers to a simple value you
  * want to set, you can do so with either an explicit `set*()` function
@@ -69,8 +70,7 @@ class ParameterBlock;
  *
  * pObj["someTexture"].setTexture(pMyTexture);
  */
-struct FALCOR_API ShaderVar
-{
+struct FALCOR_API ShaderVar {
     /**
      * Create a null/invalid shader variable pointer.
      */
@@ -84,7 +84,9 @@ struct FALCOR_API ShaderVar
     /**
      * Create a shader variable pointer into `pObject` at the given `offset`.
      */
-    explicit ShaderVar(ParameterBlock* pObject, const TypedShaderVarOffset& offset);
+    explicit ShaderVar(
+        ParameterBlock* pObject,
+        const TypedShaderVarOffset& offset);
 
     /**
      * Create a shader variable pointer to the content of `pObject`.
@@ -94,28 +96,42 @@ struct FALCOR_API ShaderVar
     /**
      * Check if this shader variable pointer is valid/non-null.
      */
-    bool isValid() const { return mOffset.isValid(); }
+    bool isValid() const
+    {
+        return mOffset.isValid();
+    }
 
     /**
      * Get the type data this shader variable points at.
      *
      * For an invalid/null shader variable the result will be null.
      */
-    const ReflectionType* getType() const { return mOffset.getType(); }
+    const ReflectionType* getType() const
+    {
+        return mOffset.getType();
+    }
 
     /**
-     * Get the offset that this shader variable points to inside the parameter block.
+     * Get the offset that this shader variable points to inside the parameter
+     * block.
      */
-    TypedShaderVarOffset getOffset() const { return mOffset; }
+    TypedShaderVarOffset getOffset() const
+    {
+        return mOffset;
+    }
 
     /**
-     * Get the byte offset that this shader variable points to inside the parameter block.
+     * Get the byte offset that this shader variable points to inside the
+     * parameter block.
      *
      * Note: If the type of the value being pointed at includes anything other
      * than ordinary/uniform data, then this byte offset will not provide
      * complete enough information to re-create the same `ShaderVar` later.
      */
-    size_t getByteOffset() const { return mOffset.getUniform().getByteOffset(); }
+    size_t getByteOffset() const
+    {
+        return mOffset.getUniform().getByteOffset();
+    }
 
     //
     // Navigation
@@ -155,14 +171,18 @@ struct FALCOR_API ShaderVar
      * Try to get a variable for a member/field.
      *
      * Unlike `operator[]`, a `findMember` operation does not throw an exception
-     * if the variable doesn't exist. Instead, it returns an invalid `ShaderVar`.
+     * if the variable doesn't exist. Instead, it returns an invalid
+     * `ShaderVar`.
      */
     ShaderVar findMember(std::string_view name) const;
 
     /**
      * Returns true if a member/field exists.
      */
-    bool hasMember(std::string_view name) const { return findMember(name).isValid(); }
+    bool hasMember(std::string_view name) const
+    {
+        return findMember(name).isValid();
+    }
 
     /**
      * Try to get a variable for a member/field, by index.
@@ -175,7 +195,10 @@ struct FALCOR_API ShaderVar
     /**
      * Returns true if a member/field exists, by index.
      */
-    bool hasMember(uint32_t index) const { return findMember(index).isValid(); }
+    bool hasMember(uint32_t index) const
+    {
+        return findMember(index).isValid();
+    }
 
     //
     // Variable assignment
@@ -257,7 +280,10 @@ struct FALCOR_API ShaderVar
      * This operation allows a bound buffer to be queried using the `[]` syntax:
      * pBuffer = pVars["someBuffer"];
      */
-    operator nvrhi::BufferHandle() const { return getBuffer(); }
+    operator nvrhi::BufferHandle() const
+    {
+        return getBuffer();
+    }
 
     /**
      * Bind a texture to this variable.
@@ -274,44 +300,50 @@ struct FALCOR_API ShaderVar
 
     /**
      * Implicit conversion from a shader variable to a texture.
-     * This operation allows a bound texture to be queried using the `[]` syntax:
-     * pTexture = pVars["someTexture"];
+     * This operation allows a bound texture to be queried using the `[]`
+     * syntax: pTexture = pVars["someTexture"];
      */
-    operator nvrhi::TextureHandle() const { return getTexture(); }
+    operator nvrhi::TextureHandle() const
+    {
+        return getTexture();
+    }
 
     /**
      * Bind an SRV to this variable.
      * Throws an exception if this variable doesn't point at an SRV.
      */
-    void setSrv(const ref<ShaderResourceView>& pSrv) const;
+    void setSrv(const nvrhi::BindingSetItem& pSrv) const;
 
     /**
      * Get the SRV bound to this variable.
      * Throws an exception if this variable doesn't point at an SRV.
      */
-    ref<ShaderResourceView> getSrv() const;
+    nvrhi::BindingSetItem getSrv() const;
 
     /**
      * Bind a UAV to this variable.
      * Throws an exception if this variable doesn't point at a UAV.
      */
-    void setUav(const ref<UnorderedAccessView>& pUav) const;
+    void setUav(const nvrhi::BindingSetItem& pUav) const;
 
     /**
      * Get the UAV bound to this variable.
      * Throws an exception if this variable doesn't point at a UAV.
      */
-    ref<UnorderedAccessView> getUav() const;
+    nvrhi::BindingSetItem getUav() const;
 
     /**
      * Bind an acceleration structure to this variable.
-     * Throws an exception if this variable doesn't point at an acceleration structure.
+     * Throws an exception if this variable doesn't point at an acceleration
+     * structure.
      */
-    void setAccelerationStructure(const nvrhi::rt::AccelStructHandle& pAccl) const;
+    void setAccelerationStructure(
+        const nvrhi::rt::AccelStructHandle& pAccl) const;
 
     /**
      * Get the acceleration structure bound to this variable.
-     * Throws an exception if this variable doesn't point at an acceleration structure.
+     * Throws an exception if this variable doesn't point at an acceleration
+     * structure.
      */
     nvrhi::rt::AccelStructHandle getAccelerationStructure() const;
 
@@ -329,8 +361,8 @@ struct FALCOR_API ShaderVar
 
     /**
      * Implicit conversion from a shader variable to a sampler.
-     * This operation allows a bound sampler to be queried using the `[]` syntax:
-     * pSampler = pVars["someSampler"];
+     * This operation allows a bound sampler to be queried using the `[]`
+     * syntax: pSampler = pVars["someSampler"];
      */
     operator nvrhi::SamplerHandle() const;
 
@@ -370,7 +402,10 @@ struct FALCOR_API ShaderVar
      * ...
      * pVars[myVarLoc] = someValue; // CRASH!
      */
-    operator TypedShaderVarOffset() const { return mOffset; }
+    operator TypedShaderVarOffset() const
+    {
+        return mOffset;
+    }
 
     /**
      * Implicit conversion from a shader variable to its offset information.
@@ -392,14 +427,18 @@ struct FALCOR_API ShaderVar
      * ...
      * pVars[myVarLoc] = someValue; // CRASH!
      */
-    operator UniformShaderVarOffset() const { return mOffset.getUniform(); }
+    operator UniformShaderVarOffset() const
+    {
+        return mOffset.getUniform();
+    }
 
     /**
      * Create a shader variable that points to some pre-computed `offset`
      * relative to this one.
      *
      * This operation assumes that the provided `offset` has been appropriately
-     * computed based on a type that matches what this shader variable points to.
+     * computed based on a type that matches what this shader variable points
+     * to.
      *
      * The resulting shader variable will have the type encoded in `offset`,
      * and will have an offset that is the sum of this variables offset
@@ -412,7 +451,8 @@ struct FALCOR_API ShaderVar
      * relative to this one.
      *
      * This operation assumes that the provided `offset` has been appropriately
-     * computed based on a type that matches what this shader variable points to.
+     * computed based on a type that matches what this shader variable points
+     * to.
      *
      * Because a `UniformShaderVarOffset` does not encode type information,
      * this operation will search for a field/element matching the given
@@ -434,7 +474,7 @@ struct FALCOR_API ShaderVar
      */
     void const* getRawData() const;
 
-private:
+   private:
     /**
      * The parameter block that is being pointed into.
      *
@@ -449,7 +489,8 @@ private:
     /**
      * The offset into the object where this variable points.
      *
-     * This field encodes both the offset information and the type of the variable.
+     * This field encodes both the offset information and the type of the
+     * variable.
      */
     TypedShaderVarOffset mOffset;
 
@@ -461,6 +502,4 @@ private:
     template<typename T>
     void setImpl(const T& val) const;
 };
-} // namespace Falcor
-
-#include "Core/API/ParameterBlock.h"
+}  // namespace Falcor

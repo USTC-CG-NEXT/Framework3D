@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "BSDFIntegrator.h"
 #include "Core/Error.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Logger.h"
 
 namespace Falcor

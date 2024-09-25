@@ -27,8 +27,8 @@
  **************************************************************************/
 #pragma once
 #include "Core/Error.h"
-#include "Core/API/fwd.h"
-#include "Core/API/Texture.h"
+
+
 #include "Utils/Math/Vector.h"
 #include <filesystem>
 #include <memory>

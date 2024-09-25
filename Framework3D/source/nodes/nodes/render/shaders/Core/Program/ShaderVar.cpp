@@ -26,15 +26,31 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "ShaderVar.h"
+
 #include "Core/API/ParameterBlock.h"
 #include "Utils/Scripting/ScriptBindings.h"
 
-namespace Falcor
+namespace Falcor {
+ShaderVar::ShaderVar() : mpBlock(nullptr)
 {
-ShaderVar::ShaderVar() : mpBlock(nullptr) {}
-ShaderVar::ShaderVar(const ShaderVar& other) : mpBlock(other.mpBlock), mOffset(other.mOffset) {}
-ShaderVar::ShaderVar(ParameterBlock* pObject, const TypedShaderVarOffset& offset) : mpBlock(pObject), mOffset(offset) {}
-ShaderVar::ShaderVar(ParameterBlock* pObject) : mpBlock(pObject), mOffset(pObject->getElementType().get(), ShaderVarOffset::kZero) {}
+}
+ShaderVar::ShaderVar(const ShaderVar& other)
+    : mpBlock(other.mpBlock),
+      mOffset(other.mOffset)
+{
+}
+ShaderVar::ShaderVar(
+    ParameterBlock* pObject,
+    const TypedShaderVarOffset& offset)
+    : mpBlock(pObject),
+      mOffset(offset)
+{
+}
+ShaderVar::ShaderVar(ParameterBlock* pObject)
+    : mpBlock(pObject),
+      mOffset(pObject->getElementType().get(), ShaderVarOffset::kZero)
+{
+}
 
 //
 // Navigation
@@ -60,39 +76,37 @@ ShaderVar ShaderVar::operator[](size_t index) const
     // inside the buffer/block, and thus implicitly
     // dereference this `ShaderVar`.
     //
-    if (auto pResourceType = pType->asResourceType())
-    {
-        switch (pResourceType->getType())
-        {
-        case ReflectionResourceType::Type::ConstantBuffer:
-            return getParameterBlock()->getRootVar()[index];
-        default:
-            break;
+    if (auto pResourceType = pType->asResourceType()) {
+        switch (pResourceType->getType()) {
+            case ReflectionResourceType::Type::ConstantBuffer:
+                return getParameterBlock()->getRootVar()[index];
+            default: break;
         }
     }
 
-    if (auto pArrayType = pType->asArrayType())
-    {
+    if (auto pArrayType = pType->asArrayType()) {
         auto elementCount = pArrayType->getElementCount();
-        if (!elementCount || index < elementCount)
-        {
-            UniformShaderVarOffset elementUniformLocation = mOffset.getUniform() + index * pArrayType->getElementByteStride();
+        if (!elementCount || index < elementCount) {
+            UniformShaderVarOffset elementUniformLocation =
+                mOffset.getUniform() +
+                index * pArrayType->getElementByteStride();
             ResourceShaderVarOffset elementResourceLocation(
                 mOffset.getResource().getRangeIndex(),
-                mOffset.getResource().getArrayIndex() * elementCount + ResourceShaderVarOffset::ArrayIndex(index)
-            );
-            TypedShaderVarOffset newOffset =
-                TypedShaderVarOffset(pArrayType->getElementType(), ShaderVarOffset(elementUniformLocation, elementResourceLocation));
+                mOffset.getResource().getArrayIndex() * elementCount +
+                    ResourceShaderVarOffset::ArrayIndex(index));
+            TypedShaderVarOffset newOffset = TypedShaderVarOffset(
+                pArrayType->getElementType(),
+                ShaderVarOffset(
+                    elementUniformLocation, elementResourceLocation));
             return ShaderVar(mpBlock, newOffset);
         }
     }
-    else if (auto pStructType = pType->asStructType())
-    {
-        if (index < pStructType->getMemberCount())
-        {
+    else if (auto pStructType = pType->asStructType()) {
+        if (index < pStructType->getMemberCount()) {
             auto pMember = pStructType->getMember(index);
             // Need to apply the offsets from member
-            TypedShaderVarOffset newOffset = TypedShaderVarOffset(pMember->getType(), mOffset + pMember->getBindLocation());
+            TypedShaderVarOffset newOffset = TypedShaderVarOffset(
+                pMember->getType(), mOffset + pMember->getBindLocation());
             return ShaderVar(mpBlock, newOffset);
         }
     }
@@ -112,23 +126,19 @@ ShaderVar ShaderVar::findMember(std::string_view name) const
     // inside the buffer/block, and thus implicitly
     // dereference this `ShaderVar`.
     //
-    if (auto pResourceType = pType->asResourceType())
-    {
-        switch (pResourceType->getType())
-        {
-        case ReflectionResourceType::Type::ConstantBuffer:
-            return getParameterBlock()->getRootVar().findMember(name);
-        default:
-            break;
+    if (auto pResourceType = pType->asResourceType()) {
+        switch (pResourceType->getType()) {
+            case ReflectionResourceType::Type::ConstantBuffer:
+                return getParameterBlock()->getRootVar().findMember(name);
+            default: break;
         }
     }
 
-    if (auto pStructType = pType->asStructType())
-    {
-        if (auto pMember = pStructType->findMember(name))
-        {
+    if (auto pStructType = pType->asStructType()) {
+        if (auto pMember = pStructType->findMember(name)) {
             // Need to apply the offsets from member
-            TypedShaderVarOffset newOffset = TypedShaderVarOffset(pMember->getType(), mOffset + pMember->getBindLocation());
+            TypedShaderVarOffset newOffset = TypedShaderVarOffset(
+                pMember->getType(), mOffset + pMember->getBindLocation());
             return ShaderVar(mpBlock, newOffset);
         }
     }
@@ -148,25 +158,21 @@ ShaderVar ShaderVar::findMember(uint32_t index) const
     // inside the buffer/block, and thus implicitly
     // dereference this `ShaderVar`.
     //
-    if (auto pResourceType = pType->asResourceType())
-    {
-        switch (pResourceType->getType())
-        {
-        case ReflectionResourceType::Type::ConstantBuffer:
-            return getParameterBlock()->getRootVar().findMember(index);
-        default:
-            break;
+    if (auto pResourceType = pType->asResourceType()) {
+        switch (pResourceType->getType()) {
+            case ReflectionResourceType::Type::ConstantBuffer:
+                return getParameterBlock()->getRootVar().findMember(index);
+            default: break;
         }
     }
 
-    if (auto pStructType = pType->asStructType())
-    {
-        if (index < pStructType->getMemberCount())
-        {
+    if (auto pStructType = pType->asStructType()) {
+        if (index < pStructType->getMemberCount()) {
             auto pMember = pStructType->getMember(index);
 
             // Need to apply the offsets from member
-            TypedShaderVarOffset newOffset = TypedShaderVarOffset(pMember->getType(), mOffset + pMember->getBindLocation());
+            TypedShaderVarOffset newOffset = TypedShaderVarOffset(
+                pMember->getType(), mOffset + pMember->getBindLocation());
             return ShaderVar(mpBlock, newOffset);
         }
     }
@@ -184,14 +190,11 @@ void ShaderVar::setBlob(void const* data, size_t size) const
     // the user actually means to write the blob *into* that buffer.
     //
     const ReflectionType* pType = getType();
-    if (auto pResourceType = pType->asResourceType())
-    {
-        switch (pResourceType->getType())
-        {
-        case ReflectionResourceType::Type::ConstantBuffer:
-            return getParameterBlock()->getRootVar().setBlob(data, size);
-        default:
-            break;
+    if (auto pResourceType = pType->asResourceType()) {
+        switch (pResourceType->getType()) {
+            case ReflectionResourceType::Type::ConstantBuffer:
+                return getParameterBlock()->getRootVar().setBlob(data, size);
+            default: break;
         }
     }
 
@@ -222,27 +225,28 @@ nvrhi::TextureHandle ShaderVar::getTexture() const
     return mpBlock->getTexture(mOffset);
 }
 
-void ShaderVar::setSrv(const ref<ShaderResourceView>& pSrv) const
+void ShaderVar::setSrv(const nvrhi::BindingSetItem& pSrv) const
 {
     mpBlock->setSrv(mOffset, pSrv);
 }
 
-ref<ShaderResourceView> ShaderVar::getSrv() const
+nvrhi::BindingSetItem ShaderVar::getSrv() const
 {
     return mpBlock->getSrv(mOffset);
 }
 
-void ShaderVar::setUav(const ref<UnorderedAccessView>& pUav) const
+void ShaderVar::setUav(const nvrhi::BindingSetItem& pUav) const
 {
     mpBlock->setUav(mOffset, pUav);
 }
 
-ref<UnorderedAccessView> ShaderVar::getUav() const
+nvrhi::BindingSetItem ShaderVar::getUav() const
 {
     return mpBlock->getUav(mOffset);
 }
 
-void ShaderVar::setAccelerationStructure(const nvrhi::rt::AccelStructHandle& pAccl) const
+void ShaderVar::setAccelerationStructure(
+    const nvrhi::rt::AccelStructHandle& pAccl) const
 {
     mpBlock->setAccelerationStructure(mOffset, pAccl);
 }
@@ -287,18 +291,16 @@ ShaderVar ShaderVar::operator[](const TypedShaderVarOffset& offset) const
     // then we assume they mean to look up an offset
     // inside the buffer/block, and thus implicitly
     // dereference this `ShaderVar`
-    if (auto pResourceType = pType->asResourceType())
-    {
-        switch (pResourceType->getType())
-        {
-        case ReflectionResourceType::Type::ConstantBuffer:
-            return getParameterBlock()->getRootVar()[offset];
-        default:
-            break;
+    if (auto pResourceType = pType->asResourceType()) {
+        switch (pResourceType->getType()) {
+            case ReflectionResourceType::Type::ConstantBuffer:
+                return getParameterBlock()->getRootVar()[offset];
+            default: break;
         }
     }
 
-    return ShaderVar(mpBlock, TypedShaderVarOffset(offset.getType(), mOffset + offset));
+    return ShaderVar(
+        mpBlock, TypedShaderVarOffset(offset.getType(), mOffset + offset));
 }
 
 ShaderVar ShaderVar::operator[](const UniformShaderVarOffset& loc) const
@@ -313,14 +315,11 @@ ShaderVar ShaderVar::operator[](const UniformShaderVarOffset& loc) const
     // inside the buffer/block, and thus implicitly
     // dereference this `ShaderVar`.
     //
-    if (auto pResourceType = pType->asResourceType())
-    {
-        switch (pResourceType->getType())
-        {
-        case ReflectionResourceType::Type::ConstantBuffer:
-            return getParameterBlock()->getRootVar()[loc];
-        default:
-            break;
+    if (auto pResourceType = pType->asResourceType()) {
+        switch (pResourceType->getType()) {
+            case ReflectionResourceType::Type::ConstantBuffer:
+                return getParameterBlock()->getRootVar()[loc];
+            default: break;
         }
     }
 
@@ -328,8 +327,7 @@ ShaderVar ShaderVar::operator[](const UniformShaderVarOffset& loc) const
     if (byteOffset == 0)
         return *this;
 
-    if (auto pArrayType = pType->asArrayType())
-    {
+    if (auto pArrayType = pType->asArrayType()) {
         auto pElementType = pArrayType->getElementType();
         auto elementCount = pArrayType->getElementCount();
         auto elementStride = pArrayType->getElementByteStride();
@@ -337,21 +335,22 @@ ShaderVar ShaderVar::operator[](const UniformShaderVarOffset& loc) const
         auto elementIndex = byteOffset / elementStride;
         auto offsetIntoElement = byteOffset % elementStride;
 
-        TypedShaderVarOffset elementOffset =
-            TypedShaderVarOffset(pElementType, ShaderVarOffset(mOffset.getUniform() + elementIndex * elementStride, mOffset.getResource()));
+        TypedShaderVarOffset elementOffset = TypedShaderVarOffset(
+            pElementType,
+            ShaderVarOffset(
+                mOffset.getUniform() + elementIndex * elementStride,
+                mOffset.getResource()));
         ShaderVar elementCursor(mpBlock, elementOffset);
         return elementCursor[UniformShaderVarOffset(offsetIntoElement)];
     }
-    else if (auto pStructType = pType->asStructType())
-    {
+    else if (auto pStructType = pType->asStructType()) {
         // We want to search for a member matching this offset
         //
         // TODO: A binary search should be preferred to the linear
         // search here.
 
         auto memberCount = pStructType->getMemberCount();
-        for (uint32_t m = 0; m < memberCount; ++m)
-        {
+        for (uint32_t m = 0; m < memberCount; ++m) {
             auto pMember = pStructType->getMember(m);
             auto memberByteOffset = pMember->getByteOffset();
             auto memberByteSize = pMember->getType()->getByteSize();
@@ -362,7 +361,8 @@ ShaderVar ShaderVar::operator[](const UniformShaderVarOffset& loc) const
                 continue;
 
             auto offsetIntoMember = byteOffset - memberByteOffset;
-            TypedShaderVarOffset memberOffset = TypedShaderVarOffset(pMember->getType(), mOffset + pMember->getBindLocation());
+            TypedShaderVarOffset memberOffset = TypedShaderVarOffset(
+                pMember->getType(), mOffset + pMember->getBindLocation());
             ShaderVar memberCursor(mpBlock, memberOffset);
             return memberCursor[UniformShaderVarOffset(offsetIntoMember)];
         }
@@ -373,7 +373,8 @@ ShaderVar ShaderVar::operator[](const UniformShaderVarOffset& loc) const
 
 void const* ShaderVar::getRawData() const
 {
-    return (uint8_t*)(mpBlock->getRawData()) + mOffset.getUniform().getByteOffset();
+    return (uint8_t*)(mpBlock->getRawData()) +
+           mOffset.getUniform().getByteOffset();
 }
 
 void ShaderVar::setImpl(const nvrhi::TextureHandle& pTexture) const
@@ -403,12 +404,24 @@ FALCOR_SCRIPT_BINDING(ShaderVar)
 
     pybind11::class_<ShaderVar> shaderVar(m, "ShaderVar");
 
-    shaderVar.def("__getitem__", [](ShaderVar& self, std::string_view name) { return self[name]; });
-    shaderVar.def("__getattr__", [](ShaderVar& self, std::string_view name) { return self[name]; });
+    shaderVar.def("__getitem__", [](ShaderVar& self, std::string_view name) {
+        return self[name];
+    });
+    shaderVar.def("__getattr__", [](ShaderVar& self, std::string_view name) {
+        return self[name];
+    });
 
-#define def_setter(type)                                                                                          \
-    shaderVar.def("__setitem__", [](ShaderVar& self, std::string_view name, type value) { self[name] = value; }); \
-    shaderVar.def("__setattr__", [](ShaderVar& self, std::string_view name, type value) { self[name] = value; });
+#define def_setter(type)                                         \
+    shaderVar.def(                                               \
+        "__setitem__",                                           \
+        [](ShaderVar& self, std::string_view name, type value) { \
+            self[name] = value;                                  \
+        });                                                      \
+    shaderVar.def(                                               \
+        "__setattr__",                                           \
+        [](ShaderVar& self, std::string_view name, type value) { \
+            self[name] = value;                                  \
+        });
 
     def_setter(nvrhi::BufferHandle);
     def_setter(nvrhi::TextureHandle);
@@ -437,47 +450,56 @@ FALCOR_SCRIPT_BINDING(ShaderVar)
 #undef def_setter
 
     // We need to handle integers and floats specially.
-    // Python only has an `int` and `float` type that can have different bit-width.
-    // We use reflection data to convert the python types to the correct types before assigning.
+    // Python only has an `int` and `float` type that can have different
+    // bit-width. We use reflection data to convert the python types to the
+    // correct types before assigning.
 
-    auto set_int = [](ShaderVar& self, std::string_view name, pybind11::int_ value)
-    {
-        const ReflectionBasicType* basicType = self[name].getType()->unwrapArray()->asBasicType();
-        FALCOR_CHECK(basicType, "Error trying to set a variable that is not a basic type.");
-        switch (basicType->getType())
-        {
-        case ReflectionBasicType::Type::Int:
-            self[name] = value.cast<int32_t>();
-            break;
-        case ReflectionBasicType::Type::Uint:
-            self[name] = value.cast<uint32_t>();
-            break;
-        default:
-            FALCOR_THROW("Error trying to set a variable that is not an integer type.");
-            break;
-        }
-    };
+    auto set_int =
+        [](ShaderVar& self, std::string_view name, pybind11::int_ value) {
+            const ReflectionBasicType* basicType =
+                self[name].getType()->unwrapArray()->asBasicType();
+            FALCOR_CHECK(
+                basicType,
+                "Error trying to set a variable that is not a basic type.");
+            switch (basicType->getType()) {
+                case ReflectionBasicType::Type::Int:
+                    self[name] = value.cast<int32_t>();
+                    break;
+                case ReflectionBasicType::Type::Uint:
+                    self[name] = value.cast<uint32_t>();
+                    break;
+                default:
+                    FALCOR_THROW(
+                        "Error trying to set a variable that is not an integer "
+                        "type.");
+                    break;
+            }
+        };
 
     shaderVar.def("__setitem__", set_int);
     shaderVar.def("__setattr__", set_int);
 
-    auto set_float = [](ShaderVar& self, std::string_view name, pybind11::float_ value)
-    {
-        const ReflectionBasicType* basicType = self[name].getType()->unwrapArray()->asBasicType();
-        FALCOR_CHECK(basicType, "Error trying to set a variable that is not a basic type.");
-        switch (basicType->getType())
-        {
-        case ReflectionBasicType::Type::Float:
-            self[name] = value.cast<float>();
-            break;
-        default:
-            FALCOR_THROW("Error trying to set a variable that is not an float type.");
-            break;
-        }
-    };
+    auto set_float =
+        [](ShaderVar& self, std::string_view name, pybind11::float_ value) {
+            const ReflectionBasicType* basicType =
+                self[name].getType()->unwrapArray()->asBasicType();
+            FALCOR_CHECK(
+                basicType,
+                "Error trying to set a variable that is not a basic type.");
+            switch (basicType->getType()) {
+                case ReflectionBasicType::Type::Float:
+                    self[name] = value.cast<float>();
+                    break;
+                default:
+                    FALCOR_THROW(
+                        "Error trying to set a variable that is not an float "
+                        "type.");
+                    break;
+            }
+        };
 
     shaderVar.def("__setitem__", set_float);
     shaderVar.def("__setattr__", set_float);
 }
 
-} // namespace Falcor
+}  // namespace Falcor

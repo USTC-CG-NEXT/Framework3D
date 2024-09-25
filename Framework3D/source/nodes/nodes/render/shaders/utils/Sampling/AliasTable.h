@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Core/API/Buffer.h"
+
 #include "Core/Program/ShaderVar.h"
 #include <memory>
 #include <random>

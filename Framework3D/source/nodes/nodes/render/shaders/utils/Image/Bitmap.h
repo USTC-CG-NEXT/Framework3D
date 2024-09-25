@@ -28,7 +28,7 @@
 #pragma once
 #include "Core/Macros.h"
 #include "Core/Platform/OS.h"
-#include "Core/API/Formats.h"
+
 #include <memory>
 #include <filesystem>
 
@@ -80,7 +80,7 @@ public:
      * @param[in] pData Pointer to data. Data will be copied internally during creation and does not need to be managed by the caller.
      * @return A new bitmap object.
      */
-    static UniqueConstPtr create(uint32_t width, uint32_t height, ResourceFormat format, const uint8_t* pData);
+    static UniqueConstPtr create(uint32_t width, uint32_t height, nvrhi::Format format, const uint8_t* pData);
 
     /**
      * Create a new object from file.
@@ -99,7 +99,7 @@ public:
      * @param[in] height The height of the image.
      * @param[in] fileFormat The destination file format. See FileFormat enum above.
      * @param[in] exportFlags The flags to export the file. See ExportFlags above.
-     * @param[in] ResourceFormat the format of the resource data
+     * @param[in] nvrhi::Format the format of the resource data
      * @param[in] isTopDown Control the memory layout of the image. If true, the top-left pixel will be stored first, otherwise the
      * bottom-left pixel will be stored first
      * @param[in] pData Pointer to the buffer containing the image
@@ -110,7 +110,7 @@ public:
         uint32_t height,
         FileFormat fileFormat,
         ExportFlags exportFlags,
-        ResourceFormat resourceFormat,
+        nvrhi::Format resourceFormat,
         bool isTopDown,
         void* pData
     );
@@ -131,7 +131,7 @@ public:
     uint32_t getHeight() const { return mHeight; }
 
     /// Get the data format
-    ResourceFormat getFormat() const { return mFormat; }
+    nvrhi::Format getFormat() const { return mFormat; }
 
     /// Get the row pitch in bytes. For compressed formats this corresponds to one row of blocks, not pixels.
     uint32_t getRowPitch() const { return mRowPitch; }
@@ -141,15 +141,15 @@ public:
 
     /**
      * Get the file dialog filter vec for images.
-     * @param[in] format If set to ResourceFormat::Unknown, will return all the supported image file formats. If set to something else, will
+     * @param[in] format If set to nvrhi::Format::Unknown, will return all the supported image file formats. If set to something else, will
      * only return file types which support this format.
      */
-    static FileDialogFilterVec getFileDialogFilters(ResourceFormat format = ResourceFormat::Unknown);
+    static FileDialogFilterVec getFileDialogFilters(nvrhi::Format format = nvrhi::Format::Unknown);
 
     /**
      * Get a file extension from a resource format
      */
-    static std::string getFileExtFromResourceFormat(ResourceFormat format);
+    static std::string getFileExtFromnvrhi::Format(nvrhi::Format format);
 
     /**
      * Get the file format flags for the image extension
@@ -159,15 +159,15 @@ public:
 
 protected:
     Bitmap() = default;
-    Bitmap(uint32_t width, uint32_t height, ResourceFormat format);
-    Bitmap(uint32_t width, uint32_t height, ResourceFormat format, const uint8_t* pData);
+    Bitmap(uint32_t width, uint32_t height, nvrhi::Format format);
+    Bitmap(uint32_t width, uint32_t height, nvrhi::Format format, const uint8_t* pData);
 
     std::unique_ptr<uint8_t[]> mpData;
     uint32_t mWidth = 0;    ///< Width in pixels.
     uint32_t mHeight = 0;   ///< Height in pixels.
     uint32_t mRowPitch = 0; ///< Row pitch in bytes.
     size_t mSize = 0;       ///< Total size in bytes.
-    ResourceFormat mFormat = ResourceFormat::Unknown;
+    nvrhi::Format mFormat = nvrhi::Format::Unknown;
 };
 
 FALCOR_ENUM_CLASS_OPERATORS(Bitmap::ExportFlags);

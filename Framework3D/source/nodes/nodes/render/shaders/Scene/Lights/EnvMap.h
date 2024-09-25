@@ -26,123 +26,145 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "EnvMapData.slang"
+#include <filesystem>
+#include <memory>
+
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "Core/API/Texture.h"
-#include "Core/API/Sampler.h"
+#include "EnvMapData.slang"
 #include "Utils/Math/Vector.h"
-#include "Utils/UI/Gui.h"
-#include <memory>
-#include <filesystem>
 
-namespace Falcor
-{
-    struct ShaderVar;
+namespace Falcor {
+struct ShaderVar;
 
-    /** Environment map based radiance probe.
-        Utily class for evaluating radiance stored in an lat-long environment map.
+/** Environment map based radiance probe.
+    Utily class for evaluating radiance stored in an lat-long environment map.
+*/
+class FALCOR_API EnvMap : public Object {
+    FALCOR_OBJECT(EnvMap)
+   public:
+    virtual ~EnvMap() = default;
+
+    /** Create a new environment map.
+        \param[in] pDevice GPU device.
+        \param[in] texture The environment map texture.
     */
-    class FALCOR_API EnvMap : public Object
+    static ref<EnvMap> create(
+        nvrhi::DeviceHandle pDevice,
+        const nvrhi::TextureHandle& texture);
+
+    /** Create a new environment map from file.
+        \param[in] pDevice GPU device.
+        \param[in] path The environment map texture file path (absolute or
+       relative to working directory). \return A new object, or nullptr if the
+       environment map failed to load.
+    */
+    static ref<EnvMap> createFromFile(
+        nvrhi::DeviceHandle pDevice,
+        const std::filesystem::path& path);
+
+    /** Render the GUI.
+     */
+
+    /** Set rotation angles.
+        Rotation is applied as rotation around Z, Y and X axes, in that order.
+        Note that math::extractEulerAngleXYZ() may be used to extract these
+       angles from a transformation matrix. \param[in] degreesXYZ Rotation
+       angles in degrees for XYZ.
+    */
+    void setRotation(float3 degreesXYZ);
+    void setTransform(const float4x4& matrix);
+
+    /** Get rotation angles.
+     */
+    float3 getRotation() const
     {
-        FALCOR_OBJECT(EnvMap)
-    public:
-        virtual ~EnvMap() = default;
+        return mRotation;
+    }
 
-        /** Create a new environment map.
-            \param[in] pDevice GPU device.
-            \param[in] texture The environment map texture.
-        */
-        static ref<EnvMap> create(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& texture);
+    /** Set intensity (scalar multiplier).
+     */
+    void setIntensity(float intensity);
 
-        /** Create a new environment map from file.
-            \param[in] pDevice GPU device.
-            \param[in] path The environment map texture file path (absolute or relative to working directory).
-            \return A new object, or nullptr if the environment map failed to load.
-        */
-        static ref<EnvMap> createFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path);
+    /** Set color tint (rgb multiplier).
+     */
+    void setTint(const float3& tint);
 
-        /** Render the GUI.
-        */
-        void renderUI(Gui::Widgets& widgets);
+    /** Get intensity.
+     */
+    float getIntensity() const
+    {
+        return mData.intensity;
+    }
 
-        /** Set rotation angles.
-            Rotation is applied as rotation around Z, Y and X axes, in that order.
-            Note that math::extractEulerAngleXYZ() may be used to extract these angles from
-            a transformation matrix.
-            \param[in] degreesXYZ Rotation angles in degrees for XYZ.
-        */
-        void setRotation(float3 degreesXYZ);
-        void setTransform(const float4x4& matrix);
+    /** Get color tint.
+     */
+    float3 getTint() const
+    {
+        return mData.tint;
+    }
 
-        /** Get rotation angles.
-        */
-        float3 getRotation() const { return mRotation; }
+    /** Get the file path of the environment map texture.
+     */
+    const std::filesystem::path& getPath() const
+    {
+        return mpEnvMap->getSourcePath();
+    }
 
-        /** Set intensity (scalar multiplier).
-        */
-        void setIntensity(float intensity);
+    const nvrhi::TextureHandle& getEnvMap() const
+    {
+        return mpEnvMap;
+    }
+    const nvrhi::SamplerHandle& getEnvSampler() const
+    {
+        return mpEnvSampler;
+    }
 
-        /** Set color tint (rgb multiplier).
-        */
-        void setTint(const float3& tint);
+    /** Bind the environment map to a given shader variable.
+        \param[in] var Shader variable.
+    */
+    void bindShaderData(const ShaderVar& var) const;
 
-        /** Get intensity.
-        */
-        float getIntensity() const { return mData.intensity; }
-
-        /** Get color tint.
-        */
-        float3 getTint() const { return mData.tint; }
-
-        /** Get the file path of the environment map texture.
-        */
-        const std::filesystem::path& getPath() const { return mpEnvMap->getSourcePath(); }
-
-        const nvrhi::TextureHandle& getEnvMap() const { return mpEnvMap; }
-        const nvrhi::SamplerHandle& getEnvSampler() const { return mpEnvSampler; }
-
-        /** Bind the environment map to a given shader variable.
-            \param[in] var Shader variable.
-        */
-        void bindShaderData(const ShaderVar& var) const;
-
-        enum class Changes
-        {
-            None            = 0x0,
-            Transform       = 0x1,
-            Intensity       = 0x2,
-        };
-
-        /** Begin frame. Should be called once at the start of each frame.
-        */
-        Changes beginFrame();
-
-        /** Get the environment map changes that happened in since the previous frame.
-        */
-        Changes getChanges() const { return mChanges; }
-
-        /** Get the total GPU memory usage in bytes.
-        */
-        uint64_t getMemoryUsageInBytes() const;
-
-    protected:
-        EnvMap(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& texture);
-
-        nvrhi::DeviceHandle             mpDevice;
-        nvrhi::TextureHandle            mpEnvMap;           ///< Loaded environment map (RGB).
-        nvrhi::SamplerHandle            mpEnvSampler;       ///< Texture sampler for the environment map.
-
-        EnvMapData              mData;
-        EnvMapData              mPrevData;
-
-        float3                  mRotation = { 0.f, 0.f, 0.f };
-
-        Changes                 mChanges = Changes::None;
-
-        friend class Scene;
-        friend class SceneCache;
+    enum class Changes {
+        None = 0x0,
+        Transform = 0x1,
+        Intensity = 0x2,
     };
 
-    FALCOR_ENUM_CLASS_OPERATORS(EnvMap::Changes);
-}
+    /** Begin frame. Should be called once at the start of each frame.
+     */
+    Changes beginFrame();
+
+    /** Get the environment map changes that happened in since the previous
+     * frame.
+     */
+    Changes getChanges() const
+    {
+        return mChanges;
+    }
+
+    /** Get the total GPU memory usage in bytes.
+     */
+    uint64_t getMemoryUsageInBytes() const;
+
+   protected:
+    EnvMap(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& texture);
+
+    nvrhi::DeviceHandle mpDevice;
+    nvrhi::TextureHandle mpEnvMap;  ///< Loaded environment map (RGB).
+    nvrhi::SamplerHandle
+        mpEnvSampler;  ///< Texture sampler for the environment map.
+
+    EnvMapData mData;
+    EnvMapData mPrevData;
+
+    float3 mRotation = { 0.f, 0.f, 0.f };
+
+    Changes mChanges = Changes::None;
+
+    friend class Scene;
+    friend class SceneCache;
+};
+
+FALCOR_ENUM_CLASS_OPERATORS(EnvMap::Changes);
+}  // namespace Falcor

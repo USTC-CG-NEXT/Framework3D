@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Core/API/Buffer.h"
+
 #include "Core/Pass/ComputePass.h"
 #include "Scene/Scene.h"
 #include "Scene/Material/RGLFile.h"

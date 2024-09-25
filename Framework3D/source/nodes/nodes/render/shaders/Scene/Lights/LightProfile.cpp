@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "LightProfile.h"
 #include "Core/Platform/OS.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Algorithm/ParallelReduction.h"
 #include "Core/Pass/ComputePass.h"
@@ -228,8 +228,8 @@ namespace Falcor
     {
         auto pBakePass = ComputePass::create(mpDevice, kBakeIesProfileFile, "main");
         auto pBuffer = mpDevice->createTypedBuffer<float>((uint32_t)mRawData.size(), ResourceBindFlags::ShaderResource, MemoryType::DeviceLocal, mRawData.data());
-        mpTexture = mpDevice->createTexture2D(kBakeResolution, kBakeResolution, ResourceFormat::R16Float, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
-        auto pFluxTexture = mpDevice->createTexture2D(kBakeResolution, kBakeResolution, ResourceFormat::R32Float, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+        mpTexture = mpDevice->createTexture2D(kBakeResolution, kBakeResolution, nvrhi::Format::R16Float, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+        auto pFluxTexture = mpDevice->createTexture2D(kBakeResolution, kBakeResolution, nvrhi::Format::R32Float, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
 
         auto var = pBakePass->getRootVar();
         var["gIesData"] = pBuffer;

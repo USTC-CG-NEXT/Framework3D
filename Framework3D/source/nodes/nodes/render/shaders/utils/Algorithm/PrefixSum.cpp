@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "PrefixSum.h"
 #include "Core/Error.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Math/Common.h"
 #include "Utils/Timing/Profiler.h"
 

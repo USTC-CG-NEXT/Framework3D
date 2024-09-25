@@ -26,8 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "SDFSVO.h"
-#include "Core/API/Device.h"
-#include "Core/API/RenderContext.h"
+
+
 #include "Utils/Math/MathHelpers.h"
 #include "Utils/Math/MathConstants.slangh"
 #include "Utils/SharedCache.h"
@@ -104,7 +104,7 @@ namespace Falcor
         }
         else
         {
-            mpSDFGridTexture = mpDevice->createTexture3D(mGridWidth + 1, mGridWidth + 1, mGridWidth + 1, ResourceFormat::R8Snorm, 1, mValues.data());
+            mpSDFGridTexture = mpDevice->createTexture3D(mGridWidth + 1, mGridWidth + 1, mGridWidth + 1, nvrhi::Format::R8Snorm, 1, mValues.data());
         }
 
         if (!mpCountSurfaceVoxelsPass)

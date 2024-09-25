@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "MERLMaterial.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Scripting/ScriptBindings.h"
 #include "GlobalState.h"
@@ -54,7 +54,7 @@ namespace Falcor
         // Create albedo LUT texture.
         auto lut = merlFile.prepareAlbedoLUT(mpDevice);
         FALCOR_CHECK(!lut.empty() && sizeof(lut[0]) == sizeof(float4), "Expected albedo LUT in float4 format.");
-        static_assert(MERLFile::kAlbedoLUTFormat == ResourceFormat::RGBA32Float);
+        static_assert(MERLFile::kAlbedoLUTFormat == nvrhi::Format::RGBA32Float);
         mpAlbedoLUT = mpDevice->createTexture2D((uint32_t)lut.size(), 1, MERLFile::kAlbedoLUTFormat, 1, 1, lut.data(), ResourceBindFlags::ShaderResource);
     }
 

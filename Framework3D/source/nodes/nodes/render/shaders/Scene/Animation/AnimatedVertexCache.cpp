@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "AnimatedVertexCache.h"
 #include "Animation.h"
-#include "Core/API/RenderContext.h"
+
 #include "Scene/Scene.h"
 #include "Utils/Timing/Profiler.h"
 

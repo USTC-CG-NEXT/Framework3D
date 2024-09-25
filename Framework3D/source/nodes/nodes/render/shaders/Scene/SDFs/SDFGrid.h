@@ -28,8 +28,8 @@
 #pragma once
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Texture.h"
+
+
 #include "Core/Pass/ComputePass.h"
 #include "Scene/SDFs/SDF3DPrimitiveCommon.slang"
 #include <memory>

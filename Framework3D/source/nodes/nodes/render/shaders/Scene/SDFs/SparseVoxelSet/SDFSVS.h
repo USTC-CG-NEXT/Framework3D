@@ -28,8 +28,8 @@
 #pragma once
 
 #include "Scene/SDFs/SDFGrid.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Texture.h"
+
+
 #include "Core/Pass/ComputePass.h"
 
 namespace Falcor

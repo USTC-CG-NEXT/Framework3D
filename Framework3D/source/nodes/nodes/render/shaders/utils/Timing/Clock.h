@@ -28,7 +28,7 @@
 #pragma once
 #include "CpuTimer.h"
 #include "Core/Macros.h"
-#include "Utils/UI/Gui.h"
+
 #include <optional>
 #include <string>
 #include <cstdint>

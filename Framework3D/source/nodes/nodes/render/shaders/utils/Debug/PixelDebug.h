@@ -28,10 +28,10 @@
 #pragma once
 #include "PixelDebugTypes.slang"
 #include "Core/Macros.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Fence.h"
+
+
 #include "Core/Program/Program.h"
-#include "Utils/UI/Gui.h"
+
 #include <memory>
 #include <unordered_map>
 #include <vector>

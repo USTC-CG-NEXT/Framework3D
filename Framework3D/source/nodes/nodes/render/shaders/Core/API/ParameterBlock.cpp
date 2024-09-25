@@ -36,18 +36,18 @@ namespace Falcor
 {
 namespace
 {
-gfx::ShaderOffset getGFXShaderOffset(const UniformShaderVarOffset& offset)
+ShaderOffset getGFXShaderOffset(const UniformShaderVarOffset& offset)
 {
-    gfx::ShaderOffset result;
+    ShaderOffset result;
     result.bindingArrayIndex = 0;
     result.bindingRangeIndex = 0;
     result.uniformOffset = offset.getByteOffset();
     return result;
 }
 
-gfx::ShaderOffset getGFXShaderOffset(const ParameterBlock::BindLocation& bindLoc)
+ShaderOffset getGFXShaderOffset(const ParameterBlock::BindLocation& bindLoc)
 {
-    gfx::ShaderOffset gfxOffset = {};
+    ShaderOffset gfxOffset = {};
     gfxOffset.bindingArrayIndex = bindLoc.getResourceArrayIndex();
     gfxOffset.bindingRangeIndex = bindLoc.getResourceRangeIndex();
     gfxOffset.uniformOffset = bindLoc.getUniform().getByteOffset();
@@ -287,23 +287,23 @@ void ParameterBlock::initializeResourceBindings()
         auto range = mpReflector->getResourceRange(i);
         for (uint32_t arrayIndex = 0; arrayIndex < range.count; arrayIndex++)
         {
-            gfx::ShaderOffset offset = {};
+            ShaderOffset offset = {};
             offset.bindingRangeIndex = i;
             offset.bindingArrayIndex = arrayIndex;
             switch (range.descriptorType)
             {
-            case ShaderResourceType::Sampler:
+            case ResourceType::Sampler:
                 mpShaderObject->setSampler(offset, mpDevice->getDefaultSampler()->getGfxSamplerState());
                 break;
-            case ShaderResourceType::TextureSrv:
-            case ShaderResourceType::TextureUav:
-            case ShaderResourceType::RawBufferSrv:
-            case ShaderResourceType::RawBufferUav:
-            case ShaderResourceType::TypedBufferSrv:
-            case ShaderResourceType::TypedBufferUav:
-            case ShaderResourceType::StructuredBufferUav:
-            case ShaderResourceType::StructuredBufferSrv:
-            case ShaderResourceType::AccelerationStructureSrv:
+            case ResourceType::TextureSrv:
+            case ResourceType::TextureUav:
+            case ResourceType::RawBufferSrv:
+            case ResourceType::RawBufferUav:
+            case ResourceType::TypedBufferSrv:
+            case ResourceType::TypedBufferUav:
+            case ResourceType::StructuredBufferUav:
+            case ResourceType::StructuredBufferSrv:
+            case ResourceType::AccelerationStructureSrv:
                 mpShaderObject->setResource(offset, nullptr);
                 break;
             }
@@ -349,7 +349,7 @@ void ParameterBlock::setBlob(const void* pSrc, const BindLocation& bindLocation,
 {
     if (!isConstantBufferType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         FALCOR_GFX_CALL(mpShaderObject->setData(gfxOffset, pSrc, size));
     }
     else
@@ -360,7 +360,7 @@ void ParameterBlock::setBlob(const void* pSrc, const BindLocation& bindLocation,
 
 void ParameterBlock::setBlob(const void* pSrc, size_t offset, size_t size)
 {
-    gfx::ShaderOffset gfxOffset = {};
+    ShaderOffset gfxOffset = {};
     gfxOffset.uniformOffset = offset;
     FALCOR_GFX_CALL(mpShaderObject->setData(gfxOffset, pSrc, size));
 }
@@ -481,7 +481,7 @@ void ParameterBlock::setBuffer(std::string_view name, const nvrhi::BufferHandle&
 
 void ParameterBlock::setBuffer(const BindLocation& bindLoc, const nvrhi::BufferHandle& pBuffer)
 {
-    gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLoc);
+    ShaderOffset gfxOffset = getGFXShaderOffset(bindLoc);
     if (isUavType(bindLoc.getType()))
     {
         if (pBuffer && !is_set(pBuffer->getBindFlags(), ResourceBindFlags::UnorderedAccess))
@@ -513,7 +513,7 @@ nvrhi::BufferHandle ParameterBlock::getBuffer(std::string_view name) const
 
 nvrhi::BufferHandle ParameterBlock::getBuffer(const BindLocation& bindLoc) const
 {
-    gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLoc);
+    ShaderOffset gfxOffset = getGFXShaderOffset(bindLoc);
     if (isUavType(bindLoc.getType()))
     {
         auto iter = mUAVs.find(gfxOffset);
@@ -547,7 +547,7 @@ void ParameterBlock::setTexture(std::string_view name, const nvrhi::TextureHandl
 
 void ParameterBlock::setTexture(const BindLocation& bindLocation, const nvrhi::TextureHandle& pTexture)
 {
-    gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+    ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
     if (isUavType(bindLocation.getType()))
     {
         if (pTexture && !is_set(pTexture->getBindFlags(), ResourceBindFlags::UnorderedAccess))
@@ -579,7 +579,7 @@ nvrhi::TextureHandle ParameterBlock::getTexture(std::string_view name) const
 
 nvrhi::TextureHandle ParameterBlock::getTexture(const BindLocation& bindLocation) const
 {
-    gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+    ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
     if (isUavType(bindLocation.getType()))
     {
         auto iter = mUAVs.find(gfxOffset);
@@ -606,11 +606,11 @@ nvrhi::TextureHandle ParameterBlock::getTexture(const BindLocation& bindLocation
 // ResourceView
 //
 
-void ParameterBlock::setSrv(const BindLocation& bindLocation, const ref<ShaderResourceView>& pSrv)
+void ParameterBlock::setSrv(const BindLocation& bindLocation, const nvrhi::BindingSetItem& pSrv)
 {
     if (isSrvType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         mpShaderObject->setResource(gfxOffset, pSrv ? pSrv->getGfxResourceView() : nullptr);
         mSRVs[gfxOffset] = pSrv;
         // Note: The resource view does not hold a strong reference to the resource, so we need to keep it alive here.
@@ -622,11 +622,11 @@ void ParameterBlock::setSrv(const BindLocation& bindLocation, const ref<ShaderRe
     }
 }
 
-ref<ShaderResourceView> ParameterBlock::getSrv(const BindLocation& bindLocation) const
+nvrhi::BindingSetItem ParameterBlock::getSrv(const BindLocation& bindLocation) const
 {
     if (isSrvType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         auto iter = mSRVs.find(gfxOffset);
         if (iter == mSRVs.end())
             return nullptr;
@@ -638,11 +638,11 @@ ref<ShaderResourceView> ParameterBlock::getSrv(const BindLocation& bindLocation)
     }
 }
 
-void ParameterBlock::setUav(const BindLocation& bindLocation, const ref<UnorderedAccessView>& pUav)
+void ParameterBlock::setUav(const BindLocation& bindLocation, const nvrhi::BindingSetItem& pUav)
 {
     if (isUavType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         mpShaderObject->setResource(gfxOffset, pUav ? pUav->getGfxResourceView() : nullptr);
         mUAVs[gfxOffset] = pUav;
         // Note: The resource view does not hold a strong reference to the resource, so we need to keep it alive here.
@@ -654,11 +654,11 @@ void ParameterBlock::setUav(const BindLocation& bindLocation, const ref<Unordere
     }
 }
 
-ref<UnorderedAccessView> ParameterBlock::getUav(const BindLocation& bindLocation) const
+nvrhi::BindingSetItem ParameterBlock::getUav(const BindLocation& bindLocation) const
 {
     if (isUavType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         auto iter = mUAVs.find(gfxOffset);
         if (iter == mUAVs.end())
             return nullptr;
@@ -674,7 +674,7 @@ void ParameterBlock::setAccelerationStructure(const BindLocation& bindLocation, 
 {
     if (isAccelerationStructureType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         mAccelerationStructures[gfxOffset] = pAccl;
         FALCOR_GFX_CALL(mpShaderObject->setResource(gfxOffset, pAccl ? pAccl->getGfxAccelerationStructure() : nullptr));
     }
@@ -688,7 +688,7 @@ nvrhi::rt::AccelerationStructure ParameterBlock::getAccelerationStructure(const 
 {
     if (isAccelerationStructureType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         auto iter = mAccelerationStructures.find(gfxOffset);
         if (iter == mAccelerationStructures.end())
             return nullptr;
@@ -713,7 +713,7 @@ void ParameterBlock::setSampler(const BindLocation& bindLocation, const nvrhi::S
 {
     if (isSamplerType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         const nvrhi::SamplerHandle& pBoundSampler = pSampler ? pSampler : mpDevice->getDefaultSampler();
         mSamplers[gfxOffset] = pBoundSampler;
         FALCOR_GFX_CALL(mpShaderObject->setSampler(gfxOffset, pBoundSampler->getGfxSamplerState()));
@@ -733,7 +733,7 @@ nvrhi::SamplerHandle ParameterBlock::getSampler(const BindLocation& bindLocation
 {
     if (isSamplerType(bindLocation.getType()))
     {
-        gfx::ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
+        ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         auto iter = mSamplers.find(gfxOffset);
         if (iter == mSamplers.end())
             return nullptr;

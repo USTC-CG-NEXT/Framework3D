@@ -38,7 +38,7 @@
 #include "Material/MaterialTextureLoader.h"
 
 #include "Core/Macros.h"
-#include "Core/API/fwd.h"
+
 #include "Utils/CryptoUtils.h"
 
 #include <filesystem>

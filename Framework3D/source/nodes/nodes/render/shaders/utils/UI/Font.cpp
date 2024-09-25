@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "Font.h"
 #include "Core/Error.h"
-#include "Core/API/Texture.h"
+
 #include <fstream>
 
 namespace Falcor

@@ -31,7 +31,7 @@
 #include "Core/Macros.h"
 #include "Utils/Math/AABB.h"
 #include "Utils/Math/Matrix.h"
-#include "Utils/UI/Gui.h"
+
 #include "Scene/Animation/Animatable.h"
 #include <array>
 #include <filesystem>

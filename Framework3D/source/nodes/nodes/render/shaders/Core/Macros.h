@@ -100,7 +100,7 @@
 /**
  * Define for checking if NVAPI is available.
  */
-#define FALCOR_NVAPI_AVAILABLE (FALCOR_HAS_D3D12 && FALCOR_HAS_NVAPI)
+#define FALCOR_NVAPI_AVAILABLE (1 && FALCOR_HAS_NVAPI)
 
 /**
  * Shared library (DLL) export and import.
@@ -157,3 +157,4 @@ using namespace nvrhi;
 using Device = IDevice;
 using Texture = ITexture;
 using Buffer = IBuffer;
+using Resource = IResource;

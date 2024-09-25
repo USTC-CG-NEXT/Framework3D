@@ -28,14 +28,14 @@
 #pragma once
 #include "Material.h"
 #include "Core/Macros.h"
-#include "Core/API/fwd.h"
-#include "Core/API/ParameterBlock.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Sampler.h"
+
+
+
+
 #include "Core/Program/DefineList.h"
 #include "Core/Program/Program.h"
 #include "Utils/Image/TextureManager.h"
-#include "Utils/UI/Gui.h"
+
 #include <memory>
 #include <vector>
 #include <set>

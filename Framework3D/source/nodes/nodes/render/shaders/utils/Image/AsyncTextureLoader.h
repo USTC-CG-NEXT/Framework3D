@@ -27,9 +27,9 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Core/API/fwd.h"
-#include "Core/API/Resource.h"
-#include "Core/API/Texture.h"
+
+
+
 #include <condition_variable>
 #include <filesystem>
 #include <functional>

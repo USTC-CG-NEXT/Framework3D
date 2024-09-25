@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "BitonicSort.h"
 #include "Core/Macros.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Math/Common.h"
 #include "Utils/Timing/Profiler.h"
 

@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "ImageProcessing.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Math/Vector.h"
 
 namespace Falcor
@@ -40,8 +40,8 @@ ImageProcessing::ImageProcessing(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice
 
 void ImageProcessing::copyColorChannel(
     RenderContext* pRenderContext,
-    const ref<ShaderResourceView>& pSrc,
-    const ref<UnorderedAccessView>& pDst,
+    const nvrhi::BindingSetItem& pSrc,
+    const nvrhi::BindingSetItem& pDst,
     const TextureChannelFlags srcMask
 )
 {

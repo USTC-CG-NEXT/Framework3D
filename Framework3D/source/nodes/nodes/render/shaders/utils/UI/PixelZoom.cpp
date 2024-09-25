@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "PixelZoom.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/UI/InputTypes.h"
 
 namespace Falcor

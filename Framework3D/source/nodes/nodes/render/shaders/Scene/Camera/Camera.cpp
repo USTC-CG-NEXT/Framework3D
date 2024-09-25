@@ -30,7 +30,7 @@
 #include "Utils/Logger.h"
 #include "Utils/Math/AABB.h"
 #include "Utils/Math/FalcorMath.h"
-#include "Utils/UI/Gui.h"
+
 #include "Utils/Scripting/ScriptBindings.h"
 #include "Utils/Scripting/ScriptWriter.h"
 

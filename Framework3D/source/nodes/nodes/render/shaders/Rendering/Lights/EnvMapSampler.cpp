@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "EnvMapSampler.h"
 #include "Core/Error.h"
-#include "Core/API/RenderContext.h"
+
 #include "Core/Pass/ComputePass.h"
 
 namespace Falcor
@@ -88,7 +88,7 @@ namespace Falcor
         FALCOR_ASSERT(mips > 1 && mips <= 12);     // Shader constant limits max resolution, increase if needed.
 
         // Create importance map. We have to set the RTV flag to be able to use generateMips().
-        mpImportanceMap = mpDevice->createTexture2D(dimension, dimension, ResourceFormat::R32Float, 1, mips, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::RenderTarget | ResourceBindFlags::UnorderedAccess);
+        mpImportanceMap = mpDevice->createTexture2D(dimension, dimension, nvrhi::Format::R32Float, 1, mips, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::RenderTarget | ResourceBindFlags::UnorderedAccess);
         FALCOR_ASSERT(mpImportanceMap);
 
         auto var = mpSetupPass->getRootVar();

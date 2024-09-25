@@ -28,7 +28,6 @@
 #pragma once
 #include "Program.h"
 #include "Core/Macros.h"
-#include "Core/API/fwd.h"
 
 #include <memory>
 

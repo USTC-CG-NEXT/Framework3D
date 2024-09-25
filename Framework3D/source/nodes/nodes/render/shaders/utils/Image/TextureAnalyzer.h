@@ -27,9 +27,9 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Core/API/Formats.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Texture.h"
+
+
+
 #include "Core/Pass/ComputePass.h"
 #include "Utils/Math/Vector.h"
 #include <memory>

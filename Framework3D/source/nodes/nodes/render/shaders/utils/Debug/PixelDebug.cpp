@@ -26,8 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "PixelDebug.h"
-#include "Core/API/Device.h"
-#include "Core/API/RenderContext.h"
+
+
 #include "Core/Program/Program.h"
 #include "Core/Program/ShaderVar.h"
 #include "Utils/Logger.h"

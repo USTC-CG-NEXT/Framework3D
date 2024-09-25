@@ -35,5 +35,15 @@ if __name__ == "__main__":
         ('ref<Sampler>', 'nvrhi::SamplerHandle'),
         ('ref<RtAccelerationStructure>', 'nvrhi::rt::AccelerationStructure'),
         ('"fstd/bit.h"', '<bit>'),
+        ('Slang::ComPtr<gfx::IShaderObject>', 'nvrhi::ShaderHandle'),
+        ('gfx::IShaderObject', 'nvrhi::IShader'),
+        ('ResourceFormat', 'nvrhi::Format'),
+        ('ref<UnorderedAccessView>', 'nvrhi::BindingSetItem'),
+        ('ShaderResourceType', 'ResourceType'),
+        ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
+        ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
+        ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
+        ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
+        ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
     ]
     recursively_replace_text_in_folder(current_folder, replacements, script_name)

@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "PixelStats.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Scripting/ScriptBindings.h"
 #include <sstream>
@@ -90,11 +90,11 @@ namespace Falcor
             {
                 for (uint32_t i = 0; i < kRayTypeCount; i++)
                 {
-                    mpStatsRayCount[i] = mpDevice->createTexture2D(frameDim.x, frameDim.y, ResourceFormat::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                    mpStatsRayCount[i] = mpDevice->createTexture2D(frameDim.x, frameDim.y, nvrhi::Format::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
                 }
-                mpStatsPathLength = mpDevice->createTexture2D(frameDim.x, frameDim.y, ResourceFormat::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
-                mpStatsPathVertexCount = mpDevice->createTexture2D(frameDim.x, frameDim.y, ResourceFormat::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
-                mpStatsVolumeLookupCount = mpDevice->createTexture2D(frameDim.x, frameDim.y, ResourceFormat::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                mpStatsPathLength = mpDevice->createTexture2D(frameDim.x, frameDim.y, nvrhi::Format::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                mpStatsPathVertexCount = mpDevice->createTexture2D(frameDim.x, frameDim.y, nvrhi::Format::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                mpStatsVolumeLookupCount = mpDevice->createTexture2D(frameDim.x, frameDim.y, nvrhi::Format::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
             }
 
             for (uint32_t i = 0; i < kRayTypeCount; i++)
@@ -227,7 +227,7 @@ namespace Falcor
         FALCOR_ASSERT(mStatsBuffersValid);
         if (!mpStatsRayCountTotal || mpStatsRayCountTotal->getWidth() != mFrameDim.x || mpStatsRayCountTotal->getHeight() != mFrameDim.y)
         {
-            mpStatsRayCountTotal = mpDevice->createTexture2D(mFrameDim.x, mFrameDim.y, ResourceFormat::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+            mpStatsRayCountTotal = mpDevice->createTexture2D(mFrameDim.x, mFrameDim.y, nvrhi::Format::R32Uint, 1, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
         }
 
         auto var = mpComputeRayCount->getRootVar();

@@ -28,7 +28,7 @@
 #pragma once
 #include "Bitmap.h"
 #include "Core/Macros.h"
-#include "Core/API/Texture.h"
+
 #include <filesystem>
 
 namespace Falcor

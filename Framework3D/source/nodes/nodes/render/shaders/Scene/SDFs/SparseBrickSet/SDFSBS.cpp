@@ -26,9 +26,9 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "SDFSBS.h"
-#include "Core/API/Device.h"
-#include "Core/API/RenderContext.h"
-#include "Core/API/IndirectCommands.h"
+
+
+
 #include "Utils/Math/MathHelpers.h"
 #include "Utils/Math/MathConstants.slangh"
 #include "Utils/SharedCache.h"
@@ -194,7 +194,7 @@ namespace Falcor
 
             if (!mpIndirectionTexture || mpIndirectionTexture->getWidth() < mVirtualBricksPerAxis)
             {
-                mpIndirectionTexture = mpDevice->createTexture3D(mVirtualBricksPerAxis, mVirtualBricksPerAxis, mVirtualBricksPerAxis, ResourceFormat::R32Uint, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                mpIndirectionTexture = mpDevice->createTexture3D(mVirtualBricksPerAxis, mVirtualBricksPerAxis, mVirtualBricksPerAxis, nvrhi::Format::R32Uint, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
                 mpIndirectionTexture->setName("SDFSBS::IndirectionTextureValues");
             }
 
@@ -301,16 +301,16 @@ namespace Falcor
 
                 if (mCompressed)
                 {
-                    mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, ResourceFormat::BC4Snorm, 1, 1);
+                    mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, nvrhi::Format::BC4Snorm, 1, 1);
 
                     // Compression scheme may change the actual width and height to something else.
                     mBrickTextureDimensions = uint2(mpBrickTexture->getWidth(), mpBrickTexture->getHeight());
 
-                    mpBrickScratchTexture = mpDevice->createTexture2D(mBrickTextureDimensions.x / 4, mBrickTextureDimensions.y / 4, ResourceFormat::RG32Int, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess);
+                    mpBrickScratchTexture = mpDevice->createTexture2D(mBrickTextureDimensions.x / 4, mBrickTextureDimensions.y / 4, nvrhi::Format::RG32Int, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess);
                 }
                 else
                 {
-                    mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, ResourceFormat::R8Snorm, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess | ResourceBindFlags::ShaderResource);
+                    mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, nvrhi::Format::R8Snorm, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess | ResourceBindFlags::ShaderResource);
 
                     mBrickTextureDimensions = uint2(textureWidth, textureHeight);
                 }
@@ -377,7 +377,7 @@ namespace Falcor
         if (!includeValues && mBakePrimitives)
         {
             // Create a grid to hold the values if the grid is missing a value representation but request to bake the primitives.
-            mpSDFGridTexture = mpDevice->createTexture3D(gridWidthInValues, gridWidthInValues, gridWidthInValues, ResourceFormat::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+            mpSDFGridTexture = mpDevice->createTexture3D(gridWidthInValues, gridWidthInValues, gridWidthInValues, nvrhi::Format::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
             mpSDFGridTexture->setName("SDFSBS::SDFGridTexture");
             pRenderContext->clearUAV(mpSDFGridTexture->getUAV().get(), float4(std::numeric_limits<float>::max()));
             includeValues = true;
@@ -718,7 +718,7 @@ namespace Falcor
 
                 if (!mpIndirectionTexture || mpIndirectionTexture->getWidth() < mVirtualBricksPerAxis)
                 {
-                    mpIndirectionTexture = mpDevice->createTexture3D(mVirtualBricksPerAxis, mVirtualBricksPerAxis, mVirtualBricksPerAxis, ResourceFormat::R32Uint, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                    mpIndirectionTexture = mpDevice->createTexture3D(mVirtualBricksPerAxis, mVirtualBricksPerAxis, mVirtualBricksPerAxis, nvrhi::Format::R32Uint, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
                     mpIndirectionTexture->setName("SDFSBS::IndirectionTextureValuesPrims");
                     updateFlags |= UpdateFlags::BuffersReallocated;
                 }
@@ -740,17 +740,17 @@ namespace Falcor
 
                     if (mCompressed)
                     {
-                        mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, ResourceFormat::BC4Snorm, 1, 1);
+                        mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, nvrhi::Format::BC4Snorm, 1, 1);
                         mpBrickTexture->setName("SDFSBS::BrickTexture");
 
                         // Compression scheme may change the actual width and height to something else.
                         mBrickTextureDimensions = uint2(mpBrickTexture->getWidth(), mpBrickTexture->getHeight());
 
-                        mpBrickScratchTexture = mpDevice->createTexture2D(mBrickTextureDimensions.x / 4, mBrickTextureDimensions.y / 4, ResourceFormat::RG32Int, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess);
+                        mpBrickScratchTexture = mpDevice->createTexture2D(mBrickTextureDimensions.x / 4, mBrickTextureDimensions.y / 4, nvrhi::Format::RG32Int, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess);
                     }
                     else
                     {
-                        mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, ResourceFormat::R8Snorm, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess | ResourceBindFlags::ShaderResource);
+                        mpBrickTexture = mpDevice->createTexture2D(textureWidth, textureHeight, nvrhi::Format::R8Snorm, 1, 1, nullptr, ResourceBindFlags::UnorderedAccess | ResourceBindFlags::ShaderResource);
                         mpBrickTexture->setName("SDFSBS::BrickTexture");
 
                         mBrickTextureDimensions = uint2(textureWidth, textureHeight);
@@ -762,7 +762,7 @@ namespace Falcor
                 {
                     if (!mpSDFGridTextureModified || mpSDFGridTextureModified->getWidth() < gridWidthInValues)
                     {
-                        mpSDFGridTextureModified = mpDevice->createTexture3D(gridWidthInValues, gridWidthInValues, gridWidthInValues, ResourceFormat::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                        mpSDFGridTextureModified = mpDevice->createTexture3D(gridWidthInValues, gridWidthInValues, gridWidthInValues, nvrhi::Format::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
                         mpSDFGridTextureModified->setName("SDFSBS::SDFGridTextureModified");
                     }
 
@@ -855,7 +855,7 @@ namespace Falcor
         {
             if (!mpOldSDFGridTexture || mpOldSDFGridTexture->getWidth() != oldGridWidthInValues)
             {
-                mpOldSDFGridTexture = mpDevice->createTexture3D(oldGridWidthInValues, oldGridWidthInValues, oldGridWidthInValues, ResourceFormat::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                mpOldSDFGridTexture = mpDevice->createTexture3D(oldGridWidthInValues, oldGridWidthInValues, oldGridWidthInValues, nvrhi::Format::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
                 mpOldSDFGridTexture->setName("SDFSBS::OldSDFGridTexture");
             }
 
@@ -865,7 +865,7 @@ namespace Falcor
         // Create destination grid texture to write to.
         if (!mpSDFGridTexture || mpSDFGridTexture->getWidth() < gridWidthInValues)
         {
-            mpSDFGridTexture = mpDevice->createTexture3D(gridWidthInValues, gridWidthInValues, gridWidthInValues, ResourceFormat::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+            mpSDFGridTexture = mpDevice->createTexture3D(gridWidthInValues, gridWidthInValues, gridWidthInValues, nvrhi::Format::R8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
             mpSDFGridTexture->setName("SDFSBS::SDFGridTexture");
         }
 
@@ -931,7 +931,7 @@ namespace Falcor
             auto& pTexture = mIntervalSDFieldMaps[i];
             if (!pTexture || pTexture->getWidth() < width)
             {
-                pTexture = mpDevice->createTexture3D(width, width, width, ResourceFormat::RG8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
+                pTexture = mpDevice->createTexture3D(width, width, width, nvrhi::Format::RG8Snorm, 1, nullptr, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess);
                 pTexture->setName("SDFSBS::IntervalValuesMaps[" + std::to_string(i) + "]");
             }
 
@@ -998,7 +998,7 @@ namespace Falcor
         }
         else
         {
-            mpSDFGridTexture = mpDevice->createTexture3D(mGridWidth + 1, mGridWidth + 1, mGridWidth + 1, ResourceFormat::R8Snorm, 1, sdField.data());
+            mpSDFGridTexture = mpDevice->createTexture3D(mGridWidth + 1, mGridWidth + 1, mGridWidth + 1, nvrhi::Format::R8Snorm, 1, sdField.data());
         }
 
         mSDFieldUpdated = true;

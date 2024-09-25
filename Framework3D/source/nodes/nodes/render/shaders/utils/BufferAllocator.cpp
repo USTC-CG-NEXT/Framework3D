@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "BufferAllocator.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Math/Common.h"
 
 namespace Falcor

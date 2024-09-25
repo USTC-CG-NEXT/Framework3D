@@ -28,7 +28,7 @@
 #include "Console.h"
 #include "Core/Error.h"
 #include "Utils/UI/InputTypes.h"
-#include "Utils/UI/Gui.h"
+
 #include "Utils/Scripting/Scripting.h"
 
 #include <imgui.h>

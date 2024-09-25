@@ -29,7 +29,7 @@
 #include "Animation.h"
 #include "AnimatedVertexCache.h"
 #include "Core/Macros.h"
-#include "Core/API/Buffer.h"
+
 #include "Core/Pass/ComputePass.h"
 #include "Utils/Math/Matrix.h"
 #include "Scene/SceneTypes.slang"

@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "AliasTable.h"
 #include "Core/Error.h"
-#include "Core/API/Device.h"
+
 
 namespace Falcor
 {

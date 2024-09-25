@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "GridVolume.h"
 #include "Grid.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Scripting/ScriptBindings.h"
 #include "GlobalState.h"

@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "MaterialSystem.h"
 #include "StandardMaterial.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Logger.h"
 #include "Utils/StringUtils.h"
 #include "MaterialTypeRegistry.h"

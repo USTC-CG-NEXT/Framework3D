@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "MERLMixMaterial.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Logger.h"
 #include "Utils/BufferAllocator.h"
 #include "Utils/Scripting/ScriptBindings.h"
@@ -291,16 +291,16 @@ namespace Falcor
         {
             // Verify that index map is in uncompressed 8-bit unorm format.
             // The shader requires this because the BRDF index is computed by scaling the unorm value by 255.
-            ResourceFormat format = tex->getFormat();
+            nvrhi::Format format = tex->getFormat();
             FALCOR_CHECK(!isSrgbFormat(format), "MERLMixMaterial: Index map must not be in SRGB format.");
 
             switch (format)
             {
-            case ResourceFormat::R8Unorm:
-            case ResourceFormat::RG8Unorm:
-            case ResourceFormat::RGBA8Unorm:
-            case ResourceFormat::BGRA8Unorm:
-            case ResourceFormat::BGRX8Unorm:
+            case nvrhi::Format::R8Unorm:
+            case nvrhi::Format::RG8Unorm:
+            case nvrhi::Format::RGBA8Unorm:
+            case nvrhi::Format::BGRA8Unorm:
+            case nvrhi::Format::BGRX8Unorm:
                 break;
             default:
                 FALCOR_THROW(fmt::format("MERLMixMaterial: Index map unsupported format ({}).", to_string(format)));

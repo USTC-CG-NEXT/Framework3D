@@ -28,9 +28,9 @@
 #pragma once
 #include "AsyncTextureLoader.h"
 #include "Core/Macros.h"
-#include "Core/API/fwd.h"
-#include "Core/API/Resource.h"
-#include "Core/API/Texture.h"
+
+
+
 #include "Core/Program/ShaderVar.h"
 #include "Scene/Material/TextureHandle.slang"
 #include <condition_variable>

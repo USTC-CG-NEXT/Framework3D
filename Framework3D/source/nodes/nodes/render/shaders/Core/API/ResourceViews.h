@@ -26,23 +26,33 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
+#include <vector>
+
 #include "Core/Macros.h"
 #include "Core/Object.h"
 #include "Core/Program/ProgramReflection.h"
-#include <vector>
-
 #include "slang-com-ptr.h"
 
-namespace Falcor
-{
-struct FALCOR_API ResourceViewInfo
-{
+namespace Falcor {
+struct FALCOR_API ResourceViewInfo {
     ResourceViewInfo() = default;
-    ResourceViewInfo(uint32_t mostDetailedMip, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySize)
-        : mostDetailedMip(mostDetailedMip), mipCount(mipCount), firstArraySlice(firstArraySlice), arraySize(arraySize)
-    {}
+    ResourceViewInfo(
+        uint32_t mostDetailedMip,
+        uint32_t mipCount,
+        uint32_t firstArraySlice,
+        uint32_t arraySize)
+        : mostDetailedMip(mostDetailedMip),
+          mipCount(mipCount),
+          firstArraySlice(firstArraySlice),
+          arraySize(arraySize)
+    {
+    }
 
-    ResourceViewInfo(uint64_t offset, uint64_t size) : offset(offset), size(size) {}
+    ResourceViewInfo(uint64_t offset, uint64_t size)
+        : offset(offset),
+          size(size)
+    {
+    }
 
     static constexpr uint32_t kMaxPossible = -1;
     static constexpr uint64_t kEntireBuffer = -1;
@@ -59,18 +69,19 @@ struct FALCOR_API ResourceViewInfo
 
     bool operator==(const ResourceViewInfo& other) const
     {
-        return (firstArraySlice == other.firstArraySlice) && (arraySize == other.arraySize) && (mipCount == other.mipCount) &&
-               (mostDetailedMip == other.mostDetailedMip) && (offset == other.offset) && (size == other.size);
+        return (firstArraySlice == other.firstArraySlice) &&
+               (arraySize == other.arraySize) && (mipCount == other.mipCount) &&
+               (mostDetailedMip == other.mostDetailedMip) &&
+               (offset == other.offset) && (size == other.size);
     }
 };
 
 /**
  * Abstracts API resource views.
  */
-class FALCOR_API ResourceView : public Object
-{
+class FALCOR_API ResourceView : public Object {
     FALCOR_OBJECT(ResourceView)
-public:
+   public:
     using Dimension = ReflectionResourceType::Dimensions;
     static const uint32_t kMaxPossible = -1;
     static constexpr uint64_t kEntireBuffer = -1;
@@ -79,172 +90,226 @@ public:
     ResourceView(
         IDevice* pDevice,
         IResource* pResource,
-        Slang::ComPtr<gfx::IResourceView> gfxResourceView,
+        nvrhi::BindingSetItem gfxResourceView,
         uint32_t mostDetailedMip,
         uint32_t mipCount,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    )
-        : mpDevice(pDevice)
-        , mGfxResourceView(gfxResourceView)
-        , mViewInfo(mostDetailedMip, mipCount, firstArraySlice, arraySize)
-        , mpResource(pResource)
-    {}
+        uint32_t arraySize)
+        : mpDevice(pDevice),
+          mGfxResourceView(gfxResourceView),
+          mViewInfo(mostDetailedMip, mipCount, firstArraySlice, arraySize),
+          mpResource(pResource)
+    {
+    }
 
-    ResourceView(IDevice* pDevice, IResource* pResource, Slang::ComPtr<gfx::IResourceView> gfxResourceView, uint64_t offset, uint64_t size)
-        : mpDevice(pDevice), mGfxResourceView(gfxResourceView), mViewInfo(offset, size), mpResource(pResource)
-    {}
+    ResourceView(
+        IDevice* pDevice,
+        IResource* pResource,
+        nvrhi::BindingSetItem gfxResourceView,
+        uint64_t offset,
+        uint64_t size)
+        : mpDevice(pDevice),
+          mGfxResourceView(gfxResourceView),
+          mViewInfo(offset, size),
+          mpResource(pResource)
+    {
+    }
 
-    ResourceView(IDevice* pDevice, IResource* pResource, Slang::ComPtr<gfx::IResourceView> gfxResourceView)
-        : mpDevice(pDevice), mGfxResourceView(gfxResourceView), mpResource(pResource)
-    {}
+    ResourceView(
+        IDevice* pDevice,
+        IResource* pResource,
+        nvrhi::BindingSetItem gfxResourceView)
+        : mpDevice(pDevice),
+          mGfxResourceView(gfxResourceView),
+          mpResource(pResource)
+    {
+    }
 
-    gfx::IResourceView* getGfxResourceView() const { return mGfxResourceView; }
+    nvrhi::BindingSetItem getGfxResourceView() const
+    {
+        return mGfxResourceView;
+    }
 
     /**
      * Get information about the view.
      */
-    const ResourceViewInfo& getViewInfo() const { return mViewInfo; }
+    const ResourceViewInfo& getViewInfo() const
+    {
+        return mViewInfo;
+    }
 
     /**
      * Get the resource referenced by the view.
      */
-    IResource* getResource() const { return mpResource; }
+    IResource* getResource() const
+    {
+        return mpResource;
+    }
 
-protected:
+   protected:
     friend class Resource;
 
     void invalidate();
 
     IDevice* mpDevice;
-    Slang::ComPtr<gfx::IResourceView> mGfxResourceView;
+    nvrhi::BindingSetItem mGfxResourceView;
     ResourceViewInfo mViewInfo;
     IResource* mpResource;
 };
 
-class FALCOR_API ShaderResourceView : public ResourceView
-{
-public:
-    static ref<ShaderResourceView> create(
+class FALCOR_API ShaderResourceView : public ResourceView {
+   public:
+    static nvrhi::BindingSetItem create(
         IDevice* pDevice,
         Texture* pTexture,
         uint32_t mostDetailedMip,
         uint32_t mipCount,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    );
-    static ref<ShaderResourceView> create(IDevice* pDevice, Buffer* pBuffer, uint64_t offset, uint64_t size);
-    static ref<ShaderResourceView> create(IDevice* pDevice, Dimension dimension);
+        uint32_t arraySize);
+    static nvrhi::BindingSetItem
+    create(IDevice* pDevice, Buffer* pBuffer, uint64_t offset, uint64_t size);
+    static nvrhi::BindingSetItem create(
+        IDevice* pDevice,
+        Dimension dimension);
 
-private:
+   private:
     ShaderResourceView(
         IDevice* pDevice,
         IResource* pResource,
-        Slang::ComPtr<gfx::IResourceView> gfxResourceView,
+        nvrhi::BindingSetItem gfxResourceView,
         uint32_t mostDetailedMip,
         uint32_t mipCount,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    )
-        : ResourceView(pDevice, pResource, gfxResourceView, mostDetailedMip, mipCount, firstArraySlice, arraySize)
-    {}
+        uint32_t arraySize)
+        : ResourceView(
+              pDevice,
+              pResource,
+              gfxResourceView,
+              mostDetailedMip,
+              mipCount,
+              firstArraySlice,
+              arraySize)
+    {
+    }
     ShaderResourceView(
         IDevice* pDevice,
         IResource* pResource,
-        Slang::ComPtr<gfx::IResourceView> gfxResourceView,
+        nvrhi::BindingSetItem gfxResourceView,
         uint64_t offset,
-        uint64_t size
-    )
+        uint64_t size)
         : ResourceView(pDevice, pResource, gfxResourceView, offset, size)
-    {}
-    ShaderResourceView(IDevice* pDevice, IResource* pResource, Slang::ComPtr<gfx::IResourceView> gfxResourceView)
+    {
+    }
+    ShaderResourceView(
+        IDevice* pDevice,
+        IResource* pResource,
+        nvrhi::BindingSetItem gfxResourceView)
         : ResourceView(pDevice, pResource, gfxResourceView)
-    {}
+    {
+    }
 };
 
-class FALCOR_API DepthStencilView : public ResourceView
-{
-public:
+class FALCOR_API DepthStencilView : public ResourceView {
+   public:
     static ref<DepthStencilView> create(
         IDevice* pDevice,
         Texture* pTexture,
         uint32_t mipLevel,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    );
+        uint32_t arraySize);
     static ref<DepthStencilView> create(IDevice* pDevice, Dimension dimension);
 
-private:
+   private:
     DepthStencilView(
         IDevice* pDevice,
         IResource* pResource,
-        Slang::ComPtr<gfx::IResourceView> gfxResourceView,
+        nvrhi::BindingSetItem gfxResourceView,
         uint32_t mipLevel,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    )
-        : ResourceView(pDevice, pResource, gfxResourceView, mipLevel, 1, firstArraySlice, arraySize)
-    {}
+        uint32_t arraySize)
+        : ResourceView(
+              pDevice,
+              pResource,
+              gfxResourceView,
+              mipLevel,
+              1,
+              firstArraySlice,
+              arraySize)
+    {
+    }
 };
 
-class FALCOR_API UnorderedAccessView : public ResourceView
-{
-public:
-    static ref<UnorderedAccessView> create(
+class FALCOR_API UnorderedAccessView : public ResourceView {
+   public:
+    static nvrhi::BindingSetItem create(
         IDevice* pDevice,
         Texture* pTexture,
         uint32_t mipLevel,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    );
-    static ref<UnorderedAccessView> create(IDevice* pDevice, Buffer* pBuffer, uint64_t offset, uint64_t size);
-    static ref<UnorderedAccessView> create(IDevice* pDevice, Dimension dimension);
+        uint32_t arraySize);
+    static nvrhi::BindingSetItem
+    create(IDevice* pDevice, Buffer* pBuffer, uint64_t offset, uint64_t size);
+    static nvrhi::BindingSetItem create(
+        IDevice* pDevice,
+        Dimension dimension);
 
-private:
+   private:
     UnorderedAccessView(
         IDevice* pDevice,
         IResource* pResource,
-        Slang::ComPtr<gfx::IResourceView> gfxResourceView,
+        nvrhi::BindingSetItem gfxResourceView,
         uint32_t mipLevel,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    )
-        : ResourceView(pDevice, pResource, gfxResourceView, mipLevel, 1, firstArraySlice, arraySize)
-    {}
+        uint32_t arraySize)
+        : ResourceView(
+              pDevice,
+              pResource,
+              gfxResourceView,
+              mipLevel,
+              1,
+              firstArraySlice,
+              arraySize)
+    {
+    }
 
     UnorderedAccessView(
         IDevice* pDevice,
         IResource* pResource,
-        Slang::ComPtr<gfx::IResourceView> gfxResourceView,
+        nvrhi::BindingSetItem gfxResourceView,
         uint64_t offset,
-        uint64_t size
-    )
+        uint64_t size)
         : ResourceView(pDevice, pResource, gfxResourceView, offset, size)
-    {}
+    {
+    }
 };
 
-class FALCOR_API RenderTargetView : public ResourceView
-{
-public:
+class FALCOR_API RenderTargetView : public ResourceView {
+   public:
     static ref<RenderTargetView> create(
         IDevice* pDevice,
         Texture* pTexture,
         uint32_t mipLevel,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    );
+        uint32_t arraySize);
     static ref<RenderTargetView> create(IDevice* pDevice, Dimension dimension);
 
-private:
+   private:
     RenderTargetView(
         IDevice* pDevice,
         IResource* pResource,
-        Slang::ComPtr<gfx::IResourceView> gfxResourceView,
+        nvrhi::BindingSetItem gfxResourceView,
         uint32_t mipLevel,
         uint32_t firstArraySlice,
-        uint32_t arraySize
-    )
-        : ResourceView(pDevice, pResource, gfxResourceView, mipLevel, 1, firstArraySlice, arraySize)
-    {}
+        uint32_t arraySize)
+        : ResourceView(
+              pDevice,
+              pResource,
+              gfxResourceView,
+              mipLevel,
+              1,
+              firstArraySlice,
+              arraySize)
+    {
+    }
 };
-} // namespace Falcor
+}  // namespace Falcor

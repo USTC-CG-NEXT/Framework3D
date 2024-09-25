@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "Bitmap.h"
 #include "Core/Macros.h"
-#include "Core/API/Texture.h"
+
 #include "Core/Platform/MemoryMappedFile.h"
 #include "Utils/Math/ScalarMath.h"
 #include "Utils/Math/Float16.h"
@@ -105,7 +105,7 @@ static void genWarning(const std::string& errMsg, const std::filesystem::path& p
     logWarning("Error when loading image file from '{}': {}", path, errMsg);
 }
 
-static bool isConvertibleToRGBA32Float(ResourceFormat format)
+static bool isConvertibleToRGBA32Float(nvrhi::Format format)
 {
     FormatType type = getFormatType(format);
     bool isHalfFormat = (type == FormatType::Float && getNumChannelBits(format, 0) == 16);
@@ -160,7 +160,7 @@ static std::vector<float> convertIntToRGBA32Float(uint32_t width, uint32_t heigh
 /**
  * Converts an image of the given format to an RGBA float image.
  */
-static std::vector<float> convertToRGBA32Float(ResourceFormat format, uint32_t width, uint32_t height, const void* pData)
+static std::vector<float> convertToRGBA32Float(nvrhi::Format format, uint32_t width, uint32_t height, const void* pData)
 {
     FALCOR_ASSERT(isConvertibleToRGBA32Float(format));
 
@@ -283,7 +283,7 @@ static FIBITMAP* convertToRGBA16Float(FIBITMAP* pDib)
     }
     return pNew;
 }
-Bitmap::UniqueConstPtr Bitmap::create(uint32_t width, uint32_t height, ResourceFormat format, const uint8_t* pData)
+Bitmap::UniqueConstPtr Bitmap::create(uint32_t width, uint32_t height, nvrhi::Format format, const uint8_t* pData)
 {
     return Bitmap::UniqueConstPtr(new Bitmap(width, height, format, pData));
 }
@@ -371,24 +371,24 @@ Bitmap::UniqueConstPtr Bitmap::createFromFile(const std::filesystem::path& path,
     }
 
     // Identify resource format based on bit depth.
-    ResourceFormat format = ResourceFormat::Unknown;
+    nvrhi::Format format = nvrhi::Format::Unknown;
     uint32_t bpp = FreeImage_GetBPP(pDib);
     switch (bpp)
     {
     case 128:
-        format = ResourceFormat::RGBA32Float; // 4xfloat32 HDR format
+        format = nvrhi::Format::RGBA32Float; // 4xfloat32 HDR format
         break;
     case 96:
-        format = isRGB32fSupported() ? ResourceFormat::RGB32Float : ResourceFormat::RGBA32Float; // 3xfloat32 HDR format
+        format = isRGB32fSupported() ? nvrhi::Format::RGB32Float : nvrhi::Format::RGBA32Float; // 3xfloat32 HDR format
         break;
     case 64:
         FALCOR_CHECK(colorType == FIC_RGBALPHA, "Only expect 16b RGBA with 64 bits per pixel");
-        format = ResourceFormat::RGBA16Unorm;
+        format = nvrhi::Format::RGBA16Unorm;
         break;
     case 48:
     {
         FALCOR_CHECK(colorType == FIC_RGB, "Only expect 16b RGB with 48 bits per pixel");
-        format = ResourceFormat::RGBA16Unorm;
+        format = nvrhi::Format::RGBA16Unorm;
         auto pNew = FreeImage_ConvertToRGBA16(pDib);
         FreeImage_Unload(pDib);
         pDib = pNew;
@@ -396,16 +396,16 @@ Bitmap::UniqueConstPtr Bitmap::createFromFile(const std::filesystem::path& path,
     }
     break;
     case 32:
-        format = ResourceFormat::BGRA8Unorm;
+        format = nvrhi::Format::BGRA8Unorm;
         break;
     case 24:
-        format = ResourceFormat::BGRX8Unorm;
+        format = nvrhi::Format::BGRX8Unorm;
         break;
     case 16:
-        format = (FreeImage_GetImageType(pDib) == FIT_UINT16) ? ResourceFormat::R16Unorm : ResourceFormat::RG8Unorm;
+        format = (FreeImage_GetImageType(pDib) == FIT_UINT16) ? nvrhi::Format::R16Unorm : nvrhi::Format::RG8Unorm;
         break;
     case 8:
-        format = ResourceFormat::R8Unorm;
+        format = nvrhi::Format::R8Unorm;
         break;
     default:
         genWarning("Unknown bits-per-pixel", path);
@@ -423,7 +423,7 @@ Bitmap::UniqueConstPtr Bitmap::createFromFile(const std::filesystem::path& path,
     else if ((bpp == 96 || bpp == 128) && is_set(importFlags, ImportFlags::ConvertToFloat16))
     {
         bpp = 64;
-        format = ResourceFormat::RGBA16Float;
+        format = nvrhi::Format::RGBA16Float;
         auto pNew = convertToRGBA16Float(pDib);
         FreeImage_Unload(pDib);
         pDib = pNew;
@@ -448,7 +448,7 @@ Bitmap::UniqueConstPtr Bitmap::createFromFile(const std::filesystem::path& path,
     return pBmp;
 }
 
-Bitmap::Bitmap(uint32_t width, uint32_t height, ResourceFormat format)
+Bitmap::Bitmap(uint32_t width, uint32_t height, nvrhi::Format format)
     : mWidth(width), mHeight(height), mRowPitch(getFormatRowPitch(format, width)), mFormat(format)
 {
     if (isCompressedFormat(format))
@@ -465,7 +465,7 @@ Bitmap::Bitmap(uint32_t width, uint32_t height, ResourceFormat format)
     mpData = std::unique_ptr<uint8_t[]>(new uint8_t[mSize]);
 }
 
-Bitmap::Bitmap(uint32_t width, uint32_t height, ResourceFormat format, const uint8_t* pData) : Bitmap(width, height, format)
+Bitmap::Bitmap(uint32_t width, uint32_t height, nvrhi::Format format, const uint8_t* pData) : Bitmap(width, height, format)
 {
     std::memcpy(mpData.get(), pData, mSize);
 }
@@ -529,13 +529,13 @@ Bitmap::FileFormat Bitmap::getFormatFromFileExtension(const std::string& ext)
     FALCOR_THROW("Can't find a matching format for file extension '{}'.", ext);
 }
 
-FileDialogFilterVec Bitmap::getFileDialogFilters(ResourceFormat format)
+FileDialogFilterVec Bitmap::getFileDialogFilters(nvrhi::Format format)
 {
     FileDialogFilterVec filters;
     bool showHdr = true;
     bool showLdr = true;
 
-    if (format != ResourceFormat::Unknown)
+    if (format != nvrhi::Format::Unknown)
     {
         // Save float, half and large integer (16/32 bit) formats as HDR.
         showHdr = getFormatType(format) == FormatType::Float || isConvertibleToRGBA32Float(format);
@@ -561,14 +561,14 @@ FileDialogFilterVec Bitmap::getFileDialogFilters(ResourceFormat format)
     filters.push_back({"dds", "DirectDraw Surface"});
 
     // List of formats we can only load from
-    if (format == ResourceFormat::Unknown)
+    if (format == nvrhi::Format::Unknown)
     {
         filters.push_back({"hdr", "High Dynamic Range"});
     }
     return filters;
 }
 
-std::string Bitmap::getFileExtFromResourceFormat(ResourceFormat format)
+std::string Bitmap::getFileExtFromnvrhi::Format(nvrhi::Format format)
 {
     auto filters = getFileDialogFilters(format);
     return filters.front().ext;
@@ -593,7 +593,7 @@ void Bitmap::saveImage(
     uint32_t height,
     FileFormat fileFormat,
     ExportFlags exportFlags,
-    ResourceFormat resourceFormat,
+    nvrhi::Format resourceFormat,
     bool isTopDown,
     void* pData
 )
@@ -612,8 +612,8 @@ void Bitmap::saveImage(
 
     // Convert 8-bit RGBA to BGRA byte order.
     // TODO: Replace this code for swapping channels. Can't use FreeImage masks b/c they only care about 16 bpp images.
-    if (resourceFormat == ResourceFormat::RGBA8Unorm || resourceFormat == ResourceFormat::RGBA8Snorm ||
-        resourceFormat == ResourceFormat::RGBA8UnormSrgb)
+    if (resourceFormat == nvrhi::Format::RGBA8Unorm || resourceFormat == nvrhi::Format::RGBA8Snorm ||
+        resourceFormat == nvrhi::Format::RGBA8UnormSrgb)
     {
         for (uint32_t a = 0; a < width * height; a++)
         {
@@ -635,7 +635,7 @@ void Bitmap::saveImage(
         {
             floatData = convertToRGBA32Float(resourceFormat, width, height, pData);
             pData = floatData.data();
-            resourceFormat = ResourceFormat::RGBA32Float;
+            resourceFormat = nvrhi::Format::RGBA32Float;
             bytesPerPixel = 16;
         }
         else if (bytesPerPixel != 16 && bytesPerPixel != 12)

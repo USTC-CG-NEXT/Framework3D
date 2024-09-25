@@ -26,8 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Core/API/fwd.h"
-#include "Core/API/Formats.h"
+
+
 #include "Utils/Math/Vector.h"
 #include "Scene/Material/DiffuseSpecularData.slang"
 #include <filesystem>
@@ -50,7 +50,7 @@ namespace Falcor
             DiffuseSpecularData extraData = {}; ///< Parameters for a best fit BRDF approximation.
         };
 
-        static constexpr ResourceFormat kAlbedoLUTFormat = ResourceFormat::RGBA32Float;
+        static constexpr nvrhi::Format kAlbedoLUTFormat = nvrhi::Format::RGBA32Float;
 
         MERLFile() = default;
 

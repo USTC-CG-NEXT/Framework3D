@@ -28,7 +28,7 @@
 #pragma once
 #include "Animation.h"
 #include "SharedTypes.slang"
-#include "Core/API/Buffer.h"
+
 #include "Core/Pass/ComputePass.h"
 #include "Scene/Curves/CurveConfig.h"
 #include "Scene/SceneTypes.slang"

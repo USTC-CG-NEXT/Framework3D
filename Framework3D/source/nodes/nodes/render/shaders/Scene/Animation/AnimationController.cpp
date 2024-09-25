@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "AnimationController.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Timing/Profiler.h"
 #include "Scene/Scene.h"
 #include <fstream>

@@ -28,7 +28,7 @@
 #include "Light.h"
 #include "Core/Program/ShaderVar.h"
 #include "Utils/Logger.h"
-#include "Utils/UI/Gui.h"
+
 #include "Utils/Color/ColorHelpers.slang"
 #include "Utils/Scripting/ScriptBindings.h"
 

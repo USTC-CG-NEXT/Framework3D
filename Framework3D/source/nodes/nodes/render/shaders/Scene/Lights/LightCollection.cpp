@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "LightCollection.h"
 #include "LightCollectionShared.slang"
-#include "Core/API/Device.h"
+
 #include "Scene/Scene.h"
 #include "Scene/Material/BasicMaterial.h"
 #include "Utils/Logger.h"

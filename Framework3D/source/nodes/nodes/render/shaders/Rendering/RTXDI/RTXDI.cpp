@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "RTXDI.h"
 #include "Core/Error.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Math/Common.h"
 #include "Utils/Timing/Profiler.h"
@@ -441,7 +441,7 @@ namespace Falcor
             if (!mpLocalLightPdfTexture || mpLocalLightPdfTexture->getWidth() != width || mpLocalLightPdfTexture->getHeight() != height || mpLocalLightPdfTexture->getMipCount() != mipLevels)
             {
                 mpLocalLightPdfTexture = mpDevice->createTexture2D(width, height,
-                    ResourceFormat::R16Float, 1, mipLevels, nullptr,
+                    nvrhi::Format::R16Float, 1, mipLevels, nullptr,
                     ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess | ResourceBindFlags::RenderTarget);
             }
         }
@@ -520,7 +520,7 @@ namespace Falcor
             if (!pLuminanceTexture || pLuminanceTexture->getWidth() != width || pLuminanceTexture->getHeight() != height)
             {
                 pLuminanceTexture = mpDevice->createTexture2D(
-                    width, height, ResourceFormat::R32Float, 1, 1, nullptr,
+                    width, height, nvrhi::Format::R32Float, 1, 1, nullptr,
                     ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess | ResourceBindFlags::RenderTarget);
             }
 
@@ -528,7 +528,7 @@ namespace Falcor
             if (!pPdfTexture || pPdfTexture->getWidth() != width || pPdfTexture->getHeight() != height)
             {
                 pPdfTexture = mpDevice->createTexture2D(
-                    width, height, ResourceFormat::R32Float, 1, Resource::kMaxPossible, nullptr,
+                    width, height, nvrhi::Format::R32Float, 1, Resource::kMaxPossible, nullptr,
                     ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess | ResourceBindFlags::RenderTarget);
             }
 
@@ -729,7 +729,7 @@ namespace Falcor
         uint32_t lightTileSampleCount = std::max(mpRTXDIContext->GetRisBufferElementCount(), 1u);
         if (!mpLightTileBuffer || mpLightTileBuffer->getElementCount() < lightTileSampleCount)
         {
-            mpLightTileBuffer = mpDevice->createTypedBuffer(ResourceFormat::RG32Uint, lightTileSampleCount);
+            mpLightTileBuffer = mpDevice->createTypedBuffer(nvrhi::Format::RG32Uint, lightTileSampleCount);
         }
 
         // Allocate buffer for compact light info used to improve coherence for presampled light tiles.
@@ -765,7 +765,7 @@ namespace Falcor
             std::vector<uint8_t> offsets(2 * (size_t)mRTXDIContextParams.NeighborOffsetCount);
             mpRTXDIContext->FillNeighborOffsetBuffer(offsets.data());
             mpNeighborOffsetsBuffer = mpDevice->createTypedBuffer(
-                ResourceFormat::RG8Snorm,
+                nvrhi::Format::RG8Snorm,
                 mRTXDIContextParams.NeighborOffsetCount,
                 ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess,
                 MemoryType::DeviceLocal,

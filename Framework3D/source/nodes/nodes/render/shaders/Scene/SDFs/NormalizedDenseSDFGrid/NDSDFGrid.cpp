@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "NDSDFGrid.h"
-#include "Core/API/RenderContext.h"
+
 #include "Utils/SharedCache.h"
 #include "Utils/Math/MathConstants.slangh"
 
@@ -101,7 +101,7 @@ namespace Falcor
             }
             else
             {
-                pNDSDFTexture = mpDevice->createTexture3D(lodWidth, lodWidth, lodWidth, ResourceFormat::R8Snorm, 1, mValues[lod].data());
+                pNDSDFTexture = mpDevice->createTexture3D(lodWidth, lodWidth, lodWidth, nvrhi::Format::R8Snorm, 1, mValues[lod].data());
             }
         }
     }

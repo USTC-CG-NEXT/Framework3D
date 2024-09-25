@@ -27,10 +27,10 @@
  **************************************************************************/
 #include "ProgramVars.h"
 #include "Program.h"
-#include "Core/API/Device.h"
-#include "Core/API/ComputeContext.h"
-#include "Core/API/RenderContext.h"
-#include "Core/API/GFXAPI.h"
+
+
+
+
 #include "Utils/Logger.h"
 
 #include <slang.h>
@@ -193,7 +193,7 @@ bool RtProgramVars::prepareShaderTable(RenderContext* pCtx, RtStateObject* pRtso
         std::vector<const char*> hitgroupShaders;
         getShaderNames(mHitVars, hitgroupShaders);
 
-        gfx::IShaderTable::Desc desc = {};
+        IShaderTable::Desc desc = {};
         desc.rayGenShaderCount = (uint32_t)rayGenShaders.size();
         desc.rayGenShaderEntryPointNames = rayGenShaders.data();
         desc.missShaderCount = (uint32_t)missShaders.size();

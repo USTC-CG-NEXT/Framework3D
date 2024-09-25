@@ -28,7 +28,7 @@
 #include "RGLMaterial.h"
 #include "RGLFile.h"
 #include "RGLCommon.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Logger.h"
 #include "Utils/Image/ImageIO.h"
 #include "Utils/Scripting/ScriptBindings.h"
@@ -45,7 +45,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/RGLMaterial.slang";
 
         const uint32_t kAlbedoLUTSize = RGLMaterialData::kAlbedoLUTSize;
-        const ResourceFormat kAlbedoLUTFormat = ResourceFormat::RGBA32Float;
+        const nvrhi::Format kAlbedoLUTFormat = nvrhi::Format::RGBA32Float;
 
         const std::string kLoadFile = "load";
     }
@@ -291,7 +291,7 @@ namespace Falcor
         auto albedos = integrator.integrateIsotropic(pRenderContext, materialID, cosThetas);
 
         // Copy result into format needed for texture creation.
-        static_assert(kAlbedoLUTFormat == ResourceFormat::RGBA32Float);
+        static_assert(kAlbedoLUTFormat == nvrhi::Format::RGBA32Float);
         std::vector<float4> initData(kAlbedoLUTSize, float4(0.f));
         for (uint32_t i = 0; i < kAlbedoLUTSize; i++) initData[i] = float4(albedos[i], 1.f);
 

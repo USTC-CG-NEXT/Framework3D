@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "TextureManager.h"
 #include "Core/AssetResolver.h"
-#include "Core/API/Device.h"
+
 #include "Utils/Logger.h"
 #include "Utils/NumericRange.h"
 

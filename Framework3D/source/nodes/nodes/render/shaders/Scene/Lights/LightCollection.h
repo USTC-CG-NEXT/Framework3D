@@ -30,9 +30,9 @@
 #include "ILightCollection.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Sampler.h"
-#include "Core/API/Fence.h"
+
+
+
 #include "Core/State/GraphicsState.h"
 #include "Core/Program/Program.h"
 #include "Core/Program/ProgramVars.h"

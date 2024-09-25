@@ -30,10 +30,10 @@
 #include "BrickedGrid.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "Core/API/Buffer.h"
+
 #include "Utils/Math/AABB.h"
 #include "Utils/Math/Matrix.h"
-#include "Utils/UI/Gui.h"
+
 
 #ifdef _MSC_VER
 #pragma warning(push)

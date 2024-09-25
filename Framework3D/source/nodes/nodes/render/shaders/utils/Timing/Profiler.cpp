@@ -26,8 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "Profiler.h"
-#include "Core/API/Device.h"
-#include "Core/API/GpuTimer.h"
+
+
 #include "Utils/Logger.h"
 #include "Utils/Scripting/ScriptBindings.h"
 

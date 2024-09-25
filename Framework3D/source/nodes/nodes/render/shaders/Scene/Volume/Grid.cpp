@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "Grid.h"
 #include "GridConverter.h"
-#include "Core/API/Device.h"
+
 #include "Core/Program/ShaderVar.h"
 #include "Utils/StringUtils.h"
 #include "Utils/Logger.h"

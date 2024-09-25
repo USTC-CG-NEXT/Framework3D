@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "ProgramManager.h"
-#include "Core/API/Device.h"
+
 #include "Core/Platform/OS.h"
 #include "Utils/Logger.h"
 #include "Utils/Timing/CpuTimer.h"

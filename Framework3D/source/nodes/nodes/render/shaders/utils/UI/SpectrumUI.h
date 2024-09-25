@@ -29,7 +29,7 @@
 #include "Core/Macros.h"
 #include "Utils/Math/Vector.h"
 #include "Utils/Color/SampledSpectrum.h"
-#include "Utils/UI/Gui.h"
+
 #include <imgui.h>
 #include <string>
 #include <vector>

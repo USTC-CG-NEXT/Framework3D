@@ -30,8 +30,8 @@
 #include "ProgramManager.h"
 #include "ProgramVars.h"
 #include "Core/Error.h"
-#include "Core/API/Device.h"
-#include "Core/API/ParameterBlock.h"
+
+
 #include "Utils/Logger.h"
 
 #include <slang.h>
@@ -94,8 +94,8 @@ ref<ProgramKernels> ProgramKernels::create(
 {
     ref<ProgramKernels> pProgram = ref<ProgramKernels>(new ProgramKernels(pVersion, pReflector, uniqueEntryPointGroups, name));
 
-    gfx::IShaderProgram::Desc programDesc = {};
-    programDesc.linkingStyle = gfx::IShaderProgram::LinkingStyle::SeparateEntryPointCompilation;
+    IShaderProgram::Desc programDesc = {};
+    programDesc.linkingStyle = IShaderProgram::LinkingStyle::SeparateEntryPointCompilation;
     programDesc.slangGlobalScope = pSpecializedSlangGlobalScope;
 
     // Check if we are creating program kernels for ray tracing pipeline.

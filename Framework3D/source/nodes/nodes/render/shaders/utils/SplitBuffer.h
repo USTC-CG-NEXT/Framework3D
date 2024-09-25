@@ -26,8 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Core/API/Buffer.h"
-#include "Core/API/Device.h"
+
+
 #include "Core/Program/DefineList.h"
 #include "Core/Program/ShaderVar.h"
 #include "Core/Error.h"

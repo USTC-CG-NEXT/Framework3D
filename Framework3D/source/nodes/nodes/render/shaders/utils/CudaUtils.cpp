@@ -27,10 +27,10 @@
  **************************************************************************/
 #include "CudaUtils.h"
 #include "Core/Error.h"
-#include "Core/API/Device.h"
-#include "Core/API/Buffer.h"
-#include "Core/API/Texture.h"
-#include "Core/API/Fence.h"
+
+
+
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <sstream>

@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "EnvMap.h"
-#include "Core/API/Device.h"
+
 #include "Core/Program/ShaderVar.h"
 #include "Utils/Scripting/ScriptBindings.h"
 #include "GlobalState.h"

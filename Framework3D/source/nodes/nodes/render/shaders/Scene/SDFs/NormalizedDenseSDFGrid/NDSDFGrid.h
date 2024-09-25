@@ -28,7 +28,7 @@
 #pragma once
 
 #include "Scene/SDFs/SDFGrid.h"
-#include "Core/API/Texture.h"
+
 
 namespace Falcor
 {
