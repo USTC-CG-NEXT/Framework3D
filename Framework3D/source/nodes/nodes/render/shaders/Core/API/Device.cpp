@@ -26,24 +26,25 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "Device.h"
-#include "Raytracing.h"
-#include "GFXHelpers.h"
-#include "GFXAPI.h"
-#include "ComputeStateObject.h"
-#include "GraphicsStateObject.h"
-#include "RtStateObject.h"
-#include "NativeHandleTraits.h"
+
 #include "Aftermath.h"
-#include "PythonHelpers.h"
-#include "Core/Macros.h"
+#include "ComputeStateObject.h"
 #include "Core/Error.h"
+#include "Core/Macros.h"
 #include "Core/ObjectPython.h"
 #include "Core/Program/Program.h"
 #include "Core/Program/ProgramManager.h"
 #include "Core/Program/ShaderVar.h"
+#include "GFXAPI.h"
+#include "GFXHelpers.h"
+#include "GraphicsStateObject.h"
+#include "NativeHandleTraits.h"
+#include "PythonHelpers.h"
+#include "Raytracing.h"
+#include "RtStateObject.h"
 #include "Utils/Logger.h"
-#include "Utils/StringUtils.h"
 #include "Utils/Scripting/ScriptBindings.h"
+#include "Utils/StringUtils.h"
 #include "Utils/Timing/Profiler.h"
 
 #if FALCOR_HAS_CUDA
@@ -55,14 +56,13 @@
 #endif
 
 #if FALCOR_NVAPI_AVAILABLE
+#include <nvShaderExtnEnums.h>  // Required for checking SER support.
+
 #include "Core/API/NvApiExDesc.h"
-#include <nvShaderExtnEnums.h> // Required for checking SER support.
 #endif
 
-
 #include <algorithm>
-namespace Falcor
-{
+namespace Falcor {
 static_assert(sizeof(AdapterLUID) == sizeof(nvrhi::AdapterLUID));
 
 static_assert((uint32_t)RayFlags::None == 0);
@@ -82,50 +82,53 @@ static_assert(getMaxViewportCount() <= 8);
 static const uint32_t kTransientHeapConstantBufferSize = 16 * 1024 * 1024;
 
 static const size_t kConstantBufferDataPlacementAlignment = 256;
-// This actually depends on the size of the index, but we can handle losing 2 bytes
+// This actually depends on the size of the index, but we can handle losing 2
+// bytes
 static const size_t kIndexBufferDataPlacementAlignment = 4;
 
 /// The default Shader Model to use when compiling programs.
 /// If not supported, the highest supported shader model will be used instead.
 static const ShaderModel kDefaultShaderModel = ShaderModel::SM6_6;
 
-class GFXDebugCallBack : public nvrhi::IDebugCallback
-{
-    virtual SLANG_NO_THROW void SLANG_MCALL
-    handleMessage(nvrhi::DebugMessageType type, nvrhi::DebugMessageSource source, const char* message) override
+class GFXDebugCallBack : public nvrhi::IDebugCallback {
+    virtual SLANG_NO_THROW void SLANG_MCALL handleMessage(
+        nvrhi::DebugMessageType type,
+        nvrhi::DebugMessageSource source,
+        const char* message) override
     {
-        if (type == nvrhi::DebugMessageType::Error)
-        {
+        if (type == nvrhi::DebugMessageType::Error) {
             logError("GFX Error: {}", message);
         }
-        else if (type == nvrhi::DebugMessageType::Warning)
-        {
+        else if (type == nvrhi::DebugMessageType::Warning) {
             logWarning("GFX Warning: {}", message);
         }
-        else
-        {
+        else {
             logDebug("GFX Info: {}", message);
         }
     }
 };
 
-GFXDebugCallBack gGFXDebugCallBack; // TODO: REMOVEGLOBAL
+GFXDebugCallBack gGFXDebugCallBack;  // TODO: REMOVEGLOBAL
 
 #if FALCOR_NVAPI_AVAILABLE
-// To use NVAPI, we intercept the API calls in the nvrhi layer and dispatch into the NVAPI_Create*PipelineState
-// functions instead if the shader uses NVAPI functionalities.
-// We use the nvrhi API dispatcher mechanism to intercept and redirect the API call.
-// This is done by defining an implementation of `IPipelineCreationAPIDispatcher` and passing an instance of this
+// To use NVAPI, we intercept the API calls in the nvrhi layer and dispatch into
+// the NVAPI_Create*PipelineState functions instead if the shader uses NVAPI
+// functionalities. We use the nvrhi API dispatcher mechanism to intercept and
+// redirect the API call. This is done by defining an implementation of
+// `IPipelineCreationAPIDispatcher` and passing an instance of this
 // implementation to `gfxCreateDevice`.
-class PipelineCreationAPIDispatcher : public nvrhi::IPipelineCreationAPIDispatcher
-{
-private:
-    bool findNvApiShaderParameter(slang::IComponentType* program, uint32_t& space, uint32_t& registerId)
+class PipelineCreationAPIDispatcher
+    : public nvrhi::IPipelineCreationAPIDispatcher {
+   private:
+    bool findNvApiShaderParameter(
+        slang::IComponentType* program,
+        uint32_t& space,
+        uint32_t& registerId)
     {
-        auto globalTypeLayout = program->getLayout()->getGlobalParamsVarLayout()->getTypeLayout();
+        auto globalTypeLayout =
+            program->getLayout()->getGlobalParamsVarLayout()->getTypeLayout();
         auto index = globalTypeLayout->findFieldIndexByName("g_NvidiaExt");
-        if (index != -1)
-        {
+        if (index != -1) {
             auto field = globalTypeLayout->getFieldByIndex((unsigned int)index);
             space = field->getBindingSpace();
             registerId = field->getBindingIndex();
@@ -134,7 +137,10 @@ private:
         return false;
     }
 
-    void createNvApiUavSlotExDesc(NvApiPsoExDesc& ret, uint32_t space, uint32_t uavSlot)
+    void createNvApiUavSlotExDesc(
+        NvApiPsoExDesc& ret,
+        uint32_t space,
+        uint32_t uavSlot)
     {
         ret.psoExtension = NV_PSO_SET_SHADER_EXTNENSION_SLOT_AND_SPACE;
 
@@ -148,110 +154,122 @@ private:
         desc.registerSpace = space;
     }
 
-public:
+   public:
     PipelineCreationAPIDispatcher()
     {
-        if (NvAPI_Initialize() != NVAPI_OK)
-        {
+        if (NvAPI_Initialize() != NVAPI_OK) {
             FALCOR_THROW("Failed to initialize NVAPI.");
         }
     }
 
-    ~PipelineCreationAPIDispatcher() { NvAPI_Unload(); }
-
-    virtual SLANG_NO_THROW SlangResult SLANG_MCALL queryInterface(SlangUUID const& uuid, void** outObject) override
+    ~PipelineCreationAPIDispatcher()
     {
-        if (uuid == SlangUUID SLANG_UUID_IPipelineCreationAPIDispatcher)
-        {
-            *outObject = static_cast<nvrhi::IPipelineCreationAPIDispatcher*>(this);
+        NvAPI_Unload();
+    }
+
+    virtual SLANG_NO_THROW SlangResult SLANG_MCALL
+    queryInterface(SlangUUID const& uuid, void** outObject) override
+    {
+        if (uuid == SlangUUID SLANG_UUID_IPipelineCreationAPIDispatcher) {
+            *outObject =
+                static_cast<nvrhi::IPipelineCreationAPIDispatcher*>(this);
             return SLANG_OK;
         }
         return SLANG_E_NO_INTERFACE;
     }
 
-    // The lifetime of this dispatcher object will be managed by `Falcor::Device` so we don't need
-    // to actually implement reference counting here.
-    virtual SLANG_NO_THROW uint32_t SLANG_MCALL addRef() override { return 2; }
-
-    virtual SLANG_NO_THROW uint32_t SLANG_MCALL release() override
+    // The lifetime of this dispatcher object will be managed by
+    // `Falcor::Device` so we don't need to actually implement reference
+    // counting here.
+    virtual SLANG_NO_THROW uint32_t SLANG_MCALL addRef() override
     {
-        // Returning 2 is important here, because when releasing a COM pointer, it checks
-        // if the ref count **was 1 before releasing** in order to free the object.
         return 2;
     }
 
-    // This method will be called by the nvrhi layer to create an API object for a compute pipeline state.
+    virtual SLANG_NO_THROW uint32_t SLANG_MCALL release() override
+    {
+        // Returning 2 is important here, because when releasing a COM pointer,
+        // it checks if the ref count **was 1 before releasing** in order to
+        // free the object.
+        return 2;
+    }
+
+    // This method will be called by the nvrhi layer to create an API object for
+    // a compute pipeline state.
     virtual nvrhi::Result createComputePipelineState(
         nvrhi::IDevice* device,
         slang::IComponentType* program,
         void* pipelineDesc,
-        void** outPipelineState
-    )
+        void** outPipelineState)
     {
         nvrhi::IDevice::InteropHandles nativeHandle;
         FALCOR_GFX_CALL(device->getNativeDeviceHandles(&nativeHandle));
-        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(nativeHandle.handles[0].handleValue);
+        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(
+            nativeHandle.handles[0].handleValue);
 
         uint32_t space, registerId;
-        if (findNvApiShaderParameter(program, space, registerId))
-        {
+        if (findNvApiShaderParameter(program, space, registerId)) {
             NvApiPsoExDesc psoDesc = {};
             createNvApiUavSlotExDesc(psoDesc, space, registerId);
-            const NVAPI_D3D12_PSO_EXTENSION_DESC* ppPSOExtensionsDesc[1] = {&psoDesc.mExtSlotDesc};
+            const NVAPI_D3D12_PSO_EXTENSION_DESC* ppPSOExtensionsDesc[1] = {
+                &psoDesc.mExtSlotDesc
+            };
             auto result = NvAPI_D3D12_CreateComputePipelineState(
                 pD3D12Device,
-                reinterpret_cast<D3D12_COMPUTE_PIPELINE_STATE_DESC*>(pipelineDesc),
+                reinterpret_cast<D3D12_COMPUTE_PIPELINE_STATE_DESC*>(
+                    pipelineDesc),
                 1,
                 ppPSOExtensionsDesc,
-                (ID3D12PipelineState**)outPipelineState
-            );
+                (ID3D12PipelineState**)outPipelineState);
             return (result == NVAPI_OK) ? SLANG_OK : SLANG_FAIL;
         }
-        else
-        {
+        else {
             ID3D12PipelineState* pState = nullptr;
             SLANG_RETURN_ON_FAIL(pD3D12Device->CreateComputePipelineState(
-                reinterpret_cast<D3D12_COMPUTE_PIPELINE_STATE_DESC*>(pipelineDesc), IID_PPV_ARGS(&pState)
-            ));
+                reinterpret_cast<D3D12_COMPUTE_PIPELINE_STATE_DESC*>(
+                    pipelineDesc),
+                IID_PPV_ARGS(&pState)));
             *outPipelineState = pState;
         }
         return SLANG_OK;
     }
 
-    // This method will be called by the nvrhi layer to create an API object for a graphics pipeline state.
+    // This method will be called by the nvrhi layer to create an API object for
+    // a graphics pipeline state.
     virtual nvrhi::Result createGraphicsPipelineState(
         nvrhi::IDevice* device,
         slang::IComponentType* program,
         void* pipelineDesc,
-        void** outPipelineState
-    )
+        void** outPipelineState)
     {
         nvrhi::IDevice::InteropHandles nativeHandle;
         FALCOR_GFX_CALL(device->getNativeDeviceHandles(&nativeHandle));
-        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(nativeHandle.handles[0].handleValue);
+        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(
+            nativeHandle.handles[0].handleValue);
 
         uint32_t space, registerId;
-        if (findNvApiShaderParameter(program, space, registerId))
-        {
+        if (findNvApiShaderParameter(program, space, registerId)) {
             NvApiPsoExDesc psoDesc = {};
             createNvApiUavSlotExDesc(psoDesc, space, registerId);
-            const NVAPI_D3D12_PSO_EXTENSION_DESC* ppPSOExtensionsDesc[1] = {&psoDesc.mExtSlotDesc};
+            const NVAPI_D3D12_PSO_EXTENSION_DESC* ppPSOExtensionsDesc[1] = {
+                &psoDesc.mExtSlotDesc
+            };
 
             auto result = NvAPI_D3D12_CreateGraphicsPipelineState(
                 pD3D12Device,
-                reinterpret_cast<D3D12_GRAPHICS_PIPELINE_STATE_DESC*>(pipelineDesc),
+                reinterpret_cast<D3D12_GRAPHICS_PIPELINE_STATE_DESC*>(
+                    pipelineDesc),
                 1,
                 ppPSOExtensionsDesc,
-                (ID3D12PipelineState**)outPipelineState
-            );
+                (ID3D12PipelineState**)outPipelineState);
             return (result == NVAPI_OK) ? SLANG_OK : SLANG_FAIL;
         }
-        else
-        {
+        else {
             ID3D12PipelineState* pState = nullptr;
             SLANG_RETURN_ON_FAIL(pD3D12Device->CreateGraphicsPipelineState(
-                reinterpret_cast<D3D12_GRAPHICS_PIPELINE_STATE_DESC*>(pipelineDesc), IID_PPV_ARGS(&pState)
-            ));
+                reinterpret_cast<D3D12_GRAPHICS_PIPELINE_STATE_DESC*>(
+                    pipelineDesc),
+                IID_PPV_ARGS(&pState)));
             *outPipelineState = pState;
         }
         return SLANG_OK;
@@ -261,24 +279,26 @@ public:
         nvrhi::IDevice* device,
         slang::IComponentType* program,
         void* pipelineDesc,
-        void** outPipelineState
-    )
+        void** outPipelineState)
     {
         FALCOR_THROW("Mesh pipelines are not supported.");
     }
 
-    // This method will be called by the nvrhi layer right before creating a ray tracing state object.
-    virtual nvrhi::Result beforeCreateRayTracingState(nvrhi::IDevice* device, slang::IComponentType* program)
+    // This method will be called by the nvrhi layer right before creating a ray
+    // tracing state object.
+    virtual nvrhi::Result beforeCreateRayTracingState(
+        nvrhi::IDevice* device,
+        slang::IComponentType* program)
     {
         nvrhi::IDevice::InteropHandles nativeHandle;
         FALCOR_GFX_CALL(device->getNativeDeviceHandles(&nativeHandle));
-        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(nativeHandle.handles[0].handleValue);
+        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(
+            nativeHandle.handles[0].handleValue);
 
         uint32_t space, registerId;
-        if (findNvApiShaderParameter(program, space, registerId))
-        {
-            if (NvAPI_D3D12_SetNvShaderExtnSlotSpace(pD3D12Device, registerId, space) != NVAPI_OK)
-            {
+        if (findNvApiShaderParameter(program, space, registerId)) {
+            if (NvAPI_D3D12_SetNvShaderExtnSlotSpace(
+                    pD3D12Device, registerId, space) != NVAPI_OK) {
                 FALCOR_THROW("Failed to set NvApi extension");
             }
         }
@@ -286,25 +306,28 @@ public:
         return SLANG_OK;
     }
 
-    // This method will be called by the nvrhi layer right after creating a ray tracing state object.
-    virtual nvrhi::Result afterCreateRayTracingState(nvrhi::IDevice* device, slang::IComponentType* program)
+    // This method will be called by the nvrhi layer right after creating a ray
+    // tracing state object.
+    virtual nvrhi::Result afterCreateRayTracingState(
+        nvrhi::IDevice* device,
+        slang::IComponentType* program)
     {
         nvrhi::IDevice::InteropHandles nativeHandle;
         FALCOR_GFX_CALL(device->getNativeDeviceHandles(&nativeHandle));
-        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(nativeHandle.handles[0].handleValue);
+        ID3D12Device* pD3D12Device = reinterpret_cast<ID3D12Device*>(
+            nativeHandle.handles[0].handleValue);
 
         uint32_t space, registerId;
-        if (findNvApiShaderParameter(program, space, registerId))
-        {
-            if (NvAPI_D3D12_SetNvShaderExtnSlotSpace(pD3D12Device, 0xFFFFFFFF, 0) != NVAPI_OK)
-            {
+        if (findNvApiShaderParameter(program, space, registerId)) {
+            if (NvAPI_D3D12_SetNvShaderExtnSlotSpace(
+                    pD3D12Device, 0xFFFFFFFF, 0) != NVAPI_OK) {
                 FALCOR_THROW("Failed to set NvApi extension");
             }
         }
         return SLANG_OK;
     }
 };
-#endif // FALCOR_NVAPI_AVAILABLE
+#endif  // FALCOR_NVAPI_AVAILABLE
 
 inline Device::Type getDefaultDeviceType()
 {
@@ -319,16 +342,11 @@ inline Device::Type getDefaultDeviceType()
 
 inline nvrhi::DeviceType getGfxDeviceType(Device::Type deviceType)
 {
-    switch (deviceType)
-    {
-    case Device::Type::Default:
-        return nvrhi::DeviceType::Default;
-    case Device::Type::D3D12:
-        return nvrhi::DeviceType::DirectX12;
-    case Device::Type::Vulkan:
-        return nvrhi::DeviceType::Vulkan;
-    default:
-        FALCOR_THROW("Unknown device type");
+    switch (deviceType) {
+        case Device::Type::Default: return nvrhi::DeviceType::Default;
+        case Device::Type::D3D12: return nvrhi::DeviceType::DirectX12;
+        case Device::Type::Vulkan: return nvrhi::DeviceType::Vulkan;
+        default: FALCOR_THROW("Unknown device type");
     }
 }
 
@@ -336,10 +354,13 @@ inline Device::Limits queryLimits(nvrhi::IDevice* pDevice)
 {
     const auto& deviceLimits = pDevice->getDeviceInfo().limits;
 
-    auto toUint3 = [](const uint32_t value[]) { return uint3(value[0], value[1], value[2]); };
+    auto toUint3 = [](const uint32_t value[]) {
+        return uint3(value[0], value[1], value[2]);
+    };
 
     Device::Limits limits = {};
-    limits.maxComputeDispatchThreadGroups = toUint3(deviceLimits.maxComputeDispatchThreadGroups);
+    limits.maxComputeDispatchThreadGroups =
+        toUint3(deviceLimits.maxComputeDispatchThreadGroups);
     limits.maxShaderVisibleSamplers = deviceLimits.maxShaderVisibleSamplers;
     return limits;
 }
@@ -347,75 +368,58 @@ inline Device::Limits queryLimits(nvrhi::IDevice* pDevice)
 inline Device::SupportedFeatures querySupportedFeatures(nvrhi::IDevice* pDevice)
 {
     Device::SupportedFeatures result = Device::SupportedFeatures::None;
-    if (pDevice->hasFeature("ray-tracing"))
-    {
+    if (pDevice->hasFeature("ray-tracing")) {
         result |= Device::SupportedFeatures::Raytracing;
     }
-    if (pDevice->hasFeature("ray-query"))
-    {
+    if (pDevice->hasFeature("ray-query")) {
         result |= Device::SupportedFeatures::RaytracingTier1_1;
     }
-    if (pDevice->hasFeature("conservative-rasterization-3"))
-    {
+    if (pDevice->hasFeature("conservative-rasterization-3")) {
         result |= Device::SupportedFeatures::ConservativeRasterizationTier3;
     }
-    if (pDevice->hasFeature("conservative-rasterization-2"))
-    {
+    if (pDevice->hasFeature("conservative-rasterization-2")) {
         result |= Device::SupportedFeatures::ConservativeRasterizationTier2;
     }
-    if (pDevice->hasFeature("conservative-rasterization-1"))
-    {
+    if (pDevice->hasFeature("conservative-rasterization-1")) {
         result |= Device::SupportedFeatures::ConservativeRasterizationTier1;
     }
-    if (pDevice->hasFeature("rasterizer-ordered-views"))
-    {
+    if (pDevice->hasFeature("rasterizer-ordered-views")) {
         result |= Device::SupportedFeatures::RasterizerOrderedViews;
     }
 
-    if (pDevice->hasFeature("programmable-sample-positions-2"))
-    {
+    if (pDevice->hasFeature("programmable-sample-positions-2")) {
         result |= Device::SupportedFeatures::ProgrammableSamplePositionsFull;
     }
-    else if (pDevice->hasFeature("programmable-sample-positions-1"))
-    {
-        result |= Device::SupportedFeatures::ProgrammableSamplePositionsPartialOnly;
+    else if (pDevice->hasFeature("programmable-sample-positions-1")) {
+        result |=
+            Device::SupportedFeatures::ProgrammableSamplePositionsPartialOnly;
     }
 
-    if (pDevice->hasFeature("barycentrics"))
-    {
+    if (pDevice->hasFeature("barycentrics")) {
         result |= Device::SupportedFeatures::Barycentrics;
     }
 
-    if (pDevice->hasFeature("wave-ops"))
-    {
+    if (pDevice->hasFeature("wave-ops")) {
         result |= Device::SupportedFeatures::WaveOperations;
     }
-
 
     return result;
 }
 
 inline ShaderModel querySupportedShaderModel(nvrhi::IDevice* pDevice)
 {
-    struct SMLevel
-    {
+    struct SMLevel {
         const char* name;
         ShaderModel level;
     };
     const SMLevel levels[] = {
-        {"sm_6_7", ShaderModel::SM6_7},
-        {"sm_6_6", ShaderModel::SM6_6},
-        {"sm_6_5", ShaderModel::SM6_5},
-        {"sm_6_4", ShaderModel::SM6_4},
-        {"sm_6_3", ShaderModel::SM6_3},
-        {"sm_6_2", ShaderModel::SM6_2},
-        {"sm_6_1", ShaderModel::SM6_1},
-        {"sm_6_0", ShaderModel::SM6_0},
+        { "sm_6_7", ShaderModel::SM6_7 }, { "sm_6_6", ShaderModel::SM6_6 },
+        { "sm_6_5", ShaderModel::SM6_5 }, { "sm_6_4", ShaderModel::SM6_4 },
+        { "sm_6_3", ShaderModel::SM6_3 }, { "sm_6_2", ShaderModel::SM6_2 },
+        { "sm_6_1", ShaderModel::SM6_1 }, { "sm_6_0", ShaderModel::SM6_0 },
     };
-    for (auto level : levels)
-    {
-        if (pDevice->hasFeature(level.name))
-        {
+    for (auto level : levels) {
+        if (pDevice->hasFeature(level.name)) {
             return level.level;
         }
     }
@@ -424,18 +428,20 @@ inline ShaderModel querySupportedShaderModel(nvrhi::IDevice* pDevice)
 
 Device::Device(const Desc& desc) : mDesc(desc)
 {
-    if (mDesc.enableAftermath)
-    {
+    if (mDesc.enableAftermath) {
 #if FALCOR_HAS_AFTERMATH
         // Aftermath is incompatible with debug layers, so lets disable them.
         mDesc.enableDebugLayer = false;
         enableAftermath();
 #else
-        logWarning("Falcor was compiled without Aftermath support. Aftermath is disabled");
+        logWarning(
+            "Falcor was compiled without Aftermath support. Aftermath is "
+            "disabled");
 #endif
     }
 
-    // Create a global slang session passed to GFX and used for compiling programs in ProgramManager.
+    // Create a global slang session passed to GFX and used for compiling
+    // programs in ProgramManager.
     slang::createGlobalSession(mSlangGlobalSession.writeRef());
 
     if (mDesc.type == Type::Default)
@@ -456,21 +462,20 @@ Device::Device(const Desc& desc) : mDesc(desc)
 
     // Setup shader cache.
     gfxDesc.shaderCache.maxEntryCount = mDesc.maxShaderCacheEntryCount;
-    if (mDesc.shaderCachePath == "")
-    {
+    if (mDesc.shaderCachePath == "") {
         gfxDesc.shaderCache.shaderCachePath = nullptr;
     }
-    else
-    {
+    else {
         gfxDesc.shaderCache.shaderCachePath = mDesc.shaderCachePath.c_str();
-        // If the supplied shader cache path does not exist, we will need to create it before creating the device.
-        if (std::filesystem::exists(mDesc.shaderCachePath))
-        {
+        // If the supplied shader cache path does not exist, we will need to
+        // create it before creating the device.
+        if (std::filesystem::exists(mDesc.shaderCachePath)) {
             if (!std::filesystem::is_directory(mDesc.shaderCachePath))
-                FALCOR_THROW("Shader cache path {} exists and is not a directory", mDesc.shaderCachePath);
+                FALCOR_THROW(
+                    "Shader cache path {} exists and is not a directory",
+                    mDesc.shaderCachePath);
         }
-        else
-        {
+        else {
             std::filesystem::create_directories(mDesc.shaderCachePath);
         }
     }
@@ -483,7 +488,8 @@ Device::Device(const Desc& desc) : mDesc(desc)
 #if FALCOR_HAS_D3D12
     // Add extended descs for experimental API features.
     nvrhi::D3D12ExperimentalFeaturesDesc experimentalFeaturesDesc = {};
-    experimentalFeaturesDesc.numFeatures = (uint32_t)mDesc.experimentalFeatures.size();
+    experimentalFeaturesDesc.numFeatures =
+        (uint32_t)mDesc.experimentalFeatures.size();
     experimentalFeaturesDesc.featureIIDs = mDesc.experimentalFeatures.data();
     if (gfxDesc.deviceType == nvrhi::DeviceType::DirectX12)
         extendedDescs.push_back(&experimentalFeaturesDesc);
@@ -493,7 +499,8 @@ Device::Device(const Desc& desc) : mDesc(desc)
 
 #if FALCOR_NVAPI_AVAILABLE
     mpAPIDispatcher.reset(new PipelineCreationAPIDispatcher());
-    gfxDesc.apiCommandDispatcher = static_cast<ISlangUnknown*>(mpAPIDispatcher.get());
+    gfxDesc.apiCommandDispatcher =
+        static_cast<ISlangUnknown*>(mpAPIDispatcher.get());
 #endif
 
     // Setup debug layer.
@@ -504,27 +511,32 @@ Device::Device(const Desc& desc) : mDesc(desc)
     // Get list of available GPUs.
     const auto gpus = getGPUs(mDesc.type);
 
-    if (gpus.size() == 0)
-    {
-        FALCOR_THROW("Did not find any GPUs for device type '{}'.", enumToString<decltype(mDesc.type)>(mDesc.type));
+    if (gpus.size() == 0) {
+        FALCOR_THROW(
+            "Did not find any GPUs for device type '{}'.",
+            enumToString<decltype(mDesc.type)>(mDesc.type));
     }
 
-    if (mDesc.gpu >= gpus.size())
-    {
-        logWarning("GPU index {} is out of range, using first GPU instead.", mDesc.gpu);
+    if (mDesc.gpu >= gpus.size()) {
+        logWarning(
+            "GPU index {} is out of range, using first GPU instead.",
+            mDesc.gpu);
         mDesc.gpu = 0;
     }
 
     // Try to create device on specific GPU.
     {
-        gfxDesc.adapterLUID = reinterpret_cast<const nvrhi::AdapterLUID*>(&gpus[mDesc.gpu].luid);
+        gfxDesc.adapterLUID =
+            reinterpret_cast<const nvrhi::AdapterLUID*>(&gpus[mDesc.gpu].luid);
         if (SLANG_FAILED(gfxCreateDevice(&gfxDesc, mGfxDevice.writeRef())))
-            logWarning("Failed to create device on GPU {} ({}).", mDesc.gpu, gpus[mDesc.gpu].name);
+            logWarning(
+                "Failed to create device on GPU {} ({}).",
+                mDesc.gpu,
+                gpus[mDesc.gpu].name);
     }
 
     // Otherwise try create device on any available GPU.
-    if (!mGfxDevice)
-    {
+    if (!mGfxDevice) {
         gfxDesc.adapterLUID = nullptr;
         if (SLANG_FAILED(gfxCreateDevice(&gfxDesc, mGfxDevice.writeRef())))
             FALCOR_THROW("Failed to create device");
@@ -532,7 +544,8 @@ Device::Device(const Desc& desc) : mDesc(desc)
 
     const auto& deviceInfo = mGfxDevice->getDeviceInfo();
     mInfo.adapterName = deviceInfo.adapterName;
-    mInfo.adapterLUID = gfxDesc.adapterLUID ? gpus[mDesc.gpu].luid : AdapterLUID();
+    mInfo.adapterLUID =
+        gfxDesc.adapterLUID ? gpus[mDesc.gpu].luid : AdapterLUID();
     mInfo.apiName = deviceInfo.apiName;
     mLimits = queryLimits(mGfxDevice);
     mSupportedFeatures = querySupportedFeatures(mGfxDevice);
@@ -542,8 +555,7 @@ Device::Device(const Desc& desc) : mDesc(desc)
         enableRaytracingValidation();
 
 #if FALCOR_HAS_AFTERMATH
-    if (mDesc.enableAftermath)
-    {
+    if (mDesc.enableAftermath) {
         mpAftermathContext = std::make_unique<AftermathContext>(this);
         mpAftermathContext->initialize();
     }
@@ -551,40 +563,45 @@ Device::Device(const Desc& desc) : mDesc(desc)
 
 #if FALCOR_NVAPI_AVAILABLE
     // Explicitly check for SER support via NVAPI.
-    // Slang currently relies on NVAPI to implement the SER API but cannot check it's availibility
-    // due to not being shipped with NVAPI for licensing reasons.
-    if (getType() == Type::D3D12)
-    {
+    // Slang currently relies on NVAPI to implement the SER API but cannot check
+    // it's availibility due to not being shipped with NVAPI for licensing
+    // reasons.
+    if (getType() == Type::D3D12) {
         ID3D12Device* pD3D12Device = getNativeHandle().as<ID3D12Device*>();
         // First check for avalibility of SER API (HitObject).
         bool supportSER = false;
-        NvAPI_Status ret = NvAPI_D3D12_IsNvShaderExtnOpCodeSupported(pD3D12Device, NV_EXTN_OP_HIT_OBJECT_REORDER_THREAD, &supportSER);
+        NvAPI_Status ret = NvAPI_D3D12_IsNvShaderExtnOpCodeSupported(
+            pD3D12Device, NV_EXTN_OP_HIT_OBJECT_REORDER_THREAD, &supportSER);
         if (ret == NVAPI_OK && supportSER)
-            mSupportedFeatures |= SupportedFeatures::ShaderExecutionReorderingAPI;
+            mSupportedFeatures |=
+                SupportedFeatures::ShaderExecutionReorderingAPI;
 
         // Then check for hardware support.
         NVAPI_D3D12_RAYTRACING_THREAD_REORDERING_CAPS reorderingCaps;
         ret = NvAPI_D3D12_GetRaytracingCaps(
-            pD3D12Device, NVAPI_D3D12_RAYTRACING_CAPS_TYPE_THREAD_REORDERING, &reorderingCaps, sizeof(reorderingCaps)
-        );
-        if (ret == NVAPI_OK && reorderingCaps == NVAPI_D3D12_RAYTRACING_THREAD_REORDERING_CAP_STANDARD)
+            pD3D12Device,
+            NVAPI_D3D12_RAYTRACING_CAPS_TYPE_THREAD_REORDERING,
+            &reorderingCaps,
+            sizeof(reorderingCaps));
+        if (ret == NVAPI_OK &&
+            reorderingCaps ==
+                NVAPI_D3D12_RAYTRACING_THREAD_REORDERING_CAP_STANDARD)
             mSupportedFeatures |= SupportedFeatures::RaytracingReordering;
     }
 #endif
-    if (getType() == Type::Vulkan)
-    {
+    if (getType() == Type::Vulkan) {
         // Vulkan always supports SER.
         mSupportedFeatures |= SupportedFeatures::ShaderExecutionReorderingAPI;
     }
 
     mSupportedShaderModel = querySupportedShaderModel(mGfxDevice);
     mDefaultShaderModel = std::min(kDefaultShaderModel, mSupportedShaderModel);
-    mGpuTimestampFrequency = 1000.0 / (double)mGfxDevice->getDeviceInfo().timestampFrequency;
+    mGpuTimestampFrequency =
+        1000.0 / (double)mGfxDevice->getDeviceInfo().timestampFrequency;
 
 #if FALCOR_HAS_D3D12
     // Configure D3D12 validation layer.
-    if (mDesc.type == Device::Type::D3D12 && mDesc.enableDebugLayer)
-    {
+    if (mDesc.type == Device::Type::D3D12 && mDesc.enableDebugLayer) {
         ID3D12Device* pD3D12Device = getNativeHandle().as<ID3D12Device*>();
 
         FALCOR_MAKE_SMART_COM_PTR(ID3D12InfoQueue);
@@ -600,36 +617,42 @@ Device::Device(const Desc& desc) : mDesc(desc)
         pInfoQueue->AddStorageFilterEntries(&f);
 
         // Break on DEVICE_REMOVAL_PROCESS_AT_FAULT
-        pInfoQueue->SetBreakOnID(D3D12_MESSAGE_ID_DEVICE_REMOVAL_PROCESS_AT_FAULT, true);
+        pInfoQueue->SetBreakOnID(
+            D3D12_MESSAGE_ID_DEVICE_REMOVAL_PROCESS_AT_FAULT, true);
     }
 #endif
 
-    for (uint32_t i = 0; i < kInFlightFrameCount; ++i)
-    {
+    for (uint32_t i = 0; i < kInFlightFrameCount; ++i) {
         nvrhi::ITransientResourceHeap::Desc transientHeapDesc = {};
-        transientHeapDesc.flags = nvrhi::ITransientResourceHeap::Flags::AllowResizing;
+        transientHeapDesc.flags =
+            nvrhi::ITransientResourceHeap::Flags::AllowResizing;
         transientHeapDesc.constantBufferSize = kTransientHeapConstantBufferSize;
         transientHeapDesc.samplerDescriptorCount = 2048;
         transientHeapDesc.uavDescriptorCount = 1000000;
         transientHeapDesc.srvDescriptorCount = 1000000;
         transientHeapDesc.constantBufferDescriptorCount = 1000000;
         transientHeapDesc.accelerationStructureDescriptorCount = 1000000;
-        if (SLANG_FAILED(mGfxDevice->createTransientResourceHeap(transientHeapDesc, mpTransientResourceHeaps[i].writeRef())))
+        if (SLANG_FAILED(mGfxDevice->createTransientResourceHeap(
+                transientHeapDesc, mpTransientResourceHeaps[i].writeRef())))
             FALCOR_THROW("Failed to create transient resource heap");
     }
 
-    nvrhi::ICommandQueue::Desc queueDesc = {};
-    queueDesc.type = nvrhi::ICommandQueue::QueueType::Graphics;
-    if (SLANG_FAILED(mGfxDevice->createCommandQueue(queueDesc, mGfxCommandQueue.writeRef())))
+    nvrhi::nvrhi::ICommandList::Desc queueDesc = {};
+    queueDesc.type = nvrhi::nvrhi::ICommandList::QueueType::Graphics;
+    if (SLANG_FAILED(mGfxDevice->createCommandQueue(
+            queueDesc, mGfxCommandQueue.writeRef())))
         FALCOR_THROW("Failed to create command queue");
 
-    // The Device class contains a bunch of nested resource objects that have strong references to the device.
-    // This is because we want a strong reference to the device when those objects are returned to the user.
-    // However, here it immediately creates cyclic references device->resource->device upon creation of the device.
-    // To break the cycles, we break the strong reference to the device for the resources that it owns.
+    // The Device class contains a bunch of nested resource objects that have
+    // strong references to the device. This is because we want a strong
+    // reference to the device when those objects are returned to the user.
+    // However, here it immediately creates cyclic references
+    // device->resource->device upon creation of the device. To break the
+    // cycles, we break the strong reference to the device for the resources
+    // that it owns.
 
-    // Here, we temporarily increase the refcount of the device, so it won't be destroyed upon breaking the
-    // nested strong references to it.
+    // Here, we temporarily increase the refcount of the device, so it won't be
+    // destroyed upon breaking the nested strong references to it.
     this->incRef();
 
 #if FALCOR_ENABLE_REF_TRACKING
@@ -640,18 +663,21 @@ Device::Device(const Desc& desc) : mDesc(desc)
     mpFrameFence->breakStrongReferenceToDevice();
 
 #if FALCOR_HAS_D3D12
-    if (getType() == Type::D3D12)
-    {
+    if (getType() == Type::D3D12) {
         // Create the descriptor pools
         D3D12DescriptorPool::Desc poolDesc;
-        poolDesc.setDescCount(ShaderResourceType::TextureSrv, 1000000)
-            .setDescCount(ShaderResourceType::Sampler, 2048)
+        poolDesc.setDescCount(ResourceType::TextureSrv, 1000000)
+            .setDescCount(ResourceType::Sampler, 2048)
             .setShaderVisible(true);
-        mpD3D12GpuDescPool = D3D12DescriptorPool::create(this, poolDesc, mpFrameFence);
-        poolDesc.setShaderVisible(false).setDescCount(ShaderResourceType::Rtv, 16 * 1024).setDescCount(ShaderResourceType::Dsv, 1024);
-        mpD3D12CpuDescPool = D3D12DescriptorPool::create(this, poolDesc, mpFrameFence);
+        mpD3D12GpuDescPool =
+            D3D12DescriptorPool::create(this, poolDesc, mpFrameFence);
+        poolDesc.setShaderVisible(false)
+            .setDescCount(ResourceType::Rtv, 16 * 1024)
+            .setDescCount(ResourceType::Dsv, 1024);
+        mpD3D12CpuDescPool =
+            D3D12DescriptorPool::create(this, poolDesc, mpFrameFence);
     }
-#endif // FALCOR_HAS_D3D12
+#endif  // FALCOR_HAS_D3D12
 
     mpProgramManager = std::make_unique<ProgramManager>(this);
 
@@ -661,19 +687,23 @@ Device::Device(const Desc& desc) : mDesc(desc)
     mpDefaultSampler = createSampler(Sampler::Desc());
     mpDefaultSampler->breakStrongReferenceToDevice();
 
-    mpUploadHeap = GpuMemoryHeap::create(ref<Device>(this), MemoryType::Upload, 1024 * 1024 * 2, mpFrameFence);
+    mpUploadHeap = GpuMemoryHeap::create(
+        ref<Device>(this), MemoryType::Upload, 1024 * 1024 * 2, mpFrameFence);
     mpUploadHeap->breakStrongReferenceToDevice();
 
-    mpReadBackHeap = GpuMemoryHeap::create(ref<Device>(this), MemoryType::ReadBack, 1024 * 1024 * 2, mpFrameFence);
+    mpReadBackHeap = GpuMemoryHeap::create(
+        ref<Device>(this), MemoryType::ReadBack, 1024 * 1024 * 2, mpFrameFence);
     mpReadBackHeap->breakStrongReferenceToDevice();
 
-    mpTimestampQueryHeap = QueryHeap::create(ref<Device>(this), QueryHeap::Type::Timestamp, 1024 * 1024);
+    mpTimestampQueryHeap = QueryHeap::create(
+        ref<Device>(this), QueryHeap::Type::Timestamp, 1024 * 1024);
     mpTimestampQueryHeap->breakStrongReferenceToDevice();
 
     mpRenderContext = std::make_unique<RenderContext>(this, mGfxCommandQueue);
 
-    // TODO: Do we need to flush here or should RenderContext::create() bind the descriptor heaps automatically without flush? See #749.
-    mpRenderContext->submit(); // This will bind the descriptor heaps.
+    // TODO: Do we need to flush here or should RenderContext::create() bind the
+    // descriptor heaps automatically without flush? See #749.
+    mpRenderContext->submit();  // This will bind the descriptor heaps.
 
     this->decRef(false);
 
@@ -682,8 +712,7 @@ Device::Device(const Desc& desc) : mDesc(desc)
         mInfo.adapterName,
         mInfo.apiName,
         getShaderModelMajorVersion(mSupportedShaderModel),
-        getShaderModelMinorVersion(mSupportedShaderModel)
-    );
+        getShaderModelMinorVersion(mSupportedShaderModel));
 }
 
 Device::~Device()
@@ -694,7 +723,8 @@ Device::~Device()
 
     disableRaytracingValidation();
 
-    // Release all the bound resources. Need to do that before deleting the RenderContext
+    // Release all the bound resources. Need to do that before deleting the
+    // RenderContext
     mGfxCommandQueue.setNull();
     mDeferredReleases = decltype(mDeferredReleases)();
     mpRenderContext.reset();
@@ -710,12 +740,11 @@ Device::~Device()
 #if FALCOR_HAS_D3D12
     mpD3D12CpuDescPool.reset();
     mpD3D12GpuDescPool.reset();
-#endif // FALCOR_HAS_D3D12
+#endif  // FALCOR_HAS_D3D12
 
     mpProgramManager.reset();
 
     mDeferredReleases = decltype(mDeferredReleases)();
-
 
     mGfxDevice.setNull();
 
@@ -724,161 +753,240 @@ Device::~Device()
 #endif
 }
 
-ref<Buffer> Device::createBuffer(size_t size, ResourceBindFlags bindFlags, MemoryType memoryType, const void* pInitData)
+nvrhi::BufferHandle Device::createBuffer(
+    size_t size,
+    ResourceBindFlags bindFlags,
+    MemoryType memoryType,
+    const void* pInitData)
 {
-    return make_ref<Buffer>(ref<Device>(this), size, bindFlags, memoryType, pInitData);
+    return make_nvrhi::BufferHandle(
+        ref<Device>(this), size, bindFlags, memoryType, pInitData);
 }
 
-ref<Buffer> Device::createTypedBuffer(
-    ResourceFormat format,
+nvrhi::BufferHandle Device::createTypedBuffer(
+    nvrhi::Format format,
     uint32_t elementCount,
     ResourceBindFlags bindFlags,
     MemoryType memoryType,
-    const void* pInitData
-)
+    const void* pInitData)
 {
-    return make_ref<Buffer>(ref<Device>(this), format, elementCount, bindFlags, memoryType, pInitData);
+    return make_nvrhi::BufferHandle(
+        ref<Device>(this),
+        format,
+        elementCount,
+        bindFlags,
+        memoryType,
+        pInitData);
 }
 
-ref<Buffer> Device::createStructuredBuffer(
+nvrhi::BufferHandle Device::createStructuredBuffer(
     uint32_t structSize,
     uint32_t elementCount,
     ResourceBindFlags bindFlags,
     MemoryType memoryType,
     const void* pInitData,
-    bool createCounter
-)
+    bool createCounter)
 {
-    return make_ref<Buffer>(ref<Device>(this), structSize, elementCount, bindFlags, memoryType, pInitData, createCounter);
+    return make_nvrhi::BufferHandle(
+        ref<Device>(this),
+        structSize,
+        elementCount,
+        bindFlags,
+        memoryType,
+        pInitData,
+        createCounter);
 }
 
-ref<Buffer> Device::createStructuredBuffer(
+nvrhi::BufferHandle Device::createStructuredBuffer(
     const ReflectionType* pType,
     uint32_t elementCount,
     ResourceBindFlags bindFlags,
     MemoryType memoryType,
     const void* pInitData,
-    bool createCounter
-)
+    bool createCounter)
 {
-    FALCOR_CHECK(pType != nullptr, "Can't create a structured buffer from a nullptr type.");
-    const ReflectionResourceType* pResourceType = pType->unwrapArray()->asResourceType();
-    if (!pResourceType || pResourceType->getType() != ReflectionResourceType::Type::StructuredBuffer)
-    {
-        FALCOR_THROW("Can't create a structured buffer from type '{}'.", pType->getClassName());
+    FALCOR_CHECK(
+        pType != nullptr,
+        "Can't create a structured buffer from a nullptr type.");
+    const ReflectionResourceType* pResourceType =
+        pType->unwrapArray()->asResourceType();
+    if (!pResourceType || pResourceType->getType() !=
+                              ReflectionResourceType::Type::StructuredBuffer) {
+        FALCOR_THROW(
+            "Can't create a structured buffer from type '{}'.",
+            pType->getClassName());
     }
 
-    // Read the stride directly from the slang type layout, as the stored 'byte size' may not be the same
-    auto structStride = pResourceType->getStructType()->getSlangTypeLayout()->getStride();
+    // Read the stride directly from the slang type layout, as the stored 'byte
+    // size' may not be the same
+    auto structStride =
+        pResourceType->getStructType()->getSlangTypeLayout()->getStride();
 
     FALCOR_ASSERT(structStride <= std::numeric_limits<uint32_t>::max());
-    return make_ref<Buffer>(ref<Device>(this), (uint32_t)structStride, elementCount, bindFlags, memoryType, pInitData, createCounter);
+    return make_nvrhi::BufferHandle(
+        ref<Device>(this),
+        (uint32_t)structStride,
+        elementCount,
+        bindFlags,
+        memoryType,
+        pInitData,
+        createCounter);
 }
 
-ref<Buffer> Device::createStructuredBuffer(
+nvrhi::BufferHandle Device::createStructuredBuffer(
     const ShaderVar& shaderVar,
     uint32_t elementCount,
     ResourceBindFlags bindFlags,
     MemoryType memoryType,
     const void* pInitData,
-    bool createCounter
-)
+    bool createCounter)
 {
-    return createStructuredBuffer(shaderVar.getType(), elementCount, bindFlags, memoryType, pInitData, createCounter);
+    return createStructuredBuffer(
+        shaderVar.getType(),
+        elementCount,
+        bindFlags,
+        memoryType,
+        pInitData,
+        createCounter);
 }
 
-ref<Buffer> Device::createBufferFromResource(
+nvrhi::BufferHandle Device::createBufferFromResource(
     nvrhi::IBufferResource* pResource,
     size_t size,
     ResourceBindFlags bindFlags,
-    MemoryType memoryType
-)
+    MemoryType memoryType)
 {
-    return make_ref<Buffer>(ref<Device>(this), pResource, size, bindFlags, memoryType);
+    return make_nvrhi::BufferHandle(
+        ref<Device>(this), pResource, size, bindFlags, memoryType);
 }
 
-ref<Buffer> Device::createBufferFromNativeHandle(NativeHandle handle, size_t size, ResourceBindFlags bindFlags, MemoryType memoryType)
+nvrhi::BufferHandle Device::createBufferFromNativeHandle(
+    NativeHandle handle,
+    size_t size,
+    ResourceBindFlags bindFlags,
+    MemoryType memoryType)
 {
-    return make_ref<Buffer>(ref<Device>(this), handle, size, bindFlags, memoryType);
+    return make_nvrhi::BufferHandle(
+        ref<Device>(this), handle, size, bindFlags, memoryType);
 }
 
-ref<Texture> Device::createTexture1D(
+nvrhi::TextureHandle Device::createTexture1D(
     uint32_t width,
-    ResourceFormat format,
+    nvrhi::Format format,
     uint32_t arraySize,
     uint32_t mipLevels,
     const void* pInitData,
-    ResourceBindFlags bindFlags
-)
+    ResourceBindFlags bindFlags)
 {
-    return make_ref<Texture>(
-        ref<Device>(this), Resource::Type::Texture1D, format, width, 1, 1, arraySize, mipLevels, 1, bindFlags, pInitData
-    );
+    return make_nvrhi::TextureHandle(
+        ref<Device>(this),
+        Resource::Type::Texture1D,
+        format,
+        width,
+        1,
+        1,
+        arraySize,
+        mipLevels,
+        1,
+        bindFlags,
+        pInitData);
 }
 
-ref<Texture> Device::createTexture2D(
+nvrhi::TextureHandle Device::createTexture2D(
     uint32_t width,
     uint32_t height,
-    ResourceFormat format,
+    nvrhi::Format format,
     uint32_t arraySize,
     uint32_t mipLevels,
     const void* pInitData,
-    ResourceBindFlags bindFlags
-)
+    ResourceBindFlags bindFlags)
 {
-    return make_ref<Texture>(
-        ref<Device>(this), Resource::Type::Texture2D, format, width, height, 1, arraySize, mipLevels, 1, bindFlags, pInitData
-    );
+    return make_nvrhi::TextureHandle(
+        ref<Device>(this),
+        Resource::Type::Texture2D,
+        format,
+        width,
+        height,
+        1,
+        arraySize,
+        mipLevels,
+        1,
+        bindFlags,
+        pInitData);
 }
 
-ref<Texture> Device::createTexture3D(
+nvrhi::TextureHandle Device::createTexture3D(
     uint32_t width,
     uint32_t height,
     uint32_t depth,
-    ResourceFormat format,
+    nvrhi::Format format,
     uint32_t mipLevels,
     const void* pInitData,
-    ResourceBindFlags bindFlags
-)
+    ResourceBindFlags bindFlags)
 {
-    return make_ref<Texture>(
-        ref<Device>(this), Resource::Type::Texture3D, format, width, height, depth, 1, mipLevels, 1, bindFlags, pInitData
-    );
+    return make_nvrhi::TextureHandle(
+        ref<Device>(this),
+        Resource::Type::Texture3D,
+        format,
+        width,
+        height,
+        depth,
+        1,
+        mipLevels,
+        1,
+        bindFlags,
+        pInitData);
 }
 
-ref<Texture> Device::createTextureCube(
+nvrhi::TextureHandle Device::createTextureCube(
     uint32_t width,
     uint32_t height,
-    ResourceFormat format,
+    nvrhi::Format format,
     uint32_t arraySize,
     uint32_t mipLevels,
     const void* pInitData,
-    ResourceBindFlags bindFlags
-)
+    ResourceBindFlags bindFlags)
 {
-    return make_ref<Texture>(
-        ref<Device>(this), Resource::Type::TextureCube, format, width, height, 1, arraySize, mipLevels, 1, bindFlags, pInitData
-    );
+    return make_nvrhi::TextureHandle(
+        ref<Device>(this),
+        Resource::Type::TextureCube,
+        format,
+        width,
+        height,
+        1,
+        arraySize,
+        mipLevels,
+        1,
+        bindFlags,
+        pInitData);
 }
 
-ref<Texture> Device::createTexture2DMS(
+nvrhi::TextureHandle Device::createTexture2DMS(
     uint32_t width,
     uint32_t height,
-    ResourceFormat format,
+    nvrhi::Format format,
     uint32_t sampleCount,
     uint32_t arraySize,
-    ResourceBindFlags bindFlags
-)
+    ResourceBindFlags bindFlags)
 {
-    return make_ref<Texture>(
-        ref<Device>(this), Resource::Type::Texture2DMultisample, format, width, height, 1, arraySize, 1, sampleCount, bindFlags, nullptr
-    );
+    return make_nvrhi::TextureHandle(
+        ref<Device>(this),
+        Resource::Type::Texture2DMultisample,
+        format,
+        width,
+        height,
+        1,
+        arraySize,
+        1,
+        sampleCount,
+        bindFlags,
+        nullptr);
 }
 
-ref<Texture> Device::createTextureFromResource(
+nvrhi::TextureHandle Device::createTextureFromResource(
     nvrhi::ITextureResource* pResource,
     Texture::Type type,
-    ResourceFormat format,
+    nvrhi::Format format,
     uint32_t width,
     uint32_t height,
     uint32_t depth,
@@ -886,17 +994,26 @@ ref<Texture> Device::createTextureFromResource(
     uint32_t mipLevels,
     uint32_t sampleCount,
     ResourceBindFlags bindFlags,
-    Resource::State initState
-)
+    Resource::State initState)
 {
-    return make_ref<Texture>(
-        ref<Device>(this), pResource, type, format, width, height, depth, arraySize, mipLevels, sampleCount, bindFlags, initState
-    );
+    return make_nvrhi::TextureHandle(
+        ref<Device>(this),
+        pResource,
+        type,
+        format,
+        width,
+        height,
+        depth,
+        arraySize,
+        mipLevels,
+        sampleCount,
+        bindFlags,
+        initState);
 }
 
-ref<Sampler> Device::createSampler(const Sampler::Desc& desc)
+nvrhi::SamplerHandle Device::createSampler(const Sampler::Desc& desc)
 {
-    return make_ref<Sampler>(ref<Device>(this), desc);
+    return make_nvrhi::SamplerHandle(ref<Device>(this), desc);
 }
 
 nvrhi::EventQueryHandle Device::createFence(const FenceDesc& desc)
@@ -911,12 +1028,14 @@ nvrhi::EventQueryHandle Device::createFence(bool shared)
     return createFence(desc);
 }
 
-ref<ComputeStateObject> Device::createComputeStateObject(const ComputeStateObjectDesc& desc)
+ref<ComputeStateObject> Device::createComputeStateObject(
+    const ComputeStateObjectDesc& desc)
 {
     return make_ref<ComputeStateObject>(ref<Device>(this), desc);
 }
 
-ref<GraphicsStateObject> Device::createGraphicsStateObject(const GraphicsStateObjectDesc& desc)
+ref<GraphicsStateObject> Device::createGraphicsStateObject(
+    const GraphicsStateObjectDesc& desc)
 {
     return make_ref<GraphicsStateObject>(ref<Device>(this), desc);
 }
@@ -937,12 +1056,12 @@ size_t Device::getBufferDataAlignment(ResourceBindFlags bindFlags)
 
 void Device::releaseResource(ISlangUnknown* pResource)
 {
-    if (pResource)
-    {
+    if (pResource) {
         // Some static objects get here when the application exits
-        if (this)
-        {
-            mDeferredReleases.push({mpFrameFence ? mpFrameFence->getSignaledValue() : 0, Slang::ComPtr<ISlangUnknown>(pResource)});
+        if (this) {
+            mDeferredReleases.push(
+                { mpFrameFence ? mpFrameFence->getSignaledValue() : 0,
+                  Slang::ComPtr<ISlangUnknown>(pResource) });
         }
     }
 }
@@ -962,18 +1081,17 @@ void Device::executeDeferredReleases()
     mpUploadHeap->executeDeferredReleases();
     mpReadBackHeap->executeDeferredReleases();
     uint64_t currentValue = mpFrameFence->getCurrentValue();
-    while (mDeferredReleases.size() && mDeferredReleases.front().fenceValue < currentValue)
-    {
+    while (mDeferredReleases.size() &&
+           mDeferredReleases.front().fenceValue < currentValue) {
         mDeferredReleases.pop();
     }
 
 #if FALCOR_HAS_D3D12
-    if (getType() == Type::D3D12)
-    {
+    if (getType() == Type::D3D12) {
         mpD3D12CpuDescPool->executeDeferredReleases();
         mpD3D12GpuDescPool->executeDeferredReleases();
     }
-#endif // FALCOR_HAS_D3D12
+#endif  // FALCOR_HAS_D3D12
 }
 
 void Device::wait()
@@ -995,50 +1113,42 @@ void Device::requireVulkan() const
         FALCOR_THROW("Vulkan device is required.");
 }
 
-ResourceBindFlags Device::getFormatBindFlags(ResourceFormat format)
+ResourceBindFlags Device::getFormatBindFlags(nvrhi::Format format)
 {
     nvrhi::ResourceStateSet stateSet;
-    FALCOR_GFX_CALL(mGfxDevice->getFormatSupportedResourceStates(getGFXFormat(format), &stateSet));
+    FALCOR_GFX_CALL(mGfxDevice->getFormatSupportedResourceStates(
+        getGFXFormat(format), &stateSet));
 
     ResourceBindFlags flags = ResourceBindFlags::None;
-    if (stateSet.contains(nvrhi::ResourceState::ConstantBuffer))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::ConstantBuffer)) {
         flags |= ResourceBindFlags::Constant;
     }
-    if (stateSet.contains(nvrhi::ResourceState::VertexBuffer))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::VertexBuffer)) {
         flags |= ResourceBindFlags::Vertex;
     }
-    if (stateSet.contains(nvrhi::ResourceState::IndexBuffer))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::IndexBuffer)) {
         flags |= ResourceBindFlags::Index;
     }
-    if (stateSet.contains(nvrhi::ResourceState::IndirectArgument))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::IndirectArgument)) {
         flags |= ResourceBindFlags::IndirectArg;
     }
-    if (stateSet.contains(nvrhi::ResourceState::StreamOutput))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::StreamOutput)) {
         flags |= ResourceBindFlags::StreamOutput;
     }
-    if (stateSet.contains(nvrhi::ResourceState::ShaderResource))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::ShaderResource)) {
         flags |= ResourceBindFlags::ShaderResource;
     }
-    if (stateSet.contains(nvrhi::ResourceState::RenderTarget))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::RenderTarget)) {
         flags |= ResourceBindFlags::RenderTarget;
     }
-    if (stateSet.contains(nvrhi::ResourceState::DepthRead) || stateSet.contains(nvrhi::ResourceState::DepthWrite))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::DepthRead) ||
+        stateSet.contains(nvrhi::ResourceState::DepthWrite)) {
         flags |= ResourceBindFlags::DepthStencil;
     }
-    if (stateSet.contains(nvrhi::ResourceState::UnorderedAccess))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::UnorderedAccess)) {
         flags |= ResourceBindFlags::UnorderedAccess;
     }
-    if (stateSet.contains(nvrhi::ResourceState::AccelerationStructure))
-    {
+    if (stateSet.contains(nvrhi::ResourceState::AccelerationStructure)) {
         flags |= ResourceBindFlags::AccelerationStructure;
     }
     flags |= ResourceBindFlags::Shared;
@@ -1068,7 +1178,6 @@ cuda_utils::CudaDevice* Device::getCudaDevice() const
 
 #endif
 
-
 void Device::reportLiveObjects()
 {
     nvrhi::gfxReportLiveObjects();
@@ -1078,45 +1187,63 @@ bool Device::enableAgilitySDK()
 {
 #if FALCOR_WINDOWS && FALCOR_HAS_D3D12 && FALCOR_HAS_D3D12_AGILITY_SDK
     std::filesystem::path exeDir = getExecutableDirectory();
-    std::filesystem::path sdkDir = getRuntimeDirectory() / FALCOR_D3D12_AGILITY_SDK_PATH;
+    std::filesystem::path sdkDir =
+        getRuntimeDirectory() / FALCOR_D3D12_AGILITY_SDK_PATH;
 
-    // Agility SDK can only be loaded from a relative path to the executable. Make sure both paths use the same driver letter.
-    if (std::tolower(exeDir.string()[0]) != std::tolower(sdkDir.string()[0]))
-    {
+    // Agility SDK can only be loaded from a relative path to the executable.
+    // Make sure both paths use the same driver letter.
+    if (std::tolower(exeDir.string()[0]) != std::tolower(sdkDir.string()[0])) {
         logWarning(
-            "Cannot enable D3D12 Agility SDK: Executable directory '{}' is not on the same drive as the SDK directory '{}'.", exeDir, sdkDir
-        );
+            "Cannot enable D3D12 Agility SDK: Executable directory '{}' is not "
+            "on the same drive as the SDK directory '{}'.",
+            exeDir,
+            sdkDir);
         return false;
     }
 
-    // Get relative path and make sure there is the required trailing path delimiter.
+    // Get relative path and make sure there is the required trailing path
+    // delimiter.
     auto relPath = std::filesystem::relative(sdkDir, exeDir) / "";
 
     // Get the D3D12GetInterface procedure.
-    typedef HRESULT(WINAPI * D3D12GetInterfaceFn)(REFCLSID rclsid, REFIID riid, void** ppvDebug);
+    typedef HRESULT(WINAPI * D3D12GetInterfaceFn)(
+        REFCLSID rclsid, REFIID riid, void** ppvDebug);
     HMODULE handle = GetModuleHandleA("d3d12.dll");
-    D3D12GetInterfaceFn pD3D12GetInterface = handle ? (D3D12GetInterfaceFn)GetProcAddress(handle, "D3D12GetInterface") : nullptr;
-    if (!pD3D12GetInterface)
-    {
-        logWarning("Cannot enable D3D12 Agility SDK: Failed to get D3D12GetInterface.");
+    D3D12GetInterfaceFn pD3D12GetInterface =
+        handle
+            ? (D3D12GetInterfaceFn)GetProcAddress(handle, "D3D12GetInterface")
+            : nullptr;
+    if (!pD3D12GetInterface) {
+        logWarning(
+            "Cannot enable D3D12 Agility SDK: Failed to get "
+            "D3D12GetInterface.");
         return false;
     }
 
     // Local definition of CLSID_D3D12SDKConfiguration from d3d12.h
-    const GUID CLSID_D3D12SDKConfiguration__ = {0x7cda6aca, 0xa03e, 0x49c8, {0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce}};
+    const GUID CLSID_D3D12SDKConfiguration__ = {
+        0x7cda6aca,
+        0xa03e,
+        0x49c8,
+        { 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce }
+    };
     // Get the D3D12SDKConfiguration interface.
     FALCOR_MAKE_SMART_COM_PTR(ID3D12SDKConfiguration);
     ID3D12SDKConfigurationPtr pD3D12SDKConfiguration;
-    if (!SUCCEEDED(pD3D12GetInterface(CLSID_D3D12SDKConfiguration__, IID_PPV_ARGS(&pD3D12SDKConfiguration))))
-    {
-        logWarning("Cannot enable D3D12 Agility SDK: Failed to get D3D12SDKConfiguration interface.");
+    if (!SUCCEEDED(pD3D12GetInterface(
+            CLSID_D3D12SDKConfiguration__,
+            IID_PPV_ARGS(&pD3D12SDKConfiguration)))) {
+        logWarning(
+            "Cannot enable D3D12 Agility SDK: Failed to get "
+            "D3D12SDKConfiguration interface.");
         return false;
     }
 
     // Set the SDK version and path.
-    if (!SUCCEEDED(pD3D12SDKConfiguration->SetSDKVersion(FALCOR_D3D12_AGILITY_SDK_VERSION, relPath.string().c_str())))
-    {
-        logWarning("Cannot enable D3D12 Agility SDK: Calling SetSDKVersion failed.");
+    if (!SUCCEEDED(pD3D12SDKConfiguration->SetSDKVersion(
+            FALCOR_D3D12_AGILITY_SDK_VERSION, relPath.string().c_str()))) {
+        logWarning(
+            "Cannot enable D3D12 Agility SDK: Calling SetSDKVersion failed.");
         return false;
     }
 
@@ -1131,8 +1258,7 @@ std::vector<AdapterInfo> Device::getGPUs(Type deviceType)
         deviceType = getDefaultDeviceType();
     auto adapters = nvrhi::gfxGetAdapters(getGfxDeviceType(deviceType));
     std::vector<AdapterInfo> result;
-    for (nvrhi::GfxIndex i = 0; i < adapters.getCount(); ++i)
-    {
+    for (nvrhi::GfxIndex i = 0; i < adapters.getCount(); ++i) {
         const nvrhi::AdapterInfo& gfxInfo = adapters.getAdapters()[i];
         AdapterInfo info;
         info.name = gfxInfo.name;
@@ -1143,8 +1269,9 @@ std::vector<AdapterInfo> Device::getGPUs(Type deviceType)
     }
     // Move all NVIDIA adapters to the start of the list.
     std::stable_partition(
-        result.begin(), result.end(), [](const AdapterInfo& info) { return toLowerCase(info.name).find("nvidia") != std::string::npos; }
-    );
+        result.begin(), result.end(), [](const AdapterInfo& info) {
+            return toLowerCase(info.name).find("nvidia") != std::string::npos;
+        });
     return result;
 }
 
@@ -1159,14 +1286,16 @@ void Device::endFrame()
 
     // Wait on past frames.
     if (mpFrameFence->getSignaledValue() > kInFlightFrameCount)
-        mpFrameFence->wait(mpFrameFence->getSignaledValue() - kInFlightFrameCount);
+        mpFrameFence->wait(
+            mpFrameFence->getSignaledValue() - kInFlightFrameCount);
 
     // Flush ray tracing validation if enabled
     flushRaytracingValidation();
 
     // Switch to next transient resource heap.
     getCurrentTransientResourceHeap()->finish();
-    mCurrentTransientResourceHeapIndex = (mCurrentTransientResourceHeapIndex + 1) % kInFlightFrameCount;
+    mCurrentTransientResourceHeapIndex =
+        (mCurrentTransientResourceHeapIndex + 1) % kInFlightFrameCount;
     mpRenderContext->getLowLevelData()->closeCommandBuffer();
     getCurrentTransientResourceHeap()->synchronizeAndReset();
     mpRenderContext->getLowLevelData()->openCommandBuffer();
@@ -1184,21 +1313,23 @@ NativeHandle Device::getNativeHandle(uint32_t index) const
     FALCOR_GFX_CALL(mGfxDevice->getNativeDeviceHandles(&gfxInteropHandles));
 
 #if FALCOR_HAS_D3D12
-    if (getType() == Device::Type::D3D12)
-    {
+    if (getType() == Device::Type::D3D12) {
         if (index == 0)
-            return NativeHandle(reinterpret_cast<ID3D12Device*>(gfxInteropHandles.handles[0].handleValue));
+            return NativeHandle(reinterpret_cast<ID3D12Device*>(
+                gfxInteropHandles.handles[0].handleValue));
     }
 #endif
 #if FALCOR_HAS_VULKAN
-    if (getType() == Device::Type::Vulkan)
-    {
+    if (getType() == Device::Type::Vulkan) {
         if (index == 0)
-            return NativeHandle(reinterpret_cast<VkInstance>(gfxInteropHandles.handles[0].handleValue));
+            return NativeHandle(reinterpret_cast<VkInstance>(
+                gfxInteropHandles.handles[0].handleValue));
         else if (index == 1)
-            return NativeHandle(reinterpret_cast<VkPhysicalDevice>(gfxInteropHandles.handles[1].handleValue));
+            return NativeHandle(reinterpret_cast<VkPhysicalDevice>(
+                gfxInteropHandles.handles[1].handleValue));
         else if (index == 2)
-            return NativeHandle(reinterpret_cast<VkDevice>(gfxInteropHandles.handles[2].handleValue));
+            return NativeHandle(reinterpret_cast<VkDevice>(
+                gfxInteropHandles.handles[2].handleValue));
     }
 #endif
     return {};
@@ -1211,13 +1342,20 @@ static void RaytracingValidationCallback(
     NVAPI_D3D12_RAYTRACING_VALIDATION_MESSAGE_SEVERITY severity,
     const char* messageCode,
     const char* message,
-    const char* messageDetails
-)
+    const char* messageDetails)
 {
     if (severity == NVAPI_D3D12_RAYTRACING_VALIDATION_MESSAGE_SEVERITY_ERROR)
-        logError("Raytracing validation error {}:\n{}\n{}", messageCode, message, messageDetails);
+        logError(
+            "Raytracing validation error {}:\n{}\n{}",
+            messageCode,
+            message,
+            messageDetails);
     else
-        logWarning("Raytracing validation warning {}:\n{}\n{}", messageCode, message, messageDetails);
+        logWarning(
+            "Raytracing validation warning {}:\n{}\n{}",
+            messageCode,
+            message,
+            messageDetails);
 }
 #endif
 
@@ -1225,35 +1363,45 @@ void Device::enableRaytracingValidation()
 {
 #if FALCOR_NVAPI_AVAILABLE
     if (!isFeatureSupported(Device::SupportedFeatures::Raytracing))
-        FALCOR_THROW("Ray tracing validation is requested, but ray tracing is not supported");
+        FALCOR_THROW(
+            "Ray tracing validation is requested, but ray tracing is not "
+            "supported");
 
 #if FALCOR_HAS_D3D12
-    if (mDesc.type == Type::D3D12)
-    {
+    if (mDesc.type == Type::D3D12) {
         // Get D3D device and attempt to enable ray tracing
-        ID3D12Device5* pD3D12Device5 = static_cast<ID3D12Device5*>(getNativeHandle().as<ID3D12Device*>());
-        auto res = NvAPI_D3D12_EnableRaytracingValidation(pD3D12Device5, NVAPI_D3D12_RAYTRACING_VALIDATION_FLAG_NONE);
+        ID3D12Device5* pD3D12Device5 =
+            static_cast<ID3D12Device5*>(getNativeHandle().as<ID3D12Device*>());
+        auto res = NvAPI_D3D12_EnableRaytracingValidation(
+            pD3D12Device5, NVAPI_D3D12_RAYTRACING_VALIDATION_FLAG_NONE);
         if (res == NVAPI_NOT_PERMITTED)
             FALCOR_THROW(
-                "Failed to enable raytracing validation. Error code: {}.\nThis is typically caused when the "
-                "NV_ALLOW_RAYTRACING_VALIDATION=1 environment variable is not set",
-                (int)res
-            );
+                "Failed to enable raytracing validation. Error code: {}.\nThis "
+                "is typically caused when the "
+                "NV_ALLOW_RAYTRACING_VALIDATION=1 environment variable is not "
+                "set",
+                (int)res);
         else if (res != NVAPI_OK)
-            FALCOR_THROW("Failed to enable raytracing validation. Error code: {}", (int)res);
+            FALCOR_THROW(
+                "Failed to enable raytracing validation. Error code: {}",
+                (int)res);
 
         // Attempt to register the debug callback
         res = NvAPI_D3D12_RegisterRaytracingValidationMessageCallback(
-            pD3D12Device5, &RaytracingValidationCallback, nullptr, &mpRayTraceValidationHandle
-        );
+            pD3D12Device5,
+            &RaytracingValidationCallback,
+            nullptr,
+            &mpRayTraceValidationHandle);
         if (res != NVAPI_OK)
-            FALCOR_THROW("Failed to register raytracing validation callback. Error code: {}", (int)res);
+            FALCOR_THROW(
+                "Failed to register raytracing validation callback. Error "
+                "code: {}",
+                (int)res);
     }
 #endif
 
 #if FALCOR_HAS_VULKAN
-    if (mDesc.type == Type::Vulkan)
-    {
+    if (mDesc.type == Type::Vulkan) {
         // TODO
     }
 #endif
@@ -1264,10 +1412,11 @@ void Device::enableRaytracingValidation()
 void Device::disableRaytracingValidation()
 {
 #if FALCOR_NVAPI_AVAILABLE && FALCOR_HAS_D3D12
-    if (mpRayTraceValidationHandle)
-    {
-        ID3D12Device5* pD3D12Device5 = static_cast<ID3D12Device5*>(getNativeHandle().as<ID3D12Device*>());
-        NvAPI_D3D12_UnregisterRaytracingValidationMessageCallback(pD3D12Device5, mpRayTraceValidationHandle);
+    if (mpRayTraceValidationHandle) {
+        ID3D12Device5* pD3D12Device5 =
+            static_cast<ID3D12Device5*>(getNativeHandle().as<ID3D12Device*>());
+        NvAPI_D3D12_UnregisterRaytracingValidationMessageCallback(
+            pD3D12Device5, mpRayTraceValidationHandle);
         mpRayTraceValidationHandle = nullptr;
     }
 #endif
@@ -1276,9 +1425,9 @@ void Device::disableRaytracingValidation()
 void Device::flushRaytracingValidation()
 {
 #if FALCOR_NVAPI_AVAILABLE && FALCOR_HAS_D3D12
-    if (mpRayTraceValidationHandle)
-    {
-        ID3D12Device5* pD3D12Device5 = static_cast<ID3D12Device5*>(getNativeHandle().as<ID3D12Device*>());
+    if (mpRayTraceValidationHandle) {
+        ID3D12Device5* pD3D12Device5 =
+            static_cast<ID3D12Device5*>(getNativeHandle().as<ID3D12Device*>());
         NvAPI_D3D12_FlushRaytracingValidationMessages(pD3D12Device5);
     }
 #endif
@@ -1314,53 +1463,75 @@ FALCOR_SCRIPT_BINDING(Device)
     info.def_readonly("api_name", &Device::Info::apiName);
 
     pybind11::class_<Device::Limits> limits(device, "Limits");
-    limits.def_readonly("max_compute_dispatch_thread_groups", &Device::Limits::maxComputeDispatchThreadGroups);
-    limits.def_readonly("max_shader_visible_samplers", &Device::Limits::maxShaderVisibleSamplers);
+    limits.def_readonly(
+        "max_compute_dispatch_thread_groups",
+        &Device::Limits::maxComputeDispatchThreadGroups);
+    limits.def_readonly(
+        "max_shader_visible_samplers",
+        &Device::Limits::maxShaderVisibleSamplers);
 
     device.def(
-        pybind11::init(
-            [](Device::Type type, uint32_t gpu, bool enable_debug_layer, bool enable_aftermath)
-            {
-                Device::Desc desc;
-                desc.type = type;
-                desc.gpu = gpu;
-                desc.enableDebugLayer = enable_debug_layer;
-                desc.enableAftermath = enable_aftermath;
-                return make_ref<Device>(desc);
-            }
-        ),
+        pybind11::init([](Device::Type type,
+                          uint32_t gpu,
+                          bool enable_debug_layer,
+                          bool enable_aftermath) {
+            Device::Desc desc;
+            desc.type = type;
+            desc.gpu = gpu;
+            desc.enableDebugLayer = enable_debug_layer;
+            desc.enableAftermath = enable_aftermath;
+            return make_ref<Device>(desc);
+        }),
         "type"_a = Device::Type::Default,
         "gpu"_a = 0,
         "enable_debug_layer"_a = false,
-        "enable_aftermath"_a = false
-    );
+        "enable_aftermath"_a = false);
     device.def(
         "create_buffer",
-        [](Device& self, size_t size, ResourceBindFlags bind_flags, MemoryType memory_type)
-        { return self.createBuffer(size, bind_flags, memory_type); },
+        [](Device& self,
+           size_t size,
+           ResourceBindFlags bind_flags,
+           MemoryType memory_type) {
+            return self.createBuffer(size, bind_flags, memory_type);
+        },
         "size"_a,
         "bind_flags"_a = ResourceBindFlags::None,
-        "memory_type"_a = MemoryType::DeviceLocal
-    );
+        "memory_type"_a = MemoryType::DeviceLocal);
     device.def(
         "create_typed_buffer",
-        [](Device& self, ResourceFormat format, size_t element_count, ResourceBindFlags bind_flags, MemoryType memory_type)
-        { return self.createTypedBuffer(format, element_count, bind_flags, memory_type, nullptr); },
+        [](Device& self,
+           nvrhi::Format format,
+           size_t element_count,
+           ResourceBindFlags bind_flags,
+           MemoryType memory_type) {
+            return self.createTypedBuffer(
+                format, element_count, bind_flags, memory_type, nullptr);
+        },
         "format"_a,
         "element_count"_a,
         "bind_flags"_a = ResourceBindFlags::None,
-        "memory_type"_a = MemoryType::DeviceLocal
-    );
+        "memory_type"_a = MemoryType::DeviceLocal);
     device.def(
         "create_structured_buffer",
-        [](Device& self, size_t struct_size, size_t element_count, ResourceBindFlags bind_flags, MemoryType memory_type, bool create_counter
-        ) { return self.createStructuredBuffer(struct_size, element_count, bind_flags, memory_type, nullptr, create_counter); },
+        [](Device& self,
+           size_t struct_size,
+           size_t element_count,
+           ResourceBindFlags bind_flags,
+           MemoryType memory_type,
+           bool create_counter) {
+            return self.createStructuredBuffer(
+                struct_size,
+                element_count,
+                bind_flags,
+                memory_type,
+                nullptr,
+                create_counter);
+        },
         "struct_size"_a,
         "element_count"_a,
         "bind_flags"_a = ResourceBindFlags::None,
         "memory_type"_a = MemoryType::DeviceLocal,
-        "create_counter"_a = false
-    );
+        "create_counter"_a = false);
 
     device.def(
         "create_texture",
@@ -1368,26 +1539,39 @@ FALCOR_SCRIPT_BINDING(Device)
            uint32_t width,
            uint32_t height,
            uint32_t depth,
-           ResourceFormat format,
+           nvrhi::Format format,
            uint32_t array_size,
            uint32_t mip_levels,
-           ResourceBindFlags bind_flags)
-        {
+           ResourceBindFlags bind_flags) {
             if (depth > 0)
-                return self.createTexture3D(width, height, depth, format, mip_levels, nullptr, bind_flags);
+                return self.createTexture3D(
+                    width,
+                    height,
+                    depth,
+                    format,
+                    mip_levels,
+                    nullptr,
+                    bind_flags);
             else if (height > 0)
-                return self.createTexture2D(width, height, format, array_size, mip_levels, nullptr, bind_flags);
+                return self.createTexture2D(
+                    width,
+                    height,
+                    format,
+                    array_size,
+                    mip_levels,
+                    nullptr,
+                    bind_flags);
             else
-                return self.createTexture1D(width, format, array_size, mip_levels, nullptr, bind_flags);
+                return self.createTexture1D(
+                    width, format, array_size, mip_levels, nullptr, bind_flags);
         },
         "width"_a,
         "height"_a = 0,
         "depth"_a = 0,
-        "format"_a = ResourceFormat::Unknown,
+        "format"_a = nvrhi::Format::Unknown,
         "array_size"_a = 1,
         "mip_levels"_a = uint32_t(Texture::kMaxPossible),
-        "bind_flags"_a = ResourceBindFlags::None
-    );
+        "bind_flags"_a = ResourceBindFlags::None);
 
     device.def(
         "create_sampler",
@@ -1404,15 +1588,15 @@ FALCOR_SCRIPT_BINDING(Device)
            TextureAddressingMode address_mode_u,
            TextureAddressingMode address_mode_v,
            TextureAddressingMode address_mode_w,
-           float4 border_color)
-        {
+           float4 border_color) {
             Sampler::Desc desc;
             desc.setFilterMode(mag_filter, min_filter, mip_filter);
             desc.setMaxAnisotropy(max_anisotropy);
             desc.setLodParams(min_lod, max_lod, lod_bias);
             desc.setComparisonFunc(comparison_func);
             desc.setReductionMode(reduction_mode);
-            desc.setAddressingMode(address_mode_u, address_mode_v, address_mode_w);
+            desc.setAddressingMode(
+                address_mode_u, address_mode_v, address_mode_w);
             desc.setBorderColor(border_color);
             return self.createSampler(desc);
         },
@@ -1428,27 +1612,31 @@ FALCOR_SCRIPT_BINDING(Device)
         "address_mode_u"_a = TextureAddressingMode::Wrap,
         "address_mode_v"_a = TextureAddressingMode::Wrap,
         "address_mode_w"_a = TextureAddressingMode::Wrap,
-        "border_color_r"_a = float4(0.f)
-    );
+        "border_color_r"_a = float4(0.f));
 
     device.def(
         "create_program",
-        [](ref<Device> self, std::optional<ProgramDesc> desc, pybind11::dict defines, const pybind11::kwargs& kwargs)
-        {
-            if (desc)
-            {
-                FALCOR_CHECK(kwargs.empty(), "Either provide a 'desc' or kwargs, but not both.");
-                return Program::create(self, *desc, defineListFromPython(defines));
+        [](ref<Device> self,
+           std::optional<ProgramDesc> desc,
+           pybind11::dict defines,
+           const pybind11::kwargs& kwargs) {
+            if (desc) {
+                FALCOR_CHECK(
+                    kwargs.empty(),
+                    "Either provide a 'desc' or kwargs, but not both.");
+                return Program::create(
+                    self, *desc, defineListFromPython(defines));
             }
-            else
-            {
-                return Program::create(self, programDescFromPython(kwargs), defineListFromPython(defines));
+            else {
+                return Program::create(
+                    self,
+                    programDescFromPython(kwargs),
+                    defineListFromPython(defines));
             }
         },
         "desc"_a = std::optional<ProgramDesc>(),
         "defines"_a = pybind11::dict(),
-        pybind11::kw_only()
-    );
+        pybind11::kw_only());
 
     device.def("wait", &Device::wait);
     device.def("end_frame", &Device::endFrame);
@@ -1461,4 +1649,4 @@ FALCOR_SCRIPT_BINDING(Device)
 
     device.def_static("get_gpus", &Device::getGPUs);
 }
-} // namespace Falcor
+}  // namespace Falcor

@@ -189,3 +189,4 @@ using UnorderedAccessView = nvrhi::BindingSetItem;
 using GpuMemoryHeap = nvrhi::IHeap;
 using QueryHeap = nvrhi::ITimerQuery;
 
+using Fence = nvrhi::IEventQuery;

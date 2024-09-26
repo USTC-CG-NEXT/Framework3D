@@ -47,7 +47,7 @@ ref<ComputeStateObject> ComputeState::getCSO(const ProgramVars* pVars)
 {
     auto pProgramKernels =
         mpProgram
-            ? mpProgram->getActiveVersion()->getKernels(mpDevice.Get(), pVars)
+            ? mpProgram->getActiveVersion()->getKernels(mpDevice.get(), pVars)
             : nullptr;
     bool newProgram = (pProgramKernels.get() != mCachedData.pProgramKernels);
     if (newProgram) {

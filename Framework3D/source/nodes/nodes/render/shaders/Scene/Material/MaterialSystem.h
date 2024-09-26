@@ -40,6 +40,8 @@
 #include <vector>
 #include <set>
 
+#include "utils/UI/Gui.h"
+
 namespace Falcor
 {
     class LightProfile;

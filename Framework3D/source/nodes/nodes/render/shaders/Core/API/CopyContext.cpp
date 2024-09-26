@@ -28,6 +28,7 @@
 #include "CopyContext.h"
 
 #include "Core/Error.h"
+#include "Device.h"
 #include "Utils/Logger.h"
 #include "Utils/Logging/Logging.h"
 #include "Utils/Math/Common.h"

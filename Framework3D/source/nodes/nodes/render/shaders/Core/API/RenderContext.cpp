@@ -49,7 +49,7 @@ namespace {
             offsetof(Viewport, maxX) ==
             offsetof(GraphicsState::Viewport, width));
         static_assert(
-            offsetof(Viewport, maxy) ==
+            offsetof(Viewport, maxY) ==
             offsetof(GraphicsState::Viewport, height));
         static_assert(
             offsetof(Viewport, minZ) ==
@@ -263,7 +263,7 @@ void RenderContext::blit(
     const ref<RenderTargetView>& pDst,
     uint4 srcRect,
     uint4 dstRect,
-    TextureFilteringMode filter,
+    bool useFilter,
     const TextureReductionMode componentsReduction[4],
     const float4 componentsTransform[4])
 {

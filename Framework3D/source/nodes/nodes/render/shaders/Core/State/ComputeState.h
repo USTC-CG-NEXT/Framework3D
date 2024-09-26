@@ -29,6 +29,7 @@
 #include <memory>
 
 #include "Core/API/ComputeStateObject.h"
+#include "Core/API/Device.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
 #include "Core/Program/Program.h"

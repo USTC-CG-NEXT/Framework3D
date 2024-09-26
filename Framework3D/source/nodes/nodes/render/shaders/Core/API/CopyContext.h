@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "Core/Macros.h"
+#include "Device.h"
 #include "Utils/Math/VectorTypes.h"
 #include "utils/CudaRuntime.h"
 

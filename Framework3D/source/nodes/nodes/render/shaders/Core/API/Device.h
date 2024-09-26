@@ -28,7 +28,6 @@
 #pragma once
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "RenderContext.h"
 
 #if FALCOR_HAS_D3D12
 #include <guiddef.h>
@@ -41,13 +40,18 @@
 #include <queue>
 #include <vector>
 
-#include "ComputeStateObject.h"
 #include "Core/Enum.h"
-#include "GraphicsStateObject.h"
-#include "RtStateObject.h"
+#include "Core/Platform/OS.h"
+#include "Utils/Math/VectorTypes.h"
 #include "slang-com-ptr.h"
 
 namespace Falcor {
+class RtStateObject;
+class GraphicsStateObject;
+struct GraphicsStateObjectDesc;
+struct ComputeStateObjectDesc;
+class ComputeStateObject;
+struct RtStateObjectDesc;
 #ifdef _DEBUG
 #define FALCOR_DEFAULT_ENABLE_DEBUG_LAYER true
 #else
@@ -62,7 +66,7 @@ class PipelineCreationAPIDispatcher;
 class ProgramManager;
 class Profiler;
 class AftermathContext;
-
+class RenderContext;
 namespace cuda_utils {
     class CudaDevice;
 };
@@ -203,331 +207,6 @@ class FALCOR_API Device : public Object {
     Device(const Desc& desc);
     ~Device();
 
-    /**
-     * Create a new buffer.
-     * @param[in] size Size of the buffer in bytes.
-     * @param[in] bindFlags Buffer bind flags.
-     * @param[in] memoryType Type of memory to use for the buffer.
-     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
-     * buffer size should be at least 'size' bytes.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    ref<Buffer> createBuffer(
-        size_t size,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
-                                      ResourceBindFlags::UnorderedAccess,
-        MemoryType memoryType = MemoryType::DeviceLocal,
-        const void* pInitData = nullptr);
-
-    /**
-     * Create a new typed buffer.
-     * @param[in] format Typed buffer format.
-     * @param[in] elementCount Number of elements.
-     * @param[in] bindFlags Buffer bind flags.
-     * @param[in] memoryType Type of memory to use for the buffer.
-     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
-     * buffer should hold at least 'elementCount' elements.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    ref<Buffer> createTypedBuffer(
-        ResourceFormat format,
-        uint32_t elementCount,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
-                                      ResourceBindFlags::UnorderedAccess,
-        MemoryType memoryType = MemoryType::DeviceLocal,
-        const void* pInitData = nullptr);
-
-    /**
-     * Create a new typed buffer. The format is deduced from the template
-     * parameter.
-     * @param[in] elementCount Number of elements.
-     * @param[in] bindFlags Buffer bind flags.
-     * @param[in] memoryType Type of memory to use for the buffer.
-     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
-     * buffer should hold at least 'elementCount' elements.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    template<typename T>
-    ref<Buffer> createTypedBuffer(
-        uint32_t elementCount,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
-                                      ResourceBindFlags::UnorderedAccess,
-        MemoryType memoryType = MemoryType::DeviceLocal,
-        const T* pInitData = nullptr)
-    {
-        return createTypedBuffer(
-            detail::FormatForElementType<T>::kFormat,
-            elementCount,
-            bindFlags,
-            memoryType,
-            pInitData);
-    }
-
-    /**
-     * Create a new structured buffer.
-     * @param[in] structSize Size of the struct in bytes.
-     * @param[in] elementCount Number of elements.
-     * @param[in] bindFlags Buffer bind flags.
-     * @param[in] memoryType Type of memory to use for the buffer.
-     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
-     * buffer should hold at least 'elementCount' elements.
-     * @param[in] createCounter True if the associated UAV counter should be
-     * created.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    ref<Buffer> createStructuredBuffer(
-        uint32_t structSize,
-        uint32_t elementCount,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
-                                      ResourceBindFlags::UnorderedAccess,
-        MemoryType memoryType = MemoryType::DeviceLocal,
-        const void* pInitData = nullptr,
-        bool createCounter = false);
-
-    /**
-     * Create a new structured buffer.
-     * @param[in] pType Type of the structured buffer.
-     * @param[in] elementCount Number of elements.
-     * @param[in] bindFlags Buffer bind flags.
-     * @param[in] memoryType Type of memory to use for the buffer.
-     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
-     * buffer should hold at least 'elementCount' elements.
-     * @param[in] createCounter True if the associated UAV counter should be
-     * created.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    ref<Buffer> createStructuredBuffer(
-        const ReflectionType* pType,
-        uint32_t elementCount,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
-                                      ResourceBindFlags::UnorderedAccess,
-        MemoryType memoryType = MemoryType::DeviceLocal,
-        const void* pInitData = nullptr,
-        bool createCounter = false);
-
-    /**
-     * Create a new structured buffer.
-     * @param[in] shaderVar ShaderVar pointing to the buffer variable.
-     * @param[in] elementCount Number of elements.
-     * @param[in] bindFlags Buffer bind flags.
-     * @param[in] memoryType Type of memory to use for the buffer.
-     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
-     * buffer should hold at least 'elementCount' elements.
-     * @param[in] createCounter True if the associated UAV counter should be
-     * created.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    ref<Buffer> createStructuredBuffer(
-        const ShaderVar& shaderVar,
-        uint32_t elementCount,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
-                                      ResourceBindFlags::UnorderedAccess,
-        MemoryType memoryType = MemoryType::DeviceLocal,
-        const void* pInitData = nullptr,
-        bool createCounter = false);
-
-    /**
-     * Create a new buffer from an existing resource.
-     * @param[in] pResource Already allocated resource.
-     * @param[in] size The size of the buffer in bytes.
-     * @param[in] bindFlags Buffer bind flags. Flags must match the bind flags
-     * of the original resource.
-     * @param[in] memoryType Type of memory to use for the buffer. Flags must
-     * match those of the heap the original resource is allocated on.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    ref<Buffer> createBufferFromResource(
-        nvrhi::IBufferResource* pResource,
-        size_t size,
-        ResourceBindFlags bindFlags,
-        MemoryType memoryType);
-
-    /**
-     * Create a new buffer from an existing native handle.
-     * @param[in] handle Handle of already allocated resource.
-     * @param[in] size The size of the buffer in bytes.
-     * @param[in] bindFlags Buffer bind flags. Flags must match the bind flags
-     * of the original resource.
-     * @param[in] memoryType Type of memory to use for the buffer. Flags must
-     * match those of the heap the original resource is allocated on.
-     * @return A pointer to a new buffer object, or throws an exception if
-     * creation failed.
-     */
-    ref<Buffer> createBufferFromNativeHandle(
-        NativeHandle handle,
-        size_t size,
-        ResourceBindFlags bindFlags,
-        MemoryType memoryType);
-
-    /**
-     * Create a 1D texture.
-     * @param[in] width The width of the texture.
-     * @param[in] format The format of the texture.
-     * @param[in] arraySize The array size of the texture.
-     * @param[in] mipLevels If equal to kMaxPossible then an entire mip chain
-     * will be generated from mip level 0. If any other value is given then the
-     * data for at least that number of miplevels must be provided.
-     * @param[in] pInitData If different than nullptr, pointer to a buffer
-     * containing data to initialize the texture with.
-     * @param[in] bindFlags The requested bind flags for the resource.
-     * @return A pointer to a new texture, or throws an exception if creation
-     * failed.
-     */
-    ref<Texture> createTexture1D(
-        uint32_t width,
-        ResourceFormat format,
-        uint32_t arraySize = 1,
-        uint32_t mipLevels = Resource::kMaxPossible,
-        const void* pInitData = nullptr,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource);
-
-    /**
-     * Create a 2D texture.
-     * @param[in] width The width of the texture.
-     * @param[in] height The height of the texture.
-     * @param[in] format The format of the texture.
-     * @param[in] arraySize The array size of the texture.
-     * @param[in] mipLevels If equal to kMaxPossible then an entire mip chain
-     * will be generated from mip level 0. If any other value is given then the
-     * data for at least that number of miplevels must be provided.
-     * @param[in] pInitData If different than nullptr, pointer to a buffer
-     * containing data to initialize the texture with.
-     * @param[in] bindFlags The requested bind flags for the resource.
-     * @return A pointer to a new texture, or throws an exception if creation
-     * failed.
-     */
-    ref<Texture> createTexture2D(
-        uint32_t width,
-        uint32_t height,
-        ResourceFormat format,
-        uint32_t arraySize = 1,
-        uint32_t mipLevels = Resource::kMaxPossible,
-        const void* pInitData = nullptr,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource);
-
-    /**
-     * Create a 3D texture.
-     * @param[in] width The width of the texture.
-     * @param[in] height The height of the texture.
-     * @param[in] depth The depth of the texture.
-     * @param[in] format The format of the texture.
-     * @param[in] mipLevels If equal to kMaxPossible then an entire mip chain
-     * will be generated from mip level 0. If any other value is given then the
-     * data for at least that number of miplevels must be provided.
-     * @param[in] pInitData If different than nullptr, pointer to a buffer
-     * containing data to initialize the texture with.
-     * @param[in] bindFlags The requested bind flags for the resource.
-     * @return A pointer to a new texture, or throws an exception if creation
-     * failed.
-     */
-    ref<Texture> createTexture3D(
-        uint32_t width,
-        uint32_t height,
-        uint32_t depth,
-        ResourceFormat format,
-        uint32_t mipLevels = Resource::kMaxPossible,
-        const void* pInitData = nullptr,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource);
-
-    /**
-     * Create a cube texture.
-     * @param[in] width The width of the texture.
-     * @param[in] height The height of the texture.
-     * @param[in] format The format of the texture.
-     * @param[in] arraySize The array size of the texture.
-     * @param[in] mipLevels If equal to kMaxPossible then an entire mip chain
-     * will be generated from mip level 0. If any other value is given then the
-     * data for at least that number of miplevels must be provided.
-     * @param[in] pInitData If different than nullptr, pointer to a buffer
-     * containing data to initialize the texture with.
-     * @param[in] bindFlags The requested bind flags for the resource.
-     * @return A pointer to a new texture, or throws an exception if creation
-     * failed.
-     */
-    ref<Texture> createTextureCube(
-        uint32_t width,
-        uint32_t height,
-        ResourceFormat format,
-        uint32_t arraySize = 1,
-        uint32_t mipLevels = Resource::kMaxPossible,
-        const void* pInitData = nullptr,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource);
-
-    /**
-     * Create a multi-sampled 2D texture.
-     * @param[in] width The width of the texture.
-     * @param[in] height The height of the texture.
-     * @param[in] format The format of the texture.
-     * @param[in] sampleCount The sample count of the texture.
-     * @param[in] arraySize The array size of the texture.
-     * @param[in] bindFlags The requested bind flags for the resource.
-     * @return A pointer to a new texture, or throws an exception if creation
-     * failed.
-     */
-    ref<Texture> createTexture2DMS(
-        uint32_t width,
-        uint32_t height,
-        ResourceFormat format,
-        uint32_t sampleCount,
-        uint32_t arraySize = 1,
-        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource);
-
-    /**
-     * Create a new texture from an resource.
-     * @param[in] pResource Already allocated resource.
-     * @param[in] type The type of texture.
-     * @param[in] format The format of the texture.
-     * @param[in] width The width of the texture.
-     * @param[in] height The height of the texture.
-     * @param[in] depth The depth of the texture.
-     * @param[in] arraySize The array size of the texture.
-     * @param[in] mipLevels The number of mip levels.
-     * @param[in] sampleCount The sample count of the texture.
-     * @param[in] bindFlags Texture bind flags. Flags must match the bind flags
-     * of the original resource.
-     * @param[in] initState The initial resource state.
-     * @return A pointer to a new texture, or throws an exception if creation
-     * failed.
-     */
-    ref<Texture> createTextureFromResource(
-        nvrhi::ITextureResource* pResource,
-        Texture::Type type,
-        ResourceFormat format,
-        uint32_t width,
-        uint32_t height,
-        uint32_t depth,
-        uint32_t arraySize,
-        uint32_t mipLevels,
-        uint32_t sampleCount,
-        ResourceBindFlags bindFlags,
-        Resource::State initState);
-
-    /**
-     * Create a new sampler object.
-     * @param[in] desc Describes sampler settings.
-     * @return A new object, or throws an exception if creation failed.
-     */
-    ref<Sampler> createSampler(const Sampler::Desc& desc);
-
-    /**
-     * Create a new fence object.
-     * @return A new object, or throws an exception if creation failed.
-     */
-    nvrhi::EventQueryHandle createFence(const FenceDesc& desc);
-
-    /**
-     * Create a new fence object.
-     * @return A new object, or throws an exception if creation failed.
-     */
-    nvrhi::EventQueryHandle createFence(bool shared = false);
-
     /// Create a compute state object.
     ref<ComputeStateObject> createComputeStateObject(
         const ComputeStateObjectDesc& desc);
@@ -571,9 +250,9 @@ class FALCOR_API Device : public Object {
     }
 
     /// Return the GFX command queue.
-    nvrhi::ICommandQueue* getGfxCommandQueue() const
+    nvrhi::ICommandList* getGfxCommandQueue() const
     {
-        return mGfxCommandQueue;
+        return mGfxCommandQueue.Get();
     }
 
     /**
@@ -618,7 +297,7 @@ class FALCOR_API Device : public Object {
     /**
      * Get an object that represents a default sampler.
      */
-    const ref<Sampler>& getDefaultSampler() const
+    const nvrhi::SamplerHandle& getDefaultSampler() const
     {
         return mpDefaultSampler;
     }
@@ -642,8 +321,6 @@ class FALCOR_API Device : public Object {
         return mpD3D12GpuDescPool;
     }
 #endif  // FALCOR_HAS_D3D12
-
-    size_t getBufferDataAlignment(ResourceBindFlags bindFlags);
 
     const ref<GpuMemoryHeap>& getUploadHeap() const
     {
@@ -681,13 +358,6 @@ class FALCOR_API Device : public Object {
      * Check if features are supported by the device
      */
     bool isFeatureSupported(SupportedFeatures flags) const;
-
-    nvrhi::ITransientResourceHeap* getCurrentTransientResourceHeap();
-
-    /**
-     * Get the supported bind-flags for a specific format.
-     */
-    ResourceBindFlags getFormatBindFlags(ResourceFormat format);
 
     /// Get the texture row memory alignment in bytes.
     size_t getTextureRowAlignment() const;
@@ -763,12 +433,11 @@ class FALCOR_API Device : public Object {
     Desc mDesc;
     Slang::ComPtr<slang::IGlobalSession> mSlangGlobalSession;
     Slang::ComPtr<nvrhi::IDevice> mGfxDevice;
-    Slang::ComPtr<nvrhi::ICommandQueue> mGfxCommandQueue;
-    Slang::ComPtr<nvrhi::ITransientResourceHeap>
-        mpTransientResourceHeaps[kInFlightFrameCount];
+    nvrhi::CommandListHandle mGfxCommandQueue;
+
     uint32_t mCurrentTransientResourceHeapIndex = 0;
 
-    ref<Sampler> mpDefaultSampler;
+    nvrhi::SamplerHandle mpDefaultSampler;
     ref<GpuMemoryHeap> mpUploadHeap;
     ref<GpuMemoryHeap> mpReadBackHeap;
     ref<QueryHeap> mpTimestampQueryHeap;

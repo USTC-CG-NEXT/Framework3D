@@ -33,6 +33,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Core/API/Device.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
 #include "DefineList.h"
@@ -207,7 +208,7 @@ class FALCOR_API ProgramKernels : public Object {
      * @return New object in case of success, otherwise nullptr
      */
     static ref<ProgramKernels> create(
-        nvrhi::IDevice* pDevice,
+        Device* pDevice,
         const ProgramVersion* pVersion,
         slang::IComponentType* pSpecializedSlangGlobalScope,
         const std::vector<slang::IComponentType*>&
@@ -316,7 +317,7 @@ class ProgramVersion : public Object {
      */
     // TODO @skallweit passing pDevice here is a bit of a WAR
     ref<const ProgramKernels> getKernels(
-        nvrhi::IDevice* pDevice,
+        Device* pDevice,
         ProgramVars const* pVars) const;
 
     slang::ISession* getSlangSession() const;

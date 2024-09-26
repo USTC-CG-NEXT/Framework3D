@@ -29,7 +29,6 @@ if __name__ == "__main__":
     current_folder = os.path.dirname(os.path.abspath(__file__))
     script_name = os.path.basename(__file__)
     replacements = [
-        ('ref<Device>', 'nvrhi::DeviceHandle'),
         ('ref<Buffer>', 'nvrhi::BufferHandle'),
         ('ref<Texture>', 'nvrhi::TextureHandle'),
         ('ref<Sampler>', 'nvrhi::SamplerHandle'),

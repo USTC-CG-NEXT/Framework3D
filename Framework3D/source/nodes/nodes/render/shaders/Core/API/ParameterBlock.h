@@ -40,6 +40,7 @@
 #include "Core/Object.h"
 #include "Core/Program/ProgramReflection.h"
 #include "Core/Program/ShaderVar.h"
+#include "Device.h"
 
 namespace Falcor {
 class ProgramVersion;
