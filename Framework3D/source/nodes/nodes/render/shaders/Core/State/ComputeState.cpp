@@ -25,43 +25,60 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "BaseGraphicsPass.h"
+#include "ComputeState.h"
+
+#include "Core/ObjectPython.h"
+#include "Core/Program/ProgramVars.h"
+#include "Utils/Scripting/ScriptBindings.h"
 
 namespace Falcor {
-BaseGraphicsPass::BaseGraphicsPass(
-    nvrhi::DeviceHandle pDevice,
-    const ProgramDesc& progDesc,
-    const DefineList& programDefines)
-    : mpDevice(pDevice)
+
+ref<ComputeState> ComputeState::create(ref<Device> pDevice)
 {
-    auto pProg = Program::create(mpDevice, progDesc, programDefines);
-
-    mpState->setProgram(pProg);
-
-    mpVars = ProgramVars::create(mpDevice, pProg.get());
+    return ref<ComputeState>(new ComputeState(pDevice));
 }
 
-void BaseGraphicsPass::addDefine(
-    const std::string& name,
-    const std::string& value,
-    bool updateVars)
+ComputeState::ComputeState(ref<Device> pDevice) : mpDevice(pDevice)
 {
-    mpState->getProgram()->addDefine(name, value);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
+    mpCsoGraph = std::make_unique<ComputeStateGraph>();
 }
 
-void BaseGraphicsPass::removeDefine(const std::string& name, bool updateVars)
+ref<ComputeStateObject> ComputeState::getCSO(const ProgramVars* pVars)
 {
-    mpState->getProgram()->removeDefine(name);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
+    auto pProgramKernels =
+        mpProgram
+            ? mpProgram->getActiveVersion()->getKernels(mpDevice.get(), pVars)
+            : nullptr;
+    bool newProgram = (pProgramKernels.get() != mCachedData.pProgramKernels);
+    if (newProgram) {
+        mCachedData.pProgramKernels = pProgramKernels.get();
+        mpCsoGraph->walk((void*)mCachedData.pProgramKernels);
+    }
+
+    ref<ComputeStateObject> pCso = mpCsoGraph->getCurrentNode();
+
+    if (pCso == nullptr) {
+        mDesc.pProgramKernels = pProgramKernels;
+
+        ComputeStateGraph::CompareFunc cmpFunc =
+            [&desc = mDesc](ref<ComputeStateObject> pCso) -> bool {
+            return pCso && (desc == pCso->getDesc());
+        };
+
+        if (mpCsoGraph->scanForMatchingNode(cmpFunc)) {
+            pCso = mpCsoGraph->getCurrentNode();
+        }
+        else {
+            pCso = mpDevice->createComputeStateObject(mDesc);
+            mpCsoGraph->setCurrentNodeData(pCso);
+        }
+    }
+
+    return pCso;
 }
 
-void BaseGraphicsPass::setVars(const ref<ProgramVars>& pVars)
+FALCOR_SCRIPT_BINDING(ComputeState)
 {
-    mpVars = pVars ? pVars
-                   : ProgramVars::create(mpDevice, mpState->getProgram().get());
+    pybind11::class_<ComputeState, ref<ComputeState>>(m, "ComputeState");
 }
-
 }  // namespace Falcor

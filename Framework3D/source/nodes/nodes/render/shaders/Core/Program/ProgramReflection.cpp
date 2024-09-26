@@ -1437,7 +1437,7 @@ static ShaderType getShaderTypeFromSlangStage(SlangStage stage)
         CASE(CALLABLE, Callable);
 #undef CASE
 
-        default: FALCOR_UNREACHABLE(); return ShaderType::Count;
+        default: FALCOR_UNREACHABLE(); return ShaderType::None;
     }
 }
 
@@ -1581,24 +1581,24 @@ int32_t ReflectionStructType::addMemberIgnoringNameConflicts(
         auto fieldRange = pFieldType->getResourceRange(rr);
 
         switch (fieldRange.descriptorType) {
-            case ResourceType::Cbv:
+            case ResourceType::ConstantBuffer:
                 fieldRange.baseIndex = ioBuildState.cbCount;
                 ioBuildState.cbCount += fieldRange.count;
                 break;
 
-            case ResourceType::TextureSrv:
-            case ResourceType::RawBufferSrv:
-            case ResourceType::TypedBufferSrv:
-            case ResourceType::StructuredBufferSrv:
-            case ResourceType::AccelerationStructureSrv:
+            case ResourceType::Texture_SRV:
+            case ResourceType::RawBuffer_SRV:
+            case ResourceType::TypedBuffer_SRV:
+            case ResourceType::StructuredBuffer_SRV:
+            case ResourceType::RayTracingAccelStruct:
                 fieldRange.baseIndex = ioBuildState.srvCount;
                 ioBuildState.srvCount += fieldRange.count;
                 break;
 
-            case ResourceType::TextureUav:
-            case ResourceType::RawBufferUav:
-            case ResourceType::TypedBufferUav:
-            case ResourceType::StructuredBufferUav:
+            case ResourceType::Texture_UAV:
+            case ResourceType::RawBuffer_UAV:
+            case ResourceType::TypedBuffer_UAV:
+            case ResourceType::StructuredBuffer_UAV:
                 fieldRange.baseIndex = ioBuildState.uavCount;
                 ioBuildState.uavCount += fieldRange.count;
                 break;
@@ -1608,8 +1608,10 @@ int32_t ReflectionStructType::addMemberIgnoringNameConflicts(
                 ioBuildState.samplerCount += fieldRange.count;
                 break;
 
-            case ResourceType::Dsv:
-            case ResourceType::Rtv: break;
+            case ResourceType::None:
+            case ResourceType::VolatileConstantBuffer:
+            case ResourceType::PushConstants:
+            case ResourceType::Count: break;
 
             default: FALCOR_UNREACHABLE(); break;
         }
@@ -1687,13 +1689,6 @@ ref<ParameterBlockReflection> ParameterBlockReflection::create(
     auto pResult = createEmpty(pProgramVersion);
     pResult->setElementType(pElementType);
 
-#if 1
-    ReflectionStructType::BuildState counters;
-    pResult->mBuildDescriptorSets =
-        pProgramVersion->getProgram()->mpDevice->getType() ==
-        Device::Type::D3D12;
-#endif
-
     auto rangeCount = pElementType->getResourceRangeCount();
     for (uint32_t rangeIndex = 0; rangeIndex < rangeCount; ++rangeIndex) {
         const auto& rangeInfo = pElementType->getResourceRange(rangeIndex);
@@ -1702,44 +1697,6 @@ ref<ParameterBlockReflection> ParameterBlockReflection::create(
 
         uint32_t regIndex = 0;
         uint32_t regSpace = 0;
-
-#if 1
-        if (pResult->mBuildDescriptorSets) {
-            switch (rangeInfo.descriptorType) {
-                case ResourceType::Cbv:
-                    regIndex += counters.cbCount;
-                    counters.cbCount += rangeInfo.count;
-                    break;
-
-                case ResourceType::TextureSrv:
-                case ResourceType::RawBufferSrv:
-                case ResourceType::TypedBufferSrv:
-                case ResourceType::StructuredBufferSrv:
-                case ResourceType::AccelerationStructureSrv:
-                    regIndex += counters.srvCount;
-                    counters.srvCount += rangeInfo.count;
-                    break;
-
-                case ResourceType::TextureUav:
-                case ResourceType::RawBufferUav:
-                case ResourceType::TypedBufferUav:
-                case ResourceType::StructuredBufferUav:
-                    regIndex += counters.uavCount;
-                    counters.uavCount += rangeInfo.count;
-                    break;
-
-                case ResourceType::Sampler:
-                    regIndex += counters.samplerCount;
-                    counters.samplerCount += rangeInfo.count;
-                    break;
-
-                case ResourceType::Dsv:
-                case ResourceType::Rtv: break;
-
-                default: FALCOR_UNREACHABLE(); break;
-            }
-        }
-#endif
 
         bindingInfo.regIndex = regIndex;
         bindingInfo.regSpace = regSpace;
@@ -1773,36 +1730,29 @@ static ResourceType getResourceType(const ReflectionResourceType* pType)
     auto shaderAccess = pType->getShaderAccess();
     switch (pType->getType()) {
         case ReflectionResourceType::Type::ConstantBuffer:
-            return ResourceType::Cbv;
-            break;
+            return ResourceType::ConstantBuffer;
         case ReflectionResourceType::Type::Texture:
             return shaderAccess == ReflectionResourceType::ShaderAccess::Read
-                       ? ResourceType::TextureSrv
-                       : ResourceType::TextureUav;
-            break;
+                       ? ResourceType::Texture_SRV
+                       : ResourceType::Texture_UAV;
         case ReflectionResourceType::Type::RawBuffer:
             return shaderAccess == ReflectionResourceType::ShaderAccess::Read
-                       ? ResourceType::RawBufferSrv
-                       : ResourceType::RawBufferUav;
-            break;
+                       ? ResourceType::RawBuffer_SRV
+                       : ResourceType::RawBuffer_UAV;
         case ReflectionResourceType::Type::StructuredBuffer:
             return shaderAccess == ReflectionResourceType::ShaderAccess::Read
-                       ? ResourceType::StructuredBufferSrv
-                       : ResourceType::StructuredBufferUav;
-            break;
+                       ? ResourceType::StructuredBuffer_SRV
+                       : ResourceType::StructuredBuffer_UAV;
         case ReflectionResourceType::Type::TypedBuffer:
             return shaderAccess == ReflectionResourceType::ShaderAccess::Read
-                       ? ResourceType::TypedBufferSrv
-                       : ResourceType::TypedBufferUav;
-            break;
+                       ? ResourceType::TypedBuffer_SRV
+                       : ResourceType::TypedBuffer_UAV;
         case ReflectionResourceType::Type::AccelerationStructure:
             FALCOR_ASSERT(
                 shaderAccess == ReflectionResourceType::ShaderAccess::Read);
-            return ResourceType::AccelerationStructureSrv;
-            break;
+            return ResourceType::RayTracingAccelStruct;
         case ReflectionResourceType::Type::Sampler:
             return ResourceType::Sampler;
-            break;
         default: FALCOR_UNREACHABLE(); return ResourceType::Count;
     }
 }
@@ -1818,227 +1768,6 @@ void ParameterBlockReflection::addResourceRange(
 {
     mResourceRanges.push_back(bindingInfo);
 }
-
-#if 1
-struct ParameterBlockReflectionFinalizer {
-    struct SetIndex {
-        SetIndex(uint32_t regSpace, ResourceType descriptorType)
-            : isSampler(descriptorType == ResourceType::Sampler),
-              regSpace(regSpace)
-        {
-        }
-        bool isSampler = false;
-        uint32_t regSpace;
-        bool operator<(const SetIndex& other) const
-        {
-            return (regSpace == other.regSpace) ? isSampler < other.isSampler
-                                                : regSpace < other.regSpace;
-        }
-    };
-
-    std::map<SetIndex, uint32_t> newSetIndices;
-    ParameterBlockReflection* pPrimaryReflector;
-
-    uint32_t computeDescriptorSetIndex(
-        uint32_t regSpace,
-        ResourceType descriptorType)
-    {
-        SetIndex origIndex(regSpace, descriptorType);
-        uint32_t setIndex;
-        if (newSetIndices.find(origIndex) == newSetIndices.end()) {
-            // New set
-            setIndex = (uint32_t)pPrimaryReflector->mDescriptorSets.size();
-            newSetIndices[origIndex] = setIndex;
-            pPrimaryReflector->mDescriptorSets.push_back({});
-        }
-        else {
-            setIndex = newSetIndices[origIndex];
-        }
-        return setIndex;
-    }
-
-    uint32_t computeDescriptorSetIndex(
-        const ReflectionType::ResourceRange& range,
-        const ParameterBlockReflection::ResourceRangeBindingInfo& bindingInfo)
-    {
-        return computeDescriptorSetIndex(
-            bindingInfo.regSpace, range.descriptorType);
-    };
-
-    void addSubObjectResources(
-        uint32_t subObjectResourceRangeIndex,
-        ParameterBlockReflection const* pSubObjectReflector,
-        bool shouldSkipDefaultConstantBufferRange)
-    {
-        // TODO: this function needs to accept a multiplier that gets
-        // applied to all of the counts on the way down, to deal with
-        // arrays of constant buffers.
-
-        FALCOR_ASSERT(pSubObjectReflector);
-        auto subSetCount = pSubObjectReflector->getD3D12DescriptorSetCount();
-        for (uint32_t subSetIndex = 0; subSetIndex < subSetCount;
-             ++subSetIndex) {
-            auto& subSet =
-                pSubObjectReflector->getD3D12DescriptorSetInfo(subSetIndex);
-
-            FALCOR_ASSERT(subSet.layout.getRangeCount() != 0);
-            auto subRange = subSet.layout.getRange(0);
-
-            auto setIndex =
-                computeDescriptorSetIndex(subRange.regSpace, subRange.type);
-            auto& setInfo = pPrimaryReflector->mDescriptorSets[setIndex];
-
-            ParameterBlockReflection::DescriptorSetInfo::SubObjectInfo
-                subObjectInfo;
-            subObjectInfo.resourceRangeIndexOfSubObject =
-                subObjectResourceRangeIndex;
-            subObjectInfo.setIndexInSubObject = subSetIndex;
-            setInfo.subObjects.push_back(subObjectInfo);
-
-            auto subLayoutRangeCount = subSet.layout.getRangeCount();
-            for (size_t r = 0; r < subLayoutRangeCount; ++r) {
-                if (shouldSkipDefaultConstantBufferRange && subSetIndex == 0 &&
-                    r == 0) {
-                    // Skip the range corresponding to the default constant
-                    // buffer.
-                    continue;
-                }
-
-                auto range = subSet.layout.getRange(r);
-                setInfo.layout.addRange(
-                    range.type,
-                    range.baseRegIndex,
-                    range.descCount,
-                    range.regSpace);
-            }
-        }
-    }
-
-    void finalize(ParameterBlockReflection* pReflector)
-    {
-        pPrimaryReflector = pReflector;
-
-        if (pReflector->hasDefaultConstantBuffer()) {
-            auto descriptorType = ResourceType::Cbv;
-            auto& bindingInfo = pReflector->mDefaultConstantBufferBindingInfo;
-
-            if (!bindingInfo.useRootConstants) {
-                auto setIndex = computeDescriptorSetIndex(
-                    bindingInfo.regSpace, descriptorType);
-
-                bindingInfo.descriptorSetIndex = setIndex;
-                auto& setInfo = pReflector->mDescriptorSets[setIndex];
-
-                setInfo.layout.addRange(
-                    descriptorType,
-                    bindingInfo.regIndex,
-                    1,
-                    bindingInfo.regSpace);
-            }
-        }
-
-        // Iterate over descriptors
-        auto resourceRangeCount = pReflector->mResourceRanges.size();
-        for (uint32_t rangeIndex = 0; rangeIndex < resourceRangeCount;
-             ++rangeIndex) {
-            const auto& range =
-                pReflector->getElementType()->getResourceRange(rangeIndex);
-            auto& rangeBindingInfo = pReflector->mResourceRanges[rangeIndex];
-
-            switch (rangeBindingInfo.flavor) {
-                case ParameterBlockReflection::ResourceRangeBindingInfo::
-                    Flavor::Simple: {
-                    auto setIndex =
-                        computeDescriptorSetIndex(range, rangeBindingInfo);
-
-                    rangeBindingInfo.descriptorSetIndex = setIndex;
-                    auto& setInfo = pReflector->mDescriptorSets[setIndex];
-
-                    setInfo.layout.addRange(
-                        range.descriptorType,
-                        rangeBindingInfo.regIndex,
-                        range.count,
-                        rangeBindingInfo.regSpace);
-
-                    setInfo.resourceRangeIndices.push_back(rangeIndex);
-                } break;
-
-                case ParameterBlockReflection::ResourceRangeBindingInfo::
-                    Flavor::RootDescriptor:
-                    if (range.count > 1) {
-                        FALCOR_THROW(
-                            "Root descriptor at register index {} in space {} "
-                            "is illegal. Root descriptors cannot be arrays.",
-                            rangeBindingInfo.regIndex,
-                            rangeBindingInfo.regSpace);
-                    }
-                    pReflector->mRootDescriptorRangeIndices.push_back(
-                        rangeIndex);
-                    break;
-
-                case ParameterBlockReflection::ResourceRangeBindingInfo::
-                    Flavor::ConstantBuffer:
-                case ParameterBlockReflection::ResourceRangeBindingInfo::
-                    Flavor::ParameterBlock:
-                case ParameterBlockReflection::ResourceRangeBindingInfo::
-                    Flavor::Interface:
-                    break;
-                default: FALCOR_UNREACHABLE();
-            }
-        }
-
-        // Iterate over constant buffers
-        for (uint32_t rangeIndex = 0; rangeIndex < resourceRangeCount;
-             ++rangeIndex) {
-            auto& rangeBindingInfo = pReflector->mResourceRanges[rangeIndex];
-
-            if (rangeBindingInfo.flavor !=
-                ParameterBlockReflection::ResourceRangeBindingInfo::Flavor::
-                    ConstantBuffer)
-                continue;
-
-            addSubObjectResources(
-                rangeIndex, rangeBindingInfo.pSubObjectReflector.get(), false);
-        }
-
-        // Iterate over parameter blocks
-        for (uint32_t rangeIndex = 0; rangeIndex < resourceRangeCount;
-             ++rangeIndex) {
-            auto& rangeBindingInfo = pReflector->mResourceRanges[rangeIndex];
-            if (rangeBindingInfo.flavor !=
-                ParameterBlockReflection::ResourceRangeBindingInfo::Flavor::
-                    ParameterBlock)
-                continue;
-
-            pReflector->mParameterBlockSubObjectRangeIndices.push_back(
-                rangeIndex);
-        }
-
-        // Iterate over interfaces
-        for (uint32_t rangeIndex = 0; rangeIndex < resourceRangeCount;
-             ++rangeIndex) {
-            auto& rangeBindingInfo = pReflector->mResourceRanges[rangeIndex];
-
-            if (rangeBindingInfo.flavor !=
-                ParameterBlockReflection::ResourceRangeBindingInfo::Flavor::
-                    Interface)
-                continue;
-
-            // TODO(tfoley): need to figure out what exactly is appropriate
-            // here.
-            if (auto pSubObjectReflector =
-                    rangeBindingInfo.pSubObjectReflector) {
-                addSubObjectResources(
-                    rangeIndex,
-                    pSubObjectReflector.get(),
-                    pSubObjectReflector->hasDefaultConstantBuffer());
-            }
-        }
-
-        // TODO: Do we need to handle interface sub-object slots here?
-    }
-};
-#endif  // 1
 
 bool ParameterBlockReflection::hasDefaultConstantBuffer() const
 {
@@ -2063,12 +1792,6 @@ void ParameterBlockReflection::finalize()
 {
     FALCOR_ASSERT(
         getElementType()->getResourceRangeCount() == mResourceRanges.size());
-#if 1
-    if (mBuildDescriptorSets) {
-        ParameterBlockReflectionFinalizer finalizer;
-        finalizer.finalize(this);
-    }
-#endif
 }
 
 ref<const ParameterBlockReflection> ProgramReflection::getParameterBlock(
@@ -2505,7 +2228,7 @@ ReflectionInterfaceType::ReflectionInterfaceType(
 {
     ResourceRange range;
 
-    range.descriptorType = ResourceType::Cbv;
+    range.descriptorType = ResourceType::ConstantBuffer;
     range.count = 1;
     range.baseIndex = 0;
 

@@ -26,12 +26,6 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "RenderContext.h"
-#include "FBO.h"
-#include "Texture.h"
-#include "BlitContext.h"
-#include "RtAccelerationStructure.h"
-#include "GFXHelpers.h"
-#include "GFXAPI.h"
 #include "Core/State/GraphicsState.h"
 #include "Core/Program/ProgramVars.h"
 #include "Core/Pass/FullScreenPass.h"
@@ -121,7 +115,7 @@ AccelerationStructureCopyMode getGFXAcclerationStructureCopyMode(RenderContext::
 }
 } // namespace
 
-RenderContext::RenderContext(Device* pDevice, ICommandQueue* pQueue) : ComputeContext(pDevice, pQueue)
+RenderContext::RenderContext(Device* pDevice, nvrhi::ICommandList* pQueue) : ComputeContext(pDevice, pQueue)
 {
     mpBlitContext = std::make_unique<BlitContext>(pDevice);
 }
@@ -131,7 +125,7 @@ RenderContext::~RenderContext() {}
 void RenderContext::clearFbo(const Fbo* pFbo, const float4& color, float depth, uint8_t stencil, FboAttachmentType flags)
 {
     bool hasDepthStencilTexture = pFbo->getDepthStencilTexture() != nullptr;
-    ResourceFormat depthStencilFormat = hasDepthStencilTexture ? pFbo->getDepthStencilTexture()->getFormat() : ResourceFormat::Unknown;
+    nvrhi::Format depthStencilFormat = hasDepthStencilTexture ? pFbo->getDepthStencilTexture()->getFormat() : nvrhi::Format::Unknown;
 
     bool clearColor = (flags & FboAttachmentType::Color) != FboAttachmentType::None;
     bool clearDepth = hasDepthStencilTexture && ((flags & FboAttachmentType::Depth) != FboAttachmentType::None);
@@ -203,7 +197,7 @@ void RenderContext::submit(bool wait)
 }
 
 void RenderContext::blit(
-    const ref<ShaderResourceView>& pSrc,
+    const nvrhi::BindingSetItem& pSrc,
     const ref<RenderTargetView>& pDst,
     uint4 srcRect,
     uint4 dstRect,
@@ -227,7 +221,7 @@ void RenderContext::blit(
 }
 
 void RenderContext::blit(
-    const ref<ShaderResourceView>& pSrc,
+    const nvrhi::BindingSetItem& pSrc,
     const ref<RenderTargetView>& pDst,
     uint4 srcRect,
     uint4 dstRect,
@@ -332,7 +326,7 @@ void RenderContext::blit(
     {
         FALCOR_ASSERT(sampleCount <= 1);
 
-        ref<Sampler> usedSampler[4];
+        nvrhi::SamplerHandle usedSampler[4];
         for (uint32_t i = 0; i < 4; i++)
         {
             FALCOR_ASSERT(componentsReduction[i] != TextureReductionMode::Comparison); // Comparison mode not supported.
@@ -396,7 +390,7 @@ void RenderContext::blit(
         blitCtx.prevSrcReftScale = srcRectScale;
     }
 
-    ref<Texture> pSharedTex = pDstResource->asTexture();
+    nvrhi::TextureHandle pSharedTex = pDstResource->asTexture();
     blitCtx.pFbo->attachColorTarget(
         pSharedTex, 0, pDst->getViewInfo().mostDetailedMip, pDst->getViewInfo().firstArraySlice, pDst->getViewInfo().arraySize
     );
@@ -542,7 +536,7 @@ void RenderContext::raytrace(Program* pProgram, RtProgramVars* pVars, uint32_t w
     mCommandsPending = true;
 }
 
-void RenderContext::resolveSubresource(const ref<Texture>& pSrc, uint32_t srcSubresource, const ref<Texture>& pDst, uint32_t dstSubresource)
+void RenderContext::resolveSubresource(const nvrhi::TextureHandle& pSrc, uint32_t srcSubresource, const nvrhi::TextureHandle& pDst, uint32_t dstSubresource)
 {
     // TODO it would be better to just use barriers on the subresources.
     resourceBarrier(pSrc.get(), Resource::State::ResolveSource);
@@ -572,7 +566,7 @@ void RenderContext::resolveSubresource(const ref<Texture>& pSrc, uint32_t srcSub
     mCommandsPending = true;
 }
 
-void RenderContext::resolveResource(const ref<Texture>& pSrc, const ref<Texture>& pDst)
+void RenderContext::resolveResource(const nvrhi::TextureHandle& pSrc, const nvrhi::TextureHandle& pDst)
 {
     FALCOR_CHECK(pSrc->getType() == Resource::Type::Texture2DMultisample, "Source texture must be multi-sampled.");
     FALCOR_CHECK(pDst->getType() == Resource::Type::Texture2D, "Destination texture must not be multi-sampled.");

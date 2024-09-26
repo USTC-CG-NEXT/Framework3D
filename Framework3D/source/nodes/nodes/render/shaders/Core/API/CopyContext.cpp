@@ -48,7 +48,7 @@
 
 namespace Falcor
 {
-CopyContext::CopyContext(Device* pDevice, ICommandQueue* pQueue) : mpDevice(pDevice)
+CopyContext::CopyContext(Device* pDevice, nvrhi::ICommandList* pQueue) : mpDevice(pDevice)
 {
     FALCOR_ASSERT(mpDevice);
     FALCOR_ASSERT(pQueue);
@@ -57,9 +57,9 @@ CopyContext::CopyContext(Device* pDevice, ICommandQueue* pQueue) : mpDevice(pDev
 
 CopyContext::~CopyContext() = default;
 
-ref<Device> CopyContext::getDevice() const
+nvrhi::DeviceHandle CopyContext::getDevice() const
 {
-    return ref<Device>(mpDevice);
+    return nvrhi::DeviceHandle(mpDevice);
 }
 
 Profiler* CopyContext::getProfiler() const

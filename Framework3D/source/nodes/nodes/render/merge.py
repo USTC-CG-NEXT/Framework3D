@@ -40,7 +40,7 @@ if __name__ == "__main__":
         ('ResourceFormat', 'nvrhi::Format'),
         ('ref<UnorderedAccessView>', 'nvrhi::BindingSetItem'),
         ('ShaderResourceType', 'ResourceType'),
-        ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
+        ('ICommandQueue', 'nvrhi::ICommandList'),
         ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
         ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),
         ('ref<ShaderResourceView>', 'nvrhi::BindingSetItem'),

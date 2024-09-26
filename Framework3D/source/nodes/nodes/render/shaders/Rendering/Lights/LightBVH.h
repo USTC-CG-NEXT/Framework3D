@@ -83,7 +83,7 @@ class FALCOR_API LightBVH {
        will be built.
     */
     LightBVH(
-        ref<Device> pDevice,
+        nvrhi::DeviceHandle pDevice,
         const ref<const ILightCollection>& pLightCollection);
 
     /** Returns the LightCollection the LightBVH is built on.
@@ -169,7 +169,7 @@ class FALCOR_API LightBVH {
     };
 
     // Internal state
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
     ref<const ILightCollection> mpLightCollection;
 
     ref<ComputePass>
@@ -198,17 +198,17 @@ class FALCOR_API LightBVH {
                                            ///< data matches the GPU buffers.
 
     // GPU resources
-    ref<Buffer> mpBVHNodesBuffer;  ///< Buffer holding all BVH nodes.
-    ref<Buffer>
+    nvrhi::BufferHandle mpBVHNodesBuffer;  ///< Buffer holding all BVH nodes.
+    nvrhi::BufferHandle
         mpTriangleIndicesBuffer;  ///< Triangle indices sorted by leaf node.
                                   ///< Each leaf node refers to a contiguous
                                   ///< array of triangle indices.
-    ref<Buffer>
+    nvrhi::BufferHandle
         mpTriangleBitmasksBuffer;  ///< Array containing the per triangle bit
                                    ///< pattern retracing the tree traversal to
                                    ///< reach the triangle: 0=left child,
                                    ///< 1=right child.
-    ref<Buffer>
+    nvrhi::BufferHandle
         mpNodeIndicesBuffer;  ///< Buffer holding all node indices sorted by
                               ///< tree depth. This is used for BVH refit.
 

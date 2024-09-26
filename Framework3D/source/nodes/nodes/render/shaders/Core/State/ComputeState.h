@@ -25,43 +25,72 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "BaseGraphicsPass.h"
+#pragma once
+#include <memory>
+
+#include "Core/API/ComputeStateObject.h"
+#include "Core/Macros.h"
+#include "Core/Object.h"
+#include "Core/Program/Program.h"
+#include "StateGraph.h"
 
 namespace Falcor {
-BaseGraphicsPass::BaseGraphicsPass(
-    nvrhi::DeviceHandle pDevice,
-    const ProgramDesc& progDesc,
-    const DefineList& programDefines)
-    : mpDevice(pDevice)
-{
-    auto pProg = Program::create(mpDevice, progDesc, programDefines);
+class ProgramVars;
 
-    mpState->setProgram(pProg);
+/**
+ * Compute state.
+ * This class contains the entire state required by a single dispatch call. It's
+ * not an immutable object - you can change it dynamically during rendering. The
+ * recommended way to use it is to create multiple ComputeState objects
+ * (ideally, a single object per program)
+ */
+class FALCOR_API ComputeState : public Object {
+    FALCOR_OBJECT(ComputeState)
+   public:
+    ~ComputeState() = default;
 
-    mpVars = ProgramVars::create(mpDevice, pProg.get());
-}
+    /**
+     * Create a new state object.
+     * @param pDevice GPU device.
+     * @return A new object, or an exception is thrown if creation failed.
+     */
+    static ref<ComputeState> create(ref<Device> pDevice);
 
-void BaseGraphicsPass::addDefine(
-    const std::string& name,
-    const std::string& value,
-    bool updateVars)
-{
-    mpState->getProgram()->addDefine(name, value);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+    /**
+     * Bind a program to the pipeline
+     */
+    ComputeState& setProgram(ref<Program> pProgram)
+    {
+        mpProgram = pProgram;
+        return *this;
+    }
 
-void BaseGraphicsPass::removeDefine(const std::string& name, bool updateVars)
-{
-    mpState->getProgram()->removeDefine(name);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+    /**
+     * Get the currently bound program
+     */
+    ref<Program> getProgram() const
+    {
+        return mpProgram;
+    }
 
-void BaseGraphicsPass::setVars(const ref<ProgramVars>& pVars)
-{
-    mpVars = pVars ? pVars
-                   : ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+    /**
+     * Get the active compute state object
+     */
+    ref<ComputeStateObject> getCSO(const ProgramVars* pVars);
 
+   private:
+    ComputeState(ref<Device> pDevice);
+
+    ref<Device> mpDevice;
+    ref<Program> mpProgram;
+    ComputeStateObjectDesc mDesc;
+
+    struct CachedData {
+        const ProgramKernels* pProgramKernels = nullptr;
+    };
+    CachedData mCachedData;
+
+    using ComputeStateGraph = StateGraph<ref<ComputeStateObject>, void*>;
+    std::unique_ptr<ComputeStateGraph> mpCsoGraph;
+};
 }  // namespace Falcor

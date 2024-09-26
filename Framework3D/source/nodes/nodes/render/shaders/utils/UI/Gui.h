@@ -683,7 +683,7 @@ public:
     };
 
     /// Constructor.
-    Gui(ref<Device> pDevice, uint32_t width, uint32_t height, float scaleFactor = 1.f);
+    Gui(nvrhi::DeviceHandle pDevice, uint32_t width, uint32_t height, float scaleFactor = 1.f);
 
     ~Gui();
 

@@ -153,12 +153,12 @@
 
 #include <nvrhi/nvrhi.h>
 
-using namespace nvrhi;
-
-using Device = IDevice;
-using Texture = ITexture;
-using Buffer = IBuffer;
-using Resource = IResource;
+using Device = nvrhi::IDevice;
+using Texture = nvrhi::ITexture;
+using Buffer = nvrhi::IBuffer;
+using Resource = nvrhi::IResource;
+using Fbo = nvrhi::IFramebuffer;
 
 using ShaderOffset = unsigned;
 
+using RtAccelerationStructure = nvrhi::rt::IAccelStruct;

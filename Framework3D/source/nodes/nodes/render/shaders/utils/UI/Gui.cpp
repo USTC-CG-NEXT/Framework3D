@@ -48,7 +48,7 @@
 namespace Falcor {
 class GuiImpl {
    public:
-    GuiImpl(ref<Device> pDevice, float scaleFactor);
+    GuiImpl(nvrhi::DeviceHandle pDevice, float scaleFactor);
 
    private:
     friend class Gui;
@@ -83,7 +83,7 @@ class GuiImpl {
     void setIoMouseEvents();
     void resetMouseEvents();
 
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
     ImGuiContext* mpContext;
     ref<Vao> mpVaos[kVaoCount];
     uint32_t mVaoIndex = 0;
@@ -97,7 +97,7 @@ class GuiImpl {
     float mScaleFactor = 1.0f;
     std::unordered_map<std::string, ImFont*> mFontMap;
     ImFont* mpActiveFont = nullptr;
-    std::map<std::filesystem::path, ref<Texture>> mLoadedImages;
+    std::map<std::filesystem::path, nvrhi::TextureHandle> mLoadedImages;
 
     bool beginMenu(const char* name);
     void endMenu();
@@ -254,7 +254,7 @@ class GuiImpl {
         uint32_t height = 100);
 };
 
-GuiImpl::GuiImpl(ref<Device> pDevice, float scaleFactor)
+GuiImpl::GuiImpl(nvrhi::DeviceHandle pDevice, float scaleFactor)
     : mpDevice(pDevice),
       mScaleFactor(scaleFactor)
 {
@@ -414,11 +414,11 @@ GuiImpl::GuiImpl(ref<Device> pDevice, float scaleFactor)
     // Create the VAO
     ref<VertexBufferLayout> pBufLayout = VertexBufferLayout::create();
     pBufLayout->addElement(
-        "POSITION", offsetof(ImDrawVert, pos), ResourceFormat::RG32Float, 1, 0);
+        "POSITION", offsetof(ImDrawVert, pos), nvrhi::Format::RG32Float, 1, 0);
     pBufLayout->addElement(
-        "TEXCOORD", offsetof(ImDrawVert, uv), ResourceFormat::RG32Float, 1, 1);
+        "TEXCOORD", offsetof(ImDrawVert, uv), nvrhi::Format::RG32Float, 1, 1);
     pBufLayout->addElement(
-        "COLOR", offsetof(ImDrawVert, col), ResourceFormat::RGBA8Unorm, 1, 2);
+        "COLOR", offsetof(ImDrawVert, col), nvrhi::Format::RGBA8Unorm, 1, 2);
     mpLayout = VertexLayout::create();
     mpLayout->addBufferLayout(0, pBufLayout);
 
@@ -451,14 +451,14 @@ const ref<Vao>& GuiImpl::getNextVao(uint32_t vertexCount, uint32_t indexCount)
     }
 
     // Need to create a new VAO
-    std::vector<ref<Buffer>> pVB(1);
+    std::vector<nvrhi::BufferHandle> pVB(1);
     pVB[0] = createVB ? mpDevice->createBuffer(
                             requiredVbSize + sizeof(ImDrawVert) * 1000,
                             ResourceBindFlags::Vertex,
                             MemoryType::Upload,
                             nullptr)
                       : pVao->getVertexBuffer(0);
-    ref<Buffer> pIB = createIB ? mpDevice->createBuffer(
+    nvrhi::BufferHandle pIB = createIB ? mpDevice->createBuffer(
                                      requiredIbSize,
                                      ResourceBindFlags::Index,
                                      MemoryType::Upload,
@@ -469,7 +469,7 @@ const ref<Vao>& GuiImpl::getNextVao(uint32_t vertexCount, uint32_t indexCount)
         mpLayout,
         pVB,
         pIB,
-        ResourceFormat::R16Uint);
+        nvrhi::Format::R16Uint);
     return pVao;
 }
 
@@ -480,8 +480,8 @@ void GuiImpl::compileFonts()
 
     // Initialize font data
     ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pFontData, &width, &height);
-    ref<Texture> pTexture = mpDevice->createTexture2D(
-        width, height, ResourceFormat::R8Unorm, 1, 1, pFontData);
+    nvrhi::TextureHandle pTexture = mpDevice->createTexture2D(
+        width, height, nvrhi::Format::R8Unorm, 1, 1, pFontData);
     mpProgramVars->setTexture("gFont", pTexture);
 }
 
@@ -964,7 +964,7 @@ const Texture* GuiImpl::loadImage(const std::filesystem::path& path)
     if (it != mLoadedImages.end())
         return it->second.get();
 
-    ref<Texture> pTex = Texture::createFromFile(mpDevice, path, false, true);
+    nvrhi::TextureHandle pTex = Texture::createFromFile(mpDevice, path, false, true);
     if (!pTex)
         FALCOR_THROW("Failed to load GUI image from '{}'.", path);
     return mLoadedImages.emplace(path, pTex).first->second.get();
@@ -1503,7 +1503,7 @@ void GuiImpl::addGraph(
 }
 
 Gui::Gui(
-    ref<Device> pDevice,
+    nvrhi::DeviceHandle pDevice,
     uint32_t width,
     uint32_t height,
     float scaleFactor)

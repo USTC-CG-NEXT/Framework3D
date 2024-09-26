@@ -43,7 +43,7 @@ public:
      * Create a new timer object.
      * @return A new object, or throws an exception if creation failed.
      */
-    static ref<GpuTimer> create(ref<Device> pDevice);
+    static ref<GpuTimer> create(nvrhi::DeviceHandle pDevice);
 
     /**
      * Destroy a new object
@@ -80,7 +80,7 @@ public:
     void breakStrongReferenceToDevice();
 
 private:
-    GpuTimer(ref<Device> pDevice);
+    GpuTimer(nvrhi::DeviceHandle pDevice);
 
     enum class Status
     {
@@ -96,7 +96,7 @@ private:
     double mElapsedTime = 0.0;
     bool mDataPending = false; ///< Set to true when resolved timings are available for readback.
 
-    ref<Buffer> mpResolveBuffer;        ///< GPU memory used as destination for resolving timestamp queries.
-    ref<Buffer> mpResolveStagingBuffer; ///< CPU mappable memory for readback of resolved timings.
+    nvrhi::BufferHandle mpResolveBuffer;        ///< GPU memory used as destination for resolving timestamp queries.
+    nvrhi::BufferHandle mpResolveStagingBuffer; ///< CPU mappable memory for readback of resolved timings.
 };
 } // namespace Falcor

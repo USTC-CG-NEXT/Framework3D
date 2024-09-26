@@ -25,43 +25,47 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "BaseGraphicsPass.h"
+#pragma once
+#include "Core/Macros.h"
+#include "Core/Object.h"
+#include "Core/Program/ProgramVersion.h"
 
 namespace Falcor {
-BaseGraphicsPass::BaseGraphicsPass(
-    nvrhi::DeviceHandle pDevice,
-    const ProgramDesc& progDesc,
-    const DefineList& programDefines)
-    : mpDevice(pDevice)
-{
-    auto pProg = Program::create(mpDevice, progDesc, programDefines);
+#if FALCOR_HAS_D3D12
+class D3D12RootSignature;
+#endif
 
-    mpState->setProgram(pProg);
+struct ComputeStateObjectDesc {
+    ref<const ProgramKernels> pProgramKernels;
 
-    mpVars = ProgramVars::create(mpDevice, pProg.get());
-}
+    bool operator==(const ComputeStateObjectDesc& other) const
+    {
+        bool result = true;
+        result = result && (pProgramKernels == other.pProgramKernels);
 
-void BaseGraphicsPass::addDefine(
-    const std::string& name,
-    const std::string& value,
-    bool updateVars)
-{
-    mpState->getProgram()->addDefine(name, value);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+        return result;
+    }
+};
 
-void BaseGraphicsPass::removeDefine(const std::string& name, bool updateVars)
-{
-    mpState->getProgram()->removeDefine(name);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+class FALCOR_API ComputeStateObject : public Object {
+    FALCOR_OBJECT(ComputeStateObject)
+   public:
+    ComputeStateObject(ref<Device> pDevice, ComputeStateObjectDesc desc);
+    ~ComputeStateObject();
 
-void BaseGraphicsPass::setVars(const ref<ProgramVars>& pVars)
-{
-    mpVars = pVars ? pVars
-                   : ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+    nvrhi::IComputePipeline* getGfxPipelineState() const
+    {
+        return mGfxPipelineState.Get();
+    }
 
+    const ComputeStateObjectDesc& getDesc() const
+    {
+        return mDesc;
+    }
+
+   private:
+    ref<Device> mpDevice;
+    ComputeStateObjectDesc mDesc;
+    nvrhi::ComputePipelineHandle mGfxPipelineState;
+};
 }  // namespace Falcor

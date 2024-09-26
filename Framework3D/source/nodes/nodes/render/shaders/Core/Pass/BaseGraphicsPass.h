@@ -90,8 +90,6 @@ class FALCOR_API BaseGraphicsPass : public Object {
      */
     void setVars(const ref<ProgramVars>& pVars);
 
-    void breakStrongReferenceToDevice();
-
    protected:
     /**
      * Create a new object.

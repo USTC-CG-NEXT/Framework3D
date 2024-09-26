@@ -32,6 +32,7 @@
 
 #include "Core/Macros.h"
 #include "ResourceViews.h"
+#include "utils/CudaRuntime.h"
 
 #if FALCOR_HAS_CUDA
 struct CUstream_st;
@@ -56,7 +57,7 @@ class FALCOR_API CopyContext {
 
        private:
         ReadTextureTask() = default;
-        ref<Buffer> mpBuffer;
+        nvrhi::BufferHandle mpBuffer;
         CopyContext* mpContext;
         uint32_t mRowCount;
         uint32_t mRowSize;
@@ -70,10 +71,10 @@ class FALCOR_API CopyContext {
      * @param[in] pDevice Graphics device.
      * @param[in] pQueue Command queue.
      */
-    CopyContext(Device* pDevice, ICommandQueue* pQueue);
+    CopyContext(Device* pDevice, nvrhi::ICommandList* pQueue);
     virtual ~CopyContext();
 
-    ref<Device> getDevice() const;
+    nvrhi::DeviceHandle getDevice() const;
 
     Profiler* getProfiler() const;
 
@@ -103,27 +104,6 @@ class FALCOR_API CopyContext {
     }
 
     /**
-     * Signal a fence.
-     * @param pFence The fence to signal.
-     * @param value The value to signal. If Fence::kAuto, the signaled value
-     * will be auto-incremented.
-     * @return Returns the signaled value.
-     */
-    uint64_t signal(Fence* pFence, uint64_t value = Fence::kAuto);
-
-    /**
-     * Wait for a fence to be signaled on the device.
-     * Queues a device-side wait and returns immediately.
-     * The device will wait until the fence reaches or exceeds the specified
-     * value.
-     * @param pFence The fence to wait for.
-     * @param value The value to wait for. If Fence::kAuto, wait for the last
-     * signaled value.
-     */
-    void wait(Fence* pFence, uint64_t value = Fence::kAuto);
-
-#if FALCOR_HAS_CUDA
-    /**
      * Wait for the CUDA stream to finish execution.
      * Queues a device-side wait on the command queue and adds an async fence
      * signal on the CUDA stream. Returns immediately.
@@ -138,7 +118,6 @@ class FALCOR_API CopyContext {
      * @param stream The CUDA stream to wait on.
      */
     void waitForFalcor(cudaStream_t stream = 0);
-#endif
 
     /**
      * Insert a resource barrier
@@ -239,7 +218,7 @@ class FALCOR_API CopyContext {
         size_t elementCount = 0)
     {
         if (elementCount == 0)
-            elementCount = pBuffer->getSize() / sizeof(T);
+            elementCount = pBuffer->getDesc().byteSize / sizeof(T);
 
         size_t offset = firstElement * sizeof(T);
         size_t numBytes = elementCount * sizeof(T);
@@ -308,7 +287,6 @@ class FALCOR_API CopyContext {
         const uint3& size = uint3(-1));
 
     Device* mpDevice;
-    std::unique_ptr<LowLevelContextData> mpLowLevelData;
     bool mCommandsPending = false;
 };
 }  // namespace Falcor

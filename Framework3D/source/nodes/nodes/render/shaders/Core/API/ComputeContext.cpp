@@ -32,7 +32,7 @@
 
 namespace Falcor
 {
-ComputeContext::ComputeContext(Device* pDevice, ICommandQueue* pQueue) : CopyContext(pDevice, pQueue)
+ComputeContext::ComputeContext(Device* pDevice, nvrhi::ICommandList* pQueue) : CopyContext(pDevice, pQueue)
 {
     bindDescriptorHeaps(); // TODO: Should this be done here?
 }
@@ -82,7 +82,7 @@ void ComputeContext::clearUAV(const UnorderedAccessView* pUav, const uint4& valu
     mCommandsPending = true;
 }
 
-void ComputeContext::clearUAVCounter(const ref<Buffer>& pBuffer, uint32_t value)
+void ComputeContext::clearUAVCounter(const nvrhi::BufferHandle& pBuffer, uint32_t value)
 {
     if (pBuffer->getUAVCounter())
     {

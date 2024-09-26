@@ -223,7 +223,7 @@ class FALCOR_API ProgramKernels : public Object {
      * Get an attached shader object, or nullptr if no shader is attached to the
      * slot.
      */
-    const EntryPointKernel* getKernel(ShaderType type) const;
+    const EntryPointKernel* getKernel(nvrhi::ShaderType type) const;
 
     /**
      * Get the program name
@@ -316,7 +316,7 @@ class ProgramVersion : public Object {
      */
     // TODO @skallweit passing pDevice here is a bit of a WAR
     ref<const ProgramKernels> getKernels(
-        IDevice* pDevice,
+        nvrhi::IDevice* pDevice,
         ProgramVars const* pVars) const;
 
     slang::ISession* getSlangSession() const;

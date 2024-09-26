@@ -27,41 +27,44 @@
  **************************************************************************/
 #pragma once
 #include "CopyContext.h"
-#include "Handles.h"
-#include "Buffer.h"
-#include "LowLevelContextData.h"
 #include "Core/Macros.h"
 #include "Utils/Math/Vector.h"
 
-namespace Falcor
-{
+namespace Falcor {
 class ComputeState;
 class ProgramVars;
 class ProgramKernels;
 class UnorderedAccessView;
 
-class FALCOR_API ComputeContext : public CopyContext
-{
-public:
+class FALCOR_API ComputeContext : public CopyContext {
+   public:
     /**
      * Constructor.
      * Throws an exception if creation failed.
      * @param[in] pDevice Graphics device.
      * @param[in] pQueue Command queue.
      */
-    ComputeContext(Device* pDevice, ICommandQueue* pQueue);
+    ComputeContext(Device* pDevice, nvrhi::ICommandList* pQueue);
     ~ComputeContext();
 
     /**
      * Dispatch a compute task
      * @param[in] dispatchSize 3D dispatch group size
      */
-    void dispatch(ComputeState* pState, ProgramVars* pVars, const uint3& dispatchSize);
+    void dispatch(
+        ComputeState* pState,
+        ProgramVars* pVars,
+        const uint3& dispatchSize);
 
     /**
-     * Executes a dispatch call. Args to the dispatch call are contained in pArgBuffer
+     * Executes a dispatch call. Args to the dispatch call are contained in
+     * pArgBuffer
      */
-    void dispatchIndirect(ComputeState* pState, ProgramVars* pVars, const Buffer* pArgBuffer, uint64_t argBufferOffset);
+    void dispatchIndirect(
+        ComputeState* pState,
+        ProgramVars* pVars,
+        const Buffer* pArgBuffer,
+        uint64_t argBufferOffset);
 
     /**
      * Clear an unordered-access view
@@ -82,17 +85,17 @@ public:
      * @param[in] pBuffer Structured Buffer containing UAV counter
      * @param[in] value Value to clear counter to
      */
-    void clearUAVCounter(const ref<Buffer>& pBuffer, uint32_t value);
+    void clearUAVCounter(const nvrhi::BufferHandle& pBuffer, uint32_t value);
 
     /**
      * Submit the command list
      */
     virtual void submit(bool wait = false) override;
 
-protected:
-    ComputeContext(ICommandQueue* pQueue);
+   protected:
+    ComputeContext(nvrhi::ICommandList* pQueue);
 
     const ProgramVars* mpLastBoundComputeVars = nullptr;
 };
 
-} // namespace Falcor
+}  // namespace Falcor

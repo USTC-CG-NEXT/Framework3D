@@ -26,18 +26,17 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "PixelDebugTypes.slang"
-#include "Core/Macros.h"
-
-
-#include "Core/Program/Program.h"
-
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
-namespace Falcor
-{
+#include "Core/Macros.h"
+#include "Core/Program/Program.h"
+#include "Core/Program/ShaderVar.h"
+#include "PixelDebugTypes.slang"
+#include "utils/UI/Gui.h"
+
+namespace Falcor {
 class RenderContext;
 
 /**
@@ -45,9 +44,11 @@ class RenderContext;
  *
  * Host-side integration:
  * - Create PixelDebug object
- * - Call beginFrame()/endFrame() before and after executing programs with debugging.
+ * - Call beginFrame()/endFrame() before and after executing programs with
+ * debugging.
  * - Call prepareProgram() before launching a program to use debugging.
- * - Call onMouseEvent() and renderUI() from the respective callbacks in the render pass.
+ * - Call onMouseEvent() and renderUI() from the respective callbacks in the
+ * render pass.
  *
  * Runtime usage:
  * - Import PixelDebug.slang in your shader.
@@ -62,16 +63,20 @@ class RenderContext;
  * The shader code is disabled (using macros) when debugging is off.
  * When enabled, async readback is used but expect a minor perf loss.
  */
-class FALCOR_API PixelDebug
-{
-public:
+class FALCOR_API PixelDebug {
+   public:
     /**
      * Constructor. Throws an exception on error.
      * @param[in] pDevice GPU device.
-     * @param[in] printCapacity Maximum number of shader print() statements per frame.
-     * @param[in] assertCapacity Maximum number of shader assert() statements per frame.
+     * @param[in] printCapacity Maximum number of shader print() statements per
+     * frame.
+     * @param[in] assertCapacity Maximum number of shader assert() statements
+     * per frame.
      */
-    PixelDebug(nvrhi::DeviceHandle pDevice, uint32_t printCapacity = 100, uint32_t assertCapacity = 100);
+    PixelDebug(
+        nvrhi::DeviceHandle pDevice,
+        uint32_t printCapacity = 100,
+        uint32_t assertCapacity = 100);
 
     void beginFrame(RenderContext* pRenderContext, const uint2& frameDim);
     void endFrame(RenderContext* pRenderContext);
@@ -82,41 +87,55 @@ public:
      */
     void prepareProgram(const ref<Program>& pProgram, const ShaderVar& var);
 
-    void renderUI(Gui::Widgets& widget) { renderUI(&widget); }
+    void renderUI(Gui::Widgets& widget)
+    {
+        renderUI(&widget);
+    }
     void renderUI(Gui::Widgets* widget = nullptr);
     bool onMouseEvent(const MouseEvent& mouseEvent);
 
-    void enable() { mEnabled = true; }
+    void enable()
+    {
+        mEnabled = true;
+    }
 
-protected:
+   protected:
     bool copyDataToCPU();
 
     // Internal state
     nvrhi::DeviceHandle mpDevice;
-    ref<Program> mpReflectProgram; ///< Program for reflection of types.
-    nvrhi::BufferHandle mpCounterBuffer;   ///< Counter buffer (print, assert) on the GPU.
-    nvrhi::BufferHandle mpPrintBuffer;     ///< Print buffer on the GPU.
-    nvrhi::BufferHandle mpAssertBuffer;    ///< Assert buffer on the GPU.
-    nvrhi::BufferHandle mpReadbackBuffer;  ///< Staging buffer for async readback of all data.
-    ref<Fence> mpFence;            ///< GPU fence for sychronizing readback.
+    ref<Program> mpReflectProgram;  ///< Program for reflection of types.
+    nvrhi::BufferHandle
+        mpCounterBuffer;  ///< Counter buffer (print, assert) on the GPU.
+    nvrhi::BufferHandle mpPrintBuffer;   ///< Print buffer on the GPU.
+    nvrhi::BufferHandle mpAssertBuffer;  ///< Assert buffer on the GPU.
+    nvrhi::BufferHandle
+        mpReadbackBuffer;  ///< Staging buffer for async readback of all data.
 
     // Configuration
-    bool mEnabled = false;         ///< Enable debugging features.
-    uint2 mSelectedPixel = {0, 0}; ///< Currently selected pixel.
+    bool mEnabled = false;            ///< Enable debugging features.
+    uint2 mSelectedPixel = { 0, 0 };  ///< Currently selected pixel.
 
     // Runtime data
-    uint2 mFrameDim = {0, 0};
+    uint2 mFrameDim = { 0, 0 };
 
-    bool mRunning = false;        ///< True when data collection is running (inbetween begin()/end() calls).
-    bool mWaitingForData = false; ///< True if we are waiting for data to become available on the GPU.
-    bool mDataValid = false;      ///< True if data has been read back and is valid.
+    bool mRunning = false;  ///< True when data collection is running (inbetween
+                            ///< begin()/end() calls).
+    bool mWaitingForData = false;  ///< True if we are waiting for data to
+                                   ///< become available on the GPU.
+    bool mDataValid = false;  ///< True if data has been read back and is valid.
 
-    std::unordered_map<uint32_t, std::string> mHashToString; ///< Map of string hashes to string values.
+    std::unordered_map<uint32_t, std::string>
+        mHashToString;  ///< Map of string hashes to string values.
 
-    std::vector<PrintRecord> mPrintData;   ///< Print data read back from the GPU.
-    std::vector<AssertRecord> mAssertData; ///< Assert log data read back from the GPU.
+    std::vector<PrintRecord>
+        mPrintData;  ///< Print data read back from the GPU.
+    std::vector<AssertRecord>
+        mAssertData;  ///< Assert log data read back from the GPU.
 
-    const uint32_t mPrintCapacity = 0;  ///< Capacity of the print buffer in elements.
-    const uint32_t mAssertCapacity = 0; ///< Capacity of the assert buffer in elements.
+    const uint32_t mPrintCapacity =
+        0;  ///< Capacity of the print buffer in elements.
+    const uint32_t mAssertCapacity =
+        0;  ///< Capacity of the assert buffer in elements.
 };
-} // namespace Falcor
+}  // namespace Falcor

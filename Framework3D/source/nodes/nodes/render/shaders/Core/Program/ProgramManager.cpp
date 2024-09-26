@@ -733,12 +733,12 @@ SlangCompileRequest* ProgramManager::createSlangCompileRequest(
     const char* targetMacroName;
 
     // Pick the right target based on the current graphics API
-    switch (mpDevice->getType()) {
-        case Device::Type::D3D12:
+    switch (mpDevice->getGraphicsAPI()) {
+        case GraphicsAPI::D3D12:
             targetDesc.format = SLANG_DXIL;
             targetMacroName = "FALCOR_D3D12";
             break;
-        case Device::Type::Vulkan:
+        case GraphicsAPI::VULKAN:
             targetDesc.format = SLANG_SPIRV;
             targetMacroName = "FALCOR_VULKAN";
             break;
@@ -815,7 +815,7 @@ SlangCompileRequest* ProgramManager::createSlangCompileRequest(
     // operators. Facor is still written with the assumption that these
     // operators do not short-circuit. We want to transition to the new
     // behavior, but for now we disable it.
-    addIntOption(slang::CompilerOptionName::DisableShortCircuit, 1);
+    // addIntOption(slang::CompilerOptionName::DisableShortCircuit, 1);
 
     // Disable noisy warnings enabled in newer slang versions.
     addStringOption(

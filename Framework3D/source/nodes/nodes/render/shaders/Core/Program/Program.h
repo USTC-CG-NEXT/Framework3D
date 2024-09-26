@@ -874,6 +874,8 @@ class FALCOR_API Program : public Object {
 
     nvrhi::DeviceHandle mpDevice;
 
+    nvrhi::ResourceHandle shaderProgram;
+
     // The description used to create this program
     // TODO we should make this const again
     ProgramDesc mDesc;

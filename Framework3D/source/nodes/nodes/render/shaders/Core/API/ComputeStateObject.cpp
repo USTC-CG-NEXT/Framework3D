@@ -25,43 +25,36 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "BaseGraphicsPass.h"
+#include "ComputeStateObject.h"
 
 namespace Falcor {
-BaseGraphicsPass::BaseGraphicsPass(
-    nvrhi::DeviceHandle pDevice,
-    const ProgramDesc& progDesc,
-    const DefineList& programDefines)
-    : mpDevice(pDevice)
+
+ComputeStateObject::ComputeStateObject(
+    ref<Device> pDevice,
+    ComputeStateObjectDesc desc)
+    : mpDevice(std::move(pDevice)),
+      mDesc(std::move(desc))
 {
-    auto pProg = Program::create(mpDevice, progDesc, programDefines);
-
-    mpState->setProgram(pProg);
-
-    mpVars = ProgramVars::create(mpDevice, pProg.get());
+    nvrhi::ComputePipelineDesc computePipelineDesc = {};
+    computePipelineDesc.program = mDesc.pProgramKernels->getGfxProgram();
+#if FALCOR_HAS_D3D12
+    if (mDesc.pD3D12RootSignatureOverride)
+        mpDevice->requireD3D12();
+    if (mpDevice->getType() == Device::Type::D3D12) {
+        computePipelineDesc.d3d12RootSignatureOverride =
+            mDesc.pD3D12RootSignatureOverride
+                ? (void*)mDesc.pD3D12RootSignatureOverride->getApiHandle()
+                      .GetInterfacePtr()
+                : nullptr;
+    }
+#endif
+    FALCOR_GFX_CALL(mpDevice->getGfxDevice()->createComputePipelineState(
+        computePipelineDesc, mGfxPipelineState.writeRef()));
 }
 
-void BaseGraphicsPass::addDefine(
-    const std::string& name,
-    const std::string& value,
-    bool updateVars)
+ComputeStateObject::~ComputeStateObject()
 {
-    mpState->getProgram()->addDefine(name, value);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
-
-void BaseGraphicsPass::removeDefine(const std::string& name, bool updateVars)
-{
-    mpState->getProgram()->removeDefine(name);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
-
-void BaseGraphicsPass::setVars(const ref<ProgramVars>& pVars)
-{
-    mpVars = pVars ? pVars
-                   : ProgramVars::create(mpDevice, mpState->getProgram().get());
+    mGfxPipelineState = nullptr;
 }
 
 }  // namespace Falcor
