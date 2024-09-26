@@ -283,7 +283,7 @@ CopyContext::ReadTextureTask::SharedPtr CopyContext::ReadTextureTask::create(
     pThis->mpContext = pCtx;
     // Get footprint
     ITextureResource* srcTexture = pTexture->getGfxTextureResource();
-    FormatInfo formatInfo;
+    nvrhi::FormatInfo formatInfo;
     gfxGetFormatInfo(srcTexture->getDesc()->format, &formatInfo);
 
     auto mipLevel = pTexture->getSubresourceMipLevel(subresourceIndex);

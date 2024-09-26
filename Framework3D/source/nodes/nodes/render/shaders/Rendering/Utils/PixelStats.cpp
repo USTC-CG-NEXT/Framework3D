@@ -103,9 +103,7 @@ void PixelStats::beginFrame(
                         .setMipLevels(1)
                         .setDebugName("StatsRayCount")
                         .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
-                        .setBindFlags(
-                            nvrhi::BindFlags::ShaderResource |
-                            nvrhi::BindFlags::UnorderedAccess));
+                        .setIsUAV(true));
             }
             mpStatsPathLength = mpDevice->createTexture(
                 nvrhi::TextureDesc()
@@ -115,9 +113,7 @@ void PixelStats::beginFrame(
                     .setMipLevels(1)
                     .setDebugName("StatsPathLength")
                     .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
-                    .setBindFlags(
-                        nvrhi::BindFlags::ShaderResource |
-                        nvrhi::BindFlags::UnorderedAccess));
+                    .setIsUAV(true));
             mpStatsPathVertexCount = mpDevice->createTexture(
                 nvrhi::TextureDesc()
                     .setWidth(frameDim.x)
@@ -126,9 +122,7 @@ void PixelStats::beginFrame(
                     .setMipLevels(1)
                     .setDebugName("StatsPathVertexCount")
                     .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
-                    .setBindFlags(
-                        nvrhi::BindFlags::ShaderResource |
-                        nvrhi::BindFlags::UnorderedAccess));
+                    .setIsUAV(true));
             mpStatsVolumeLookupCount = mpDevice->createTexture(
                 nvrhi::TextureDesc()
                     .setWidth(frameDim.x)
@@ -137,9 +131,7 @@ void PixelStats::beginFrame(
                     .setMipLevels(1)
                     .setDebugName("StatsVolumeLookupCount")
                     .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
-                    .setBindFlags(
-                        nvrhi::BindFlags::ShaderResource |
-                        nvrhi::BindFlags::UnorderedAccess));
+                    .setIsUAV(true));
         }
 
         for (uint32_t i = 0; i < kRayTypeCount; i++) {
