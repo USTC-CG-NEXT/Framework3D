@@ -35,13 +35,14 @@
 #include "Core/Error.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
+#include "Core/Program/Program.h"
 #include "MaterialData.slang"
 #include "MaterialParamLayout.h"
 #include "MaterialTypeRegistry.h"
 #include "Scene/Transform.h"
 #include "SerializedMaterialParams.h"
 #include "TextureHandle.slang"
-#include "Utils/Image/TextureAnalyzer.h"
+#include "utils/UI/Gui.h"
 
 namespace Falcor {
 class MaterialSystem;
@@ -332,19 +333,6 @@ class FALCOR_API Material : public Object {
        exist.
     */
     virtual nvrhi::TextureHandle getTexture(const TextureSlot slot) const;
-
-    /** Optimize texture usage for the given texture slot.
-        This function may replace constant textures by uniform material
-       parameters etc. \param[in] slot The texture slot. \param[in] texInfo
-       Information about the texture bound to this slot. \param[out] stats
-       Optimization stats passed back to the caller.
-    */
-    virtual void optimizeTexture(
-        const TextureSlot slot,
-        const TextureAnalyzer::Result& texInfo,
-        TextureOptimizationStats& stats)
-    {
-    }
 
     /** Return the maximum dimensions of the bound textures.
      */

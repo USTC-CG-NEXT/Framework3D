@@ -190,3 +190,4 @@ using GpuMemoryHeap = nvrhi::IHeap;
 using QueryHeap = nvrhi::ITimerQuery;
 
 using Fence = nvrhi::IEventQuery;
+using DepthStencilView = nvrhi::BindingSetItem;
