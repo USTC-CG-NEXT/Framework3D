@@ -83,6 +83,7 @@ target_link_libraries(nodes PUBLIC hioOpenVDB EnTT::EnTT)
 target_link_libraries(nodes PUBLIC hioOpenVDB)
 target_link_libraries(nodes PUBLIC nvrhi DXC::dxc)
 target_link_libraries(nodes PUBLIC CUDA::toolkit)
+target_link_libraries(nodes PUBLIC imgui)
 
 target_include_directories(nodes PRIVATE ${CMAKE_CURRENT_LIST_DIR}/intern)
 target_include_directories(nodes PRIVATE ${PROJECT_SOURCE_DIR}/source/RCore/hd_USTC_CG_GL)

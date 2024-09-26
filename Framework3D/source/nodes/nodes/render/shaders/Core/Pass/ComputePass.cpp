@@ -28,6 +28,7 @@
 #include "ComputePass.h"
 
 
+#include "Core/API/ComputeContext.h"
 #include "Utils/Math/Common.h"
 #include "Utils/Scripting/ScriptBindings.h"
 
@@ -77,6 +78,8 @@ void ComputePass::executeIndirect(ComputeContext* pContext, const Buffer* pArgBu
 
 void ComputePass::addDefine(const std::string& name, const std::string& value, bool updateVars)
 {
+    nvrhi::ComputeState state;
+    state.
     mpState->getProgram()->addDefine(name, value);
     if (updateVars)
         mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
@@ -93,55 +96,6 @@ void ComputePass::setVars(const ref<ProgramVars>& pVars)
 {
     mpVars = pVars ? pVars : ProgramVars::create(mpDevice, mpState->getProgram().get());
     FALCOR_ASSERT(mpVars);
-}
-
-FALCOR_SCRIPT_BINDING(ComputePass)
-{
-    using namespace pybind11::literals;
-
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(Device)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ShaderVar)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ComputeContext)
-
-    pybind11::class_<ComputePass, ref<ComputePass>> computePass(m, "ComputePass");
-    computePass.def(
-        pybind11::init(
-            [](nvrhi::DeviceHandle device, std::optional<ProgramDesc> desc, pybind11::dict defines, const pybind11::kwargs& kwargs)
-            {
-                if (desc)
-                {
-                    FALCOR_CHECK(kwargs.empty(), "Either provide a 'desc' or kwargs, but not both.");
-                    return ComputePass::create(device, *desc, defineListFromPython(defines));
-                }
-                else
-                {
-                    return ComputePass::create(device, programDescFromPython(kwargs), defineListFromPython(defines));
-                }
-            }
-        ),
-        "device"_a,
-        "desc"_a = std::optional<ProgramDesc>(),
-        "defines"_a = pybind11::dict(),
-        pybind11::kw_only()
-    );
-
-    computePass.def_property_readonly("program", &ComputePass::getProgram);
-    computePass.def_property_readonly("root_var", &ComputePass::getRootVar);
-    computePass.def_property_readonly("globals", &ComputePass::getRootVar);
-
-    computePass.def(
-        "execute",
-        [](ComputePass& pass, uint32_t threads_x, uint32_t threads_y, uint32_t threads_z, ComputeContext* compute_context)
-        {
-            if (compute_context == nullptr)
-                compute_context = pass.getDevice()->getRenderContext();
-            pass.execute(compute_context, threads_x, threads_y, threads_z);
-        },
-        "threads_x"_a,
-        "threads_y"_a = 1,
-        "threads_z"_a = 1,
-        "compute_context"_a = nullptr
-    );
 }
 
 } // namespace Falcor

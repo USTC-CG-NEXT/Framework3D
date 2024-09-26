@@ -153,9 +153,6 @@ public:
     /// TODO: Replace this with more generic thing
     virtual const RenderSettings& getRenderSettings() const = 0;
 
-    /// Return the RtPipelineFlags relevant for the scene.
-    virtual RtPipelineFlags getRtPipelineFlags() const = 0;
-
     /// Get AABB for the currently updated scene.
     virtual const AABB& getSceneBounds() const = 0;
 

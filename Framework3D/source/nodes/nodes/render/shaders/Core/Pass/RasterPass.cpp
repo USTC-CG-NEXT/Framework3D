@@ -27,6 +27,8 @@
  **************************************************************************/
 #include "RasterPass.h"
 
+#include "Core/API/RenderContext.h"
+
 namespace Falcor {
 ref<RasterPass> RasterPass::create(
     nvrhi::DeviceHandle pDevice,

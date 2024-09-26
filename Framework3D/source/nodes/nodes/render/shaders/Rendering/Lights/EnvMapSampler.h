@@ -30,42 +30,52 @@
 #include "Core/Pass/ComputePass.h"
 #include "Scene/Lights/EnvMap.h"
 
-namespace Falcor
-{
-    class RenderContext;
+namespace Falcor {
+class RenderContext;
 
-    /** Environment map sampler.
-        Utily class for sampling and evaluating radiance stored in an omnidirectional environment map.
+/** Environment map sampler.
+    Utily class for sampling and evaluating radiance stored in an
+   omnidirectional environment map.
+*/
+class FALCOR_API EnvMapSampler {
+   public:
+    /** Create a new object.
+        \param[in] pDevice GPU device.
+        \param[in] pEnvMap The environment map.
     */
-    class FALCOR_API EnvMapSampler
+    EnvMapSampler(nvrhi::DeviceHandle pDevice, ref<EnvMap> pEnvMap);
+    virtual ~EnvMapSampler() = default;
+
+    /** Bind the environment map sampler to a given shader variable.
+        \param[in] var Shader variable.
+    */
+    void bindShaderData(const ShaderVar& var) const;
+
+    const ref<EnvMap>& getEnvMap() const
     {
-    public:
-        /** Create a new object.
-            \param[in] pDevice GPU device.
-            \param[in] pEnvMap The environment map.
-        */
-        EnvMapSampler(nvrhi::DeviceHandle pDevice, ref<EnvMap> pEnvMap);
-        virtual ~EnvMapSampler() = default;
+        return mpEnvMap;
+    }
 
-        /** Bind the environment map sampler to a given shader variable.
-            \param[in] var Shader variable.
-        */
-        void bindShaderData(const ShaderVar& var) const;
+    const nvrhi::TextureHandle& getImportanceMap() const
+    {
+        return mpImportanceMap;
+    }
 
-        const ref<EnvMap>& getEnvMap() const { return mpEnvMap; }
+   protected:
+    bool createImportanceMap(
+        RenderContext* pRenderContext,
+        uint32_t dimension,
+        uint32_t samples);
 
-        const nvrhi::TextureHandle& getImportanceMap() const { return mpImportanceMap; }
+    nvrhi::DeviceHandle mpDevice;
 
-    protected:
-        bool createImportanceMap(RenderContext* pRenderContext, uint32_t dimension, uint32_t samples);
+    ref<EnvMap> mpEnvMap;  ///< Environment map.
 
-        nvrhi::DeviceHandle       mpDevice;
+    ref<ComputePass>
+        mpSetupPass;  ///< Compute pass for creating the importance map.
 
-        ref<EnvMap>       mpEnvMap;                 ///< Environment map.
-
-        ref<ComputePass>  mpSetupPass;              ///< Compute pass for creating the importance map.
-
-        nvrhi::TextureHandle      mpImportanceMap;          ///< Hierarchical importance map (luminance).
-        nvrhi::SamplerHandle      mpImportanceSampler;
-    };
-}
+    nvrhi::TextureHandle
+        mpImportanceMap;  ///< Hierarchical importance map (luminance).
+    nvrhi::SamplerHandle mpImportanceSampler;
+};
+}  // namespace Falcor

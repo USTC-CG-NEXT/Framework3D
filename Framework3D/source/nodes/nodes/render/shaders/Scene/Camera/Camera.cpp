@@ -333,43 +333,6 @@ namespace Falcor
         setTarget(pos + fwd);
     }
 
-    void Camera::renderUI(Gui::Widgets& widget)
-    {
-        if (mHasAnimation) widget.checkbox("Animated", mIsAnimated);
-
-        float focalLength = getFocalLength();
-        if (widget.var("Focal Length", focalLength, 0.0f, FLT_MAX, 0.25f)) setFocalLength(focalLength);
-
-        float aspectRatio = getAspectRatio();
-        if (widget.var("Aspect Ratio", aspectRatio, 0.f, FLT_MAX, 0.001f)) setAspectRatio(aspectRatio);
-
-        float focalDistance = getFocalDistance();
-        if (widget.var("Focal Distance", focalDistance, 0.f, FLT_MAX, 0.05f)) setFocalDistance(focalDistance);
-
-        float apertureRadius = getApertureRadius();
-        if (widget.var("Aperture Radius", apertureRadius, 0.f, FLT_MAX, 0.001f)) setApertureRadius(apertureRadius);
-
-        float shutterSpeed = getShutterSpeed();
-        if (widget.var("Shutter Speed", shutterSpeed, 0.f, FLT_MAX, 0.001f)) setShutterSpeed(shutterSpeed);
-
-        float ISOSpeed = getISOSpeed();
-        if (widget.var("ISO Speed", ISOSpeed, 0.8f, FLT_MAX, 0.25f)) setISOSpeed(ISOSpeed);
-
-        float2 depth = float2(mData.nearZ, mData.farZ);
-        if (widget.var("Depth Range", depth, 0.f, FLT_MAX, 0.1f)) setDepthRange(depth.x, depth.y);
-
-        float3 pos = getPosition();
-        if (widget.var("Position", pos, -FLT_MAX, FLT_MAX, 0.001f, false, "%.4f")) setPosition(pos);
-
-        float3 target = getTarget();
-        if (widget.var("Target", target, -FLT_MAX, FLT_MAX, 0.001f, false, "%.4f")) setTarget(target);
-
-        float3 up = getUpVector();
-        if (widget.var("Up", up, -FLT_MAX, FLT_MAX, 0.001f, false, "%.4f")) setUpVector(up);
-
-        if (widget.button("Dump")) dumpProperties();
-    }
-
     std::string Camera::getScript(const std::string& cameraVar)
     {
         std::string c;

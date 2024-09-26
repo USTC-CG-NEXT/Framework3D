@@ -72,10 +72,6 @@ public:
      */
     virtual void bindShaderData(const ShaderVar& var) const {}
 
-    /**
-     * Render the sampler's UI.
-     */
-    virtual void renderUI(Gui::Widgets& widget) {}
 
     /**
      * Begin a frame.
@@ -93,11 +89,6 @@ public:
      * @param[in] pRenderOutput Rendered output.
      */
     virtual void endFrame(RenderContext* pRenderContext, const nvrhi::TextureHandle& pRenderOutput) {}
-
-    /**
-     * Returns a GUI dropdown list of all available sample generators.
-     */
-    static const Gui::DropdownList& getGuiDropdownList();
 
     /**
      * Register a sample generator type.

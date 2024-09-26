@@ -346,36 +346,4 @@ void Program::reset()
     mFileTimeMap.clear();
     mLinkRequired = true;
 }
-
-ref<RtStateObject> Program::getRtso(RtProgramVars* pVars)
-{
-    auto pProgramVersion = getActiveVersion();
-    auto pProgramKernels = pProgramVersion->getKernels(mpDevice, pVars);
-
-    mRtsoGraph.walk((void*)pProgramKernels.get());
-
-    ref<RtStateObject> pRtso = mRtsoGraph.getCurrentNode();
-
-    if (pRtso == nullptr) {
-        RtStateObjectDesc desc;
-        desc.pProgramKernels = pProgramKernels;
-        desc.maxTraceRecursionDepth = mDesc.maxTraceRecursionDepth;
-        desc.pipelineFlags = mDesc.rtPipelineFlags;
-
-        StateGraph::CompareFunc cmpFunc =
-            [&desc](ref<RtStateObject> pRtso) -> bool {
-            return pRtso && (desc == pRtso->getDesc());
-        };
-
-        if (mRtsoGraph.scanForMatchingNode(cmpFunc)) {
-            pRtso = mRtsoGraph.getCurrentNode();
-        }
-        else {
-            pRtso = mpDevice->createRtStateObject(desc);
-            mRtsoGraph.setCurrentNodeData(pRtso);
-        }
-    }
-
-    return pRtso;
-}
 }  // namespace Falcor

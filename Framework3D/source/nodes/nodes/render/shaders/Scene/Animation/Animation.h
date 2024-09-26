@@ -37,6 +37,8 @@
 #include <string>
 #include <vector>
 
+#include "utils/UI/Gui.h"
+
 namespace Falcor
 {
     class AnimationController;
@@ -147,6 +149,7 @@ namespace Falcor
             \return Returns true if keyframe exists.
         */
         bool doesKeyframeExists(double time) const;
+        void renderUI(Gui::Widgets& widget);
 
         /** Compute the animation.
             \param time The current time in seconds. This can be larger then the animation time, in which case the animation will loop.

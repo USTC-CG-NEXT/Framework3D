@@ -126,10 +126,6 @@ namespace Falcor
         */
         const std::vector<float4x4>& getInvTransposeGlobalMatrices() const { return mInvTransposeGlobalMatrices; }
 
-        /** Render the UI.
-        */
-        void renderUI(Gui::Widgets& widget);
-
         /** Get the previous vertex data buffer for dynamic meshes.
             \return Buffer containing the previous vertex data, or nullptr if no dynamic meshes exist.
         */

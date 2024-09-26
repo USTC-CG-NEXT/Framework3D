@@ -29,9 +29,10 @@
 #include <memory>
 #include <vector>
 
+#include "Core/API/ParameterBlock.h"
+#include "Core/API/RenderContext.h"
 #include "Core/Macros.h"
 #include "RtBindingTable.h"
-#include "Core/API/ParameterBlock.h"
 
 namespace Falcor {
 class Program;

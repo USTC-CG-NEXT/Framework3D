@@ -30,9 +30,9 @@
 /**
  * Compilers.
  */
-#define FALCOR_COMPILER_MSVC 1
+#define FALCOR_COMPILER_MSVC  1
 #define FALCOR_COMPILER_CLANG 2
-#define FALCOR_COMPILER_GCC 3
+#define FALCOR_COMPILER_GCC   3
 
 /**
  * Determine the compiler in use.
@@ -48,17 +48,17 @@
 #else
 #error "Unsupported compiler"
 #endif
-#endif // FALCOR_COMPILER
+#endif  // FALCOR_COMPILER
 
-#define FALCOR_MSVC (FALCOR_COMPILER == FALCOR_COMPILER_MSVC)
+#define FALCOR_MSVC  (FALCOR_COMPILER == FALCOR_COMPILER_MSVC)
 #define FALCOR_CLANG (FALCOR_COMPILER == FALCOR_COMPILER_CLANG)
-#define FALCOR_GCC (FALCOR_COMPILER == FALCOR_COMPILER_GCC)
+#define FALCOR_GCC   (FALCOR_COMPILER == FALCOR_COMPILER_GCC)
 
 /**
  * Platforms.
  */
 #define FALCOR_PLATFORM_WINDOWS 1
-#define FALCOR_PLATFORM_LINUX 2
+#define FALCOR_PLATFORM_LINUX   2
 
 /**
  * Determine the target platform in use.
@@ -72,26 +72,27 @@
 #else
 #error "Unsupported target platform"
 #endif
-#endif // FALCOR_PLATFORM
+#endif  // FALCOR_PLATFORM
 
 #define FALCOR_WINDOWS (FALCOR_PLATFORM == FALCOR_PLATFORM_WINDOWS)
-#define FALCOR_LINUX (FALCOR_PLATFORM == FALCOR_PLATFORM_LINUX)
+#define FALCOR_LINUX   (FALCOR_PLATFORM == FALCOR_PLATFORM_LINUX)
 
 /**
  * D3D12 Agility SDK.
  */
 #if FALCOR_HAS_D3D12_AGILITY_SDK
 #define FALCOR_D3D12_AGILITY_SDK_VERSION 4
-#define FALCOR_D3D12_AGILITY_SDK_PATH ".\\D3D12\\"
-// To enable the D3D12 Agility SDK, this macro needs to be added to the main source file of the executable.
-#define FALCOR_EXPORT_D3D12_AGILITY_SDK                                                                 \
-    extern "C"                                                                                          \
-    {                                                                                                   \
-        FALCOR_API_EXPORT extern const unsigned int D3D12SDKVersion = FALCOR_D3D12_AGILITY_SDK_VERSION; \
-    }                                                                                                   \
-    extern "C"                                                                                          \
-    {                                                                                                   \
-        FALCOR_API_EXPORT extern const char* D3D12SDKPath = FALCOR_D3D12_AGILITY_SDK_PATH;              \
+#define FALCOR_D3D12_AGILITY_SDK_PATH    ".\\D3D12\\"
+// To enable the D3D12 Agility SDK, this macro needs to be added to the main
+// source file of the executable.
+#define FALCOR_EXPORT_D3D12_AGILITY_SDK                           \
+    extern "C" {                                                  \
+    FALCOR_API_EXPORT extern const unsigned int D3D12SDKVersion = \
+        FALCOR_D3D12_AGILITY_SDK_VERSION;                         \
+    }                                                             \
+    extern "C" {                                                  \
+    FALCOR_API_EXPORT extern const char* D3D12SDKPath =           \
+        FALCOR_D3D12_AGILITY_SDK_PATH;                            \
     }
 #else
 #define FALCOR_EXPORT_D3D12_AGILITY_SDK
@@ -115,9 +116,9 @@
 
 #ifdef FALCOR_DLL
 #define FALCOR_API FALCOR_API_EXPORT
-#else // FALCOR_DLL
+#else  // FALCOR_DLL
 #define FALCOR_API FALCOR_API_IMPORT
-#endif // FALCOR_DLL
+#endif  // FALCOR_DLL
 
 /**
  * Force inline.
@@ -131,12 +132,13 @@
 /**
  * Preprocessor stringification.
  */
-#define FALCOR_STRINGIZE(a) #a
+#define FALCOR_STRINGIZE(a)          #a
 #define FALCOR_CONCAT_STRINGS_(a, b) a##b
-#define FALCOR_CONCAT_STRINGS(a, b) FALCOR_CONCAT_STRINGS_(a, b)
+#define FALCOR_CONCAT_STRINGS(a, b)  FALCOR_CONCAT_STRINGS_(a, b)
 
 /**
- * Implement logical operators on a class enum for making it usable as a flags enum.
+ * Implement logical operators on a class enum for making it usable as a flags
+ * enum.
  */
 // clang-format off
 #define FALCOR_ENUM_CLASS_OPERATORS(e_) \
@@ -149,7 +151,6 @@
     inline void flip_bit(e_& val, e_ flag) { val = is_set(val, flag) ? (val & (~flag)) : (val | flag); }
 // clang-format on
 
-
 #include <nvrhi/nvrhi.h>
 
 using namespace nvrhi;
@@ -158,3 +159,6 @@ using Device = IDevice;
 using Texture = ITexture;
 using Buffer = IBuffer;
 using Resource = IResource;
+
+using ShaderOffset = unsigned;
+

@@ -1659,71 +1659,6 @@ class FALCOR_API ParameterBlockReflection : public Object {
      */
     BindLocation getResourceBinding(std::string_view name) const;
 
-#if 1
-    /// Information on how a particular descriptor set should be filled in.
-    ///
-    /// A single `ParameterBlock` may map to zero or more distinct descriptor
-    /// sets, depending on what members it contains, and how those members
-    /// are mapped to API registers/spaces.
-    ///
-    struct DescriptorSetInfo {
-        /// The layout of the API descriptor set to allocate.
-        D3D12DescriptorSetLayout layout;
-
-        /// The indices of resource ranges within the parameter block
-        /// to bind to the descriptor ranges of the above set.
-        ///
-        /// The order of entries in the `resourceRangeIndices`
-        /// array will correspond to the order of the corresponding
-        /// descriptor ranges in the `layout`.
-        ///
-        std::vector<uint32_t> resourceRangeIndices;
-
-        /// Information about a sub-object that should have some
-        /// of its resource ranges bound into this descriptor set.
-        ///
-        struct SubObjectInfo {
-            /// The index of the resource range that defines the
-            /// sub-object.
-            ///
-            uint32_t resourceRangeIndexOfSubObject;
-
-            /// The set index within the sub-object for which
-            /// data should be written into this set.
-            ///
-            uint32_t setIndexInSubObject;
-        };
-
-        /// All of the sub-objects of this parameter block that should
-        /// have data written into this descriptor sets.
-        ///
-        std::vector<SubObjectInfo> subObjects;
-    };
-
-    /**
-     * Get the number of descriptor sets that are needed for an object of this
-     * type.
-     */
-    uint32_t getD3D12DescriptorSetCount() const
-    {
-        return (uint32_t)mDescriptorSets.size();
-    }
-
-    const DescriptorSetInfo& getD3D12DescriptorSetInfo(uint32_t index) const
-    {
-        return mDescriptorSets[index];
-    }
-
-    /**
-     * Get the layout for the `index`th descriptor set that needs to be created
-     * for an object of this type.
-     */
-    const D3D12DescriptorSetLayout& getD3D12DescriptorSetLayout(
-        uint32_t index) const
-    {
-        return mDescriptorSets[index].layout;
-    }
-#endif  // 1
 
     /**
      * Describes binding information for a resource range.
@@ -1863,21 +1798,6 @@ class FALCOR_API ParameterBlockReflection : public Object {
     /// this will record the corresponding `register` and `space`.
     ///
     std::vector<ResourceRangeBindingInfo> mResourceRanges;
-
-#if 1
-    /// Layout and binding information for all descriptor sets that
-    /// must be created to represent the state of a parameter block
-    /// using this reflector.
-    ///
-    /// Note: this array does *not* include information for descriptor
-    /// sets that correspond to `ParameterBlock` sub-objects, since
-    /// they are required to allocate and maintain their own
-    /// descriptor sets that this object can simply re-use.
-    ///
-    std::vector<DescriptorSetInfo> mDescriptorSets;
-
-    bool mBuildDescriptorSets = false;
-#endif
 
     /// Indices of the resource ranges that represent root descriptors,
     /// and which therefore need their resources to be bound to the root
