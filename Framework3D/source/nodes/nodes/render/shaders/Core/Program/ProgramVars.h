@@ -75,7 +75,9 @@ class FALCOR_API ProgramVars : public ParameterBlock {
         return mpReflector;
     }
 
-   protected:
+    nvrhi::BindingSetVector getBindings();
+
+protected:
     ProgramVars(
         nvrhi::DeviceHandle pDevice,
         const ref<const ProgramReflection>& pReflector);

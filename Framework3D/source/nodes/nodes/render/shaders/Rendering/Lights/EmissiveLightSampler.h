@@ -62,11 +62,6 @@ namespace Falcor
         */
         virtual void bindShaderData(const ShaderVar& var) const {}
 
-        /** Render the GUI.
-            \return True if settings that affect the rendering have changed.
-        */
-        virtual bool renderUI(Gui::Widgets& widget) { return false; }
-
         /** Returns the type of emissive light sampler.
             \return The type of the derived class.
         */

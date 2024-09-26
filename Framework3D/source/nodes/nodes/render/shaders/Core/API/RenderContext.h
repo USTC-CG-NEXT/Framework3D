@@ -31,7 +31,6 @@
 
 #include "ComputeContext.h"
 #include "Core/Macros.h"
-
 #include "Utils/Math/Vector.h"
 
 namespace Falcor {
@@ -286,7 +285,7 @@ class FALCOR_API RenderContext : public ComputeContext {
         const ref<RenderTargetView>& pDst,
         uint4 srcRect = kMaxRect,
         uint4 dstRect = kMaxRect,
-        TextureFilteringMode = TextureFilteringMode::Linear);
+        bool useFilter = true);
 
     /**
      * Complex blits (low-level copy) an SRV into an RTV.
@@ -310,7 +309,7 @@ class FALCOR_API RenderContext : public ComputeContext {
         const ref<RenderTargetView>& pDst,
         uint4 srcRect,
         uint4 dstRect,
-        TextureFilteringMode filter,
+        bool useFilter,
         const TextureReductionMode componentsReduction[4],
         const float4 componentsTransform[4]);
 
@@ -369,9 +368,8 @@ class FALCOR_API RenderContext : public ComputeContext {
      * Build an acceleration structure.
      */
     void buildAccelerationStructure(
-        const RtAccelerationStructure::BuildDesc& desc,
-        uint32_t postBuildInfoCount,
-        RtAccelerationStructurePostBuildInfoDesc* pPostBuildInfoDescs);
+        const nvrhi::rt::AccelStructDesc& desc,
+        uint32_t postBuildInfoCount);
 
     /**
      * Copy an acceleration structure.
@@ -384,7 +382,7 @@ class FALCOR_API RenderContext : public ComputeContext {
    private:
     RenderContext(nvrhi::ICommandList* pQueue);
 
-    IRenderCommandEncoder* drawCallCommon(
+    nvrhi::CommandListHandle drawCallCommon(
         GraphicsState* pState,
         ProgramVars* pVars);
 

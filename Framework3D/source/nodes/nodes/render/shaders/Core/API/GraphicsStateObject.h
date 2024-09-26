@@ -26,6 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
+#include <RCore/internal/nvrhi/nvrhi_equality.hpp>
+
 #include "Core/Macros.h"
 #include "Core/Object.h"
 #include "Core/Program/ProgramVersion.h"
@@ -88,11 +90,6 @@ class FALCOR_API GraphicsStateObject : public Object {
         return mDesc;
     }
 
-    gfx::IRenderPassLayout* getGFXRenderPassLayout() const
-    {
-        return mpGFXRenderPassLayout.get();
-    }
-
     void breakStrongReferenceToDevice();
 
    private:
@@ -100,9 +97,7 @@ class FALCOR_API GraphicsStateObject : public Object {
     GraphicsStateObjectDesc mDesc;
     nvrhi::GraphicsPipelineHandle mGfxPipelineState;
 
-    Slang::ComPtr<gfx::IInputLayout> mpGFXInputLayout;
-    Slang::ComPtr<gfx::IFramebufferLayout> mpGFXFramebufferLayout;
-    Slang::ComPtr<gfx::IRenderPassLayout> mpGFXRenderPassLayout;
+    Slang::ComPtr<nvrhi::IInputLayout> mpGFXInputLayout;
 
     // Default state objects
     static ref<BlendState> spDefaultBlendState;            // TODO: REMOVEGLOBAL

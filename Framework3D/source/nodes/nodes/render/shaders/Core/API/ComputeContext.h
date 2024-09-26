@@ -34,7 +34,6 @@ namespace Falcor {
 class ComputeState;
 class ProgramVars;
 class ProgramKernels;
-class UnorderedAccessView;
 
 class FALCOR_API ComputeContext : public CopyContext {
    public:
@@ -63,7 +62,7 @@ class FALCOR_API ComputeContext : public CopyContext {
     void dispatchIndirect(
         ComputeState* pState,
         ProgramVars* pVars,
-        const Buffer* pArgBuffer,
+        Buffer* pArgBuffer,
         uint64_t argBufferOffset);
 
     /**

@@ -35,8 +35,14 @@
 #include "Core/API/RtStateObject.h"
 #include "Program.h"
 #include "Utils/Logger.h"
+#include "Utils/Logging/Logging.h"
 
 namespace Falcor {
+nvrhi::BindingSetVector ProgramVars::getBindings()
+{
+    USTC_CG::logging("getBindings WIP");
+    return {};
+}
 
 ProgramVars::ProgramVars(
     nvrhi::DeviceHandle pDevice,

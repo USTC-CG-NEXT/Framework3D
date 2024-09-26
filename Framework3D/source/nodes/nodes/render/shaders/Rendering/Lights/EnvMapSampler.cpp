@@ -29,6 +29,7 @@
 
 #include "Core/Error.h"
 #include "Core/Pass/ComputePass.h"
+#include "Utils/Logging/Logging.h"
 
 namespace Falcor {
 namespace {
@@ -67,10 +68,11 @@ void EnvMapSampler::bindShaderData(const ShaderVar& var) const
     FALCOR_ASSERT(var.isValid());
 
     // Set variables.
-    float2 invDim =
-        1.f / float2(mpImportanceMap->getWidth(), mpImportanceMap->getHeight());
+    float2 invDim = 1.f / float2(
+                              mpImportanceMap->getDesc().width,
+                              mpImportanceMap->getDesc().height);
     var["importanceBaseMip"] =
-        mpImportanceMap->getMipCount() - 1;  // The base mip is 1x1 texels
+        mpImportanceMap->getDesc().mipLevels - 1;  // The base mip is 1x1 texels
     var["importanceInvDim"] = invDim;
 
     // Bind resources.
@@ -96,15 +98,16 @@ bool EnvMapSampler::createImportanceMap(
 
     // Create importance map. We have to set the RTV flag to be able to use
     // generateMips().
-    mpImportanceMap = mpDevice->createTexture2D(
-        dimension,
-        dimension,
-        nvrhi::Format::R32Float,
-        1,
-        mips,
-        nullptr,
-        ResourceBindFlags::ShaderResource | ResourceBindFlags::RenderTarget |
-            ResourceBindFlags::UnorderedAccess);
+    nvrhi::TextureDesc textureDesc;
+    textureDesc.width = dimension;
+    textureDesc.height = dimension;
+    textureDesc.mipLevels = mips;
+    textureDesc.format = nvrhi::Format::R32_FLOAT;
+    textureDesc.isRenderTarget = true;
+    textureDesc.isUAV = true;
+    textureDesc.isShaderResource = true;
+    mpImportanceMap = mpDevice->createTexture(textureDesc);
+
     FALCOR_ASSERT(mpImportanceMap);
 
     auto var = mpSetupPass->getRootVar();
@@ -126,7 +129,8 @@ bool EnvMapSampler::createImportanceMap(
     mpSetupPass->execute(pRenderContext, dimension, dimension);
 
     // Populate mip hierarchy. We rely on the default mip generation for this.
-    mpImportanceMap->generateMips(pRenderContext);
+    USTC_CG::logging("Env map mips generation not implemented");
+    //mpImportanceMap->generateMips(pRenderContext);
 
     return true;
 }

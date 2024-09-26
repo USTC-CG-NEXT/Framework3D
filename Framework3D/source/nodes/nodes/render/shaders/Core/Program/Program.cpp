@@ -63,17 +63,6 @@ Program::Program(
 {
     mDesc.finalize();
 
-    // If not shader model was requested, use the default shader model for the
-    // device.
-    if (mDesc.shaderModel == ShaderModel::Unknown)
-        mDesc.shaderModel = mpDevice->getDefaultShaderModel();
-
-    // Check that shader model is supported on the device.
-    if (!mpDevice->isShaderModelSupported(mDesc.shaderModel))
-        FALCOR_THROW(
-            "Requested Shader Model {} is not supported by the device",
-            enumToString(mDesc.shaderModel));
-
     if (mDesc.hasEntryPoint(ShaderType::RayGeneration)) {
         if (desc.maxTraceRecursionDepth == uint32_t(-1))
             FALCOR_THROW(

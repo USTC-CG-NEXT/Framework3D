@@ -31,7 +31,7 @@
 #include <vector>
 
 #include "Core/Macros.h"
-#include "ResourceViews.h"
+#include "Utils/Math/VectorTypes.h"
 #include "utils/CudaRuntime.h"
 
 #if FALCOR_HAS_CUDA
@@ -40,7 +40,6 @@ typedef CUstream_st* cudaStream_t;
 #endif
 
 namespace Falcor {
-class Texture;
 class Profiler;
 
 class FALCOR_API CopyContext {
@@ -71,12 +70,10 @@ class FALCOR_API CopyContext {
      * @param[in] pDevice Graphics device.
      * @param[in] pQueue Command queue.
      */
-    CopyContext(Device* pDevice, nvrhi::ICommandList* pQueue);
+    CopyContext(Device* pDevice, nvrhi::CommandListHandle pQueue);
     virtual ~CopyContext();
 
     nvrhi::DeviceHandle getDevice() const;
-
-    Profiler* getProfiler() const;
 
     /**
      * Flush the command list. This doesn't reset the command allocator, just
@@ -130,8 +127,7 @@ class FALCOR_API CopyContext {
      */
     virtual bool resourceBarrier(
         const Resource* pResource,
-        ResourceStates newState,
-        const ResourceViewInfo* pViewInfo = nullptr);
+        ResourceStates newState);
 
     /**
      * Insert a UAV barrier
@@ -244,23 +240,6 @@ class FALCOR_API CopyContext {
         uint32_t subresourceIndex);
 
     /**
-     * Bind the descriptor heaps from the device into the command list.
-     */
-    void bindDescriptorHeaps();
-
-    /**
-     * Binds the GPU descriptor pool for passes that need to access descriptors
-     * directly from root signatures.
-     */
-    void bindCustomGPUDescriptorPool();
-
-    /**
-     * Unbinds the GPU descriptor pool for passes that need to access
-     * descriptors directly from root signatures.
-     */
-    void unbindCustomGPUDescriptorPool();
-
-    /**
      * Add an aftermath marker to the command list.
      */
     void addAftermathMarker(std::string_view name);
@@ -268,10 +247,7 @@ class FALCOR_API CopyContext {
    protected:
     bool textureBarrier(const Texture* pTexture, ResourceStates newState);
     bool bufferBarrier(const Buffer* pBuffer, ResourceStates newState);
-    bool subresourceBarriers(
-        const Texture* pTexture,
-        ResourceStates newState,
-        const ResourceViewInfo* pViewInfo);
+    bool subresourceBarriers(const Texture* pTexture, ResourceStates newState);
     void apiSubresourceBarrier(
         const Texture* pTexture,
         ResourceStates newState,
@@ -288,5 +264,6 @@ class FALCOR_API CopyContext {
 
     Device* mpDevice;
     bool mCommandsPending = false;
+    nvrhi::CommandListHandle mpLowLevelData;
 };
 }  // namespace Falcor

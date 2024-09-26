@@ -26,174 +26,243 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "MeshLightData.slang"
-#include "ILightCollection.h"
-#include "Core/Macros.h"
-#include "Core/Object.h"
-
-
-
-#include "Core/State/GraphicsState.h"
-#include "Core/Program/Program.h"
-#include "Core/Program/ProgramVars.h"
-#include "Core/Pass/ComputePass.h"
-#include "Utils/Math/Vector.h"
 #include <memory>
 #include <vector>
 
-namespace Falcor
-{
-    class Scene;
-    class RenderContext;
-    struct ShaderVar;
+#include "Core/Macros.h"
+#include "Core/Object.h"
+#include "Core/Pass/ComputePass.h"
+#include "Core/Program/Program.h"
+#include "Core/Program/ProgramVars.h"
+#include "Core/State/GraphicsState.h"
+#include "ILightCollection.h"
+#include "MeshLightData.slang"
+#include "Utils/Math/Vector.h"
 
-    /** Class that holds a collection of mesh lights for a scene.
+namespace Falcor {
+class Scene;
+class RenderContext;
+struct ShaderVar;
 
-        Each mesh light is represented by a mesh instance with an emissive material.
+/** Class that holds a collection of mesh lights for a scene.
 
-        This class has utility functions for updating and pre-processing the mesh lights.
-        The LightCollection can be used standalone, but more commonly it will be wrapped
-        by an emissive light sampler.
+    Each mesh light is represented by a mesh instance with an emissive material.
+
+    This class has utility functions for updating and pre-processing the mesh
+   lights. The LightCollection can be used standalone, but more commonly it will
+   be wrapped by an emissive light sampler.
+*/
+class FALCOR_API LightCollection : public ILightCollection {
+    FALCOR_OBJECT(LightCollection)
+   public:
+    /** Creates a light collection for the given scene.
+        Note that update() must be called before the collection is ready to use.
+        \param[in] pDevice GPU device.
+        \param[in] pRenderContext The render context.
+        \param[in] pScene The scene.
+        \return A pointer to a new light collection object, or throws an
+       exception if creation failed.
     */
-    class FALCOR_API LightCollection : public ILightCollection
+    static ref<LightCollection> create(
+        nvrhi::DeviceHandle pDevice,
+        RenderContext* pRenderContext,
+        Scene* pScene)
     {
-        FALCOR_OBJECT(LightCollection)
-    public:
+        return make_ref<LightCollection>(pDevice, pRenderContext, pScene);
+    }
 
-        /** Creates a light collection for the given scene.
-            Note that update() must be called before the collection is ready to use.
-            \param[in] pDevice GPU device.
-            \param[in] pRenderContext The render context.
-            \param[in] pScene The scene.
-            \return A pointer to a new light collection object, or throws an exception if creation failed.
-        */
-        static ref<LightCollection> create(nvrhi::DeviceHandle pDevice, RenderContext* pRenderContext, Scene* pScene)
-        {
-            return make_ref<LightCollection>(pDevice, pRenderContext, pScene);
-        }
+    LightCollection(
+        nvrhi::DeviceHandle pDevice,
+        RenderContext* pRenderContext,
+        Scene* pScene);
+    ~LightCollection() = default;
 
-        LightCollection(nvrhi::DeviceHandle pDevice, RenderContext* pRenderContext, Scene* pScene);
-        ~LightCollection() = default;
+    const nvrhi::DeviceHandle& getDevice() const override
+    {
+        return mpDevice;
+    }
 
-        const nvrhi::DeviceHandle& getDevice() const override { return mpDevice; }
+    /** Updates the light collection to the current state of the scene.
+        \param[in] pRenderContext The render context.
+        \param[out] pUpdateStatus Stores information about which type of updates
+       were performed for each mesh light. This is an optional output parameter.
+        \return True if the lighting in the scene has changed since the last
+       frame.
+    */
+    bool update(
+        RenderContext* pRenderContext,
+        UpdateStatus* pUpdateStatus = nullptr) override;
 
-        /** Updates the light collection to the current state of the scene.
-            \param[in] pRenderContext The render context.
-            \param[out] pUpdateStatus Stores information about which type of updates were performed for each mesh light. This is an optional output parameter.
-            \return True if the lighting in the scene has changed since the last frame.
-        */
-        bool update(RenderContext* pRenderContext, UpdateStatus* pUpdateStatus = nullptr) override;
+    /** Bind the light collection data to a given shader var
+        \param[in] var The shader variable to set the data into.
+    */
+    void bindShaderData(const ShaderVar& var) const override;
 
-        /** Bind the light collection data to a given shader var
-            \param[in] var The shader variable to set the data into.
-        */
-        void bindShaderData(const ShaderVar& var) const override;
+    /** Returns the total number of triangle lights (may include culled
+     * triangles).
+     */
+    uint32_t getTotalLightCount() const override
+    {
+        return mTriangleCount;
+    }
 
-        /** Returns the total number of triangle lights (may include culled triangles).
-        */
-        uint32_t getTotalLightCount() const override  { return mTriangleCount; }
+    /** Returns stats.
+     */
+    const MeshLightStats& getStats(RenderContext* pRenderContext) const override
+    {
+        computeStats(pRenderContext);
+        return mMeshLightStats;
+    }
 
-        /** Returns stats.
-        */
-        const MeshLightStats& getStats(RenderContext* pRenderContext) const override { computeStats(pRenderContext); return mMeshLightStats; }
+    /** Returns a CPU buffer with all emissive triangles in world space.
+        Note that update() must have been called before for the data to be
+       valid. Call prepareSyncCPUData() ahead of time to avoid stalling the GPU.
+    */
+    const std::vector<MeshLightTriangle>& getMeshLightTriangles(
+        RenderContext* pRenderContext) const override
+    {
+        syncCPUData(pRenderContext);
+        return mMeshLightTriangles;
+    }
 
-        /** Returns a CPU buffer with all emissive triangles in world space.
-            Note that update() must have been called before for the data to be valid.
-            Call prepareSyncCPUData() ahead of time to avoid stalling the GPU.
-        */
-        const std::vector<MeshLightTriangle>& getMeshLightTriangles(RenderContext* pRenderContext) const override { syncCPUData(pRenderContext); return mMeshLightTriangles; }
+    /** Returns a CPU buffer with all mesh lights.
+        Note that update() must have been called before for the data to be
+       valid.
+    */
+    const std::vector<MeshLightData>& getMeshLights() const override
+    {
+        return mMeshLights;
+    }
 
-        /** Returns a CPU buffer with all mesh lights.
-            Note that update() must have been called before for the data to be valid.
-        */
-        const std::vector<MeshLightData>& getMeshLights() const override { return mMeshLights; }
+    /** Prepare for syncing the CPU data.
+        If the mesh light triangles will be accessed with
+       getMeshLightTriangles() performance can be improved by calling this
+       function ahead of time. This function schedules the copies so that it can
+       be read back without delay later.
+    */
+    void prepareSyncCPUData(RenderContext* pRenderContext) const override
+    {
+        copyDataToStagingBuffer(pRenderContext);
+    }
 
-        /** Prepare for syncing the CPU data.
-            If the mesh light triangles will be accessed with getMeshLightTriangles()
-            performance can be improved by calling this function ahead of time.
-            This function schedules the copies so that it can be read back without delay later.
-        */
-        void prepareSyncCPUData(RenderContext* pRenderContext) const override { copyDataToStagingBuffer(pRenderContext); }
+    /** Get the total GPU memory usage in bytes.
+     */
+    uint64_t getMemoryUsageInBytes() const override;
 
-        /** Get the total GPU memory usage in bytes.
-        */
-        uint64_t getMemoryUsageInBytes() const override;
+    // Internal update flags. This only public for FALCOR_ENUM_CLASS_OPERATORS()
+    // to work.
+    enum class CPUOutOfDateFlags : uint32_t {
+        None = 0,
+        TriangleData = 0x1,
+        FluxData = 0x2,
 
-        // Internal update flags. This only public for FALCOR_ENUM_CLASS_OPERATORS() to work.
-        enum class CPUOutOfDateFlags : uint32_t
-        {
-            None         = 0,
-            TriangleData = 0x1,
-            FluxData     = 0x2,
-
-            All          = TriangleData | FluxData
-        };
-
-        /** Gets a signal interface that is signaled when the LightCollection is updated.
-         */
-        UpdateFlagsSignal::Interface getUpdateFlagsSignal() override { return mUpdateFlagsSignal.getInterface(); }
-
-    protected:
-        void initIntegrator(RenderContext* pRenderContext, const Scene& scene);
-        void setupMeshLights(const Scene& scene);
-        void build(RenderContext* pRenderContext, const Scene& scene);
-        void prepareTriangleData(RenderContext* pRenderContext, const Scene& scene);
-        void prepareMeshData(const Scene& scene);
-        void integrateEmissive(RenderContext* pRenderContext, const Scene& scene);
-        void computeStats(RenderContext* pRenderContext) const;
-        void buildTriangleList(RenderContext* pRenderContext, const Scene& scene);
-        void updateActiveTriangleList(RenderContext* pRenderContext);
-        void updateTrianglePositions(RenderContext* pRenderContext, const Scene& scene, const std::vector<uint32_t>& updatedLights);
-
-        void copyDataToStagingBuffer(RenderContext* pRenderContext) const;
-        void syncCPUData(RenderContext* pRenderContext) const;
-
-        // Internal state
-        nvrhi::DeviceHandle                             mpDevice;
-        Scene*                                  mpScene;                ///< Unowning pointer to scene (scene owns LightCollection).
-
-        std::vector<MeshLightData>              mMeshLights;            ///< List of all mesh lights.
-        uint32_t                                mTriangleCount = 0;     ///< Total number of triangles in all mesh lights (= mMeshLightTriangles.size()). This may include culled triangles.
-
-        mutable std::vector<MeshLightTriangle>  mMeshLightTriangles;    ///< List of all pre-processed mesh light triangles.
-        mutable std::vector<uint32_t>           mActiveTriangleList;    ///< List of active (non-culled) emissive triangles.
-        mutable std::vector<uint32_t>           mTriToActiveList;       ///< Mapping of all light triangles to index in mActiveTriangleList.
-
-        mutable MeshLightStats                  mMeshLightStats;        ///< Stats before/after pre-processing of mesh lights. Do not access this directly, use getStats() which ensures the stats are up-to-date.
-        mutable bool                            mStatsValid = false;    ///< True when stats are valid.
-
-        // GPU resources for the mesh lights and emissive triangles.
-        nvrhi::BufferHandle                             mpTriangleData;         ///< Per-triangle geometry data for emissive triangles (mTriangleCount elements).
-        nvrhi::BufferHandle                             mpActiveTriangleList;   ///< List of active (non-culled) emissive triangle.
-        nvrhi::BufferHandle                             mpTriToActiveList;      ///< Mapping of all light triangles to index in mActiveTriangleList.
-        nvrhi::BufferHandle                             mpFluxData;             ///< Per-triangle flux data for emissive triangles (mTriangleCount elements).
-        nvrhi::BufferHandle                             mpMeshData;             ///< Per-mesh data for emissive meshes (mMeshLights.size() elements).
-        nvrhi::BufferHandle                             mpPerMeshInstanceOffset; ///< Per-mesh instance offset into emissive triangles array (Scene::getMeshInstanceCount() elements).
-
-        mutable nvrhi::BufferHandle                     mpStagingBuffer;        ///< Staging buffer used for retrieving the vertex positions, texture coordinates and light IDs from the GPU.
-        ref<Fence>                              mpStagingFence;         ///< Fence used for waiting on the staging buffer being filled in.
-
-        nvrhi::SamplerHandle                            mpSamplerState;         ///< Material sampler for emissive textures.
-
-        // Shader programs.
-        struct
-        {
-            ref<Program>                        pProgram;
-            ref<ProgramVars>                    pVars;
-            ref<GraphicsState>                  pState;
-            nvrhi::SamplerHandle                        pPointSampler;      ///< Point sampler for fetching individual texels in integrator. Must use same wrap mode etc. as material sampler.
-            nvrhi::BufferHandle                         pResultBuffer;      ///< The output of the integration pass is written here. Using raw buffer for fp32 compatibility.
-        } mIntegrator;
-
-        ref<ComputePass>                        mpTriangleListBuilder;
-        ref<ComputePass>                        mpTrianglePositionUpdater;
-        ref<ComputePass>                        mpFinalizeIntegration;
-
-        mutable CPUOutOfDateFlags               mCPUInvalidData = CPUOutOfDateFlags::None;  ///< Flags indicating which CPU data is valid.
-        mutable bool                            mStagingBufferValid = true;                 ///< Flag to indicate if the contents of the staging buffer is up-to-date.
-
-        UpdateFlagsSignal mUpdateFlagsSignal;
+        All = TriangleData | FluxData
     };
 
-    FALCOR_ENUM_CLASS_OPERATORS(LightCollection::CPUOutOfDateFlags);
-}
+    /** Gets a signal interface that is signaled when the LightCollection is
+     * updated.
+     */
+    UpdateFlagsSignal::Interface getUpdateFlagsSignal() override
+    {
+        return mUpdateFlagsSignal.getInterface();
+    }
+
+   protected:
+    void initIntegrator(RenderContext* pRenderContext, const Scene& scene);
+    void setupMeshLights(const Scene& scene);
+    void build(RenderContext* pRenderContext, const Scene& scene);
+    void prepareTriangleData(RenderContext* pRenderContext, const Scene& scene);
+    void prepareMeshData(const Scene& scene);
+    void integrateEmissive(RenderContext* pRenderContext, const Scene& scene);
+    void computeStats(RenderContext* pRenderContext) const;
+    void buildTriangleList(RenderContext* pRenderContext, const Scene& scene);
+    void updateActiveTriangleList(RenderContext* pRenderContext);
+    void updateTrianglePositions(
+        RenderContext* pRenderContext,
+        const Scene& scene,
+        const std::vector<uint32_t>& updatedLights);
+
+    void copyDataToStagingBuffer(RenderContext* pRenderContext) const;
+    void syncCPUData(RenderContext* pRenderContext) const;
+
+    // Internal state
+    nvrhi::DeviceHandle mpDevice;
+    Scene*
+        mpScene;  ///< Unowning pointer to scene (scene owns LightCollection).
+
+    std::vector<MeshLightData> mMeshLights;  ///< List of all mesh lights.
+    uint32_t mTriangleCount =
+        0;  ///< Total number of triangles in all mesh lights (=
+            ///< mMeshLightTriangles.size()). This may include culled triangles.
+
+    mutable std::vector<MeshLightTriangle>
+        mMeshLightTriangles;  ///< List of all pre-processed mesh light
+                              ///< triangles.
+    mutable std::vector<uint32_t>
+        mActiveTriangleList;  ///< List of active (non-culled) emissive
+                              ///< triangles.
+    mutable std::vector<uint32_t>
+        mTriToActiveList;  ///< Mapping of all light triangles to index in
+                           ///< mActiveTriangleList.
+
+    mutable MeshLightStats
+        mMeshLightStats;  ///< Stats before/after pre-processing of mesh lights.
+                          ///< Do not access this directly, use getStats() which
+                          ///< ensures the stats are up-to-date.
+    mutable bool mStatsValid = false;  ///< True when stats are valid.
+
+    // GPU resources for the mesh lights and emissive triangles.
+    nvrhi::BufferHandle
+        mpTriangleData;  ///< Per-triangle geometry data for emissive triangles
+                         ///< (mTriangleCount elements).
+    nvrhi::BufferHandle mpActiveTriangleList;  ///< List of active (non-culled)
+                                               ///< emissive triangle.
+    nvrhi::BufferHandle
+        mpTriToActiveList;  ///< Mapping of all light triangles to index in
+                            ///< mActiveTriangleList.
+    nvrhi::BufferHandle mpFluxData;  ///< Per-triangle flux data for emissive
+                                     ///< triangles (mTriangleCount elements).
+    nvrhi::BufferHandle mpMeshData;  ///< Per-mesh data for emissive meshes
+                                     ///< (mMeshLights.size() elements).
+    nvrhi::BufferHandle
+        mpPerMeshInstanceOffset;  ///< Per-mesh instance offset into emissive
+                                  ///< triangles array
+                                  ///< (Scene::getMeshInstanceCount() elements).
+
+    mutable nvrhi::BufferHandle
+        mpStagingBuffer;  ///< Staging buffer used for retrieving the vertex
+                          ///< positions, texture coordinates and light IDs from
+                          ///< the GPU.
+
+    nvrhi::SamplerHandle
+        mpSamplerState;  ///< Material sampler for emissive textures.
+
+    // Shader programs.
+    struct {
+        ref<Program> pProgram;
+        ref<ProgramVars> pVars;
+        ref<GraphicsState> pState;
+        nvrhi::SamplerHandle
+            pPointSampler;  ///< Point sampler for fetching individual texels in
+                            ///< integrator. Must use same wrap mode etc. as
+                            ///< material sampler.
+        nvrhi::BufferHandle
+            pResultBuffer;  ///< The output of the integration pass is written
+                            ///< here. Using raw buffer for fp32 compatibility.
+    } mIntegrator;
+
+    ref<ComputePass> mpTriangleListBuilder;
+    ref<ComputePass> mpTrianglePositionUpdater;
+    ref<ComputePass> mpFinalizeIntegration;
+
+    mutable CPUOutOfDateFlags mCPUInvalidData =
+        CPUOutOfDateFlags::None;  ///< Flags indicating which CPU data is valid.
+    mutable bool mStagingBufferValid =
+        true;  ///< Flag to indicate if the contents of the staging buffer is
+               ///< up-to-date.
+
+    UpdateFlagsSignal mUpdateFlagsSignal;
+};
+
+FALCOR_ENUM_CLASS_OPERATORS(LightCollection::CPUOutOfDateFlags);
+}  // namespace Falcor

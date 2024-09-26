@@ -77,7 +77,6 @@ public:
      */
     double getElapsedTime();
 
-    void breakStrongReferenceToDevice();
 
 private:
     GpuTimer(nvrhi::DeviceHandle pDevice);
@@ -89,7 +88,7 @@ private:
         Idle
     };
 
-    BreakableReference<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
     Status mStatus = Status::Idle;
     uint32_t mStart = 0;
     uint32_t mEnd = 0;

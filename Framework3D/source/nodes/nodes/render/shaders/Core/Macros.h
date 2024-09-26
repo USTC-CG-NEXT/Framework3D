@@ -175,4 +175,13 @@ using VertexLayout = nvrhi::VertexAttributeDesc;
 
 using nvrhi::ResourceType;
 
-#include <RCore/internal/nvrhi/nvrhi_equality.hpp>
+using TextureReductionMode = nvrhi::SamplerReductionType;
+
+using ClearValue = nvrhi::Color;
+using nvrhi::SamplerAddressMode;
+using nvrhi::SamplerDesc;
+using nvrhi::Viewport;
+
+using Resource = nvrhi::IResource;
+
+using UnorderedAccessView = nvrhi::BindingSetItem;

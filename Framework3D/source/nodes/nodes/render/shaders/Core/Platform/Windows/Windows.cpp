@@ -25,67 +25,65 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "Core/Platform/OS.h"
 #include "Core/Error.h"
+#include "Core/Platform/OS.h"
 #include "Utils/Logger.h"
 #include "Utils/StringUtils.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <windows.h>
+#include <ShlObj_core.h>
 #include <commctrl.h>
 #include <commdlg.h>
 #include <comutil.h>
 #include <psapi.h>
 #include <shellscalingapi.h>
-#include <ShlObj_core.h>
+#include <windows.h>
 #include <winioctl.h>
 
-#include <string>
-#include <vector>
 #include <filesystem>
 #include <mutex>
+#include <string>
+#include <vector>
 
 // Always run in Optimus mode on laptops
-extern "C"
-{
-    _declspec(dllexport) DWORD NvOptimusEnablement = 1;
+extern "C" {
+_declspec(dllexport) DWORD NvOptimusEnablement = 1;
 }
 
-namespace Falcor
-{
+namespace Falcor {
 
-MsgBoxButton msgBox(const std::string& title, const std::string& msg, MsgBoxType type, MsgBoxIcon icon)
+MsgBoxButton msgBox(
+    const std::string& title,
+    const std::string& msg,
+    MsgBoxType type,
+    MsgBoxIcon icon)
 {
-    const MsgBoxCustomButton buttonOk{uint32_t(MsgBoxButton::Ok), "Ok"};
-    const MsgBoxCustomButton buttonRetry{uint32_t(MsgBoxButton::Retry), "Retry"};
-    const MsgBoxCustomButton buttonCancel{uint32_t(MsgBoxButton::Cancel), "Cancel"};
-    const MsgBoxCustomButton buttonAbort{uint32_t(MsgBoxButton::Abort), "Abort"};
-    const MsgBoxCustomButton buttonIgnore{uint32_t(MsgBoxButton::Ignore), "Ignore"};
-    const MsgBoxCustomButton buttonYes{uint32_t(MsgBoxButton::Yes), "Yes"};
-    const MsgBoxCustomButton buttonNo{uint32_t(MsgBoxButton::No), "No"};
+    const MsgBoxCustomButton buttonOk{ uint32_t(MsgBoxButton::Ok), "Ok" };
+    const MsgBoxCustomButton buttonRetry{ uint32_t(MsgBoxButton::Retry),
+                                          "Retry" };
+    const MsgBoxCustomButton buttonCancel{ uint32_t(MsgBoxButton::Cancel),
+                                           "Cancel" };
+    const MsgBoxCustomButton buttonAbort{ uint32_t(MsgBoxButton::Abort),
+                                          "Abort" };
+    const MsgBoxCustomButton buttonIgnore{ uint32_t(MsgBoxButton::Ignore),
+                                           "Ignore" };
+    const MsgBoxCustomButton buttonYes{ uint32_t(MsgBoxButton::Yes), "Yes" };
+    const MsgBoxCustomButton buttonNo{ uint32_t(MsgBoxButton::No), "No" };
 
     std::vector<MsgBoxCustomButton> buttons;
-    switch (type)
-    {
-    case MsgBoxType::Ok:
-        buttons = {buttonOk};
-        break;
-    case MsgBoxType::OkCancel:
-        buttons = {buttonOk, buttonCancel};
-        break;
-    case MsgBoxType::RetryCancel:
-        buttons = {buttonRetry, buttonCancel};
-        break;
-    case MsgBoxType::AbortRetryIgnore:
-        buttons = {buttonAbort, buttonRetry, buttonIgnore};
-        break;
-    case MsgBoxType::YesNo:
-        buttons = {buttonYes, buttonNo};
-        break;
-    default:
-        FALCOR_UNREACHABLE();
+    switch (type) {
+        case MsgBoxType::Ok: buttons = { buttonOk }; break;
+        case MsgBoxType::OkCancel: buttons = { buttonOk, buttonCancel }; break;
+        case MsgBoxType::RetryCancel:
+            buttons = { buttonRetry, buttonCancel };
+            break;
+        case MsgBoxType::AbortRetryIgnore:
+            buttons = { buttonAbort, buttonRetry, buttonIgnore };
+            break;
+        case MsgBoxType::YesNo: buttons = { buttonYes, buttonNo }; break;
+        default: FALCOR_UNREACHABLE();
     }
 
     return (MsgBoxButton)msgBox(title, msg, buttons, icon);
@@ -96,32 +94,33 @@ uint32_t msgBox(
     const std::string& msg,
     std::vector<MsgBoxCustomButton> buttons,
     MsgBoxIcon icon,
-    uint32_t defaultButtonId
-)
+    uint32_t defaultButtonId)
 {
     FALCOR_ASSERT(buttons.size() > 0);
 
     // Helper to convert a string to a wide string
-    auto toWideString = [](const std::string& str)
-    {
+    auto toWideString = [](const std::string& str) {
         std::wstring wstr(str.begin(), str.end());
         return wstr;
     };
 
-    // TASKDIALOGCONFIG has a flag TDF_SIZE_TO_CONTENT to automatically size the dialog to fit the content.
-    // Unfortunately this flag leads to the content being modified with ellipsis when lines are too long.
-    // For that reason we go through the excercise of determining the width of the longest text line manually.
+    // TASKDIALOGCONFIG has a flag TDF_SIZE_TO_CONTENT to automatically size the
+    // dialog to fit the content. Unfortunately this flag leads to the content
+    // being modified with ellipsis when lines are too long. For that reason we
+    // go through the excercise of determining the width of the longest text
+    // line manually.
 
-    // Compute the width of the given text in pixels using the default message font.
-    auto computeTextWidth = [&toWideString](const std::string& text)
-    {
+    // Compute the width of the given text in pixels using the default message
+    // font.
+    auto computeTextWidth = [&toWideString](const std::string& text) {
         LONG textWidth = 0;
 
         // Query windows for common metrics.
         UINT dpi = GetDpiForSystem();
         NONCLIENTMETRICS metrics;
         metrics.cbSize = sizeof(metrics);
-        if (!SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0, dpi))
+        if (!SystemParametersInfoForDpi(
+                SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0, dpi))
             return textWidth;
 
         // Setup DC with message font.
@@ -130,11 +129,14 @@ uint32_t msgBox(
         HGDIOBJ oldFont = SelectObject(hdc, font);
 
         // Compute text width of longest line.
-        for (const auto& line : splitString(text, "\n"))
-        {
+        for (const auto& line : splitString(text, "\n")) {
             auto wideLine = toWideString(line);
             SIZE textSize;
-            if (GetTextExtentPoint32(hdc, wideLine.c_str(), (int)line.size(), &textSize))
+            if (GetTextExtentPoint32(
+                    hdc,
+                    reinterpret_cast<LPCSTR>(wideLine.c_str()),
+                    (int)line.size(),
+                    &textSize))
                 textWidth = std::max(textWidth, textSize.cx);
         }
 
@@ -149,7 +151,8 @@ uint32_t msgBox(
     auto wideTitle = toWideString(title);
     auto wideMsg = toWideString(msg);
 
-    // We need to map button ids to a range beyond IDCANCEL, which is used to indicate when the dialog was canceled/closed.
+    // We need to map button ids to a range beyond IDCANCEL, which is used to
+    // indicate when the dialog was canceled/closed.
     auto mapButtonId = [](uint32_t id) -> int { return id + IDCANCEL + 1; };
 
     // Highlight the first button by default.
@@ -158,8 +161,7 @@ uint32_t msgBox(
     // Set up button configs
     std::vector<std::wstring> wideButtonTitles(buttons.size());
     std::vector<TASKDIALOG_BUTTON> buttonConfigs(buttons.size());
-    for (size_t i = 0; i < buttons.size(); ++i)
-    {
+    for (size_t i = 0; i < buttons.size(); ++i) {
         wideButtonTitles[i] = toWideString(buttons[i].title);
         buttonConfigs[i].pszButtonText = wideButtonTitles[i].c_str();
         buttonConfigs[i].nButtonID = mapButtonId(buttons[i].id);
@@ -171,7 +173,8 @@ uint32_t msgBox(
     LONG horizontalBaseUnit = GetDialogBaseUnits() & 0xffff;
     UINT dialogWidth = (computeTextWidth(msg) * 4) / horizontalBaseUnit;
 
-    // We add a margin of 16 units (and another 32 if using an icon) to make sure the text fits the dialog size.
+    // We add a margin of 16 units (and another 32 if using an icon) to make
+    // sure the text fits the dialog size.
     dialogWidth += 16 + (icon != MsgBoxIcon::None ? 32 : 0);
 
     // Set up dialog config
@@ -179,19 +182,11 @@ uint32_t msgBox(
     config.cbSize = sizeof(TASKDIALOGCONFIG);
     config.dwFlags = TDF_ALLOW_DIALOG_CANCELLATION;
     config.pszWindowTitle = wideTitle.c_str();
-    switch (icon)
-    {
-    case MsgBoxIcon::None:
-        break;
-    case MsgBoxIcon::Info:
-        config.pszMainIcon = TD_INFORMATION_ICON;
-        break;
-    case MsgBoxIcon::Warning:
-        config.pszMainIcon = TD_WARNING_ICON;
-        break;
-    case MsgBoxIcon::Error:
-        config.pszMainIcon = TD_ERROR_ICON;
-        break;
+    switch (icon) {
+        case MsgBoxIcon::None: break;
+        case MsgBoxIcon::Info: config.pszMainIcon = TD_INFORMATION_ICON; break;
+        case MsgBoxIcon::Warning: config.pszMainIcon = TD_WARNING_ICON; break;
+        case MsgBoxIcon::Error: config.pszMainIcon = TD_ERROR_ICON; break;
     }
     config.pszContent = wideMsg.c_str();
     config.cButtons = (UINT)buttonConfigs.size();
@@ -199,11 +194,14 @@ uint32_t msgBox(
     config.nDefaultButton = defaultId;
     config.cxWidth = dialogWidth;
     // We want the message box window to be the top most window.
-    config.pfCallback = [](HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LONG_PTR lpRefData) -> HRESULT
-    {
-        if (msg == TDN_CREATED)
-        {
-            // Make this dialog the top most window, but don't change position/size.
+    config.pfCallback = [](HWND hwnd,
+                           UINT msg,
+                           WPARAM wParam,
+                           LPARAM lParam,
+                           LONG_PTR lpRefData) -> HRESULT {
+        if (msg == TDN_CREATED) {
+            // Make this dialog the top most window, but don't change
+            // position/size.
             SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }
         return 0;
@@ -214,11 +212,9 @@ uint32_t msgBox(
 
     // Execute dialog.
     int selectedId;
-    if (TaskDialogIndirect(&config, &selectedId, nullptr, nullptr) == S_OK)
-    {
+    if (TaskDialogIndirect(&config, &selectedId, nullptr, nullptr) == S_OK) {
         // Map selected id back to the user provided button id.
-        for (const auto& button : buttons)
-        {
+        for (const auto& button : buttons) {
             if (selectedId == mapButtonId(button.id))
                 result = button.id;
         }
@@ -228,15 +224,12 @@ uint32_t msgBox(
 }
 
 // As defined in ntifs.h
-typedef struct _REPARSE_DATA_BUFFER
-{
+typedef struct _REPARSE_DATA_BUFFER {
     ULONG ReparseTag;
     USHORT ReparseDataLength;
     USHORT Reserved;
-    union
-    {
-        struct
-        {
+    union {
+        struct {
             USHORT SubstituteNameOffset;
             USHORT SubstituteNameLength;
             USHORT PrintNameOffset;
@@ -244,47 +237,48 @@ typedef struct _REPARSE_DATA_BUFFER
             ULONG Flags;
             WCHAR PathBuffer[1];
         } SymbolicLinkReparseBuffer;
-        struct
-        {
+        struct {
             USHORT SubstituteNameOffset;
             USHORT SubstituteNameLength;
             USHORT PrintNameOffset;
             USHORT PrintNameLength;
             WCHAR PathBuffer[1];
         } MountPointReparseBuffer;
-        struct
-        {
+        struct {
             UCHAR DataBuffer[1];
         } GenericReparseBuffer;
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER;
 
 // As defined in wdm.h
-#define FILE_DIRECTORY_FILE 0x00000001
-#define FILE_WRITE_THROUGH 0x00000002
-#define FILE_SEQUENTIAL_ONLY 0x00000004
+#define FILE_DIRECTORY_FILE            0x00000001
+#define FILE_WRITE_THROUGH             0x00000002
+#define FILE_SEQUENTIAL_ONLY           0x00000004
 #define FILE_NO_INTERMEDIATE_BUFFERING 0x00000008
 
-#define FILE_SYNCHRONOUS_IO_ALERT 0x00000010
+#define FILE_SYNCHRONOUS_IO_ALERT    0x00000010
 #define FILE_SYNCHRONOUS_IO_NONALERT 0x00000020
-#define FILE_NON_DIRECTORY_FILE 0x00000040
-#define FILE_CREATE_TREE_CONNECTION 0x00000080
+#define FILE_NON_DIRECTORY_FILE      0x00000040
+#define FILE_CREATE_TREE_CONNECTION  0x00000080
 
 #define FILE_COMPLETE_IF_OPLOCKED 0x00000100
-#define FILE_NO_EA_KNOWLEDGE 0x00000200
+#define FILE_NO_EA_KNOWLEDGE      0x00000200
 #define FILE_OPEN_REMOTE_INSTANCE 0x00000400
-#define FILE_RANDOM_ACCESS 0x00000800
+#define FILE_RANDOM_ACCESS        0x00000800
 
-#define FILE_DELETE_ON_CLOSE 0x00001000
-#define FILE_OPEN_BY_FILE_ID 0x00002000
+#define FILE_DELETE_ON_CLOSE        0x00001000
+#define FILE_OPEN_BY_FILE_ID        0x00002000
 #define FILE_OPEN_FOR_BACKUP_INTENT 0x00004000
-#define FILE_NO_COMPRESSION 0x00008000
+#define FILE_NO_COMPRESSION         0x00008000
 
-bool createJunction(const std::filesystem::path& link, const std::filesystem::path& target)
+bool createJunction(
+    const std::filesystem::path& link,
+    const std::filesystem::path& target)
 {
     // Get absolute target.
     WCHAR absoluteTarget[MAX_PATH];
-    if (GetFullPathNameW(target.native().c_str(), MAX_PATH, absoluteTarget, NULL) == 0)
+    if (GetFullPathNameW(
+            target.native().c_str(), MAX_PATH, absoluteTarget, NULL) == 0)
         return false;
 
     // Create junction as normal directory.
@@ -293,14 +287,20 @@ bool createJunction(const std::filesystem::path& link, const std::filesystem::pa
 
     // Open file handle to junction directory.
     HANDLE handle = CreateFileW(
-        link.native().c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, NULL
-    );
+        link.native().c_str(),
+        GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+        NULL);
     if (handle == INVALID_HANDLE_VALUE)
         return false;
 
     // Allocate reparse data.
-    char tmp[MAXIMUM_REPARSE_DATA_BUFFER_SIZE] = {0};
-    REPARSE_DATA_BUFFER& reparseData = *reinterpret_cast<REPARSE_DATA_BUFFER*>(tmp);
+    char tmp[MAXIMUM_REPARSE_DATA_BUFFER_SIZE] = { 0 };
+    REPARSE_DATA_BUFFER& reparseData =
+        *reinterpret_cast<REPARSE_DATA_BUFFER*>(tmp);
 
     // Setup reparse data.
     std::wstring substituteName = std::wstring(L"\\??\\") + absoluteTarget;
@@ -309,27 +309,43 @@ bool createJunction(const std::filesystem::path& link, const std::filesystem::pa
     reparseData.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
     reparseData.Reserved = 0;
     reparseData.MountPointReparseBuffer.SubstituteNameOffset = (USHORT)0;
-    reparseData.MountPointReparseBuffer.SubstituteNameLength = (USHORT)(substituteName.length() * sizeof(wchar_t));
-    reparseData.MountPointReparseBuffer.PrintNameOffset = (USHORT)((substituteName.length() + 1) * sizeof(wchar_t));
-    reparseData.MountPointReparseBuffer.PrintNameLength = (USHORT)(printName.length() * sizeof(wchar_t));
+    reparseData.MountPointReparseBuffer.SubstituteNameLength =
+        (USHORT)(substituteName.length() * sizeof(wchar_t));
+    reparseData.MountPointReparseBuffer.PrintNameOffset =
+        (USHORT)((substituteName.length() + 1) * sizeof(wchar_t));
+    reparseData.MountPointReparseBuffer.PrintNameLength =
+        (USHORT)(printName.length() * sizeof(wchar_t));
     reparseData.ReparseDataLength = USHORT(
-        sizeof(reparseData.MountPointReparseBuffer) + reparseData.MountPointReparseBuffer.PrintNameOffset +
-        reparseData.MountPointReparseBuffer.PrintNameLength
-    );
+        sizeof(reparseData.MountPointReparseBuffer) +
+        reparseData.MountPointReparseBuffer.PrintNameOffset +
+        reparseData.MountPointReparseBuffer.PrintNameLength);
     if (reparseData.ReparseDataLength > MAXIMUM_REPARSE_DATA_BUFFER_SIZE)
         return false;
 
-    std::memcpy(&reparseData.MountPointReparseBuffer.PathBuffer[0], substituteName.data(), substituteName.length() * sizeof(wchar_t));
     std::memcpy(
-        &reparseData.MountPointReparseBuffer.PathBuffer[substituteName.length() + 1], printName.data(), printName.length() * sizeof(wchar_t)
-    );
+        &reparseData.MountPointReparseBuffer.PathBuffer[0],
+        substituteName.data(),
+        substituteName.length() * sizeof(wchar_t));
+    std::memcpy(
+        &reparseData.MountPointReparseBuffer
+             .PathBuffer[substituteName.length() + 1],
+        printName.data(),
+        printName.length() * sizeof(wchar_t));
 
     // Set the total size of the data buffer.
 
     // Use DeviceIoControl to set the reparse point data on the file handle.
-    size_t headerSize = FIELD_OFFSET(REPARSE_DATA_BUFFER, MountPointReparseBuffer);
-    bool success =
-        DeviceIoControl(handle, FSCTL_SET_REPARSE_POINT, &reparseData, (DWORD)headerSize + reparseData.ReparseDataLength, NULL, 0, NULL, 0);
+    size_t headerSize =
+        FIELD_OFFSET(REPARSE_DATA_BUFFER, MountPointReparseBuffer);
+    bool success = DeviceIoControl(
+        handle,
+        FSCTL_SET_REPARSE_POINT,
+        &reparseData,
+        (DWORD)headerSize + reparseData.ReparseDataLength,
+        NULL,
+        0,
+        NULL,
+        0);
 
     // Close file handle.
     CloseHandle(handle);
@@ -346,17 +362,25 @@ bool deleteJunction(const std::filesystem::path& link)
         0,
         NULL,
         OPEN_EXISTING,
-        FILE_FLAG_DELETE_ON_CLOSE | FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-        NULL
-    );
+        FILE_FLAG_DELETE_ON_CLOSE | FILE_FLAG_OPEN_REPARSE_POINT |
+            FILE_FLAG_BACKUP_SEMANTICS,
+        NULL);
     if (handle == INVALID_HANDLE_VALUE)
         return false;
 
-    REPARSE_GUID_DATA_BUFFER rgdb = {0};
+    REPARSE_GUID_DATA_BUFFER rgdb = { 0 };
     rgdb.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
 
     // Delete reparse point data.
-    bool success = DeviceIoControl(handle, FSCTL_DELETE_REPARSE_POINT, &rgdb, REPARSE_GUID_DATA_BUFFER_HEADER_SIZE, NULL, 0, NULL, 0);
+    bool success = DeviceIoControl(
+        handle,
+        FSCTL_DELETE_REPARSE_POINT,
+        &rgdb,
+        REPARSE_GUID_DATA_BUFFER_HEADER_SIZE,
+        NULL,
+        0,
+        NULL,
+        0);
 
     // Close file handle.
     CloseHandle(handle);
@@ -366,76 +390,72 @@ bool deleteJunction(const std::filesystem::path& link)
 
 const std::filesystem::path& getExecutablePath()
 {
-    static std::filesystem::path path(
-        []()
-        {
-            CHAR pathStr[1024];
-            if (GetModuleFileNameA(nullptr, pathStr, ARRAYSIZE(pathStr)) == 0)
-            {
-                FALCOR_THROW("Failed to get the executable path.");
-            }
-            return std::filesystem::path(pathStr);
-        }()
-    );
+    static std::filesystem::path path([]() {
+        CHAR pathStr[1024];
+        if (GetModuleFileNameA(nullptr, pathStr, ARRAYSIZE(pathStr)) == 0) {
+            FALCOR_THROW("Failed to get the executable path.");
+        }
+        return std::filesystem::path(pathStr);
+    }());
     return path;
 }
 
 const std::filesystem::path& getRuntimeDirectory()
 {
-    static std::filesystem::path path(
-        []()
-        {
-            HMODULE hm = NULL;
-            if (GetModuleHandleExA(
-                    GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&getRuntimeDirectory, &hm
-                ) == 0)
-            {
-                FALCOR_THROW("Failed to get the falcor directory. GetModuleHandle failed, error = {}.", GetLastError());
-            }
-            CHAR pathStr[1024];
-            if (GetModuleFileNameA(hm, pathStr, sizeof(pathStr)) == 0)
-            {
-                FALCOR_THROW("Failed to get the falcor directory. GetModuleFileNameA failed, error = {}.", GetLastError());
-            }
-            return std::filesystem::path(pathStr).parent_path();
-        }()
-    );
+    static std::filesystem::path path([]() {
+        HMODULE hm = NULL;
+        if (GetModuleHandleExA(
+                GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                    GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                (LPCSTR)&getRuntimeDirectory,
+                &hm) == 0) {
+            FALCOR_THROW(
+                "Failed to get the falcor directory. GetModuleHandle failed, "
+                "error = {}.",
+                GetLastError());
+        }
+        CHAR pathStr[1024];
+        if (GetModuleFileNameA(hm, pathStr, sizeof(pathStr)) == 0) {
+            FALCOR_THROW(
+                "Failed to get the falcor directory. GetModuleFileNameA "
+                "failed, error = {}.",
+                GetLastError());
+        }
+        return std::filesystem::path(pathStr).parent_path();
+    }());
     return path;
 }
 
 const std::filesystem::path& getAppDataDirectory()
 {
-    static std::filesystem::path path(
-        []()
-        {
-            PWSTR pathStr;
-            if (!SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &pathStr)))
-            {
-                FALCOR_THROW("Failed to get the application data directory.");
-            }
-            return std::filesystem::path(pathStr);
-        }()
-    );
+    static std::filesystem::path path([]() {
+        PWSTR pathStr;
+        if (!SUCCEEDED(SHGetKnownFolderPath(
+                FOLDERID_LocalAppData, 0, NULL, &pathStr))) {
+            FALCOR_THROW("Failed to get the application data directory.");
+        }
+        return std::filesystem::path(pathStr);
+    }());
     return path;
 }
 
 const std::filesystem::path& getHomeDirectory()
 {
-    static std::filesystem::path path(
-        []()
-        {
-            if (auto value = getEnvironmentVariable("USERPROFILE"))
-                return std::filesystem::path(*value);
-            return std::filesystem::path();
-        }()
-    );
+    static std::filesystem::path path([]() {
+        if (auto value = getEnvironmentVariable("USERPROFILE"))
+            return std::filesystem::path(*value);
+        return std::filesystem::path();
+    }());
     return path;
 }
 
 std::optional<std::string> getEnvironmentVariable(const std::string& varName)
 {
     static char buff[4096];
-    DWORD numChar = GetEnvironmentVariableA(varName.c_str(), buff, (DWORD)std::size(buff)); // what is the best way to deal with wchar ?
+    DWORD numChar = GetEnvironmentVariableA(
+        varName.c_str(),
+        buff,
+        (DWORD)std::size(buff));  // what is the best way to deal with wchar ?
     FALCOR_ASSERT(numChar < (DWORD)std::size(buff));
     return numChar > 0 ? std::string(buff) : std::optional<std::string>{};
 }
@@ -449,11 +469,9 @@ static std::string getExtensionsFilterString(const FileDialogFilterVec& filters)
     if (appendForOpen)
         s.append(1, 0);
 
-    for (size_t i = 0; i < filters.size(); i++)
-    {
+    for (size_t i = 0; i < filters.size(); i++) {
         const auto& f = filters[i];
-        if (appendForOpen)
-        {
+        if (appendForOpen) {
             bool last = i == (filters.size() - 1);
             std::string e = "*." + f.ext;
             if (last == false)
@@ -461,9 +479,9 @@ static std::string getExtensionsFilterString(const FileDialogFilterVec& filters)
             d += e;
             s += e;
         }
-        else
-        {
-            s += f.desc.empty() ? f.ext + " files" : f.desc + " (*." + f.ext + ')';
+        else {
+            s += f.desc.empty() ? f.ext + " files"
+                                : f.desc + " (*." + f.ext + ')';
             s.append(1, 0);
             s += "*." + f.ext + ';';
             s.append(1, 0);
@@ -475,8 +493,7 @@ static std::string getExtensionsFilterString(const FileDialogFilterVec& filters)
     return s;
 };
 
-struct FilterSpec
-{
+struct FilterSpec {
     FilterSpec(const FileDialogFilterVec& filters, bool forOpen)
     {
         size_t size = forOpen ? filters.size() + 1 : filters.size();
@@ -487,51 +504,57 @@ struct FilterSpec
         if (forOpen)
             comDlg.push_back({});
         std::wstring all;
-        for (const auto& f : filters)
-        {
+        for (const auto& f : filters) {
             descs.push_back(string_2_wstring(f.desc));
             ext.push_back(L"*." + string_2_wstring(f.ext));
-            comDlg.push_back({descs.back().c_str(), ext.back().c_str()});
+            comDlg.push_back({ descs.back().c_str(), ext.back().c_str() });
             all += ext.back() + L";";
         }
 
-        if (forOpen)
-        {
+        if (forOpen) {
             descs.push_back(L"Supported Formats");
             ext.push_back(all);
-            comDlg[0] = {descs.back().c_str(), ext.back().c_str()};
+            comDlg[0] = { descs.back().c_str(), ext.back().c_str() };
         }
     }
 
-    size_t size() const { return comDlg.size(); }
-    const COMDLG_FILTERSPEC* data() const { return comDlg.data(); }
+    size_t size() const
+    {
+        return comDlg.size();
+    }
+    const COMDLG_FILTERSPEC* data() const
+    {
+        return comDlg.data();
+    }
 
-private:
+   private:
     std::vector<COMDLG_FILTERSPEC> comDlg;
     std::vector<std::wstring> descs;
     std::vector<std::wstring> ext;
 };
 
 template<typename DialogType>
-static bool fileDialogCommon(const FileDialogFilterVec& filters, std::filesystem::path& path, DWORD options, const CLSID clsid)
+static bool fileDialogCommon(
+    const FileDialogFilterVec& filters,
+    std::filesystem::path& path,
+    DWORD options,
+    const CLSID clsid)
 {
     FilterSpec fs(filters, typeid(DialogType) == typeid(IFileOpenDialog));
 
     DialogType* pDialog;
-    if (FAILED(CoCreateInstance(clsid, NULL, CLSCTX_ALL, IID_PPV_ARGS(&pDialog))))
+    if (FAILED(
+            CoCreateInstance(clsid, NULL, CLSCTX_ALL, IID_PPV_ARGS(&pDialog))))
         FALCOR_THROW("Failed to create file dialog.");
     pDialog->SetOptions(options | FOS_FORCEFILESYSTEM);
     pDialog->SetFileTypes((uint32_t)fs.size(), fs.data());
     pDialog->SetDefaultExtension(fs.data()->pszSpec);
 
-    if (pDialog->Show(nullptr) == S_OK)
-    {
+    if (pDialog->Show(nullptr) == S_OK) {
         IShellItem* pItem;
-        if (pDialog->GetResult(&pItem) == S_OK)
-        {
+        if (pDialog->GetResult(&pItem) == S_OK) {
             PWSTR pathStr;
-            if (pItem->GetDisplayName(SIGDN_FILESYSPATH, &pathStr) == S_OK)
-            {
+            if (pItem->GetDisplayName(SIGDN_FILESYSPATH, &pathStr) == S_OK) {
                 path = pathStr;
                 // filename = wstring_2_string(std::wstring(path)); // TODO
                 CoTaskMemFree(pathStr);
@@ -543,27 +566,41 @@ static bool fileDialogCommon(const FileDialogFilterVec& filters, std::filesystem
     return false;
 }
 
-bool saveFileDialog(const FileDialogFilterVec& filters, std::filesystem::path& path)
+bool saveFileDialog(
+    const FileDialogFilterVec& filters,
+    std::filesystem::path& path)
 {
-    return fileDialogCommon<IFileSaveDialog>(filters, path, FOS_OVERWRITEPROMPT, CLSID_FileSaveDialog);
+    return fileDialogCommon<IFileSaveDialog>(
+        filters, path, FOS_OVERWRITEPROMPT, CLSID_FileSaveDialog);
 }
 
-bool openFileDialog(const FileDialogFilterVec& filters, std::filesystem::path& path)
+bool openFileDialog(
+    const FileDialogFilterVec& filters,
+    std::filesystem::path& path)
 {
-    return fileDialogCommon<IFileOpenDialog>(filters, path, FOS_FILEMUSTEXIST, CLSID_FileOpenDialog);
+    return fileDialogCommon<IFileOpenDialog>(
+        filters, path, FOS_FILEMUSTEXIST, CLSID_FileOpenDialog);
 };
 
 bool chooseFolderDialog(std::filesystem::path& path)
 {
-    return fileDialogCommon<IFileOpenDialog>({}, path, FOS_PICKFOLDERS | FOS_PATHMUSTEXIST, CLSID_FileOpenDialog);
+    return fileDialogCommon<IFileOpenDialog>(
+        {}, path, FOS_PICKFOLDERS | FOS_PATHMUSTEXIST, CLSID_FileOpenDialog);
 }
 
 void setWindowIcon(const std::filesystem::path& path, WindowHandle windowHandle)
 {
-    HANDLE hIcon = LoadImageW(GetModuleHandleW(NULL), path.c_str(), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+    HANDLE hIcon = LoadImageW(
+        GetModuleHandleW(NULL),
+        path.c_str(),
+        IMAGE_ICON,
+        0,
+        0,
+        LR_DEFAULTSIZE | LR_LOADFROMFILE);
     if (!hIcon)
         FALCOR_THROW("Failed to load icon from '{}'.", path);
-    HWND hWnd = windowHandle ? static_cast<HWND>(windowHandle) : GetActiveWindow();
+    HWND hWnd =
+        windowHandle ? static_cast<HWND>(windowHandle) : GetActiveWindow();
     SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 }
 
@@ -585,52 +622,31 @@ float getDisplayScaleFactor()
 
     ::SetProcessDPIAware();
     DEVICE_SCALE_FACTOR factor;
-    if (GetScaleFactorForMonitor(nullptr, &factor) == S_OK)
-    {
-        switch (factor)
-        {
-        case SCALE_100_PERCENT:
-            return 1.0f;
-        case SCALE_120_PERCENT:
-            return 1.2f;
-        case SCALE_125_PERCENT:
-            return 1.25f;
-        case SCALE_140_PERCENT:
-            return 1.40f;
-        case SCALE_150_PERCENT:
-            return 1.50f;
-        case SCALE_160_PERCENT:
-            return 1.60f;
-        case SCALE_175_PERCENT:
-            return 1.70f;
-        case SCALE_180_PERCENT:
-            return 1.80f;
-        case SCALE_200_PERCENT:
-            return 2.00f;
-        case SCALE_225_PERCENT:
-            return 2.25f;
-        case SCALE_250_PERCENT:
-            return 2.50f;
-        case SCALE_300_PERCENT:
-            return 3.00f;
-        case SCALE_350_PERCENT:
-            return 3.50f;
-        case SCALE_400_PERCENT:
-            return 4.00f;
-        case SCALE_450_PERCENT:
-            return 4.50f;
-        case SCALE_500_PERCENT:
-            return 4.60f;
-        default:
-            FALCOR_UNREACHABLE();
-            return 1.0f;
+    if (GetScaleFactorForMonitor(nullptr, &factor) == S_OK) {
+        switch (factor) {
+            case SCALE_100_PERCENT: return 1.0f;
+            case SCALE_120_PERCENT: return 1.2f;
+            case SCALE_125_PERCENT: return 1.25f;
+            case SCALE_140_PERCENT: return 1.40f;
+            case SCALE_150_PERCENT: return 1.50f;
+            case SCALE_160_PERCENT: return 1.60f;
+            case SCALE_175_PERCENT: return 1.70f;
+            case SCALE_180_PERCENT: return 1.80f;
+            case SCALE_200_PERCENT: return 2.00f;
+            case SCALE_225_PERCENT: return 2.25f;
+            case SCALE_250_PERCENT: return 2.50f;
+            case SCALE_300_PERCENT: return 3.00f;
+            case SCALE_350_PERCENT: return 3.50f;
+            case SCALE_400_PERCENT: return 4.00f;
+            case SCALE_450_PERCENT: return 4.50f;
+            case SCALE_500_PERCENT: return 4.60f;
+            default: FALCOR_UNREACHABLE(); return 1.0f;
         }
     }
     return 1.0f;
 }
 
-struct KeyboardInterruptData
-{
+struct KeyboardInterruptData {
     std::mutex mutex;
     std::function<void()> handler;
 
@@ -645,11 +661,9 @@ static BOOL WINAPI consoleCtrlHandler(_In_ DWORD dwCtrlType)
 {
     KeyboardInterruptData& data = KeyboardInterruptData::get();
 
-    if (dwCtrlType == CTRL_C_EVENT)
-    {
+    if (dwCtrlType == CTRL_C_EVENT) {
         std::lock_guard<std::mutex> lock(data.mutex);
-        if (data.handler)
-        {
+        if (data.handler) {
             data.handler();
             return TRUE;
         }
@@ -663,13 +677,11 @@ void setKeyboardInterruptHandler(std::function<void()> handler)
     KeyboardInterruptData& data = KeyboardInterruptData::get();
     std::lock_guard<std::mutex> lock(data.mutex);
 
-    if (handler && !data.handler)
-    {
+    if (handler && !data.handler) {
         if (SetConsoleCtrlHandler(consoleCtrlHandler, TRUE) == 0)
             FALCOR_THROW("Failed to register keyboard interrupt handler");
     }
-    else if (!handler && data.handler)
-    {
+    else if (!handler && data.handler) {
         if (SetConsoleCtrlHandler(consoleCtrlHandler, FALSE) == 0)
             FALCOR_THROW("Failed to unregister keyboard interrupt handler");
     }
@@ -691,7 +703,9 @@ void debugBreak()
     __debugbreak();
 }
 
-size_t executeProcess(const std::string& appName, const std::string& commandLineArgs)
+size_t executeProcess(
+    const std::string& appName,
+    const std::string& commandLineArgs)
 {
     std::string commandLine = appName + ".exe " + commandLineArgs;
     STARTUPINFOA startupInfo{};
@@ -706,10 +720,9 @@ size_t executeProcess(const std::string& appName, const std::string& commandLine
             nullptr,
             nullptr,
             &startupInfo,
-            &processInformation
-        ))
-    {
-        FALCOR_THROW("Unable to execute process: {} {}", appName, commandLineArgs);
+            &processInformation)) {
+        FALCOR_THROW(
+            "Unable to execute process: {} {}", appName, commandLineArgs);
     }
 
     return reinterpret_cast<size_t>(processInformation.hProcess);
@@ -718,10 +731,8 @@ size_t executeProcess(const std::string& appName, const std::string& commandLine
 bool isProcessRunning(size_t processID)
 {
     uint32_t exitCode = 0;
-    if (GetExitCodeProcess((HANDLE)processID, (LPDWORD)&exitCode))
-    {
-        if (exitCode != STILL_ACTIVE)
-        {
+    if (GetExitCodeProcess((HANDLE)processID, (LPDWORD)&exitCode)) {
+        if (exitCode != STILL_ACTIVE) {
             return false;
         }
     }
@@ -735,9 +746,12 @@ void terminateProcess(size_t processID)
     CloseHandle((HANDLE)processID);
 }
 
-static std::unordered_map<std::wstring, std::pair<std::thread, bool> > fileThreads;
+static std::unordered_map<std::wstring, std::pair<std::thread, bool>>
+    fileThreads;
 
-static void checkFileModifiedStatus(const std::filesystem::path& path, const std::function<void()>& callback)
+static void checkFileModifiedStatus(
+    const std::filesystem::path& path,
+    const std::function<void()>& callback)
 {
     auto filename = path.filename();
     auto dir = path.parent_path();
@@ -749,15 +763,13 @@ static void checkFileModifiedStatus(const std::filesystem::path& path, const std
         nullptr,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-        NULL
-    );
+        NULL);
     FALCOR_ASSERT(hFile != INVALID_HANDLE_VALUE);
 
     // overlapped struct requires unique event handle to be valid
     OVERLAPPED overlapped{};
 
-    while (true)
-    {
+    while (true) {
         size_t offset = 0;
         uint32_t bytesReturned = 0;
         std::vector<uint32_t> buffer;
@@ -771,35 +783,41 @@ static void checkFileModifiedStatus(const std::filesystem::path& path, const std
                 FILE_NOTIFY_CHANGE_LAST_WRITE,
                 0,
                 &overlapped,
-                nullptr
-            ))
-        {
-            logError("Failed to read directory changes for shared file '{}'. Aborting monitoring.", path);
+                nullptr)) {
+            logError(
+                "Failed to read directory changes for shared file '{}'. "
+                "Aborting monitoring.",
+                path);
             CloseHandle(hFile);
         }
 
-        if (!GetOverlappedResult(hFile, &overlapped, (LPDWORD)&bytesReturned, true))
-        {
-            logError("Failed to read directory changes for shared file '{}'. Aborting monitoring.", path);
+        if (!GetOverlappedResult(
+                hFile, &overlapped, (LPDWORD)&bytesReturned, true)) {
+            logError(
+                "Failed to read directory changes for shared file '{}'. "
+                "Aborting monitoring.",
+                path);
             CloseHandle(hFile);
         }
 
         // don't check for another overlapped result if main thread is closed
-        if (!fileThreads.at(path.native()).second)
-        {
+        if (!fileThreads.at(path.native()).second) {
             break;
         }
 
         if (!bytesReturned)
             continue;
 
-        while (offset < buffer.size())
-        {
-            _FILE_NOTIFY_INFORMATION* pNotifyInformation = reinterpret_cast<_FILE_NOTIFY_INFORMATION*>(buffer.data());
-            std::wstring currentFilename(pNotifyInformation->FileName, pNotifyInformation->FileName + pNotifyInformation->FileNameLength);
+        while (offset < buffer.size()) {
+            _FILE_NOTIFY_INFORMATION* pNotifyInformation =
+                reinterpret_cast<_FILE_NOTIFY_INFORMATION*>(buffer.data());
+            std::wstring currentFilename(
+                pNotifyInformation->FileName,
+                pNotifyInformation->FileName +
+                    pNotifyInformation->FileNameLength);
 
-            if (currentFilename == filename && pNotifyInformation->Action == FILE_ACTION_MODIFIED)
-            {
+            if (currentFilename == filename &&
+                pNotifyInformation->Action == FILE_ACTION_MODIFIED) {
                 callback();
                 break;
             }
@@ -813,21 +831,22 @@ static void checkFileModifiedStatus(const std::filesystem::path& path, const std
     CloseHandle(hFile);
 }
 
-void monitorFileUpdates(const std::filesystem::path& path, const std::function<void()>& callback)
+void monitorFileUpdates(
+    const std::filesystem::path& path,
+    const std::function<void()>& callback)
 {
     const auto& fileThreadsIt = fileThreads.find(path.native());
 
     // only have one thread waiting on file write
-    if (fileThreadsIt != fileThreads.end())
-    {
-        if (fileThreadsIt->second.first.joinable())
-        {
+    if (fileThreadsIt != fileThreads.end()) {
+        if (fileThreadsIt->second.first.joinable()) {
             fileThreadsIt->second.first.join();
         }
     }
 
     auto pathStr = path.native();
-    fileThreads[pathStr].first = std::thread(checkFileModifiedStatus, path, callback);
+    fileThreads[pathStr].first =
+        std::thread(checkFileModifiedStatus, path, callback);
     fileThreads[pathStr].second = true;
 }
 
@@ -836,8 +855,7 @@ void closeSharedFile(const std::filesystem::path& path)
     const auto& fileThreadsIt = fileThreads.find(path.native());
 
     // only have one thread waiting on file write
-    if (fileThreadsIt != fileThreads.end())
-    {
+    if (fileThreadsIt != fileThreads.end()) {
         fileThreadsIt->second.second = false;
 
         fileThreadsIt->second.first.detach();
@@ -849,31 +867,36 @@ std::thread::native_handle_type getCurrentThread()
     return ::GetCurrentThread();
 }
 
-void setThreadAffinity(std::thread::native_handle_type thread, uint32_t affinityMask)
+void setThreadAffinity(
+    std::thread::native_handle_type thread,
+    uint32_t affinityMask)
 {
     ::SetThreadAffinityMask(thread, affinityMask);
-    if (DWORD dwError = GetLastError() != 0)
-    {
+    if (DWORD dwError = GetLastError() != 0) {
         LPVOID lpMsgBuf;
         FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL,
             dwError,
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
             (LPTSTR)&lpMsgBuf,
             0,
-            NULL
-        );
-        std::wstring err((LPTSTR)lpMsgBuf);
-        logWarning("setThreadAffinity failed with error: {}", wstring_2_string(err));
+            NULL);
+        LPTSTR err((LPTSTR)lpMsgBuf);
+        logWarning(
+            "setThreadAffinity failed with error: {}", wstring_2_string(err));
         LocalFree(lpMsgBuf);
     }
 }
 
-void setThreadPriority(std::thread::native_handle_type thread, ThreadPriorityType priority)
+void setThreadPriority(
+    std::thread::native_handle_type thread,
+    ThreadPriorityType priority)
 {
     if (priority >= ThreadPriorityType::Lowest)
-        ::SetThreadPriority(thread, THREAD_BASE_PRIORITY_MIN + (int32_t)priority);
+        ::SetThreadPriority(
+            thread, THREAD_BASE_PRIORITY_MIN + (int32_t)priority);
     else if (priority == ThreadPriorityType::BackgroundBegin)
         ::SetThreadPriority(thread, THREAD_MODE_BACKGROUND_BEGIN);
     else if (priority == ThreadPriorityType::BackgroundEnd)
@@ -881,20 +904,20 @@ void setThreadPriority(std::thread::native_handle_type thread, ThreadPriorityTyp
     else
         FALCOR_UNREACHABLE();
 
-    if (DWORD dwError = GetLastError() != 0)
-    {
+    if (DWORD dwError = GetLastError() != 0) {
         LPVOID lpMsgBuf;
         FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL,
             dwError,
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
             (LPTSTR)&lpMsgBuf,
             0,
-            NULL
-        );
+            NULL);
         std::wstring err((LPTSTR)lpMsgBuf);
-        logWarning("setThreadPriority failed with error: {}", wstring_2_string(err));
+        logWarning(
+            "setThreadPriority failed with error: {}", wstring_2_string(err));
         LocalFree(lpMsgBuf);
     }
 }
@@ -902,8 +925,7 @@ void setThreadPriority(std::thread::native_handle_type thread, ThreadPriorityTyp
 time_t getFileModifiedTime(const std::filesystem::path& path)
 {
     struct stat s;
-    if (stat(path.string().c_str(), &s) != 0)
-    {
+    if (stat(path.string().c_str(), &s) != 0) {
         FALCOR_THROW("Can't get file time for '{}'.", path);
     }
 
@@ -926,7 +948,8 @@ uint64_t getUsedVirtualMemory()
     memInfo.dwLength = sizeof(MEMORYSTATUSEX);
     GlobalMemoryStatusEx(&memInfo);
     DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-    DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
+    DWORDLONG virtualMemUsed =
+        memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
 
     return virtualMemUsed;
 }
@@ -934,7 +957,8 @@ uint64_t getUsedVirtualMemory()
 uint64_t getProcessUsedVirtualMemory()
 {
     PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+    GetProcessMemoryInfo(
+        GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
     SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
 
     return virtualMemUsedByMe;
@@ -977,7 +1001,8 @@ void releaseSharedLibrary(SharedLibraryHandle library)
  */
 void* getProcAddress(SharedLibraryHandle library, const std::string& funcName)
 {
-    return reinterpret_cast<void*>(GetProcAddress(static_cast<HMODULE>(library), funcName.c_str()));
+    return reinterpret_cast<void*>(
+        GetProcAddress(static_cast<HMODULE>(library), funcName.c_str()));
 }
 
 static std::mutex sOSServicesInitMutex;
@@ -986,9 +1011,9 @@ static uint32_t sOSServicesInitCount = 0;
 void OSServices::start()
 {
     std::lock_guard<std::mutex> lock(sOSServicesInitMutex);
-    if (sOSServicesInitCount++ == 0)
-    {
-        if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
+    if (sOSServicesInitCount++ == 0) {
+        if (FAILED(CoInitializeEx(
+                NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
             FALCOR_THROW("Failed to initialize COM library.");
     }
 }
@@ -1000,13 +1025,17 @@ void OSServices::stop()
     if (count == 1)
         CoUninitialize();
     else if (count == 0)
-        FALCOR_THROW("OSServices::stop() called more times than OSServices::start().");
+        FALCOR_THROW(
+            "OSServices::stop() called more times than OSServices::start().");
 }
 
 size_t getCurrentRSS()
 {
     PROCESS_MEMORY_COUNTERS memoryCounter;
-    if (GetProcessMemoryInfo(GetCurrentProcess(), &memoryCounter, sizeof(PROCESS_MEMORY_COUNTERS)))
+    if (GetProcessMemoryInfo(
+            GetCurrentProcess(),
+            &memoryCounter,
+            sizeof(PROCESS_MEMORY_COUNTERS)))
         return memoryCounter.WorkingSetSize;
     return 0;
 }
@@ -1014,8 +1043,11 @@ size_t getCurrentRSS()
 size_t getPeakRSS()
 {
     PROCESS_MEMORY_COUNTERS memoryCounter;
-    if (GetProcessMemoryInfo(GetCurrentProcess(), &memoryCounter, sizeof(PROCESS_MEMORY_COUNTERS)))
+    if (GetProcessMemoryInfo(
+            GetCurrentProcess(),
+            &memoryCounter,
+            sizeof(PROCESS_MEMORY_COUNTERS)))
         return memoryCounter.PeakWorkingSetSize;
     return 0;
 }
-} // namespace Falcor
+}  // namespace Falcor

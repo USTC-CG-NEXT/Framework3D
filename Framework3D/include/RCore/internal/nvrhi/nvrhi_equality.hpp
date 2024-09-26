@@ -1,6 +1,7 @@
 #pragma once
 #include "USTC_CG.h"
 #include "nvrhi/nvrhi.h"
+#include "Resources.hpp"
 
 namespace nvrhi {
 
