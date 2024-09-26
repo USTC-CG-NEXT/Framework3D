@@ -127,8 +127,14 @@ class FALCOR_API CopyContext {
      * transitioned)
      */
     virtual bool resourceBarrier(
-        const Resource* pResource,
-        ResourceStates newState);
+        const Texture* pTexture,
+        ResourceStates newState,
+        const nvrhi::TextureSubresourceSet* pViewInfo = nullptr);
+
+    virtual bool resourceBarrier(
+        const Buffer* pResource,
+        ResourceStates newState,
+        const nvrhi::TextureSubresourceSet* pViewInfo = nullptr);
 
     /**
      * Insert a UAV barrier

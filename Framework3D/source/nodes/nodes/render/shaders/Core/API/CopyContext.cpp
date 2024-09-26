@@ -124,11 +124,10 @@ std::vector<uint8_t> CopyContext::readTextureSubresource(
 }
 
 bool CopyContext::resourceBarrier(
-    const Resource* pResource,
+    const Texture* pTexture,
     ResourceStates newState,
-    const ResourceViewInfo* pViewInfo)
+    const nvrhi::TextureSubresourceSet* pViewInfo)
 {
-    const Texture* pTexture = nvrhi::checked_cast<const Texture*>(pResource);
     if (pTexture) {
         bool globalBarrier = pTexture->isStateGlobal();
         if (pViewInfo) {
@@ -147,10 +146,14 @@ bool CopyContext::resourceBarrier(
             return subresourceBarriers(pTexture, newState, pViewInfo);
         }
     }
-    else {
-        const Buffer* pBuffer = nvrhi::checked_cast<const Buffer*>(pResource);
-        return bufferBarrier(pBuffer, newState);
-    }
+}
+
+bool CopyContext::resourceBarrier(
+    const Buffer* pResource,
+    ResourceStates newState,
+    const nvrhi::TextureSubresourceSet* pViewInfo)
+{
+    return bufferBarrier(pResource, newState);
 }
 
 bool CopyContext::subresourceBarriers(
@@ -305,7 +308,7 @@ CopyContext::ReadTextureTask::SharedPtr CopyContext::ReadTextureTask::create(
         size, ResourceBindFlags::None, MemoryType::ReadBack, nullptr);
 
     // Copy from texture to buffer
-    pCtx->resourceBarrier(pTexture, ResourceStates::CopySource);
+    pCtx->resourceBarrier(pTexture, ResourceStates::CopySource, TODO);
     auto encoder = pCtx->mpLowLevelData;
     SubresourceRange srcSubresource = {};
     srcSubresource.baseArrayLayer =
@@ -373,6 +376,7 @@ bool CopyContext::textureBarrier(
 {
     auto resourceEncoder = mpLowLevelData;
     bool recorded = false;
+
     if (pTexture->getGlobalState() != newState) {
         ITextureResource* textureResource = pTexture->getGfxTextureResource();
         resourceEncoder->textureBarrier(
@@ -419,12 +423,14 @@ void CopyContext::apiSubresourceBarrier(
     auto subresourceState = pTexture->getSubresourceState(arraySlice, mipLevel);
     if (subresourceState != newState) {
         ITextureResource* textureResource = pTexture->getGfxTextureResource();
-        SubresourceRange subresourceRange = {};
-        subresourceRange.baseArrayLayer = arraySlice;
+        nvrhi::TextureSubresourceSet subresourceRange = {};
+        subresourceRange.baseArraySlice = arraySlice;
         subresourceRange.mipLevel = mipLevel;
         subresourceRange.layerCount = 1;
-        subresourceRange.mipLevelCount = 1;
-        resourceEncoder->textureSubresourceBarrier(
+        subresourceRange.numMipLevels = 1;
+        resourceEncoder->setTextureState(
+            textureResource, subresourceRange, newState);
+        ->textureSubresourceBarrier(
             textureResource,
             subresourceRange,
             getGFXResourceState(subresourceState),
@@ -463,8 +469,8 @@ void CopyContext::copyResource(const Resource* pDst, const Resource* pSrc)
     // Copy from texture to texture or from buffer to buffer.
     FALCOR_ASSERT(pDst->getType() == pSrc->getType());
 
-    resourceBarrier(pDst, ResourceStates::CopyDest);
-    resourceBarrier(pSrc, ResourceStates::CopySource);
+    resourceBarrier(pDst, ResourceStates::CopyDest, TODO);
+    resourceBarrier(pSrc, ResourceStates::CopySource, TODO);
 
     auto resourceEncoder = mpLowLevelData;
 
@@ -584,8 +590,8 @@ void CopyContext::copyBufferRegion(
     uint64_t srcOffset,
     uint64_t numBytes)
 {
-    resourceBarrier(pDst, ResourceStates::CopyDest);
-    resourceBarrier(pSrc, ResourceStates::CopySource);
+    resourceBarrier(pDst, ResourceStates::CopyDest, TODO);
+    resourceBarrier(pSrc, ResourceStates::CopySource, TODO);
 
     auto resourceEncoder = mpLowLevelData;
     resourceEncoder->copyBuffer(
@@ -606,8 +612,8 @@ void CopyContext::copySubresourceRegion(
     const uint3& srcOffset,
     const uint3& size)
 {
-    resourceBarrier(pDst, ResourceStates::CopyDest);
-    resourceBarrier(pSrc, ResourceStates::CopySource);
+    resourceBarrier(pDst, ResourceStates::CopyDest, TODO);
+    resourceBarrier(pSrc, ResourceStates::CopySource, TODO);
 
     SubresourceRange dstSubresource = {};
     dstSubresource.baseArrayLayer =

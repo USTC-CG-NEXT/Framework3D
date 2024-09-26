@@ -237,7 +237,9 @@ void ParameterBlock::prepareResource(
     const Buffer* pBuffer = pResource->asBuffer().get();
     if (isUav && pBuffer && pBuffer->getUAVCounter()) {
         pContext->resourceBarrier(
-            pBuffer->getUAVCounter().get(), ResourceStates::UnorderedAccess);
+            pBuffer->getUAVCounter().get(),
+            ResourceStates::UnorderedAccess,
+            TODO);
         pContext->uavBarrier(pBuffer->getUAVCounter().get());
     }
 
@@ -250,7 +252,8 @@ void ParameterBlock::prepareResource(
         insertBarrier = !pContext->resourceBarrier(
             pResource,
             isUav ? ResourceStates::UnorderedAccess
-                  : ResourceStates::ShaderResource);
+                  : ResourceStates::ShaderResource,
+            TODO);
     }
 
     // Insert UAV barrier automatically if the resource is an UAV that is

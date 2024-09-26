@@ -121,7 +121,9 @@ class FALCOR_API Device : public Object {
         return mGfxDevice->getGraphicsAPI();
     }
 
-   public:
+    uint64_t executeCommandList(const nvrhi::CommandListHandle& commands);
+
+public:
     /**
      * Maximum number of in-flight frames.
      * Typically there are at least two frames, one being rendered to, the other

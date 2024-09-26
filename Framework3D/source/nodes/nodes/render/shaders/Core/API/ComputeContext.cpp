@@ -67,7 +67,7 @@ void ComputeContext::dispatchIndirect(
     uint64_t argBufferOffset)
 {
     pVars->prepareDescriptorSets(this);
-    resourceBarrier(pArgBuffer, ResourceStates::IndirectArgument);
+    resourceBarrier(pArgBuffer, ResourceStates::IndirectArgument, TODO);
 
     auto computeEncoder = mpLowLevelData;
 
@@ -86,7 +86,7 @@ void ComputeContext::clearUAV(
     const UnorderedAccessView* pUav,
     const float4& value)
 {
-    resourceBarrier(pUav->resourceHandle, ResourceStates::UnorderedAccess);
+    resourceBarrier(pUav->resourceHandle, ResourceStates::UnorderedAccess, TODO);
     
     auto resourceEncoder = mpLowLevelData;
     ClearValue clearValue = {};
@@ -102,7 +102,7 @@ void ComputeContext::clearUAV(
     const UnorderedAccessView* pUav,
     const uint4& value)
 {
-    resourceBarrier(pUav->resourceHandle, ResourceStates::UnorderedAccess);
+    resourceBarrier(pUav->resourceHandle, ResourceStates::UnorderedAccess, TODO);
 
     auto resourceEncoder = mpLowLevelData;
     ClearValue clearValue = {};

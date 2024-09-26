@@ -59,7 +59,6 @@ struct FullScreenPass::SharedData {
             ResourceBindFlags::Vertex,
             MemoryType::Upload,
             (void*)kVertices);
-        pVertexBuffer->breakStrongReferenceToDevice();
 
         ref<VertexLayout> pLayout = VertexLayout::create();
         ref<VertexBufferLayout> pBufLayout = VertexBufferLayout::create();

@@ -479,7 +479,7 @@ void RenderContext::blit(
 
 void RenderContext::clearRtv(const RenderTargetView* pRtv, const float4& color)
 {
-    resourceBarrier(pRtv->getResource(), ResourceStates::RenderTarget);
+    resourceBarrier(pRtv->getResource(), ResourceStates::RenderTarget, TODO);
     ClearValue clearValue = {};
     memcpy(clearValue.color.floatValues, &color, sizeof(float) * 4);
     auto encoder = getLowLevelData()->getResourceCommandEncoder();
@@ -497,7 +497,7 @@ void RenderContext::clearDsv(
     bool clearDepth,
     bool clearStencil)
 {
-    resourceBarrier(pDsv->getResource(), ResourceStates::DepthStencil);
+    resourceBarrier(pDsv->getResource(), ResourceStates::DepthStencil, TODO);
     ClearValue clearValue = {};
     clearValue.depthStencil.depth = depth;
     clearValue.depthStencil.stencil = stencil;
@@ -582,7 +582,7 @@ void RenderContext::drawIndirect(
     const Buffer* pCountBuffer,
     uint64_t countBufferOffset)
 {
-    resourceBarrier(pArgBuffer, ResourceStates::IndirectArg);
+    resourceBarrier(pArgBuffer, ResourceStates::IndirectArg, TODO);
     auto encoder = drawCallCommon(pState, pVars);
     FALCOR_GFX_CALL(encoder->drawIndirect(
         maxCommandCount,
@@ -602,7 +602,7 @@ void RenderContext::drawIndexedIndirect(
     const Buffer* pCountBuffer,
     uint64_t countBufferOffset)
 {
-    resourceBarrier(pArgBuffer, ResourceStates::IndirectArg);
+    resourceBarrier(pArgBuffer, ResourceStates::IndirectArg, TODO);
     auto encoder = drawCallCommon(pState, pVars);
     FALCOR_GFX_CALL(encoder->drawIndexedIndirect(
         maxCommandCount,
@@ -640,8 +640,8 @@ void RenderContext::resolveSubresource(
     uint32_t dstSubresource)
 {
     // TODO it would be better to just use barriers on the subresources.
-    resourceBarrier(pSrc.get(), ResourceStates::ResolveSource);
-    resourceBarrier(pDst.get(), ResourceStates::ResolveDest);
+    resourceBarrier(pSrc.get(), ResourceStates::ResolveSource, TODO);
+    resourceBarrier(pDst.get(), ResourceStates::ResolveDest, TODO);
 
     auto resourceEncoder = getLowLevelData()->getResourceCommandEncoder();
     SubresourceRange srcRange = {};
@@ -690,8 +690,8 @@ void RenderContext::resolveResource(
         pSrc->getMipCount() == pDst->getMipCount(),
         "Source and destination textures must have the same mip count.");
 
-    resourceBarrier(pSrc.get(), ResourceStates::ResolveSource);
-    resourceBarrier(pDst.get(), ResourceStates::ResolveDest);
+    resourceBarrier(pSrc.get(), ResourceStates::ResolveSource, TODO);
+    resourceBarrier(pDst.get(), ResourceStates::ResolveDest, TODO);
 
     auto resourceEncoder = getLowLevelData()->getResourceCommandEncoder();
 
@@ -769,11 +769,11 @@ IRenderCommandEncoder* RenderContext::drawCallCommon(
         auto pVao = pState->getVao().get();
         for (uint32_t i = 0; i < pVao->getVertexBuffersCount(); i++) {
             auto vertexBuffer = pVao->getVertexBuffer(i).get();
-            resourceBarrier(vertexBuffer, ResourceStates::VertexBuffer);
+            resourceBarrier(vertexBuffer, ResourceStates::VertexBuffer, TODO);
         }
         if (pVao->getIndexBuffer()) {
             auto indexBuffer = pVao->getIndexBuffer().get();
-            resourceBarrier(indexBuffer, ResourceStates::IndexBuffer);
+            resourceBarrier(indexBuffer, ResourceStates::IndexBuffer, TODO);
         }
     }
 
