@@ -64,7 +64,7 @@ class FALCOR_API LightCollection : public ILightCollection {
        exception if creation failed.
     */
     static ref<LightCollection> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         RenderContext* pRenderContext,
         Scene* pScene)
     {
@@ -72,12 +72,12 @@ class FALCOR_API LightCollection : public ILightCollection {
     }
 
     LightCollection(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         RenderContext* pRenderContext,
         Scene* pScene);
     ~LightCollection() = default;
 
-    const nvrhi::DeviceHandle& getDevice() const override
+    const ref<Device>& getDevice() const override
     {
         return mpDevice;
     }
@@ -186,7 +186,7 @@ class FALCOR_API LightCollection : public ILightCollection {
     void syncCPUData(RenderContext* pRenderContext) const;
 
     // Internal state
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     Scene*
         mpScene;  ///< Unowning pointer to scene (scene owns LightCollection).
 

@@ -43,7 +43,7 @@ class FALCOR_API ImageProcessing
 {
 public:
     /// Constructor.
-    ImageProcessing(nvrhi::DeviceHandle pDevice);
+    ImageProcessing(ref<Device> pDevice);
 
     /**
      * Copy single mip level and color channel from source to destination.
@@ -63,7 +63,7 @@ public:
     );
 
 private:
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     ref<ComputePass> mpCopyFloatPass;
     ref<ComputePass> mpCopyIntPass;
 };

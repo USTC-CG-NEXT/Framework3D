@@ -34,7 +34,7 @@
 namespace Falcor
 {
 
-WarpProfiler::WarpProfiler(nvrhi::DeviceHandle pDevice, const uint32_t binCount) : mBinCount(binCount)
+WarpProfiler::WarpProfiler(ref<Device> pDevice, const uint32_t binCount) : mBinCount(binCount)
 {
     mpFence = pDevice->createFence();
     uint32_t elemCount = binCount * kWarpSize;

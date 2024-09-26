@@ -98,7 +98,7 @@ class FALCOR_API GraphicsState : public Object {
      * @param pDevice GPU device.
      * @return A new object, or an exception is thrown if creation failed.
      */
-    static ref<GraphicsState> create(nvrhi::DeviceHandle pDevice);
+    static ref<GraphicsState> create(ref<Device> pDevice);
 
     /**
      * Get current FBO.
@@ -336,7 +336,7 @@ class FALCOR_API GraphicsState : public Object {
     void breakStrongReferenceToDevice();
 
    private:
-    GraphicsState(nvrhi::DeviceHandle pDevice);
+    GraphicsState(ref<Device> pDevice);
 
     BreakableReference<Device> mpDevice;
     ref<Vao> mpVao;

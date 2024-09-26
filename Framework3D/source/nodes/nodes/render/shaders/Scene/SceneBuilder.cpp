@@ -203,7 +203,7 @@ namespace Falcor
         }
     }
 
-    SceneBuilder::SceneBuilder(nvrhi::DeviceHandle pDevice, const Settings& settings, Flags flags)
+    SceneBuilder::SceneBuilder(ref<Device> pDevice, const Settings& settings, Flags flags)
         : mpDevice(pDevice)
         , mSettings(settings)
         , mFlags(flags)
@@ -212,7 +212,7 @@ namespace Falcor
         mSceneData.pMaterials = std::make_unique<MaterialSystem>(mpDevice);
     }
 
-    SceneBuilder::SceneBuilder(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const Settings& settings, Flags flags)
+    SceneBuilder::SceneBuilder(ref<Device> pDevice, const std::filesystem::path& path, const Settings& settings, Flags flags)
         : SceneBuilder(pDevice, settings, flags)
     {
         std::filesystem::path resolvedPath = mAssetResolver.resolvePath(path, AssetCategory::Scene);
@@ -246,7 +246,7 @@ namespace Falcor
         import(path);
     }
 
-    SceneBuilder::SceneBuilder(nvrhi::DeviceHandle pDevice, const void* buffer, size_t byteSize, std::string_view extension, const Settings& settings, Flags flags)
+    SceneBuilder::SceneBuilder(ref<Device> pDevice, const void* buffer, size_t byteSize, std::string_view extension, const Settings& settings, Flags flags)
         : SceneBuilder(pDevice, settings, flags)
     {
         importFromMemory(buffer, byteSize, extension);

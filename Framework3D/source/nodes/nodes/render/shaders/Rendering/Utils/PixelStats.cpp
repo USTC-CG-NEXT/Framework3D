@@ -56,7 +56,7 @@ namespace {
     }
 }  // namespace
 
-PixelStats::PixelStats(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
+PixelStats::PixelStats(ref<Device> pDevice) : mpDevice(pDevice)
 {
     mpComputeRayCount =
         ComputePass::create(mpDevice, kComputeRayCountFilename, "main");

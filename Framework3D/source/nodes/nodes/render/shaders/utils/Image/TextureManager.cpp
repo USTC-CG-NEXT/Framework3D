@@ -45,7 +45,7 @@ const size_t kMaxTextureHandleCount = std::numeric_limits<uint32_t>::max();
 static_assert(TextureManager::CpuTextureHandle::kInvalidID >= kMaxTextureHandleCount);
 } // namespace
 
-TextureManager::TextureManager(nvrhi::DeviceHandle pDevice, size_t maxTextureCount, size_t threadCount)
+TextureManager::TextureManager(ref<Device> pDevice, size_t maxTextureCount, size_t threadCount)
     : mpDevice(pDevice), mAsyncTextureLoader(pDevice, threadCount), mMaxTextureCount(std::min(maxTextureCount, kMaxTextureHandleCount))
 {}
 

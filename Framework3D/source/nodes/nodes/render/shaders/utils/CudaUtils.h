@@ -191,7 +191,7 @@ class ExternalSemaphore : public Object
 {
     FALCOR_OBJECT(cuda_utils::ExternalSemaphore)
 public:
-    ExternalSemaphore(ref<Fence> pFence) : mpFence(pFence.get())
+    ExternalSemaphore(nvrhi::EventQueryHandle pFence) : mpFence(pFence.get())
     {
         FALCOR_CHECK(mpFence, "'fence' is null.");
         FALCOR_CHECK(mpFence->getDesc().shared, "'fence' must be created with shared=true.");
@@ -244,7 +244,7 @@ struct InteropBuffer
     }
 };
 
-inline InteropBuffer createInteropBuffer(nvrhi::DeviceHandle pDevice, size_t byteSize)
+inline InteropBuffer createInteropBuffer(ref<Device> pDevice, size_t byteSize)
 {
     InteropBuffer interop;
 

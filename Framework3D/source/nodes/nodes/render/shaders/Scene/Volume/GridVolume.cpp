@@ -53,7 +53,7 @@ namespace Falcor
 
     static_assert(sizeof(GridVolumeData) % 16 == 0, "GridVolumeData size should be a multiple of 16");
 
-    GridVolume::GridVolume(nvrhi::DeviceHandle pDevice, const std::string& name)
+    GridVolume::GridVolume(ref<Device> pDevice, const std::string& name)
         : mpDevice(pDevice)
         , mName(name)
     {
@@ -125,7 +125,7 @@ namespace Falcor
         return grid != nullptr;
     }
 
-    GridVolume::GridSequence GridVolume::createGridSequence(nvrhi::DeviceHandle pDevice, const std::vector<std::filesystem::path>& paths, const std::string& gridname, bool keepEmpty)
+    GridVolume::GridSequence GridVolume::createGridSequence(ref<Device> pDevice, const std::vector<std::filesystem::path>& paths, const std::string& gridname, bool keepEmpty)
     {
         GridSequence grids;
         for (const auto& path : paths)

@@ -91,7 +91,7 @@ namespace Falcor
             All = AABBsChanged | BuffersReallocated,
         };
 
-        SDFGrid(nvrhi::DeviceHandle pDevice);
+        SDFGrid(ref<Device> pDevice);
         virtual ~SDFGrid() = default;
 
         /** Set SDF primitives to be used to construct the SDF grid.
@@ -240,7 +240,7 @@ namespace Falcor
 
         void updatePrimitivesBuffer();
 
-        nvrhi::DeviceHandle             mpDevice;
+        ref<Device>             mpDevice;
 
         std::string             mName;
         uint32_t                mGridWidth = 0;

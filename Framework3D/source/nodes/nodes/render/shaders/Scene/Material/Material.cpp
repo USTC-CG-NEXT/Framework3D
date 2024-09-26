@@ -59,7 +59,7 @@ namespace Falcor
         return all(lhs.packedData == rhs.packedData);
     }
 
-    Material::Material(nvrhi::DeviceHandle pDevice, const std::string& name, MaterialType type)
+    Material::Material(ref<Device> pDevice, const std::string& name, MaterialType type)
         : mpDevice(pDevice)
         , mName(name)
     {

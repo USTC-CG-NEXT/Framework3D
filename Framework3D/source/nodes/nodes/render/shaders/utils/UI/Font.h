@@ -47,7 +47,7 @@ public:
      * Constructor. Throws an exception if creation failed.
      * @param[in] path File path without extension.
      */
-    Font(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path);
+    Font(ref<Device> pDevice, const std::filesystem::path& path);
 
     ~Font();
 
@@ -93,7 +93,7 @@ private:
     Font(const Font&) = delete;
     Font& operator=(const Font&) = delete;
 
-    bool loadFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path);
+    bool loadFromFile(ref<Device> pDevice, const std::filesystem::path& path);
 
     static const char mFirstChar = '!';
     static const char mLastChar = '~';

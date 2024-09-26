@@ -41,7 +41,7 @@ namespace Falcor
         const std::string kPrevInverseTransposeWorldMatrices = "prevInverseTransposeWorldMatrices";
     }
 
-    AnimationController::AnimationController(nvrhi::DeviceHandle pDevice, Scene* pScene, const SkinningVertexVector& skinningVertexData, uint32_t prevVertexCount, const std::vector<ref<Animation>>& animations)
+    AnimationController::AnimationController(ref<Device> pDevice, Scene* pScene, const SkinningVertexVector& skinningVertexData, uint32_t prevVertexCount, const std::vector<ref<Animation>>& animations)
         : mpDevice(pDevice)
         , mAnimations(animations)
         , mNodesEdited(pScene->mSceneGraph.size())

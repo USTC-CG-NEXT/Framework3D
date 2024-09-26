@@ -127,7 +127,7 @@ bool isConstantBufferType(const ReflectionType* pType)
 } // namespace
 
 ref<ParameterBlock> ParameterBlock::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<const ProgramVersion>& pProgramVersion,
     const ref<const ReflectionType>& pElementType
 )
@@ -137,7 +137,7 @@ ref<ParameterBlock> ParameterBlock::create(
     return create(pDevice, pReflection);
 }
 
-ref<ParameterBlock> ParameterBlock::create(nvrhi::DeviceHandle pDevice, const ref<const ParameterBlockReflection>& pReflection)
+ref<ParameterBlock> ParameterBlock::create(ref<Device> pDevice, const ref<const ParameterBlockReflection>& pReflection)
 {
     FALCOR_ASSERT(pReflection);
     // TODO(@skallweit) we convert the weak pointer to a shared pointer here because we tie
@@ -147,7 +147,7 @@ ref<ParameterBlock> ParameterBlock::create(nvrhi::DeviceHandle pDevice, const re
 }
 
 ref<ParameterBlock> ParameterBlock::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<const ProgramVersion>& pProgramVersion,
     const std::string& typeName
 )
@@ -204,7 +204,7 @@ void ParameterBlock::createConstantBuffers(const ShaderVar& var)
         {
         case ReflectionResourceType::Type::ConstantBuffer:
         {
-            auto pCB = ParameterBlock::create(nvrhi::DeviceHandle(mpDevice), pResourceType->getParameterBlockReflector());
+            auto pCB = ParameterBlock::create(ref<Device>(mpDevice), pResourceType->getParameterBlockReflector());
             var.setParameterBlock(pCB);
         }
         break;
@@ -248,7 +248,7 @@ void ParameterBlock::prepareResource(CopyContext* pContext, Resource* pResource,
 
 ParameterBlock::~ParameterBlock() {}
 
-ParameterBlock::ParameterBlock(nvrhi::DeviceHandle pDevice, const ref<const ProgramReflection>& pReflector)
+ParameterBlock::ParameterBlock(ref<Device> pDevice, const ref<const ProgramReflection>& pReflector)
     : mpDevice(pDevice.get()), mpProgramVersion(pReflector->getProgramVersion()), mpReflector(pReflector->getDefaultParameterBlock())
 {
     FALCOR_GFX_CALL(mpDevice->getGfxDevice()->createMutableRootShaderObject(
@@ -259,7 +259,7 @@ ParameterBlock::ParameterBlock(nvrhi::DeviceHandle pDevice, const ref<const Prog
 }
 
 ParameterBlock::ParameterBlock(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<const ProgramVersion>& pProgramVersion,
     const ref<const ParameterBlockReflection>& pReflection
 )

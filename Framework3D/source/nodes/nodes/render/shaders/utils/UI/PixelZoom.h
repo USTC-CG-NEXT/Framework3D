@@ -43,7 +43,7 @@ class PixelZoom
 {
 public:
     /// Constructor. Throws an exception if creation failed.
-    PixelZoom(nvrhi::DeviceHandle pDevice, const Fbo* pBackbuffer);
+    PixelZoom(ref<Device> pDevice, const Fbo* pBackbuffer);
 
     /**
      * Does zoom operation if mShouldZoom is true (if ctrl+alt pressed this frame)
@@ -70,7 +70,7 @@ public:
     void onResize(const Fbo* pBackbuffer);
 
 private:
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     int32_t mSrcZoomSize = 5;
     const uint32_t mDstZoomSize = 200;

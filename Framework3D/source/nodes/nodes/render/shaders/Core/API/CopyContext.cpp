@@ -50,9 +50,9 @@ CopyContext::CopyContext(Device* pDevice, nvrhi::CommandListHandle pQueue)
 
 CopyContext::~CopyContext() = default;
 
-nvrhi::DeviceHandle CopyContext::getDevice() const
+ref<Device> CopyContext::getDevice() const
 {
-    return nvrhi::DeviceHandle(mpDevice);
+    return ref<Device>(mpDevice);
 }
 
 void CopyContext::submit(bool wait)

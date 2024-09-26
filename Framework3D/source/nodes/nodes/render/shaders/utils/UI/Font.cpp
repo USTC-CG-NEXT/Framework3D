@@ -56,7 +56,7 @@ struct FontCharData
     float height;
 };
 
-Font::Font(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path)
+Font::Font(ref<Device> pDevice, const std::filesystem::path& path)
 {
     if (!loadFromFile(pDevice, path))
         FALCOR_THROW("Failed to create font resource");
@@ -64,7 +64,7 @@ Font::Font(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path)
 
 Font::~Font() = default;
 
-bool Font::loadFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path)
+bool Font::loadFromFile(ref<Device> pDevice, const std::filesystem::path& path)
 {
     std::filesystem::path texturePath = path;
     texturePath.replace_extension(".dds");

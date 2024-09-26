@@ -49,7 +49,7 @@ size_t TextureAnalyzer::getResultSize()
     return sizeof(TextureAnalyzer::Result);
 }
 
-TextureAnalyzer::TextureAnalyzer(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
+TextureAnalyzer::TextureAnalyzer(ref<Device> pDevice) : mpDevice(pDevice)
 {
     mpClearPass = ComputePass::create(mpDevice, kShaderFilename, "clear");
     mpAnalyzePass = ComputePass::create(mpDevice, kShaderFilename, "analyze");

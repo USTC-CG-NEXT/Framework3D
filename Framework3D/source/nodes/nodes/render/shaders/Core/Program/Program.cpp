@@ -53,7 +53,7 @@ void ProgramDesc::finalize()
 }
 
 Program::Program(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     ProgramDesc desc,
     DefineList defineList)
     : mpDevice(std::move(pDevice)),

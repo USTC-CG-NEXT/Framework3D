@@ -274,7 +274,7 @@ namespace Falcor
 
     private:
         ref<IScene>                         mpScene;                ///< Scene (set on initialization).
-        nvrhi::DeviceHandle                         mpDevice;               ///< GPU device.
+        ref<Device>                         mpDevice;               ///< GPU device.
         Options                             mOptions;               ///< Configuration options.
 
         std::unique_ptr<PixelDebug>         mpPixelDebug;           ///< Pixel debug component.

@@ -74,7 +74,7 @@ class FALCOR_API PixelDebug {
      * per frame.
      */
     PixelDebug(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         uint32_t printCapacity = 100,
         uint32_t assertCapacity = 100);
 
@@ -103,7 +103,7 @@ class FALCOR_API PixelDebug {
     bool copyDataToCPU();
 
     // Internal state
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     ref<Program> mpReflectProgram;  ///< Program for reflection of types.
     nvrhi::BufferHandle
         mpCounterBuffer;  ///< Counter buffer (print, assert) on the GPU.

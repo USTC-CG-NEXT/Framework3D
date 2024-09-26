@@ -47,9 +47,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(MERLMixMaterial)
     public:
-        static ref<MERLMixMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths) { return make_ref<MERLMixMaterial>(pDevice, name, paths); }
+        static ref<MERLMixMaterial> create(ref<Device> pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths) { return make_ref<MERLMixMaterial>(pDevice, name, paths); }
 
-        MERLMixMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths);
+        MERLMixMaterial(ref<Device> pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths);
 
         bool renderUI(Gui::Widgets& widget) override;
         Material::UpdateFlags update(MaterialSystem* pOwner) override;

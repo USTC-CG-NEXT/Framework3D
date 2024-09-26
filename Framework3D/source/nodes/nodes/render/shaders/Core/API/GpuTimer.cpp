@@ -35,12 +35,12 @@
 
 namespace Falcor {
 
-ref<GpuTimer> GpuTimer::create(nvrhi::DeviceHandle pDevice)
+ref<GpuTimer> GpuTimer::create(ref<Device> pDevice)
 {
     return ref<GpuTimer>(new GpuTimer(pDevice));
 }
 
-GpuTimer::GpuTimer(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
+GpuTimer::GpuTimer(ref<Device> pDevice) : mpDevice(pDevice)
 {
     FALCOR_ASSERT(mpDevice);
 

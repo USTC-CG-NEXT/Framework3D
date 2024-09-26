@@ -36,7 +36,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/PBRT/PBRTDielectricMaterial.slang";
     }
 
-    PBRTDielectricMaterial::PBRTDielectricMaterial(nvrhi::DeviceHandle pDevice, const std::string& name)
+    PBRTDielectricMaterial::PBRTDielectricMaterial(ref<Device> pDevice, const std::string& name)
         : BasicMaterial(pDevice, name, MaterialType::PBRTDielectric)
     {
         // Setup additional texture slots.

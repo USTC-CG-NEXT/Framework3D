@@ -59,9 +59,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(PBRTConductorMaterial)
     public:
-        static ref<PBRTConductorMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name) { return make_ref<PBRTConductorMaterial>(pDevice, name); }
+        static ref<PBRTConductorMaterial> create(ref<Device> pDevice, const std::string& name) { return make_ref<PBRTConductorMaterial>(pDevice, name); }
 
-        PBRTConductorMaterial(nvrhi::DeviceHandle pDevice, const std::string& name);
+        PBRTConductorMaterial(ref<Device> pDevice, const std::string& name);
 
         ProgramDesc::ShaderModuleList getShaderModules() const override;
         TypeConformanceList getTypeConformances() const override;

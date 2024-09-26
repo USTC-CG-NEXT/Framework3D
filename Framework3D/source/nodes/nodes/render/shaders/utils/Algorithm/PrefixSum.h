@@ -47,7 +47,7 @@ class FALCOR_API PrefixSum
 {
 public:
     /// Constructor. Throws an exception if creation failed.
-    PrefixSum(nvrhi::DeviceHandle pDevice);
+    PrefixSum(ref<Device> pDevice);
 
     /**
      * Computes the parallel prefix sum over an array of uint32_t elements.
@@ -68,7 +68,7 @@ public:
     );
 
 private:
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     ref<ComputeState> mpComputeState;
 

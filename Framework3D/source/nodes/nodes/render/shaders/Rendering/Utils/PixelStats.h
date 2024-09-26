@@ -62,7 +62,7 @@ namespace Falcor
             float    avgVolumeLookups = 0.f;
         };
 
-        PixelStats(nvrhi::DeviceHandle pDevice);
+        PixelStats(ref<Device> pDevice);
 
         void setEnabled(bool enabled) { mEnabled = enabled; }
         bool isEnabled() const { return mEnabled; }
@@ -110,12 +110,12 @@ namespace Falcor
 
         static const uint32_t kRayTypeCount = (uint32_t)PixelStatsRayType::Count;
 
-        nvrhi::DeviceHandle                         mpDevice;
+        ref<Device>                         mpDevice;
 
         // Internal state
         std::unique_ptr<ParallelReduction>  mpParallelReduction;            ///< Helper for parallel reduction on the GPU.
         nvrhi::BufferHandle                         mpReductionResult;              ///< Results buffer for stats readback (CPU mappable).
-        ref<Fence>                          mpFence;                        ///< GPU fence for sychronizing readback.
+        nvrhi::EventQueryHandle                          mpFence;                        ///< GPU fence for sychronizing readback.
 
         // Configuration
         bool                                mEnabled = false;               ///< Enable pixel statistics.

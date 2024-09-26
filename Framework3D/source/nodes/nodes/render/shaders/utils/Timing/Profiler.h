@@ -178,7 +178,7 @@ class FALCOR_API Profiler {
     /**
      * Constructor.
      */
-    Profiler(nvrhi::DeviceHandle pDevice);
+    Profiler(ref<Device> pDevice);
 
     const Device* getDevice() const
     {
@@ -306,7 +306,7 @@ class FALCOR_API Profiler {
      */
     Event* findEvent(const std::string& name);
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     bool mEnabled = false;
     bool mPaused = false;

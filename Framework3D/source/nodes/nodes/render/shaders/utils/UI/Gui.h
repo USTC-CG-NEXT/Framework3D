@@ -26,22 +26,21 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Core/Macros.h"
-#include "Core/Enum.h"
-#include "Core/API/Texture.h"
-#include "Core/API/FBO.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Color/SampledSpectrum.h"
 #include <imgui.h>
+
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "Core/Enum.h"
+#include "Core/Macros.h"
+#include "Utils/Color/SampledSpectrum.h"
+#include "Utils/Math/Vector.h"
+
 struct ImFont;
 
-namespace Falcor
-{
+namespace Falcor {
 class RenderContext;
 
 struct MouseEvent;
@@ -54,76 +53,72 @@ class SpectrumUI;
 
 // Helper to check if a class is a vector
 template<typename T, typename = void>
-struct is_vector : std::false_type
-{};
+struct is_vector : std::false_type { };
 
 template<typename T>
-struct is_vector<T, std::void_t<typename T::value_type>> : std::true_type
-{};
+struct is_vector<T, std::void_t<typename T::value_type>> : std::true_type { };
 
 /**
  * A class wrapping the external GUI library
  */
-class FALCOR_API Gui
-{
-public:
+class FALCOR_API Gui {
+   public:
     using GraphCallback = float (*)(void*, int32_t index);
 
     /**
      * These structs used to initialize dropdowns
      */
-    struct DropdownValue
-    {
-        uint32_t value;    ///< User defined index. Should be unique between different options.
-        std::string label; ///< Label of the dropdown option.
+    struct DropdownValue {
+        uint32_t value;     ///< User defined index. Should be unique between
+                            ///< different options.
+        std::string label;  ///< Label of the dropdown option.
     };
 
     using DropdownList = std::vector<DropdownValue>;
 
-    struct RadioButton
-    {
-        uint32_t buttonID; ///< User defined index. Should be unique between different options in the same group.
-        std::string label; ///< Label of the radio button.
-        bool sameLine;     ///< Whether the button should appear on the same line as the previous widget/button.
+    struct RadioButton {
+        uint32_t buttonID;  ///< User defined index. Should be unique between
+                            ///< different options in the same group.
+        std::string label;  ///< Label of the radio button.
+        bool sameLine;  ///< Whether the button should appear on the same line
+                        ///< as the previous widget/button.
     };
 
     using RadioButtonGroup = std::vector<RadioButton>;
 
-    enum class TextFlags
-    {
+    enum class TextFlags {
         Empty = 0x0,
-        FitWindow = 0x1, // Also hides the label
+        FitWindow = 0x1,  // Also hides the label
     };
 
-    enum class WindowFlags
-    {
-        Empty = 0x0,        ///< No flags
-        ShowTitleBar = 0x1, ///< Show a title bar
-        AllowMove = 0x2,    ///< Allow the window move
-        SetFocus = 0x4,     ///< Take focus when the window appears
-        CloseButton = 0x8,  ///< Add a close button
-        NoResize = 0x10,    ///< Disable manual resizing
-        AutoResize = 0x20,  ///< Auto resize the window to fit it's content every frame
+    enum class WindowFlags {
+        Empty = 0x0,         ///< No flags
+        ShowTitleBar = 0x1,  ///< Show a title bar
+        AllowMove = 0x2,     ///< Allow the window move
+        SetFocus = 0x4,      ///< Take focus when the window appears
+        CloseButton = 0x8,   ///< Add a close button
+        NoResize = 0x10,     ///< Disable manual resizing
+        AutoResize =
+            0x20,  ///< Auto resize the window to fit it's content every frame
 
         Default = ShowTitleBar | AllowMove | SetFocus | CloseButton
     };
 
-    enum class WidgetFlags
-    {
-        Empty = 0x0,    ///< No flags
-        SameLine = 0x1, ///< Show a title bar
-        Inactive = 0x2, ///< Inactive widget, disallow edits
+    enum class WidgetFlags {
+        Empty = 0x0,     ///< No flags
+        SameLine = 0x1,  ///< Show a title bar
+        Inactive = 0x2,  ///< Inactive widget, disallow edits
     };
 
     class FALCOR_API Group;
 
-    class FALCOR_API Widgets
-    {
-    public:
+    class FALCOR_API Widgets {
+       public:
         /**
          * Begin a new group
          * @param[in] label the name of the group
-         * @param[in] beginExpanded Optional whether the group is open or closed by default
+         * @param[in] beginExpanded Optional whether the group is open or closed
+         * by default
          */
         Group group(const std::string& label, bool beginExpanded = false);
 
@@ -141,36 +136,53 @@ public:
          * Dummy object especially useful for spacing
          * @param[in] label. Name for id of item
          * @param[in] size. size in pixels of the item.
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          */
-        void dummy(const char label[], const float2& size, bool sameLine = false);
+        void
+        dummy(const char label[], const float2& size, bool sameLine = false);
 
         /**
          * Display rectangle with specified color
          * @param[in] size size in pixels of rectangle
          * @param[in] color Optional. color as an rgba float4
          * @param[in] filled Optional. If set to true, rectangle will be filled
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          */
-        void rect(const float2& size, const float4& color = float4(1.0f, 1.0f, 1.0f, 1.0f), bool filled = false, bool sameLine = false);
+        void rect(
+            const float2& size,
+            const float4& color = float4(1.0f, 1.0f, 1.0f, 1.0f),
+            bool filled = false,
+            bool sameLine = false);
 
         /**
-         * Adds a dropdown menu. This will update a user variable directly, so the user has to keep track of that for changes.
-         * If you want notifications whenever the select option changed, use Gui#addDropdownWithCallback().
+         * Adds a dropdown menu. This will update a user variable directly, so
+         * the user has to keep track of that for changes. If you want
+         * notifications whenever the select option changed, use
+         * Gui#addDropdownWithCallback().
          * @param[in] label The name of the dropdown menu.
          * @param[in] values A list of options to show in the dropdown menu.
-         * @param[in] var A reference to a user variable that will be updated directly when a dropdown option changes. This correlates to
-         * the 'pValue' field in Gui#SDropdownValue struct.
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] var A reference to a user variable that will be updated
+         * directly when a dropdown option changes. This correlates to the
+         * 'pValue' field in Gui#SDropdownValue struct.
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          * @return true if the value changed, otherwise false
          */
-        bool dropdown(const char label[], const DropdownList& values, uint32_t& var, bool sameLine = false);
+        bool dropdown(
+            const char label[],
+            const DropdownList& values,
+            uint32_t& var,
+            bool sameLine = false);
 
         /**
          * Adds a dropdown menu for an enum setup with FALCOR_ENUM_INFO.
          * @param[in] label The name of the dropdown menu.
-         * @param[in] var A reference to a user variable that will be updated directly when a dropdown option changes.
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] var A reference to a user variable that will be updated
+         * directly when a dropdown option changes.
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          * @return true if the value changed, otherwise false
          */
         template<typename T, std::enable_if_t<has_enum_info_v<T>, bool> = true>
@@ -180,14 +192,11 @@ public:
             if (sameLine)
                 ImGui::SameLine();
             const std::string& currentValue = enumToString(var);
-            if (ImGui::BeginCombo(label, currentValue.c_str()))
-            {
+            if (ImGui::BeginCombo(label, currentValue.c_str())) {
                 const auto& items = EnumInfo<T>::items();
-                for (const auto& item : items)
-                {
+                for (const auto& item : items) {
                     bool selected = var == item.first;
-                    if (ImGui::Selectable(item.second.c_str(), &selected))
-                    {
+                    if (ImGui::Selectable(item.second.c_str(), &selected)) {
                         var = item.first;
                         changed = true;
                     }
@@ -200,14 +209,16 @@ public:
         /**
          * Button. Will return true if the button was pressed
          * @param[in] label Text to display on the button
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          */
         bool button(const char label[], bool sameLine = false);
 
         /**
          * Adds a group of radio buttons.
          * @param[in] buttons List of buttons to show.
-         * @param[out] activeID If a button was clicked, activeID will be set to the ID of the clicked button.
+         * @param[out] activeID If a button was clicked, activeID will be set to
+         * the ID of the clicked button.
          * @return Whether activeID changed.
          */
         bool radioButtons(const RadioButtonGroup& buttons, uint32_t& activeID);
@@ -223,26 +234,34 @@ public:
         /**
          * Adds a UI widget for multiple checkboxes.
          * @param[in] label The name of the widget.
-         * @param[in] var A reference to the bools that will be updated directly when the checkbox state changes (0 = unchecked, 1 =
-         * checked).
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] var A reference to the bools that will be updated directly
+         * when the checkbox state changes (0 = unchecked, 1 = checked).
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          * @return true if the value changed, otherwise false
          */
         template<typename T>
         bool checkbox(const char label[], T& var, bool sameLine = false);
 
         /**
-         * The source for drag and drop. Call this to allow users to drag out of last gui item.
+         * The source for drag and drop. Call this to allow users to drag out of
+         * last gui item.
          * @param[in] label The name of the drag and drop widget
-         * @param[in] dataLabel Destination that has same dataLabel can accept the payload
-         * @param[in] payloadString Data in payload to be sent and accepted by destination.
+         * @param[in] dataLabel Destination that has same dataLabel can accept
+         * the payload
+         * @param[in] payloadString Data in payload to be sent and accepted by
+         * destination.
          * @return true if user is clicking and dragging
          */
-        bool dragDropSource(const char label[], const char dataLabel[], const std::string& payloadString);
+        bool dragDropSource(
+            const char label[],
+            const char dataLabel[],
+            const std::string& payloadString);
 
         /**
          * Destination area for dropping data in drag and drop of last gui item.
-         * @param[in] dataLabel Named label needs to be the same as source datalabel to accept payload.
+         * @param[in] dataLabel Named label needs to be the same as source
+         * datalabel to accept payload.
          * @param[in] payloadString Data sent from the drag and drop source
          * @return true if payload is dropped.
          */
@@ -252,7 +271,8 @@ public:
         /**
          * Static text
          * @param[in] text The string to display
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          */
         void text(const std::string& text, bool sameLine = false);
 
@@ -265,32 +285,49 @@ public:
         /**
          * Adds a text box.
          * @param[in] label The name of the variable.
-         * @param[in] text A string with the initialize text. The string will be updated if a text is entered.
-         * @param[in] lineCount Number of lines in the text-box. If larger then 1 will create a multi-line box
+         * @param[in] text A string with the initialize text. The string will be
+         * updated if a text is entered.
+         * @param[in] lineCount Number of lines in the text-box. If larger then
+         * 1 will create a multi-line box
          * @return true if the value changed, otherwise false
          */
-        bool textbox(const std::string& label, std::string& text, TextFlags flags = TextFlags::Empty);
+        bool textbox(
+            const std::string& label,
+            std::string& text,
+            TextFlags flags = TextFlags::Empty);
 
         /**
          * Adds a text box.
          * @param[in] label The name of the variable.
-         * @param[in] buf A character buffer with the initialize text. The buffer will be updated if a text is entered.
+         * @param[in] buf A character buffer with the initialize text. The
+         * buffer will be updated if a text is entered.
          * @param[in] bufSize The size of the text buffer
-         * @param[in] lineCount Number of lines in the text-box. If larger then 1 will create a multi-line box
+         * @param[in] lineCount Number of lines in the text-box. If larger then
+         * 1 will create a multi-line box
          * @return true if the value changed, otherwise false
          */
-        bool textbox(const char label[], char buf[], size_t bufSize, uint32_t lineCount = 1, TextFlags flags = TextFlags::Empty);
+        bool textbox(
+            const char label[],
+            char buf[],
+            size_t bufSize,
+            uint32_t lineCount = 1,
+            TextFlags flags = TextFlags::Empty);
 
         /**
          * Adds multiple text boxes for one confirmation button
          */
-        bool multiTextbox(const char label[], const std::vector<std::string>& textLabels, std::vector<std::string>& textEntries);
+        bool multiTextbox(
+            const char label[],
+            const std::vector<std::string>& textLabels,
+            std::vector<std::string>& textEntries);
 
         /**
-         * Render a tooltip. This will display a small question mark next to the last label item rendered and will display the tooltip if
-         * the user hover over it
+         * Render a tooltip. This will display a small question mark next to the
+         * last label item rendered and will display the tooltip if the user
+         * hover over it
          * @param[in] tip The tooltip's text
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          */
         void tooltip(const std::string& text, bool sameLine = true);
 
@@ -298,8 +335,10 @@ public:
         /**
          * Adds an RGB color UI widget.
          * @param[in] label The name of the widget.
-         * @param[in] var A reference to a vector that will be updated directly when the widget state changes.
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] var A reference to a vector that will be updated directly
+         * when the widget state changes.
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          * @return true if the value changed, otherwise false
          */
         bool rgbColor(const char label[], float3& var, bool sameLine = false);
@@ -307,8 +346,10 @@ public:
         /**
          * Adds an RGBA color UI widget.
          * @param[in] label The name of the widget.
-         * @param[in] var A reference to a vector that will be updated directly when the widget state changes.
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] var A reference to a vector that will be updated directly
+         * when the widget state changes.
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          * @return true if the value changed, otherwise false
          */
         bool rgbaColor(const char label[], float4& var, bool sameLine = false);
@@ -326,25 +367,42 @@ public:
          * Display image within imgui
          * @param[in] label. Name for id for item.
          * @param[in] pTex. Pointer to texture resource to draw in imgui
-         * @param[in] size. Size in pixels of the image to draw. 0 means fit to window
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] size. Size in pixels of the image to draw. 0 means fit to
+         * window
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          */
-        void image(const char label[], const Texture* pTex, float2 size = float2(0), bool maintainRatio = true, bool sameLine = false);
-        bool imageButton(const char label[], const Texture* pTex, float2 size, bool maintainRatio = true, bool sameLine = false);
+        void image(
+            const char label[],
+            const Texture* pTex,
+            float2 size = float2(0),
+            bool maintainRatio = true,
+            bool sameLine = false);
+        bool imageButton(
+            const char label[],
+            const Texture* pTex,
+            float2 size,
+            bool maintainRatio = true,
+            bool sameLine = false);
 
         // Scalars
         /**
          * Adds a UI element for setting scalar values.
          * @param[in] label The name of the widget.
-         * @param[in] var A reference that will be updated directly when the widget state changes.
+         * @param[in] var A reference that will be updated directly when the
+         * widget state changes.
          * @param[in] minVal Optional. The minimum allowed value for the float.
          * @param[in] maxVal Optional. The maximum allowed value for the float.
-         * @param[in] step Optional. The step rate for the float. (Only used for non-sliders)
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget.
+         * @param[in] step Optional. The step rate for the float. (Only used for
+         * non-sliders)
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget.
          * @param[in] displayFormat Optional. Formatting string.
          * @return true if the value changed, otherwise false
          */
-        template<typename T, std::enable_if_t<!is_vector<T>::value, bool> = true>
+        template<
+            typename T,
+            std::enable_if_t<!is_vector<T>::value, bool> = true>
         bool var(
             const char label[],
             T& var,
@@ -352,28 +410,31 @@ public:
             T maxVal = std::numeric_limits<T>::max(),
             float step = std::is_floating_point_v<T> ? 0.001f : 1.0f,
             bool sameLine = false,
-            const char* displayFormat = nullptr
-        );
+            const char* displayFormat = nullptr);
 
-        template<typename T, std::enable_if_t<!is_vector<T>::value, bool> = true>
+        template<
+            typename T,
+            std::enable_if_t<!is_vector<T>::value, bool> = true>
         bool slider(
             const char label[],
             T& var,
             T minVal = std::numeric_limits<T>::lowest() / 2,
             T maxVal = std::numeric_limits<T>::max() / 2,
             bool sameLine = false,
-            const char* displayFormat = nullptr
-        );
+            const char* displayFormat = nullptr);
 
         // Vectors
         /**
          * Adds a UI element for setting vector values.
          * @param[in] label The name of the widget.
-         * @param[in] var A reference that will be updated directly when the widget state changes.
+         * @param[in] var A reference that will be updated directly when the
+         * widget state changes.
          * @param[in] minVal Optional. The minimum allowed value for the float.
          * @param[in] maxVal Optional. The maximum allowed value for the float.
-         * @param[in] step Optional. The step rate for the float. (Only used for non-sliders)
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget.
+         * @param[in] step Optional. The step rate for the float. (Only used for
+         * non-sliders)
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget.
          * @param[in] displayFormat Optional. Formatting string.
          * @return true if the value changed, otherwise false
          */
@@ -381,50 +442,70 @@ public:
         bool var(
             const char label[],
             T& var,
-            typename T::value_type minVal = std::numeric_limits<typename T::value_type>::lowest(),
-            typename T::value_type maxVal = std::numeric_limits<typename T::value_type>::max(),
-            float step = std::is_floating_point_v<typename T::value_type> ? 0.001f : 1.0f,
+            typename T::value_type minVal =
+                std::numeric_limits<typename T::value_type>::lowest(),
+            typename T::value_type maxVal =
+                std::numeric_limits<typename T::value_type>::max(),
+            float step = std::is_floating_point_v<typename T::value_type>
+                             ? 0.001f
+                             : 1.0f,
             bool sameLine = false,
-            const char* displayFormat = nullptr
-        );
+            const char* displayFormat = nullptr);
 
         template<typename T, std::enable_if_t<is_vector<T>::value, bool> = true>
         bool slider(
             const char label[],
             T& var,
-            typename T::value_type minVal = std::numeric_limits<typename T::value_type>::lowest() / 2,
-            typename T::value_type maxVal = std::numeric_limits<typename T::value_type>::max() / 2,
+            typename T::value_type minVal =
+                std::numeric_limits<typename T::value_type>::lowest() / 2,
+            typename T::value_type maxVal =
+                std::numeric_limits<typename T::value_type>::max() / 2,
             bool sameLine = false,
-            const char* displayFormat = nullptr
-        );
+            const char* displayFormat = nullptr);
 
         // Matrices
         /**
          * Adds an matrix UI widget.
          * @param[in] label The name of the widget.
-         * @param[in] var A reference to the matrix struct that will be updated directly when the widget state changes.
-         * @param[in] minVal Optional. The minimum allowed value for the variable.
-         * @param[in] maxVal Optional. The maximum allowed value for the variable.
-         * @param[in] sameLine Optional. If set to true, the widget will appear on the same line as the previous widget
+         * @param[in] var A reference to the matrix struct that will be updated
+         * directly when the widget state changes.
+         * @param[in] minVal Optional. The minimum allowed value for the
+         * variable.
+         * @param[in] maxVal Optional. The maximum allowed value for the
+         * variable.
+         * @param[in] sameLine Optional. If set to true, the widget will appear
+         * on the same line as the previous widget
          * @return true if the value changed, otherwise false
          */
         template<typename MatrixType>
-        bool matrix(const char label[], MatrixType& var, float minVal = -FLT_MAX, float maxVal = FLT_MAX, bool sameLine = false);
+        bool matrix(
+            const char label[],
+            MatrixType& var,
+            float minVal = -FLT_MAX,
+            float maxVal = FLT_MAX,
+            bool sameLine = false);
 
         // Graph
         /**
          * Adds a graph based on a function
          * @param[in] label The name of the widget.
-         * @param[in] func A function pointer to calculate the values in the graph
-         * @param[in] pUserData A user-data pointer to pass to the callback function
+         * @param[in] func A function pointer to calculate the values in the
+         * graph
+         * @param[in] pUserData A user-data pointer to pass to the callback
+         * function
          * @param[in] sampleCount Number of sample-points in the graph
-         * @param[in] sampleOffset Optional. Determines the value for the center of the x-axis
-         * @param[in] yMin Optional. The minimum value of the y-axis. Use FLT_MAX to auto-detect the range based on the function and the
+         * @param[in] sampleOffset Optional. Determines the value for the center
+         * of the x-axis
+         * @param[in] yMin Optional. The minimum value of the y-axis. Use
+         * FLT_MAX to auto-detect the range based on the function and the
          * provided x-range
-         * @param[in] yMax Optional. The maximum value of the y-axis. Use FLT_MAX to auto-detect the range based on the function and the
+         * @param[in] yMax Optional. The maximum value of the y-axis. Use
+         * FLT_MAX to auto-detect the range based on the function and the
          * provided x-range
-         * @param[in] width Optional. The width of the graph widget. 0 means auto-detect (fits the widget to the GUI width)
-         * @param[in] height Optional. The height of the graph widget. 0 means auto-detect (no idea what's the logic. Too short.)
+         * @param[in] width Optional. The width of the graph widget. 0 means
+         * auto-detect (fits the widget to the GUI width)
+         * @param[in] height Optional. The height of the graph widget. 0 means
+         * auto-detect (no idea what's the logic. Too short.)
          */
         void graph(
             const char label[],
@@ -435,15 +516,17 @@ public:
             float yMin = FLT_MAX,
             float yMax = FLT_MAX,
             uint32_t width = 0,
-            uint32_t height = 100
-        );
+            uint32_t height = 100);
 
         /**
-         * Adds a Spectrum user interface. Since there is no SpectrumUI class as input, this call will only disply the spectrum curve and
-         * its points and final RGB color. Use the spectrum() function below with a SpectrumUI parameters as well if you want to have the
-         * spectrum UI as well.
+         * Adds a Spectrum user interface. Since there is no SpectrumUI class as
+         * input, this call will only disply the spectrum curve and its points
+         * and final RGB color. Use the spectrum() function below with a
+         * SpectrumUI parameters as well if you want to have the spectrum UI as
+         * well.
          * @param[in] label The name of the widget.
-         * @param[in] spectrum The spectrum to be visualized (and possibly edited).
+         * @param[in] spectrum The spectrum to be visualized (and possibly
+         * edited).
          */
         template<typename T>
         bool spectrum(const char label[], SampledSpectrum<T>& spectrum);
@@ -451,22 +534,28 @@ public:
         /**
          * Adds a Spectrum user interface.
          * @param[in] label The name of the widget.
-         * @param[in] spectrum The spectrum to be visualized (and possibly edited).
+         * @param[in] spectrum The spectrum to be visualized (and possibly
+         * edited).
          * @param[in] spectrumUI The spectrum UI with modifiable parameters.
          */
         template<typename T>
-        bool spectrum(const char label[], SampledSpectrum<T>& spectrum, SpectrumUI<T>& spectrumUI);
+        bool spectrum(
+            const char label[],
+            SampledSpectrum<T>& spectrum,
+            SpectrumUI<T>& spectrumUI);
 
-        Gui* gui() const { return mpGui; }
+        Gui* gui() const
+        {
+            return mpGui;
+        }
 
-    protected:
+       protected:
         Widgets() = default;
         Gui* mpGui = nullptr;
     };
 
-    class FALCOR_API Menu
-    {
-    public:
+    class FALCOR_API Menu {
+       public:
         /**
          * Create a new menu
          * @param[in] pGui a pointer to the current Gui object
@@ -481,9 +570,8 @@ public:
          */
         void release();
 
-        class FALCOR_API Dropdown
-        {
-        public:
+        class FALCOR_API Dropdown {
+           public:
             /**
              * Create a new dropdown menu
              * @param[in] pGui a pointer to the current Gui object
@@ -502,18 +590,25 @@ public:
              * Item to be displayed in dropdown menu for the main menu bar
              * @param[in] label name of item to list in the menu.
              * @param[in] var if the label is selected or not.
-             * @param[in] shortcut Shortcut key. It's just for display purposes, it doesn't handle the keystroke
+             * @param[in] shortcut Shortcut key. It's just for display purposes,
+             * it doesn't handle the keystroke
              * @return true if the option was selected in the dropdown
              */
-            bool item(const std::string& label, bool& var, const std::string& shortcut = "");
+            bool item(
+                const std::string& label,
+                bool& var,
+                const std::string& shortcut = "");
 
             /**
              * Item to be displayed in dropdown menu for the main menu bar
              * @param[in] label Name of item to list in the menu.
-             * @param[in] shortcut Shortcut key. It's just for display purposes, it doesn't handle the keystroke
+             * @param[in] shortcut Shortcut key. It's just for display purposes,
+             * it doesn't handle the keystroke
              * @return true if the option was selected in the dropdown
              */
-            bool item(const std::string& label, const std::string& shortcut = "");
+            bool item(
+                const std::string& label,
+                const std::string& shortcut = "");
 
             /**
              * Add a separator between menu items.
@@ -541,14 +636,13 @@ public:
          */
         bool item(const std::string& label);
 
-    protected:
+       protected:
         Menu() = default;
         Gui* mpGui = nullptr;
     };
 
-    class FALCOR_API Group : public Widgets
-    {
-    public:
+    class FALCOR_API Group : public Widgets {
+       public:
         Group() = default;
 
         /**
@@ -565,7 +659,13 @@ public:
          * @param[in] label Display name of the group
          * @param[in] beginExpanded Whether group should be expanded initially
          */
-        Group(const Widgets& w, const std::string& label, bool beginExpanded = false) : Group(w.gui(), label, beginExpanded) {}
+        Group(
+            const Widgets& w,
+            const std::string& label,
+            bool beginExpanded = false)
+            : Group(w.gui(), label, beginExpanded)
+        {
+        }
 
         /**
          * Check if the current group is open or closed.
@@ -575,7 +675,10 @@ public:
         /**
          * Bool operator to check if the current group is open or closed.
          */
-        operator bool() const { return open(); }
+        operator bool() const
+        {
+            return open();
+        }
 
         ~Group();
 
@@ -585,9 +688,8 @@ public:
         void release();
     };
 
-    class FALCOR_API Window : public Widgets
-    {
-    public:
+    class FALCOR_API Window : public Widgets {
+       public:
         /**
          * Create a new window
          * @param[in] pGui a pointer to the current Gui object
@@ -595,15 +697,19 @@ public:
          * @param[in] pos position in pixels of the window
          * @param[in] flags Window flags to apply
          */
-        Window(Gui* pGui, const char* name, uint2 size = {0, 0}, uint2 pos = {0, 0}, Gui::WindowFlags flags = Gui::WindowFlags::Default);
+        Window(
+            Gui* pGui,
+            const char* name,
+            uint2 size = { 0, 0 },
+            uint2 pos = { 0, 0 },
+            Gui::WindowFlags flags = Gui::WindowFlags::Default);
         Window(
             Gui* pGui,
             const char* name,
             bool& open,
-            uint2 size = {0, 0},
-            uint2 pos = {0, 0},
-            Gui::WindowFlags flags = Gui::WindowFlags::Default
-        );
+            uint2 size = { 0, 0 },
+            uint2 pos = { 0, 0 },
+            Gui::WindowFlags flags = Gui::WindowFlags::Default);
 
         /**
          * Create a new window
@@ -615,22 +721,22 @@ public:
         Window(
             const Widgets& w,
             const char* name,
-            uint2 size = {0, 0},
-            uint2 pos = {0, 0},
-            Gui::WindowFlags flags = Gui::WindowFlags::Default
-        )
+            uint2 size = { 0, 0 },
+            uint2 pos = { 0, 0 },
+            Gui::WindowFlags flags = Gui::WindowFlags::Default)
             : Window(w.gui(), name, size, pos, flags)
-        {}
+        {
+        }
         Window(
             const Widgets& w,
             const char* name,
             bool& open,
-            uint2 size = {0, 0},
-            uint2 pos = {0, 0},
-            Gui::WindowFlags flags = Gui::WindowFlags::Default
-        )
+            uint2 size = { 0, 0 },
+            uint2 pos = { 0, 0 },
+            Gui::WindowFlags flags = Gui::WindowFlags::Default)
             : Window(w.gui(), name, open, size, pos, flags)
-        {}
+        {
+        }
 
         ~Window();
 
@@ -665,9 +771,8 @@ public:
         void windowSize(uint32_t width, uint32_t height);
     };
 
-    class FALCOR_API MainMenu : public Menu
-    {
-    public:
+    class FALCOR_API MainMenu : public Menu {
+       public:
         /**
          * Create a new main menu bar.
          * @param[in] pGui a pointer to the current Gui object
@@ -683,7 +788,10 @@ public:
     };
 
     /// Constructor.
-    Gui(nvrhi::DeviceHandle pDevice, uint32_t width, uint32_t height, float scaleFactor = 1.f);
+    Gui(ref<Device> pDevice,
+        uint32_t width,
+        uint32_t height,
+        float scaleFactor = 1.f);
 
     ~Gui();
 
@@ -709,7 +817,8 @@ public:
     /**
      * Render the GUI
      */
-    void render(RenderContext* pContext, const ref<Fbo>& pFbo, float elapsedTime);
+    void
+    render(RenderContext* pContext, const ref<Fbo>& pFbo, float elapsedTime);
 
     /**
      * Handle window resize events
@@ -726,20 +835,19 @@ public:
      */
     bool onKeyboardEvent(const KeyboardEvent& event);
 
-private:
+   private:
     std::unique_ptr<GuiImpl> mpWrapper;
 };
 
 /**
  * Helper class to create a scope for ImGui IDs using PushID/PopID.
  */
-class FALCOR_API IDScope
-{
-public:
+class FALCOR_API IDScope {
+   public:
     IDScope(const void* id);
     ~IDScope();
 };
 
 FALCOR_ENUM_CLASS_OPERATORS(Gui::WindowFlags);
 FALCOR_ENUM_CLASS_OPERATORS(Gui::TextFlags);
-} // namespace Falcor
+}  // namespace Falcor

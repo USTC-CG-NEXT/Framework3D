@@ -43,7 +43,7 @@ namespace Falcor
     {
     public:
         /// Constructor.
-        BSDFIntegrator(nvrhi::DeviceHandle pDevice, const ref<Scene>& pScene);
+        BSDFIntegrator(ref<Device> pDevice, const ref<Scene>& pScene);
 
         /** Integrate the BSDF for a material given a single incident direction.
             The BSDF is assumed to be isotropic and is integrated over outgoing directions in the upper hemisphere.
@@ -67,7 +67,7 @@ namespace Falcor
         void integrationPass(RenderContext* pRenderContext, const MaterialID materialID, const uint32_t gridCount) const;
         void finalPass(RenderContext* pRenderContext, const uint32_t gridCount) const;
 
-        nvrhi::DeviceHandle mpDevice;
+        ref<Device> mpDevice;
         ref<Scene> mpScene;
         ref<ComputePass> mpIntegrationPass;         ///< Integration pass.
         ref<ComputePass> mpFinalPass;               ///< Final reduction pass.

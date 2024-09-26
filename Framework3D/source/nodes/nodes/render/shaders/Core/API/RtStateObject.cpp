@@ -36,8 +36,8 @@ namespace Falcor
 RtStateObject::RtStateObject(ref<Device> pDevice, const RtStateObjectDesc& desc) : mpDevice(pDevice), mDesc(desc)
 {
     auto pKernels = getKernels();
-    gfx::RayTracingPipelineStateDesc rtpDesc = {};
-    std::vector<gfx::HitGroupDesc> hitGroups;
+    nvrhi::RayTracingPipelineStateDesc rtpDesc = {};
+    std::vector<nvrhi::HitGroupDesc> hitGroups;
     // Loop over the hitgroups
     for (const auto& pEntryPointGroup : pKernels->getUniqueEntryPointGroups())
     {
@@ -47,7 +47,7 @@ RtStateObject::RtStateObject(ref<Device> pDevice, const RtStateObjectDesc& desc)
             const EntryPointKernel* pAhs = pEntryPointGroup->getKernel(ShaderType::AnyHit);
             const EntryPointKernel* pChs = pEntryPointGroup->getKernel(ShaderType::ClosestHit);
 
-            gfx::HitGroupDesc hitgroupDesc = {};
+            nvrhi::HitGroupDesc hitgroupDesc = {};
             hitgroupDesc.anyHitEntryPoint = pAhs ? pAhs->getEntryPointName().c_str() : nullptr;
             hitgroupDesc.closestHitEntryPoint = pChs ? pChs->getEntryPointName().c_str() : nullptr;
             hitgroupDesc.intersectionEntryPoint = pIntersection ? pIntersection->getEntryPointName().c_str() : nullptr;
@@ -60,10 +60,10 @@ RtStateObject::RtStateObject(ref<Device> pDevice, const RtStateObjectDesc& desc)
     rtpDesc.hitGroups = hitGroups.data();
     rtpDesc.maxRecursion = mDesc.maxTraceRecursionDepth;
 
-    static_assert((uint32_t)gfx::RayTracingPipelineFlags::SkipProcedurals == (uint32_t)RtPipelineFlags::SkipProceduralPrimitives);
-    static_assert((uint32_t)gfx::RayTracingPipelineFlags::SkipTriangles == (uint32_t)RtPipelineFlags::SkipTriangles);
+    static_assert((uint32_t)nvrhi::RayTracingPipelineFlags::SkipProcedurals == (uint32_t)RtPipelineFlags::SkipProceduralPrimitives);
+    static_assert((uint32_t)nvrhi::RayTracingPipelineFlags::SkipTriangles == (uint32_t)RtPipelineFlags::SkipTriangles);
 
-    rtpDesc.flags = (gfx::RayTracingPipelineFlags::Enum)mDesc.pipelineFlags;
+    rtpDesc.flags = (nvrhi::RayTracingPipelineFlags::Enum)mDesc.pipelineFlags;
     auto rtProgram = dynamic_cast<Program*>(mDesc.pProgramKernels->getProgramVersion()->getProgram());
     FALCOR_ASSERT(rtProgram);
     rtpDesc.maxRayPayloadSize = rtProgram->getDesc().maxPayloadSize;

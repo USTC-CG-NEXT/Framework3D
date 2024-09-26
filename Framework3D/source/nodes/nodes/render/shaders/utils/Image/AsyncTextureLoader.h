@@ -56,7 +56,7 @@ public:
      * Constructor.
      * @param[in] threadCount Number of worker threads.
      */
-    AsyncTextureLoader(nvrhi::DeviceHandle pDevice, size_t threadCount = std::thread::hardware_concurrency());
+    AsyncTextureLoader(ref<Device> pDevice, size_t threadCount = std::thread::hardware_concurrency());
 
     /**
      * Destructor.
@@ -116,7 +116,7 @@ private:
         std::promise<nvrhi::TextureHandle> promise;
     };
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     std::mutex mMutex;                      ///< Mutex for synchronizing access to shared resources.
     std::condition_variable mCondition;     ///< Condition variable for workers to wait on.

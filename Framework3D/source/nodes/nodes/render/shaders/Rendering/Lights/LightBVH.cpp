@@ -36,7 +36,7 @@ const char kShaderFile[] = "Rendering/Lights/LightBVHRefit.cs.slang";
 
 namespace Falcor {
 LightBVH::LightBVH(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<const ILightCollection>& pLightCollection)
     : mpDevice(pDevice),
       mpLightCollection(pLightCollection)

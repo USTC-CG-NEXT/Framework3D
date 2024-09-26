@@ -73,7 +73,7 @@ class FALCOR_API CopyContext {
     CopyContext(Device* pDevice, nvrhi::CommandListHandle pQueue);
     virtual ~CopyContext();
 
-    nvrhi::DeviceHandle getDevice() const;
+    ref<Device> getDevice() const;
 
     /**
      * Flush the command list. This doesn't reset the command allocator, just

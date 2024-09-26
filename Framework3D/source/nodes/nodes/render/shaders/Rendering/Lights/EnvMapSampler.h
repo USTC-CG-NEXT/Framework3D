@@ -43,7 +43,7 @@ class FALCOR_API EnvMapSampler {
         \param[in] pDevice GPU device.
         \param[in] pEnvMap The environment map.
     */
-    EnvMapSampler(nvrhi::DeviceHandle pDevice, ref<EnvMap> pEnvMap);
+    EnvMapSampler(ref<Device> pDevice, ref<EnvMap> pEnvMap);
     virtual ~EnvMapSampler() = default;
 
     /** Bind the environment map sampler to a given shader variable.
@@ -67,7 +67,7 @@ class FALCOR_API EnvMapSampler {
         uint32_t dimension,
         uint32_t samples);
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     ref<EnvMap> mpEnvMap;  ///< Environment map.
 

@@ -60,7 +60,7 @@ class FALCOR_API ParameterBlock : public Object {
      * Create a new object that holds a value of the given type.
      */
     static ref<ParameterBlock> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<const ProgramVersion>& pProgramVersion,
         const ref<const ReflectionType>& pType);
 
@@ -68,7 +68,7 @@ class FALCOR_API ParameterBlock : public Object {
      * Create a new object that holds a value described by the given reflector.
      */
     static ref<ParameterBlock> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<const ParameterBlockReflection>& pReflection);
 
     /**
@@ -79,7 +79,7 @@ class FALCOR_API ParameterBlock : public Object {
      * exception is thrown.
      */
     static ref<ParameterBlock> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<const ProgramVersion>& pProgramVersion,
         const std::string& typeName);
 
@@ -439,12 +439,12 @@ class FALCOR_API ParameterBlock : public Object {
 
    protected:
     ParameterBlock(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<const ProgramVersion>& pProgramVersion,
         const ref<const ParameterBlockReflection>& pReflection);
 
     ParameterBlock(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<const ProgramReflection>& pReflector);
 
     void initializeResourceBindings();

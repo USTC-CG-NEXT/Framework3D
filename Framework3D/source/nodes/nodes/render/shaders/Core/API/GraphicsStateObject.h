@@ -76,7 +76,7 @@ class FALCOR_API GraphicsStateObject : public Object {
     FALCOR_OBJECT(GraphicsStateObject)
    public:
     GraphicsStateObject(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const GraphicsStateObjectDesc& desc);
     ~GraphicsStateObject();
 

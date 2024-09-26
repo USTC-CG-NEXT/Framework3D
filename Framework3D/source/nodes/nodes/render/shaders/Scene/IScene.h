@@ -129,7 +129,7 @@ public:
 
     virtual ~IScene() = default;
 
-    virtual const nvrhi::DeviceHandle& getDevice() const = 0;
+    virtual const ref<Device>& getDevice() const = 0;
 
     using UpdateFlagsSignal = sigs::Signal<void(IScene::UpdateFlags)>;
 

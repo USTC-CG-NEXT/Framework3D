@@ -34,7 +34,7 @@
 
 namespace Falcor {
 ComputePass::ComputePass(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ProgramDesc& desc,
     const DefineList& defines,
     bool createVars)
@@ -49,7 +49,7 @@ ComputePass::ComputePass(
 }
 
 ref<ComputePass> ComputePass::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const std::filesystem::path& path,
     const std::string& csEntry,
     const DefineList& defines,
@@ -61,7 +61,7 @@ ref<ComputePass> ComputePass::create(
 }
 
 ref<ComputePass> ComputePass::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ProgramDesc& desc,
     const DefineList& defines,
     bool createVars)

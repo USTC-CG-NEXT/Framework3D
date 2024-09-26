@@ -40,14 +40,14 @@ namespace Falcor
     public:
         struct SharedData;
 
-        static ref<SDFSBS> create(nvrhi::DeviceHandle pDevice, uint32_t brickWidth = 7, bool compressed = false, uint32_t defaultGridWidth = 256) { return make_ref<SDFSBS>(pDevice, brickWidth, compressed, defaultGridWidth); }
+        static ref<SDFSBS> create(ref<Device> pDevice, uint32_t brickWidth = 7, bool compressed = false, uint32_t defaultGridWidth = 256) { return make_ref<SDFSBS>(pDevice, brickWidth, compressed, defaultGridWidth); }
 
         /** Create an empty SDF sparse brick set.
             \param[in] brickWidth The width of a brick in voxels.
             \param[in] compressed Selects if bricks should be compressed using lossy BC4 compression. brickWidth + 1 must be a multiple of 4 to enable compression.
             \param[in] defaultGridWidth The grid width used if the data was not loaded from a file (it is empty).
         */
-        SDFSBS(nvrhi::DeviceHandle pDevice, uint32_t brickWidth, bool compressed, uint32_t defaultGridWidth);
+        SDFSBS(ref<Device> pDevice, uint32_t brickWidth, bool compressed, uint32_t defaultGridWidth);
 
         virtual UpdateFlags update(RenderContext* pRenderContext) override;
 
@@ -148,7 +148,7 @@ namespace Falcor
         nvrhi::BufferHandle mpSubChunkValidityBuffer;
         nvrhi::BufferHandle mpSubChunkCoordsBuffer;
         nvrhi::BufferHandle mpSubdivisionArgBuffer;
-        ref<Fence> mpReadbackFence;
+        nvrhi::EventQueryHandle mpReadbackFence;
 
         // Scratch data used for building from the SD Field and primitives.
         nvrhi::TextureHandle mpOldSDFGridTexture;

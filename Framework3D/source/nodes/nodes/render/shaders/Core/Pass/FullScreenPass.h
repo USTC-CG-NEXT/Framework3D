@@ -50,7 +50,7 @@ public:
      * @return A new object, or throws an exception if creation failed.
      */
     static ref<FullScreenPass> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const std::filesystem::path& path,
         const DefineList& defines = DefineList(),
         uint32_t viewportMask = 0
@@ -65,7 +65,7 @@ public:
      * @return A new object, or throws an exception if creation failed.
      */
     static ref<FullScreenPass> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ProgramDesc& desc,
         const DefineList& defines = DefineList(),
         uint32_t viewportMask = 0
@@ -81,7 +81,7 @@ public:
     virtual void execute(RenderContext* pRenderContext, const ref<Fbo>& pFbo, bool autoSetVpSc = true) const;
 
 protected:
-    FullScreenPass(nvrhi::DeviceHandle pDevice, const ProgramDesc& progDesc, const DefineList& programDefines);
+    FullScreenPass(ref<Device> pDevice, const ProgramDesc& progDesc, const DefineList& programDefines);
 
 private:
     std::shared_ptr<SharedData> mpSharedData;

@@ -42,7 +42,7 @@ namespace Falcor
         const uint2 kGridSize = { 512, 512 };
     }
 
-    BSDFIntegrator::BSDFIntegrator(nvrhi::DeviceHandle pDevice, const ref<Scene>& pScene)
+    BSDFIntegrator::BSDFIntegrator(ref<Device> pDevice, const ref<Scene>& pScene)
         : mpDevice(pDevice)
         , mpScene(pScene)
     {

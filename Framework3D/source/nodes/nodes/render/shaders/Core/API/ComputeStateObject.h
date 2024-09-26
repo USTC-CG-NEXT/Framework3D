@@ -50,7 +50,7 @@ struct ComputeStateObjectDesc {
 class FALCOR_API ComputeStateObject : public Object {
     FALCOR_OBJECT(ComputeStateObject)
    public:
-    ComputeStateObject(nvrhi::DeviceHandle pDevice, ComputeStateObjectDesc desc);
+    ComputeStateObject(ref<Device> pDevice, ComputeStateObjectDesc desc);
     ~ComputeStateObject();
 
     nvrhi::IComputePipeline* getGfxPipelineState() const
@@ -64,7 +64,7 @@ class FALCOR_API ComputeStateObject : public Object {
     }
 
    private:
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     ComputeStateObjectDesc mDesc;
     nvrhi::ComputePipelineHandle mGfxPipelineState;
 };

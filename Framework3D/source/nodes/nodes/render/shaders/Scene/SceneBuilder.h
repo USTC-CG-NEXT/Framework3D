@@ -329,17 +329,17 @@ namespace Falcor
 
         /** Constructor.
         */
-        SceneBuilder(nvrhi::DeviceHandle pDevice, const Settings& settings, Flags flags = Flags::Default);
+        SceneBuilder(ref<Device> pDevice, const Settings& settings, Flags flags = Flags::Default);
 
         /** Create a new builder and import a scene/model file.
             Throws an ImporterError if importing went wrong.
         */
-        SceneBuilder(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const Settings& settings, Flags flags = Flags::Default);
+        SceneBuilder(ref<Device> pDevice, const std::filesystem::path& path, const Settings& settings, Flags flags = Flags::Default);
 
         /** Create a new builder and import a scene/model from memory.
             Throws an ImporterError if importing went wrong.
         */
-        SceneBuilder(nvrhi::DeviceHandle pDevice, const void* buffer, size_t byteSize, std::string_view extension, const Settings& settings, Flags flags = Flags::Default);
+        SceneBuilder(ref<Device> pDevice, const void* buffer, size_t byteSize, std::string_view extension, const Settings& settings, Flags flags = Flags::Default);
 
         ~SceneBuilder();
 
@@ -373,7 +373,7 @@ namespace Falcor
         */
         ref<Scene> getScene();
 
-        const nvrhi::DeviceHandle& getDevice() const { return mpDevice; }
+        const ref<Device>& getDevice() const { return mpDevice; }
 
         const Settings& getSettings() const { return mSettings; }
         Settings& getSettings() { return mSettings; }
@@ -764,7 +764,7 @@ namespace Falcor
         using MeshGroupList = std::vector<MeshGroup>;
         using CurveList = std::vector<CurveSpec>;
 
-        nvrhi::DeviceHandle mpDevice;
+        ref<Device> mpDevice;
 
         /// Local copy of settings used to create the SceneBuilder. Edits do not propagate to the parent.
         Settings mSettings;

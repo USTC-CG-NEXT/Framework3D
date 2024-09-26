@@ -350,7 +350,7 @@ namespace Falcor
         virtual void setRoughnessMollification( float factor ) {};
 
     protected:
-        Material(nvrhi::DeviceHandle pDevice, const std::string& name, MaterialType type);
+        Material(ref<Device> pDevice, const std::string& name, MaterialType type);
 
         using UpdateCallback = std::function<void(Material::UpdateFlags)>;
         void registerUpdateCallback(const UpdateCallback& updateCallback) { mUpdateCallback = updateCallback; }
@@ -374,7 +374,7 @@ namespace Falcor
             return blob;
         }
 
-        nvrhi::DeviceHandle mpDevice;
+        ref<Device> mpDevice;
 
         std::string mName;                          ///< Name of the material.
         MaterialHeader mHeader;                     ///< Material header data available in all material types.

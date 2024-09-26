@@ -94,7 +94,7 @@ namespace Falcor
         }
     }
 
-    AnimatedVertexCache::AnimatedVertexCache(nvrhi::DeviceHandle pDevice, Scene* pScene, const nvrhi::BufferHandle& pPrevVertexData, std::vector<CachedCurve>&& cachedCurves, std::vector<CachedMesh>&& cachedMeshes)
+    AnimatedVertexCache::AnimatedVertexCache(ref<Device> pDevice, Scene* pScene, const nvrhi::BufferHandle& pPrevVertexData, std::vector<CachedCurve>&& cachedCurves, std::vector<CachedMesh>&& cachedMeshes)
         : mpDevice(pDevice)
         , mpScene(pScene)
         , mpPrevVertexData(pPrevVertexData)

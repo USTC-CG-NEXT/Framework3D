@@ -46,7 +46,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/MERLMixMaterial.slang";
     }
 
-    MERLMixMaterial::MERLMixMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths)
+    MERLMixMaterial::MERLMixMaterial(ref<Device> pDevice, const std::string& name, const std::vector<std::filesystem::path>& paths)
         : Material(pDevice, name, MaterialType::MERLMix)
     {
         FALCOR_CHECK(!paths.empty(), "MERLMixMaterial: Expected at least one path.");

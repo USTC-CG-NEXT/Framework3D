@@ -41,10 +41,10 @@ namespace Falcor
     public:
         struct SharedData;
 
-        static ref<SDFSVO> create(nvrhi::DeviceHandle pDevice) { return make_ref<SDFSVO>(pDevice); }
+        static ref<SDFSVO> create(ref<Device> pDevice) { return make_ref<SDFSVO>(pDevice); }
 
         /// Create an empty SDFSVO.
-        SDFSVO(nvrhi::DeviceHandle pDevice);
+        SDFSVO(ref<Device> pDevice);
 
         uint32_t getSVOIndexBitCount() const { return mSVOIndexBitCount; }
 
@@ -93,6 +93,6 @@ namespace Falcor
         nvrhi::BufferHandle mpVoxelCountPerLevelStagingBuffer;
         nvrhi::BufferHandle mpHashTableBuffer;
         nvrhi::BufferHandle mpLocationCodesBuffer;
-        ref<Fence> mpReadbackFence;
+        nvrhi::EventQueryHandle mpReadbackFence;
     };
 }

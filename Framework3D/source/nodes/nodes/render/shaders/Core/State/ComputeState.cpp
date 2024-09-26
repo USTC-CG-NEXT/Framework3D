@@ -33,12 +33,12 @@
 
 namespace Falcor {
 
-ref<ComputeState> ComputeState::create(nvrhi::DeviceHandle pDevice)
+ref<ComputeState> ComputeState::create(ref<Device> pDevice)
 {
     return ref<ComputeState>(new ComputeState(pDevice));
 }
 
-ComputeState::ComputeState(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
+ComputeState::ComputeState(ref<Device> pDevice) : mpDevice(pDevice)
 {
     mpCsoGraph = std::make_unique<ComputeStateGraph>();
 }

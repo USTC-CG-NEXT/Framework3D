@@ -101,11 +101,11 @@ class FALCOR_API BaseGraphicsPass : public Object {
      * @return A new object, or an exception is thrown if creation failed.
      */
     BaseGraphicsPass(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ProgramDesc& progDesc,
         const DefineList& programDefines);
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     ref<ProgramVars> mpVars;
     ref<GraphicsState> mpState;
 };

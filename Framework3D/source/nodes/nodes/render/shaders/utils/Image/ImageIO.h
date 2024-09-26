@@ -88,7 +88,7 @@ public:
      * changed.
      * @return Texture object containing image data if loading was successful. Otherwise, nullptr.
      */
-    static nvrhi::TextureHandle loadTextureFromDDS(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, bool loadAsSrgb);
+    static nvrhi::TextureHandle loadTextureFromDDS(ref<Device> pDevice, const std::filesystem::path& path, bool loadAsSrgb);
 
     /**
      * Saves a bitmap to a DDS file.

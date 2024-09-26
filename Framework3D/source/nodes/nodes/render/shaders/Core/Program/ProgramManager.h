@@ -26,31 +26,32 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Program.h"
-#include "Core/Macros.h"
-
 #include <memory>
 
-namespace Falcor
-{
+#include "Core/Macros.h"
+#include "Program.h"
+#include "Core/API/Device.h"
 
-class FALCOR_API ProgramManager
-{
-public:
+namespace Falcor {
+
+class FALCOR_API ProgramManager {
+   public:
     ProgramManager(Device* pDevice);
 
     /**
-     * Defines flags that should be forcefully disabled or enabled on all shaders.
-     * When a flag is in both groups, it gets enabled.
+     * Defines flags that should be forcefully disabled or enabled on all
+     * shaders. When a flag is in both groups, it gets enabled.
      */
-    struct ForcedCompilerFlags
-    {
-        SlangCompilerFlags enabled = SlangCompilerFlags::None;  ///< Compiler flags forcefully enabled on all shaders
-        SlangCompilerFlags disabled = SlangCompilerFlags::None; ///< Compiler flags forcefully enabled on all shaders
+    struct ForcedCompilerFlags {
+        SlangCompilerFlags enabled =
+            SlangCompilerFlags::None;  ///< Compiler flags forcefully enabled on
+                                       ///< all shaders
+        SlangCompilerFlags disabled =
+            SlangCompilerFlags::None;  ///< Compiler flags forcefully enabled on
+                                       ///< all shaders
     };
 
-    struct CompilationStats
-    {
+    struct CompilationStats {
         size_t programVersionCount = 0;
         size_t programKernelsCount = 0;
         double programVersionMaxTime = 0.0;
@@ -63,19 +64,19 @@ public:
     void registerProgramForReload(Program* program);
     void unregisterProgramForReload(Program* program);
 
-    ref<const ProgramVersion> createProgramVersion(const Program& program, std::string& log) const;
+    ref<const ProgramVersion> createProgramVersion(
+        const Program& program,
+        std::string& log) const;
 
     ref<const ProgramKernels> createProgramKernels(
         const Program& program,
         const ProgramVersion& programVersion,
         const ProgramVars& programVars,
-        std::string& log
-    ) const;
+        std::string& log) const;
 
     ref<const EntryPointGroupKernels> createEntryPointGroupKernels(
         const std::vector<ref<EntryPointKernel>>& kernels,
-        const ref<EntryPointBaseReflection>& pReflector
-    ) const;
+        const ref<EntryPointBaseReflection>& pReflector) const;
 
     /// Get the global HLSL language prelude.
     std::string getHlslLanguagePrelude() const;
@@ -106,13 +107,19 @@ public:
      * Set compiler arguments applied to all programs.
      * @param[in] args Compiler arguments.
      */
-    void setGlobalCompilerArguments(const std::vector<std::string>& args) { mGlobalCompilerArguments = args; }
+    void setGlobalCompilerArguments(const std::vector<std::string>& args)
+    {
+        mGlobalCompilerArguments = args;
+    }
 
     /**
      * Get compiler arguments applied to all programs.
      * @return List of compiler arguments.
      */
-    const std::vector<std::string>& getGlobalCompilerArguments() const { return mGlobalCompilerArguments; }
+    const std::vector<std::string>& getGlobalCompilerArguments() const
+    {
+        return mGlobalCompilerArguments;
+    }
 
     /**
      * Enable/disable global generation of shader debug info.
@@ -127,8 +134,8 @@ public:
     bool isGenerateDebugInfoEnabled();
 
     /**
-     * Sets compiler flags that will always be forced on and forced off on each program.
-     * If a flag is in both groups, it results in being forced on.
+     * Sets compiler flags that will always be forced on and forced off on each
+     * program. If a flag is in both groups, it results in being forced on.
      * @param[in] forceOn Flags to be forced on.
      * @param[in] forceOff Flags to be forced off.
      */
@@ -140,11 +147,18 @@ public:
      */
     ForcedCompilerFlags getForcedCompilerFlags();
 
-    const CompilationStats& getCompilationStats() { return mCompilationStats; }
-    void resetCompilationStats() { mCompilationStats = {}; }
+    const CompilationStats& getCompilationStats()
+    {
+        return mCompilationStats;
+    }
+    void resetCompilationStats()
+    {
+        mCompilationStats = {};
+    }
 
-private:
-    SlangCompileRequest* createSlangCompileRequest(const Program& program) const;
+   private:
+    SlangCompileRequest* createSlangCompileRequest(
+        const Program& program) const;
 
     Device* mpDevice;
 
@@ -159,4 +173,4 @@ private:
     mutable uint32_t mHitGroupID = 0;
 };
 
-} // namespace Falcor
+}  // namespace Falcor

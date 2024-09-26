@@ -50,7 +50,7 @@ class FALCOR_API EnvMap : public Object {
         \param[in] texture The environment map texture.
     */
     static ref<EnvMap> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const nvrhi::TextureHandle& texture);
 
     /** Create a new environment map from file.
@@ -60,7 +60,7 @@ class FALCOR_API EnvMap : public Object {
        environment map failed to load.
     */
     static ref<EnvMap> createFromFile(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const std::filesystem::path& path);
 
     /** Render the GUI.
@@ -148,9 +148,9 @@ class FALCOR_API EnvMap : public Object {
     uint64_t getMemoryUsageInBytes() const;
 
    protected:
-    EnvMap(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& texture);
+    EnvMap(ref<Device> pDevice, const nvrhi::TextureHandle& texture);
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     nvrhi::TextureHandle mpEnvMap;  ///< Loaded environment map (RGB).
     nvrhi::SamplerHandle
         mpEnvSampler;  ///< Texture sampler for the environment map.

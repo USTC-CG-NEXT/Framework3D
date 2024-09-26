@@ -64,7 +64,7 @@ namespace Falcor
         NanoVDBToBricksConverter(const nanovdb::FloatGrid* grid);
         NanoVDBToBricksConverter(const NanoVDBToBricksConverter& rhs) = delete;
 
-        BrickedGrid convert(nvrhi::DeviceHandle pDevice);
+        BrickedGrid convert(ref<Device> pDevice);
 
     private:
         const static uint32_t kBrickSize = 8; // Must be 8, to match both NanoVDB leaf size.
@@ -284,7 +284,7 @@ namespace Falcor
     }
 
     template <typename TexelType, unsigned int kBitsPerTexel>
-    BrickedGrid NanoVDBToBricksConverter<TexelType, kBitsPerTexel>::convert(nvrhi::DeviceHandle pDevice)
+    BrickedGrid NanoVDBToBricksConverter<TexelType, kBitsPerTexel>::convert(ref<Device> pDevice)
     {
         auto t0 = CpuTimer::getCurrentTimePoint();
         auto range = NumericRange<int>(0, mLeafDim[0].z);

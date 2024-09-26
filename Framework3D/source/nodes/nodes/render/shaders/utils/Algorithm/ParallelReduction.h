@@ -55,7 +55,7 @@ public:
     };
 
     /// Constructor. Throws an exception on failure.
-    ParallelReduction(nvrhi::DeviceHandle pDevice);
+    ParallelReduction(ref<Device> pDevice);
 
     /**
      * Perform parallel reduction.
@@ -96,7 +96,7 @@ public:
 private:
     void allocate(uint32_t elementCount, uint32_t elementSize);
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     ref<ComputeState> mpState;
     ref<Program> mpInitialProgram;

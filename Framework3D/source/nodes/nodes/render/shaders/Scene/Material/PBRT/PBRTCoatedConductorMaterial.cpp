@@ -36,7 +36,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/PBRT/PBRTCoatedConductorMaterial.slang";
     }
 
-    PBRTCoatedConductorMaterial::PBRTCoatedConductorMaterial(nvrhi::DeviceHandle pDevice, const std::string& name)
+    PBRTCoatedConductorMaterial::PBRTCoatedConductorMaterial(ref<Device> pDevice, const std::string& name)
         : BasicMaterial(pDevice, name, MaterialType::PBRTCoatedConductor)
     {
         // Setup additional texture slots.

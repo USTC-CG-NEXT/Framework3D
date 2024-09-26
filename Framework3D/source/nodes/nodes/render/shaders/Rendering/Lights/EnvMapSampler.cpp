@@ -41,7 +41,7 @@ namespace {
     const uint32_t kDefaultSpp = 64;
 }  // namespace
 
-EnvMapSampler::EnvMapSampler(nvrhi::DeviceHandle pDevice, ref<EnvMap> pEnvMap)
+EnvMapSampler::EnvMapSampler(ref<Device> pDevice, ref<EnvMap> pEnvMap)
     : mpDevice(pDevice),
       mpEnvMap(pEnvMap)
 {

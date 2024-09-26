@@ -49,7 +49,7 @@ public:
         Shadowed = 0x1
     };
 
-    TextRenderer(nvrhi::DeviceHandle pDevice);
+    TextRenderer(ref<Device> pDevice);
     ~TextRenderer();
 
     /**
@@ -91,7 +91,7 @@ private:
     // A better way would be to upload the data using an upload heap.
     static constexpr uint32_t kVaoCount = 3;
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     Flags mFlags = Flags::Shadowed;
     float3 mColor = float3(1.f);
     ref<Vao> mpVaos[kVaoCount];

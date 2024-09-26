@@ -153,11 +153,11 @@
 
 #include <nvrhi/nvrhi.h>
 
-using Device = nvrhi::IDevice;
 using Texture = nvrhi::ITexture;
 using Buffer = nvrhi::IBuffer;
 using Resource = nvrhi::IResource;
 using Fbo = nvrhi::IFramebuffer;
+using Sampler = nvrhi::ISampler;
 
 using ShaderOffset = unsigned;
 
@@ -185,3 +185,7 @@ using nvrhi::Viewport;
 using Resource = nvrhi::IResource;
 
 using UnorderedAccessView = nvrhi::BindingSetItem;
+
+using GpuMemoryHeap = nvrhi::IHeap;
+using QueryHeap = nvrhi::ITimerQuery;
+

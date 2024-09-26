@@ -77,19 +77,19 @@ namespace Falcor
         }
     }
 
-    ref<Grid> Grid::createSphere(nvrhi::DeviceHandle pDevice, float radius, float voxelSize, float blendRange)
+    ref<Grid> Grid::createSphere(ref<Device> pDevice, float radius, float voxelSize, float blendRange)
     {
         auto handle = nanovdb::createFogVolumeSphere<float>(radius, nanovdb::Vec3f(0.f), voxelSize, blendRange);
         return ref<Grid>(new Grid(pDevice, std::move(handle)));
     }
 
-    ref<Grid> Grid::createBox(nvrhi::DeviceHandle pDevice, float width, float height, float depth, float voxelSize, float blendRange)
+    ref<Grid> Grid::createBox(ref<Device> pDevice, float width, float height, float depth, float voxelSize, float blendRange)
     {
         auto handle = nanovdb::createFogVolumeBox<float>(width, height, depth, nanovdb::Vec3f(0.f), voxelSize, blendRange);
         return ref<Grid>(new Grid(pDevice, std::move(handle)));
     }
 
-    ref<Grid> Grid::createFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const std::string& gridname)
+    ref<Grid> Grid::createFromFile(ref<Device> pDevice, const std::filesystem::path& path, const std::string& gridname)
     {
         if (!std::filesystem::exists(path))
         {
@@ -202,7 +202,7 @@ namespace Falcor
         return math::translate(float4x4(invAffine), -translation);
     }
 
-    Grid::Grid(nvrhi::DeviceHandle pDevice, nanovdb::GridHandle<nanovdb::HostBuffer> gridHandle)
+    Grid::Grid(ref<Device> pDevice, nanovdb::GridHandle<nanovdb::HostBuffer> gridHandle)
         : mpDevice(pDevice)
         , mGridHandle(std::move(gridHandle))
         , mpFloatGrid(mGridHandle.grid<float>())
@@ -225,7 +225,7 @@ namespace Falcor
         mBrickedGrid = NanoVDBGridConverter(mpFloatGrid).convert(mpDevice);
     }
 
-    ref<Grid> Grid::createFromNanoVDBFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const std::string& gridname)
+    ref<Grid> Grid::createFromNanoVDBFile(ref<Device> pDevice, const std::filesystem::path& path, const std::string& gridname)
     {
         if (!nanovdb::io::hasGrid(path.string(), gridname))
         {
@@ -256,7 +256,7 @@ namespace Falcor
         return ref<Grid>(new Grid(pDevice, std::move(handle)));
     }
 
-    ref<Grid> Grid::createFromOpenVDBFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const std::string& gridname)
+    ref<Grid> Grid::createFromOpenVDBFile(ref<Device> pDevice, const std::filesystem::path& path, const std::string& gridname)
     {
         openvdb::initialize();
 

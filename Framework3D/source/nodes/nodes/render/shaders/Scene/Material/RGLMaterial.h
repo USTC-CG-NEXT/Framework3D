@@ -43,9 +43,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(RGLMaterial)
     public:
-        static ref<RGLMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path) { return make_ref<RGLMaterial>(pDevice, name, path); }
+        static ref<RGLMaterial> create(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path) { return make_ref<RGLMaterial>(pDevice, name, path); }
 
-        RGLMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, const std::filesystem::path& path);
+        RGLMaterial(ref<Device> pDevice, const std::string& name, const std::filesystem::path& path);
 
         bool renderUI(Gui::Widgets& widget) override;
         Material::UpdateFlags update(MaterialSystem* pOwner) override;

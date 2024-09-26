@@ -53,7 +53,7 @@ class FALCOR_API ProgramVars : public ParameterBlock {
      * @return A new object, or an exception is thrown if creation failed.
      */
     static ref<ProgramVars> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<const ProgramReflection>& pReflector);
 
     /**
@@ -64,7 +64,7 @@ class FALCOR_API ProgramVars : public ParameterBlock {
      * @return A new object, or an exception is thrown if creation failed.
      */
     static ref<ProgramVars> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const Program* pProg);
 
     /**
@@ -79,7 +79,7 @@ class FALCOR_API ProgramVars : public ParameterBlock {
 
 protected:
     ProgramVars(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<const ProgramReflection>& pReflector);
 
     ref<const ProgramReflection> mpReflector;
@@ -100,7 +100,7 @@ class FALCOR_API RtProgramVars : public ProgramVars {
      * @return A new object, or an exception is thrown if creation failed.
      */
     static ref<RtProgramVars> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<Program>& pProgram,
         const ref<RtBindingTable>& pBindingTable);
 
@@ -140,7 +140,7 @@ class FALCOR_API RtProgramVars : public ProgramVars {
     using VarsVector = std::vector<EntryPointGroupInfo>;
 
     RtProgramVars(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ref<Program>& pProgram,
         const ref<RtBindingTable>& pBindingTable);
 

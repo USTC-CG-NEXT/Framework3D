@@ -66,7 +66,7 @@ namespace Falcor
         const uint kVNDFN = kVNDFSize.x * kVNDFSize.y * kVNDFSize.z * kVNDFSize.w;
     }
 
-    RGLAcquisition::RGLAcquisition(nvrhi::DeviceHandle pDevice, const ref<Scene>& pScene)
+    RGLAcquisition::RGLAcquisition(ref<Device> pDevice, const ref<Scene>& pScene)
         : mpDevice(pDevice)
         , mpScene(pScene)
     {

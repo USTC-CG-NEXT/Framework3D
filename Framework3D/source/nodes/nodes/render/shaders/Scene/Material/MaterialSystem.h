@@ -74,7 +74,7 @@ namespace Falcor
 
         /** Constructor. Throws an exception if creation failed.
         */
-        MaterialSystem(nvrhi::DeviceHandle pDevice);
+        MaterialSystem(ref<Device> pDevice);
 
         /** Render the UI.
         */
@@ -262,7 +262,7 @@ namespace Falcor
         void createParameterBlock();
         void uploadMaterial(const uint32_t materialID);
 
-        nvrhi::DeviceHandle mpDevice;
+        ref<Device> mpDevice;
 
         std::vector<ref<Material>> mMaterials;                      ///< List of all materials.
         std::vector<Material::UpdateFlags> mMaterialsUpdateFlags;   ///< List of all material update flags, after the update() calls
@@ -293,7 +293,7 @@ namespace Falcor
         Material::UpdateFlags mMaterialUpdates = Material::UpdateFlags::None; ///< Material updates across all materials since last update.
 
         // GPU resources
-        ref<Fence> mpFence;
+        nvrhi::EventQueryHandle mpFence;
         ref<ParameterBlock> mpMaterialsBlock;                       ///< Parameter block for binding all material resources.
         nvrhi::BufferHandle mpMaterialDataBuffer;                           ///< GPU buffer holding all material data.
         nvrhi::SamplerHandle mpDefaultTextureSampler;                       ///< Default texture sampler to use for all materials.

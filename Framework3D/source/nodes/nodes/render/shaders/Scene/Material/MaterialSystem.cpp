@@ -62,7 +62,7 @@ namespace Falcor
         }
     }
 
-    MaterialSystem::MaterialSystem(nvrhi::DeviceHandle pDevice)
+    MaterialSystem::MaterialSystem(ref<Device> pDevice)
         : mpDevice(pDevice)
     {
         FALCOR_ASSERT(kMaxSamplerCount <= mpDevice->getLimits().maxShaderVisibleSamplers);

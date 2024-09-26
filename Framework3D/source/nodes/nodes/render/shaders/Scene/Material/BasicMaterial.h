@@ -249,7 +249,7 @@ namespace Falcor
         bool operator==(const BasicMaterial& other) const;
 
     protected:
-        BasicMaterial(nvrhi::DeviceHandle pDevice, const std::string& name, MaterialType type);
+        BasicMaterial(ref<Device> pDevice, const std::string& name, MaterialType type);
 
         bool isAlphaSupported() const;
         void prepareDisplacementMapForRendering();

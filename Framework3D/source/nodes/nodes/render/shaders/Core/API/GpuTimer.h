@@ -43,7 +43,7 @@ public:
      * Create a new timer object.
      * @return A new object, or throws an exception if creation failed.
      */
-    static ref<GpuTimer> create(nvrhi::DeviceHandle pDevice);
+    static ref<GpuTimer> create(ref<Device> pDevice);
 
     /**
      * Destroy a new object
@@ -79,7 +79,7 @@ public:
 
 
 private:
-    GpuTimer(nvrhi::DeviceHandle pDevice);
+    GpuTimer(ref<Device> pDevice);
 
     enum class Status
     {
@@ -88,7 +88,7 @@ private:
         Idle
     };
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     Status mStatus = Status::Idle;
     uint32_t mStart = 0;
     uint32_t mEnd = 0;

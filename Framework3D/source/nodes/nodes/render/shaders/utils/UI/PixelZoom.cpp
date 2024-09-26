@@ -57,7 +57,7 @@ static void clampToEdge(float2& pix, uint32_t width, uint32_t height, uint32_t o
     }
 }
 
-PixelZoom::PixelZoom(nvrhi::DeviceHandle pDevice, const Fbo* pBackbuffer) : mpDevice(pDevice)
+PixelZoom::PixelZoom(ref<Device> pDevice, const Fbo* pBackbuffer) : mpDevice(pDevice)
 {
     onResize(pBackbuffer);
 }

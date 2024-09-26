@@ -637,7 +637,7 @@ class FALCOR_API Program : public Object {
     FALCOR_OBJECT(Program)
    public:
     Program(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         ProgramDesc desc,
         DefineList programDefines);
     virtual ~Program() override;
@@ -653,7 +653,7 @@ class FALCOR_API Program : public Object {
      * @return A new object, or an exception is thrown if creation failed.
      */
     static ref<Program> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         ProgramDesc desc,
         DefineList programDefines = {})
     {
@@ -675,7 +675,7 @@ class FALCOR_API Program : public Object {
      * @return A new object, or an exception is thrown if creation failed.
      */
     static ref<Program> createCompute(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const std::filesystem::path& path,
         const std::string& csEntry,
         DefineList programDefines = {},
@@ -704,7 +704,7 @@ class FALCOR_API Program : public Object {
      * @return A new object, or an exception is thrown if creation failed.
      */
     static ref<Program> createGraphics(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const std::filesystem::path& path,
         const std::string& vsEntry,
         const std::string& psEntry,
@@ -872,7 +872,7 @@ class FALCOR_API Program : public Object {
     void validateEntryPoints() const;
     bool link() const;
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     nvrhi::ResourceHandle shaderProgram;
 

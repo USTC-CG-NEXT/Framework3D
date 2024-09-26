@@ -36,7 +36,7 @@ namespace Falcor
 {
 static const char kShaderFile[] = "Utils/Algorithm/ParallelReduction.cs.slang";
 
-ParallelReduction::ParallelReduction(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
+ParallelReduction::ParallelReduction(ref<Device> pDevice) : mpDevice(pDevice)
 {
     // Create the programs.
     // Set defines to avoid compiler warnings about undefined macros. Proper values will be assigned at runtime.

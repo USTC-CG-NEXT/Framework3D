@@ -36,7 +36,7 @@ namespace Falcor
         const char kShaderFile[] = "Rendering/Materials/HairMaterial.slang";
     }
 
-    HairMaterial::HairMaterial(nvrhi::DeviceHandle pDevice, const std::string& name)
+    HairMaterial::HairMaterial(ref<Device> pDevice, const std::string& name)
         : BasicMaterial(pDevice, name, MaterialType::Hair)
     {
         // Setup additional texture slots.

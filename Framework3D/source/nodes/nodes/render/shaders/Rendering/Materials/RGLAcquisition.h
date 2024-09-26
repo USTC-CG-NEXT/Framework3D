@@ -44,13 +44,13 @@ namespace Falcor
     {
     public:
         /// Constructor.
-        RGLAcquisition(nvrhi::DeviceHandle pDevice, const ref<Scene>& pScene);
+        RGLAcquisition(ref<Device> pDevice, const ref<Scene>& pScene);
 
         void acquireIsotropic(RenderContext* pRenderContext, const MaterialID materialID);
         RGLFile toRGLFile();
 
     private:
-        nvrhi::DeviceHandle mpDevice;
+        ref<Device> mpDevice;
         ref<Scene> mpScene;
         ref<ComputePass> mpRetroReflectionPass;
         ref<ComputePass> mpBuildKernelPass;

@@ -144,7 +144,7 @@ public:
      * @param[in] maxTextureCount Maximum number of textures that can be simultaneously managed.
      * @param[in] threadCount Number of worker threads.
      */
-    TextureManager(nvrhi::DeviceHandle pDevice, size_t maxTextureCount, size_t threadCount = std::thread::hardware_concurrency());
+    TextureManager(ref<Device> pDevice, size_t maxTextureCount, size_t threadCount = std::thread::hardware_concurrency());
 
     ~TextureManager();
 
@@ -343,7 +343,7 @@ private:
     TextureDesc& getDesc(const CpuTextureHandle& handle);
     void registerOwner(const CpuTextureHandle& handle, const Object* owner);
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
 
     mutable std::mutex mMutex;          ///< Mutex for synchronizing access to shared resources.
     std::condition_variable mCondition; ///< Condition variable to wait on for loading to finish.

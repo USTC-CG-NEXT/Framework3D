@@ -61,7 +61,7 @@ namespace Falcor
     {
         nvrhi::BufferHandle pUnitAABBBuffer;
 
-        SharedData(nvrhi::DeviceHandle pDevice)
+        SharedData(ref<Device> pDevice)
         {
             RtAABB unitAABB { float3(-0.5f), float3(0.5f) };
             pUnitAABBBuffer = pDevice->createBuffer(sizeof(RtAABB), ResourceBindFlags::ShaderResource, MemoryType::DeviceLocal, &unitAABB);
@@ -70,7 +70,7 @@ namespace Falcor
 
     static SharedCache<SDFSVO::SharedData, Device*> sSharedCache;
 
-    SDFSVO::SDFSVO(nvrhi::DeviceHandle pDevice)
+    SDFSVO::SDFSVO(ref<Device> pDevice)
         : SDFGrid(pDevice)
     {
 #if !FALCOR_NVAPI_AVAILABLE

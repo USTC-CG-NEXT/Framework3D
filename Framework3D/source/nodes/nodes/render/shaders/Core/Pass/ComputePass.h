@@ -53,7 +53,7 @@ class FALCOR_API ComputePass : public Object {
      * @return A new object, or throws an exception if creation failed.
      */
     static ref<ComputePass> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const std::filesystem::path& path,
         const std::string& csEntry = "main",
         const DefineList& defines = DefineList(),
@@ -70,7 +70,7 @@ class FALCOR_API ComputePass : public Object {
      * @return A new object, or throws an exception if creation failed.
      */
     static ref<ComputePass> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ProgramDesc& desc,
         const DefineList& defines = DefineList(),
         bool createVars = true);
@@ -176,19 +176,19 @@ class FALCOR_API ComputePass : public Object {
         return mpState->getProgram()->getReflector()->getThreadGroupSize();
     }
 
-    const nvrhi::DeviceHandle& getDevice() const
+    const ref<Device>& getDevice() const
     {
         return mpDevice;
     }
 
    protected:
     ComputePass(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ProgramDesc& desc,
         const DefineList& defines,
         bool createVars);
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     ref<ProgramVars> mpVars;
     ref<ComputeState> mpState;
 };

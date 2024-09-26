@@ -37,7 +37,7 @@ namespace Falcor
         nvrhi::SamplerHandle pSampler;
         nvrhi::BufferHandle pUnitAABBBuffer;
 
-        SharedData(nvrhi::DeviceHandle pDevice)
+        SharedData(ref<Device> pDevice)
         {
             Sampler::Desc sdfGridSamplerDesc;
             sdfGridSamplerDesc.setFilterMode(TextureFilteringMode::Linear, TextureFilteringMode::Linear, TextureFilteringMode::Linear);
@@ -51,7 +51,7 @@ namespace Falcor
 
     static SharedCache<NDSDFGrid::SharedData, Device*> sSharedCache;
 
-    NDSDFGrid::NDSDFGrid(nvrhi::DeviceHandle pDevice, float narrowBandThickness)
+    NDSDFGrid::NDSDFGrid(ref<Device> pDevice, float narrowBandThickness)
         : SDFGrid(pDevice)
         , mNarrowBandThickness(std::max(narrowBandThickness, 1.0f))
     {

@@ -76,7 +76,7 @@ void BufferAllocator::clear()
     mDirty = {};
 }
 
-nvrhi::BufferHandle BufferAllocator::getGPUBuffer(nvrhi::DeviceHandle pDevice)
+nvrhi::BufferHandle BufferAllocator::getGPUBuffer(ref<Device> pDevice)
 {
     if (mBuffer.empty())
     {

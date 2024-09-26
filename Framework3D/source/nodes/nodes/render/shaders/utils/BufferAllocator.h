@@ -195,7 +195,7 @@ public:
      * Get GPU buffer. The buffer is updated and ready for use.
      * The buffer is transient and only valid until the next allocation operation.
      */
-    nvrhi::BufferHandle getGPUBuffer(nvrhi::DeviceHandle pDevice);
+    nvrhi::BufferHandle getGPUBuffer(ref<Device> pDevice);
 
 private:
     void computeAndAllocatePadding(size_t byteSize);

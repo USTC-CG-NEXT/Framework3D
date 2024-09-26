@@ -94,7 +94,7 @@ public:
     /**
      * Constructor. Throws an exception if creation failed.
      */
-    TextureAnalyzer(nvrhi::DeviceHandle pDevice);
+    TextureAnalyzer(ref<Device> pDevice);
 
     /**
      * Analyze 2D texture to check if it has a constant color.
@@ -148,7 +148,7 @@ public:
 private:
     void checkFormatSupport(const nvrhi::TextureHandle pInput, uint32_t mipLevel, uint32_t arraySlice) const;
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     ref<ComputePass> mpClearPass;
     ref<ComputePass> mpAnalyzePass;
 };

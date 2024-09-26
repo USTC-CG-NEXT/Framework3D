@@ -50,7 +50,7 @@ struct FullScreenPass::SharedData {
     ref<Vao> pVao;
     uint64_t objectCount = 0;
 
-    SharedData(nvrhi::DeviceHandle pDevice)
+    SharedData(ref<Device> pDevice)
     {
         const uint32_t vbSize =
             (uint32_t)(sizeof(Vertex) * std::size(kVertices));
@@ -75,7 +75,7 @@ struct FullScreenPass::SharedData {
 static SharedCache<FullScreenPass::SharedData, Device*> sSharedCache;
 
 FullScreenPass::FullScreenPass(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ProgramDesc& progDesc,
     const DefineList& programDefines)
     : BaseGraphicsPass(pDevice, progDesc, programDefines)
@@ -96,7 +96,7 @@ FullScreenPass::FullScreenPass(
 FullScreenPass::~FullScreenPass() = default;
 
 ref<FullScreenPass> FullScreenPass::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ProgramDesc& desc,
     const DefineList& defines,
     uint32_t viewportMask)
@@ -118,7 +118,7 @@ ref<FullScreenPass> FullScreenPass::create(
 }
 
 ref<FullScreenPass> FullScreenPass::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const std::filesystem::path& path,
     const DefineList& defines,
     uint32_t viewportMask)

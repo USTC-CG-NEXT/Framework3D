@@ -397,18 +397,18 @@ namespace Falcor
             \param[in] settings Optional settings.
             \return Scene object, or throws an ImporterError if import went wrong.
         */
-        static ref<Scene> create(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, const Settings& settings = Settings());
+        static ref<Scene> create(ref<Device> pDevice, const std::filesystem::path& path, const Settings& settings = Settings());
 
         /** Create scene from in-memory representation.
             \param[in] pDevice GPU device.
             \param[in] sceneData All scene data.
             \return Scene object or throws on error.
         */
-        static ref<Scene> create(nvrhi::DeviceHandle pDevice, SceneData&& sceneData);
+        static ref<Scene> create(ref<Device> pDevice, SceneData&& sceneData);
 
         /** Return the associated GPU device.
         */
-        const nvrhi::DeviceHandle& getDevice() const override { return mpDevice; }
+        const ref<Device>& getDevice() const override { return mpDevice; }
 
         /** Bind the scene to a given shader var.
             Note that the scene may change between calls to update().
@@ -1221,9 +1221,9 @@ namespace Falcor
         void bindSelectedCamera();
         void bindParameterBlock();
 
-        Scene(nvrhi::DeviceHandle pDevice, SceneData&& sceneData);
+        Scene(ref<Device> pDevice, SceneData&& sceneData);
 
-        nvrhi::DeviceHandle mpDevice; ///< GPU device the scene resides on.
+        ref<Device> mpDevice; ///< GPU device the scene resides on.
 
         // Scene Geometry
 

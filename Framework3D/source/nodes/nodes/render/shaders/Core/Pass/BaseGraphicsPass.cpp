@@ -31,7 +31,7 @@
 
 namespace Falcor {
 BaseGraphicsPass::BaseGraphicsPass(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ProgramDesc& progDesc,
     const DefineList& programDefines)
     : mpDevice(pDevice)

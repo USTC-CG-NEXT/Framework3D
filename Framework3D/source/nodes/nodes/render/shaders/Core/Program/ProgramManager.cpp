@@ -734,11 +734,11 @@ SlangCompileRequest* ProgramManager::createSlangCompileRequest(
 
     // Pick the right target based on the current graphics API
     switch (mpDevice->getGraphicsAPI()) {
-        case GraphicsAPI::D3D12:
+        case nvrhi::GraphicsAPI::D3D12:
             targetDesc.format = SLANG_DXIL;
             targetMacroName = "FALCOR_D3D12";
             break;
-        case GraphicsAPI::VULKAN:
+        case nvrhi::GraphicsAPI::VULKAN:
             targetDesc.format = SLANG_SPIRV;
             targetMacroName = "FALCOR_VULKAN";
             break;
@@ -764,10 +764,7 @@ SlangCompileRequest* ProgramManager::createSlangCompileRequest(
     addSlangDefine(targetMacroName, "1");
 
     // Add a `#define` based on the shader model.
-    std::string sm = fmt::format(
-        "__SM_{}_{}__",
-        getShaderModelMajorVersion(program.mDesc.shaderModel),
-        getShaderModelMinorVersion(program.mDesc.shaderModel));
+    std::string sm = fmt::format("__SM_{}_{}__", 6, 5);
     addSlangDefine(sm.c_str(), "1");
 
     sessionDesc.preprocessorMacros = slangDefines.data();

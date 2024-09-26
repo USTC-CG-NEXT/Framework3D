@@ -43,9 +43,9 @@ namespace Falcor
             \param[in] narrowBandThickness NDSDFGrids operate on normalized distances, the distances are normalized so that a normalized distance of +- 1 represents a distance of "narrowBandThickness" voxel diameters. Should not be less than 1.
             \return NDSDFGrid object, or nullptr if errors occurred.
         */
-        static ref<NDSDFGrid> create(nvrhi::DeviceHandle pDevice, float narrowBandThickness) { return make_ref<NDSDFGrid>(pDevice, narrowBandThickness); }
+        static ref<NDSDFGrid> create(ref<Device> pDevice, float narrowBandThickness) { return make_ref<NDSDFGrid>(pDevice, narrowBandThickness); }
 
-        NDSDFGrid(nvrhi::DeviceHandle pDevice, float narrowBandThickness);
+        NDSDFGrid(ref<Device> pDevice, float narrowBandThickness);
 
         virtual size_t getSize() const override;
         virtual uint32_t getMaxPrimitiveIDBits() const override;

@@ -51,9 +51,9 @@ namespace Falcor
     {
         FALCOR_OBJECT(ClothMaterial)
     public:
-        static ref<ClothMaterial> create(nvrhi::DeviceHandle pDevice, const std::string& name) { return make_ref<ClothMaterial>(pDevice, name); };
+        static ref<ClothMaterial> create(ref<Device> pDevice, const std::string& name) { return make_ref<ClothMaterial>(pDevice, name); };
 
-        ClothMaterial(nvrhi::DeviceHandle pDevice, const std::string& name);
+        ClothMaterial(ref<Device> pDevice, const std::string& name);
 
         ProgramDesc::ShaderModuleList getShaderModules() const override;
         TypeConformanceList getTypeConformances() const override;

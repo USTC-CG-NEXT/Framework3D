@@ -70,14 +70,14 @@ namespace Falcor
             \param[in] pDevice The device.
             \return Albedo lookup table that can be used with `kAlbedoLUTFormat`.
         */
-        const std::vector<float4>& prepareAlbedoLUT(nvrhi::DeviceHandle pDevice);
+        const std::vector<float4>& prepareAlbedoLUT(ref<Device> pDevice);
 
         const Desc& getDesc() const { return mDesc; }
         const std::vector<float3>& getData() const { return mData; }
 
     private:
         void prepareData(const int dims[3], const std::vector<double>& data);
-        void computeAlbedoLUT(nvrhi::DeviceHandle pDevice, const size_t binCount);
+        void computeAlbedoLUT(ref<Device> pDevice, const size_t binCount);
 
         Desc mDesc;                     ///< BRDF description and sampling parameters.
         std::vector<float3> mData;      ///< BRDF data in RGB float format.

@@ -31,7 +31,7 @@
 
 namespace Falcor {
 ref<RasterPass> RasterPass::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ProgramDesc& desc,
     const DefineList& defines)
 {
@@ -39,7 +39,7 @@ ref<RasterPass> RasterPass::create(
 }
 
 ref<RasterPass> RasterPass::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const std::filesystem::path& path,
     const std::string& vsEntry,
     const std::string& psEntry,
@@ -51,7 +51,7 @@ ref<RasterPass> RasterPass::create(
 }
 
 RasterPass::RasterPass(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ProgramDesc& progDesc,
     const DefineList& programDefines)
     : BaseGraphicsPass(pDevice, progDesc, programDefines)

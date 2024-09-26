@@ -48,7 +48,7 @@
 namespace Falcor {
 class GuiImpl {
    public:
-    GuiImpl(nvrhi::DeviceHandle pDevice, float scaleFactor);
+    GuiImpl(ref<Device> pDevice, float scaleFactor);
 
    private:
     friend class Gui;
@@ -83,7 +83,7 @@ class GuiImpl {
     void setIoMouseEvents();
     void resetMouseEvents();
 
-    nvrhi::DeviceHandle mpDevice;
+    ref<Device> mpDevice;
     ImGuiContext* mpContext;
     ref<Vao> mpVaos[kVaoCount];
     uint32_t mVaoIndex = 0;
@@ -254,7 +254,7 @@ class GuiImpl {
         uint32_t height = 100);
 };
 
-GuiImpl::GuiImpl(nvrhi::DeviceHandle pDevice, float scaleFactor)
+GuiImpl::GuiImpl(ref<Device> pDevice, float scaleFactor)
     : mpDevice(pDevice),
       mScaleFactor(scaleFactor)
 {
@@ -1503,7 +1503,7 @@ void GuiImpl::addGraph(
 }
 
 Gui::Gui(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     uint32_t width,
     uint32_t height,
     float scaleFactor)

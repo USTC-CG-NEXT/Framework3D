@@ -50,7 +50,7 @@ class FALCOR_API RasterPass : public BaseGraphicsPass {
      * @return A new object, or throws an exception if creation failed.
      */
     static ref<RasterPass> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const std::filesystem::path& path,
         const std::string& vsEntry,
         const std::string& psEntry,
@@ -65,7 +65,7 @@ class FALCOR_API RasterPass : public BaseGraphicsPass {
      * @return A new object, or throws an exception if creation failed.
      */
     static ref<RasterPass> create(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ProgramDesc& desc,
         const DefineList& defines = DefineList());
 
@@ -96,7 +96,7 @@ class FALCOR_API RasterPass : public BaseGraphicsPass {
 
    protected:
     RasterPass(
-        nvrhi::DeviceHandle pDevice,
+        ref<Device> pDevice,
         const ProgramDesc& progDesc,
         const DefineList& programDefines);
 };

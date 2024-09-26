@@ -36,7 +36,7 @@ namespace
 constexpr size_t kUploadsPerFlush = 16; ///< Number of texture uploads before issuing a flush (to keep upload heap from growing).
 }
 
-AsyncTextureLoader::AsyncTextureLoader(nvrhi::DeviceHandle pDevice, size_t threadCount) : mpDevice(pDevice)
+AsyncTextureLoader::AsyncTextureLoader(ref<Device> pDevice, size_t threadCount) : mpDevice(pDevice)
 {
     runWorkers(threadCount);
 }

@@ -33,12 +33,12 @@
 
 namespace Falcor
 {
-    ref<EnvMap> EnvMap::create(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& pTexture)
+    ref<EnvMap> EnvMap::create(ref<Device> pDevice, const nvrhi::TextureHandle& pTexture)
     {
         return ref<EnvMap>(new EnvMap(pDevice, pTexture));
     }
 
-    ref<EnvMap> EnvMap::createFromFile(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path)
+    ref<EnvMap> EnvMap::createFromFile(ref<Device> pDevice, const std::filesystem::path& path)
     {
         // Load environment map from file. Set it to generate mips and use linear color.
         auto pTexture = Texture::createFromFile(pDevice, path, true, false);
@@ -120,7 +120,7 @@ namespace Falcor
         return mpEnvMap ? mpEnvMap->getTextureSizeInBytes() : 0;
     }
 
-    EnvMap::EnvMap(nvrhi::DeviceHandle pDevice, const nvrhi::TextureHandle& pTexture)
+    EnvMap::EnvMap(ref<Device> pDevice, const nvrhi::TextureHandle& pTexture)
         : mpDevice(pDevice)
     {
         FALCOR_CHECK(mpDevice != nullptr, "'pDevice' must be a valid device");

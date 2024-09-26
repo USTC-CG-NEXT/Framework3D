@@ -577,7 +577,7 @@ Bitmap::UniqueConstPtr ImageIO::loadBitmapFromDDS(const std::filesystem::path& p
     return Bitmap::create(data.width, data.height, data.format, data.imageData.data());
 }
 
-nvrhi::TextureHandle ImageIO::loadTextureFromDDS(nvrhi::DeviceHandle pDevice, const std::filesystem::path& path, bool loadAsSrgb)
+nvrhi::TextureHandle ImageIO::loadTextureFromDDS(ref<Device> pDevice, const std::filesystem::path& path, bool loadAsSrgb)
 {
     ImportData data;
     try

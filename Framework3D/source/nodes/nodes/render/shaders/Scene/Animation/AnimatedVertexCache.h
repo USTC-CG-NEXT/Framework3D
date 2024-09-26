@@ -73,7 +73,7 @@ namespace Falcor
     class FALCOR_API AnimatedVertexCache
     {
     public:
-        AnimatedVertexCache(nvrhi::DeviceHandle pDevice, Scene* pScene, const nvrhi::BufferHandle& pPrevVertexData, std::vector<CachedCurve>&& cachedCurves, std::vector<CachedMesh>&& cachedMeshes);
+        AnimatedVertexCache(ref<Device> pDevice, Scene* pScene, const nvrhi::BufferHandle& pPrevVertexData, std::vector<CachedCurve>&& cachedCurves, std::vector<CachedMesh>&& cachedMeshes);
         ~AnimatedVertexCache() = default;
 
         void setIsLooped(bool looped) { mLoopAnimations = looped; }
@@ -124,7 +124,7 @@ namespace Falcor
         void executeCurvePolyTubeVertexUpdatePass(RenderContext* pContext, const InterpolationInfo& info, bool copyPrev = false);
 
 
-        nvrhi::DeviceHandle mpDevice;
+        ref<Device> mpDevice;
 
         bool mLoopAnimations = true;
         double mGlobalCurveAnimationLength = 0;

@@ -45,7 +45,7 @@ nvrhi::BindingSetVector ProgramVars::getBindings()
 }
 
 ProgramVars::ProgramVars(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<const ProgramReflection>& pReflector)
     : ParameterBlock(pDevice, pReflector),
       mpReflector(pReflector)
@@ -54,7 +54,7 @@ ProgramVars::ProgramVars(
 }
 
 ref<ProgramVars> ProgramVars::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<const ProgramReflection>& pReflector)
 {
     FALCOR_CHECK(
@@ -64,7 +64,7 @@ ref<ProgramVars> ProgramVars::create(
 }
 
 ref<ProgramVars> ProgramVars::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const Program* pProg)
 {
     FALCOR_CHECK(pProg, "Can't create a ProgramVars object without a program");
@@ -72,7 +72,7 @@ ref<ProgramVars> ProgramVars::create(
 }
 
 RtProgramVars::RtProgramVars(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<Program>& pProgram,
     const ref<RtBindingTable>& pBindingTable)
     : ProgramVars(pDevice, pProgram->getReflector()),
@@ -89,7 +89,7 @@ RtProgramVars::RtProgramVars(
 }
 
 ref<RtProgramVars> RtProgramVars::create(
-    nvrhi::DeviceHandle pDevice,
+    ref<Device> pDevice,
     const ref<Program>& pProgram,
     const ref<RtBindingTable>& pBindingTable)
 {
