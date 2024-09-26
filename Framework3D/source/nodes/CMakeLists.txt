@@ -97,7 +97,7 @@ else()
     message(WARNING "OpenMP not found, building without it.")
 endif()
 
-target_compile_options(nodes PRIVATE -DUSTC_CG_BUILD_MODULE=0 -DNOMINMAX)
+target_compile_options(nodes PRIVATE -DUSTC_CG_BUILD_MODULE=0 -DFALCOR_DLL=1 -DNOMINMAX)
 
 get_filename_component(NODES_FILES_DIR "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
 set(NODES_FILES_DIR_MACRO "#define NODES_FILES_DIR \"${NODES_FILES_DIR}\"")

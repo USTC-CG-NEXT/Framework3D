@@ -237,7 +237,7 @@ void ParameterBlock::prepareResource(
     const Buffer* pBuffer = pResource->asBuffer().get();
     if (isUav && pBuffer && pBuffer->getUAVCounter()) {
         pContext->resourceBarrier(
-            pBuffer->getUAVCounter().get(), Resource::State::UnorderedAccess);
+            pBuffer->getUAVCounter().get(), ResourceStates::UnorderedAccess);
         pContext->uavBarrier(pBuffer->getUAVCounter().get());
     }
 
@@ -249,8 +249,8 @@ void ParameterBlock::prepareResource(
     if (insertBarrier) {
         insertBarrier = !pContext->resourceBarrier(
             pResource,
-            isUav ? Resource::State::UnorderedAccess
-                  : Resource::State::ShaderResource);
+            isUav ? ResourceStates::UnorderedAccess
+                  : ResourceStates::ShaderResource);
     }
 
     // Insert UAV barrier automatically if the resource is an UAV that is
@@ -296,7 +296,6 @@ ParameterBlock::ParameterBlock(
     initializeResourceBindings();
     createConstantBuffers(getRootVar());
 }
-
 void ParameterBlock::initializeResourceBindings()
 {
     // On Vulkan nested arrays of textures resources fail silently,
@@ -318,17 +317,18 @@ void ParameterBlock::initializeResourceBindings()
                         offset,
                         mpDevice->getDefaultSampler()->getGfxSamplerState());
                     break;
-                case ResourceType::TextureSrv:
-                case ResourceType::TextureUav:
-                case ResourceType::RawBufferSrv:
-                case ResourceType::RawBufferUav:
-                case ResourceType::TypedBufferSrv:
-                case ResourceType::TypedBufferUav:
-                case ResourceType::StructuredBufferUav:
-                case ResourceType::StructuredBufferSrv:
-                case ResourceType::AccelerationStructureSrv:
+                case ResourceType::Texture_SRV:
+                case ResourceType::Texture_UAV:
+                case ResourceType::RawBuffer_SRV:
+                case ResourceType::RawBuffer_UAV:
+                case ResourceType::TypedBuffer_SRV:
+                case ResourceType::TypedBuffer_UAV:
+                case ResourceType::StructuredBuffer_UAV:
+                case ResourceType::StructuredBuffer_SRV:
+                case ResourceType::RayTracingAccelStruct:
                     mpShaderObject->setResource(offset, nullptr);
                     break;
+                default: break;
             }
         }
     }

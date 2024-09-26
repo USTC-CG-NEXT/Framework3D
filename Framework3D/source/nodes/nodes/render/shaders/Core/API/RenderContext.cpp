@@ -80,21 +80,19 @@ namespace {
                 if (pTexture) {
                     auto pRTV = pFbo->getRenderTargetView(i);
                     pCtx->resourceBarrier(
-                        pTexture.get(),
-                        Resource::State::RenderTarget,
+                        pTexture->getNvrhiTexture(),
+                        nvrhi::ResourceStates::RenderTarget,
                         &pRTV->getViewInfo());
                 }
             }
 
-            auto& pTexture = pFbo->getDepthStencilTexture();
+            auto pTexture = pFbo->getDepthStencilTexture();
             if (pTexture) {
-                if (pTexture) {
-                    auto pDSV = pFbo->getDepthStencilView();
-                    pCtx->resourceBarrier(
-                        pTexture.get(),
-                        Resource::State::DepthStencil,
-                        &pDSV->getViewInfo());
-                }
+                auto pDSV = pFbo->getDepthStencilView();
+                pCtx->resourceBarrier(
+                    pTexture->getNvrhiTexture(),
+                    nvrhi::ResourceStates::DepthWrite,
+                    &pDSV->getViewInfo());
             }
         }
     }
@@ -481,7 +479,7 @@ void RenderContext::blit(
 
 void RenderContext::clearRtv(const RenderTargetView* pRtv, const float4& color)
 {
-    resourceBarrier(pRtv->getResource(), Resource::State::RenderTarget);
+    resourceBarrier(pRtv->getResource(), ResourceStates::RenderTarget);
     ClearValue clearValue = {};
     memcpy(clearValue.color.floatValues, &color, sizeof(float) * 4);
     auto encoder = getLowLevelData()->getResourceCommandEncoder();
@@ -499,7 +497,7 @@ void RenderContext::clearDsv(
     bool clearDepth,
     bool clearStencil)
 {
-    resourceBarrier(pDsv->getResource(), Resource::State::DepthStencil);
+    resourceBarrier(pDsv->getResource(), ResourceStates::DepthStencil);
     ClearValue clearValue = {};
     clearValue.depthStencil.depth = depth;
     clearValue.depthStencil.stencil = stencil;
@@ -584,7 +582,7 @@ void RenderContext::drawIndirect(
     const Buffer* pCountBuffer,
     uint64_t countBufferOffset)
 {
-    resourceBarrier(pArgBuffer, Resource::State::IndirectArg);
+    resourceBarrier(pArgBuffer, ResourceStates::IndirectArg);
     auto encoder = drawCallCommon(pState, pVars);
     FALCOR_GFX_CALL(encoder->drawIndirect(
         maxCommandCount,
@@ -604,7 +602,7 @@ void RenderContext::drawIndexedIndirect(
     const Buffer* pCountBuffer,
     uint64_t countBufferOffset)
 {
-    resourceBarrier(pArgBuffer, Resource::State::IndirectArg);
+    resourceBarrier(pArgBuffer, ResourceStates::IndirectArg);
     auto encoder = drawCallCommon(pState, pVars);
     FALCOR_GFX_CALL(encoder->drawIndexedIndirect(
         maxCommandCount,
@@ -642,8 +640,8 @@ void RenderContext::resolveSubresource(
     uint32_t dstSubresource)
 {
     // TODO it would be better to just use barriers on the subresources.
-    resourceBarrier(pSrc.get(), Resource::State::ResolveSource);
-    resourceBarrier(pDst.get(), Resource::State::ResolveDest);
+    resourceBarrier(pSrc.get(), ResourceStates::ResolveSource);
+    resourceBarrier(pDst.get(), ResourceStates::ResolveDest);
 
     auto resourceEncoder = getLowLevelData()->getResourceCommandEncoder();
     SubresourceRange srcRange = {};
@@ -692,8 +690,8 @@ void RenderContext::resolveResource(
         pSrc->getMipCount() == pDst->getMipCount(),
         "Source and destination textures must have the same mip count.");
 
-    resourceBarrier(pSrc.get(), Resource::State::ResolveSource);
-    resourceBarrier(pDst.get(), Resource::State::ResolveDest);
+    resourceBarrier(pSrc.get(), ResourceStates::ResolveSource);
+    resourceBarrier(pDst.get(), ResourceStates::ResolveDest);
 
     auto resourceEncoder = getLowLevelData()->getResourceCommandEncoder();
 
@@ -771,11 +769,11 @@ IRenderCommandEncoder* RenderContext::drawCallCommon(
         auto pVao = pState->getVao().get();
         for (uint32_t i = 0; i < pVao->getVertexBuffersCount(); i++) {
             auto vertexBuffer = pVao->getVertexBuffer(i).get();
-            resourceBarrier(vertexBuffer, Resource::State::VertexBuffer);
+            resourceBarrier(vertexBuffer, ResourceStates::VertexBuffer);
         }
         if (pVao->getIndexBuffer()) {
             auto indexBuffer = pVao->getIndexBuffer().get();
-            resourceBarrier(indexBuffer, Resource::State::IndexBuffer);
+            resourceBarrier(indexBuffer, ResourceStates::IndexBuffer);
         }
     }
 
@@ -817,69 +815,6 @@ IRenderCommandEncoder* RenderContext::drawCallCommon(
     }
 
     return encoder;
-}
-
-FALCOR_SCRIPT_BINDING(CopyContext)
-{
-    using namespace pybind11::literals;
-
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(Resource)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(Buffer)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(Texture)
-
-    pybind11::class_<CopyContext> copyContext(m, "CopyContext");
-
-    copyContext.def("submit", &CopyContext::submit, "wait"_a = false);
-
-#if FALCOR_HAS_CUDA
-    copyContext.def(
-        "wait_for_cuda",
-        [](CopyContext& self, uint64_t stream = 0) {
-            self.waitForCuda(reinterpret_cast<cudaStream_t>(stream));
-        },
-        "stream"_a = 0);
-    copyContext.def(
-        "wait_for_falcor",
-        [](CopyContext& self, uint64_t stream = 0) {
-            self.waitForFalcor(reinterpret_cast<cudaStream_t>(stream));
-        },
-        "stream"_a = 0);
-#endif
-
-    copyContext.def("uav_barrier", &CopyContext::uavBarrier, "resource"_a);
-    copyContext.def(
-        "copy_resource", &CopyContext::copyResource, "dst"_a, "src"_a);
-    copyContext.def(
-        "copy_subresource",
-        &CopyContext::copySubresource,
-        "dst"_a,
-        "dst_subresource_idx"_a,
-        "src"_a,
-        "src_subresource_idx"_a);
-    copyContext.def(
-        "copy_buffer_region",
-        &CopyContext::copyBufferRegion,
-        "dst"_a,
-        "dst_offset"_a,
-        "src"_a,
-        "src_offset"_a,
-        "num_bytes"_a);
-}
-
-FALCOR_SCRIPT_BINDING(ComputeContext)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(CopyContext)
-
-    pybind11::class_<ComputeContext, CopyContext> computeContext(
-        m, "ComputeContext");
-}
-
-FALCOR_SCRIPT_BINDING(RenderContext)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ComputeContext)
-
-    pybind11::class_<RenderContext, ComputeContext> renderContext(
-        m, "RenderContext");
 }
 
 }  // namespace Falcor

@@ -245,10 +245,18 @@ class FALCOR_API CopyContext {
      */
     void addAftermathMarker(std::string_view name);
 
+    nvrhi::ICommandList* getLowLevelData() const
+    {
+        return mpLowLevelData.Get();
+    }
+
    protected:
     bool textureBarrier(const Texture* pTexture, ResourceStates newState);
     bool bufferBarrier(const Buffer* pBuffer, ResourceStates newState);
-    bool subresourceBarriers(const Texture* pTexture, ResourceStates newState);
+    bool subresourceBarriers(
+        const Texture* pTexture,
+        ResourceStates newState,
+        const nvrhi::TextureSubresourceSet* pViewInfo);
     void apiSubresourceBarrier(
         const Texture* pTexture,
         ResourceStates newState,

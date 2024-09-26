@@ -115,6 +115,12 @@ struct AdapterInfo {
 
 class FALCOR_API Device : public Object {
     FALCOR_OBJECT(Device)
+
+    auto getGraphicsAPI()
+    {
+        return mGfxDevice->getGraphicsAPI();
+    }
+
    public:
     /**
      * Maximum number of in-flight frames.
@@ -179,25 +185,6 @@ class FALCOR_API Device : public Object {
     struct Limits {
         uint3 maxComputeDispatchThreadGroups;
         uint32_t maxShaderVisibleSamplers;
-    };
-
-    enum class SupportedFeatures {
-        // clang-format off
-        None = 0x0,
-        ProgrammableSamplePositionsPartialOnly = 0x1,   ///< On D3D12, this means tier 1 support. Allows one sample position to be set.
-        ProgrammableSamplePositionsFull = 0x2,          ///< On D3D12, this means tier 2 support. Allows up to 4 sample positions to be set.
-        Barycentrics = 0x4,                             ///< On D3D12, pixel shader barycentrics are supported.
-        Raytracing = 0x8,                               ///< On D3D12, DirectX Raytracing is supported. It is up to the user to not use raytracing functions when not supported.
-        RaytracingTier1_1 = 0x10,                       ///< On D3D12, DirectX Raytracing Tier 1.1 is supported.
-        ConservativeRasterizationTier1 = 0x20,          ///< On D3D12, conservative rasterization tier 1 is supported.
-        ConservativeRasterizationTier2 = 0x40,          ///< On D3D12, conservative rasterization tier 2 is supported.
-        ConservativeRasterizationTier3 = 0x80,          ///< On D3D12, conservative rasterization tier 3 is supported.
-        RasterizerOrderedViews = 0x100,                 ///< On D3D12, rasterizer ordered views (ROVs) are supported.
-        WaveOperations = 0x200,
-        ShaderExecutionReorderingAPI = 0x400,           ///< On D3D12 and Vulkan, this means SER API is available (in the future this will be part of the shader model).
-        RaytracingReordering = 0x800,                   ///< On D3D12, this means SER is supported on the hardware.
-
-        // clang-format on
     };
 
     /**
@@ -354,11 +341,6 @@ class FALCOR_API Device : public Object {
         return mLimits;
     }
 
-    /**
-     * Check if features are supported by the device
-     */
-    bool isFeatureSupported(SupportedFeatures flags) const;
-
     /// Get the texture row memory alignment in bytes.
     size_t getTextureRowAlignment() const;
 
@@ -452,7 +434,6 @@ class FALCOR_API Device : public Object {
 
     Info mInfo;
     Limits mLimits;
-    SupportedFeatures mSupportedFeatures = SupportedFeatures::None;
 
 #if FALCOR_HAS_AFTERMATH
     std::unique_ptr<AftermathContext> mpAftermathContext;
@@ -481,8 +462,6 @@ inline constexpr uint32_t getMaxViewportCount()
 {
     return 8;
 }
-
-FALCOR_ENUM_CLASS_OPERATORS(Device::SupportedFeatures);
 
 FALCOR_ENUM_REGISTER(Device::Type);
 

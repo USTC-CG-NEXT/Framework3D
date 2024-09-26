@@ -27,7 +27,6 @@
  **************************************************************************/
 #include "Device.h"
 
-#include "Aftermath.h"
 #include "ComputeStateObject.h"
 #include "Core/Error.h"
 #include "Core/Macros.h"
@@ -35,12 +34,7 @@
 #include "Core/Program/Program.h"
 #include "Core/Program/ProgramManager.h"
 #include "Core/Program/ShaderVar.h"
-#include "GFXAPI.h"
-#include "GFXHelpers.h"
 #include "GraphicsStateObject.h"
-#include "NativeHandleTraits.h"
-#include "PythonHelpers.h"
-#include "Raytracing.h"
 #include "RtStateObject.h"
 #include "Utils/Logger.h"
 #include "Utils/Scripting/ScriptBindings.h"
@@ -363,67 +357,6 @@ inline Device::Limits queryLimits(nvrhi::IDevice* pDevice)
         toUint3(deviceLimits.maxComputeDispatchThreadGroups);
     limits.maxShaderVisibleSamplers = deviceLimits.maxShaderVisibleSamplers;
     return limits;
-}
-
-inline Device::SupportedFeatures querySupportedFeatures(nvrhi::IDevice* pDevice)
-{
-    Device::SupportedFeatures result = Device::SupportedFeatures::None;
-    if (pDevice->hasFeature("ray-tracing")) {
-        result |= Device::SupportedFeatures::Raytracing;
-    }
-    if (pDevice->hasFeature("ray-query")) {
-        result |= Device::SupportedFeatures::RaytracingTier1_1;
-    }
-    if (pDevice->hasFeature("conservative-rasterization-3")) {
-        result |= Device::SupportedFeatures::ConservativeRasterizationTier3;
-    }
-    if (pDevice->hasFeature("conservative-rasterization-2")) {
-        result |= Device::SupportedFeatures::ConservativeRasterizationTier2;
-    }
-    if (pDevice->hasFeature("conservative-rasterization-1")) {
-        result |= Device::SupportedFeatures::ConservativeRasterizationTier1;
-    }
-    if (pDevice->hasFeature("rasterizer-ordered-views")) {
-        result |= Device::SupportedFeatures::RasterizerOrderedViews;
-    }
-
-    if (pDevice->hasFeature("programmable-sample-positions-2")) {
-        result |= Device::SupportedFeatures::ProgrammableSamplePositionsFull;
-    }
-    else if (pDevice->hasFeature("programmable-sample-positions-1")) {
-        result |=
-            Device::SupportedFeatures::ProgrammableSamplePositionsPartialOnly;
-    }
-
-    if (pDevice->hasFeature("barycentrics")) {
-        result |= Device::SupportedFeatures::Barycentrics;
-    }
-
-    if (pDevice->hasFeature("wave-ops")) {
-        result |= Device::SupportedFeatures::WaveOperations;
-    }
-
-    return result;
-}
-
-inline ShaderModel querySupportedShaderModel(nvrhi::IDevice* pDevice)
-{
-    struct SMLevel {
-        const char* name;
-        ShaderModel level;
-    };
-    const SMLevel levels[] = {
-        { "sm_6_7", ShaderModel::SM6_7 }, { "sm_6_6", ShaderModel::SM6_6 },
-        { "sm_6_5", ShaderModel::SM6_5 }, { "sm_6_4", ShaderModel::SM6_4 },
-        { "sm_6_3", ShaderModel::SM6_3 }, { "sm_6_2", ShaderModel::SM6_2 },
-        { "sm_6_1", ShaderModel::SM6_1 }, { "sm_6_0", ShaderModel::SM6_0 },
-    };
-    for (auto level : levels) {
-        if (pDevice->hasFeature(level.name)) {
-            return level.level;
-        }
-    }
-    return ShaderModel::Unknown;
 }
 
 Device::Device(const Desc& desc) : mDesc(desc)
@@ -994,7 +927,7 @@ nvrhi::TextureHandle Device::createTextureFromResource(
     uint32_t mipLevels,
     uint32_t sampleCount,
     ResourceBindFlags bindFlags,
-    Resource::State initState)
+    ResourceStates initState)
 {
     return make_nvrhi::TextureHandle(
         ref<Device>(this),

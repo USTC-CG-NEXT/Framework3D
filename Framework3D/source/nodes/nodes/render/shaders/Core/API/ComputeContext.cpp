@@ -121,7 +121,7 @@ void ComputeContext::clearUAVCounter(
     // if (pBuffer->getUAVCounter()) {
     //     resourceBarrier(
     //         pBuffer->getUAVCounter().get(),
-    //         Resource::State::UnorderedAccess);
+    //         ResourceStates::UnorderedAccess);
 
     //    auto resourceEncoder = mpLowLevelData;
     //    ClearValue clearValue = {};

@@ -92,9 +92,7 @@ ProgramManager::ProgramManager(Device* pDevice) : mpDevice(pDevice)
     // Set global shader defines
     DefineList globalDefines = {
         { "FALCOR_NVAPI_AVAILABLE",
-          (FALCOR_NVAPI_AVAILABLE && mpDevice->getType() == Device::Type::D3D12)
-              ? "1"
-              : "0" },
+          mpDevice->getType() == Device::Type::D3D12 ? "1" : "0" },
 #if FALCOR_NVAPI_AVAILABLE
         { "NV_SHADER_EXTN_SLOT", "u999" },
         { "__SHADER_TARGET_MAJOR",
@@ -689,9 +687,7 @@ SlangCompileRequest* ProgramManager::createSlangCompileRequest(
         pSlangGlobalSession->findProfile(getSlangProfileString().c_str());
 
     if (targetDesc.profile == SLANG_PROFILE_UNKNOWN)
-        FALCOR_THROW(
-            "Can't find Slang profile for shader model {}",
-            program.mDesc.shaderModel);
+        FALCOR_THROW("Can't find Slang profile for shader model {}", 65);
 
     // Get compiler flags and adjust with forced flags.
     SlangCompilerFlags compilerFlags = program.mDesc.compilerFlags;

@@ -26,28 +26,27 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "GraphicsState.h"
-#include "Core/ObjectPython.h"
+
 #include "Core/API/Device.h"
+#include "Core/ObjectPython.h"
 #include "Core/Program/ProgramVars.h"
 #include "Utils/Scripting/ScriptBindings.h"
 
-namespace Falcor
-{
+namespace Falcor {
 static GraphicsStateObjectDesc::PrimitiveType topology2Type(Vao::Topology t)
 {
-    switch (t)
-    {
-    case Vao::Topology::PointList:
-        return GraphicsStateObjectDesc::PrimitiveType::Point;
-    case Vao::Topology::LineList:
-    case Vao::Topology::LineStrip:
-        return GraphicsStateObjectDesc::PrimitiveType::Line;
-    case Vao::Topology::TriangleList:
-    case Vao::Topology::TriangleStrip:
-        return GraphicsStateObjectDesc::PrimitiveType::Triangle;
-    default:
-        FALCOR_UNREACHABLE();
-        return GraphicsStateObjectDesc::PrimitiveType::Undefined;
+    switch (t) {
+        case Vao::Topology::PointList:
+            return GraphicsStateObjectDesc::PrimitiveType::Point;
+        case Vao::Topology::LineList:
+        case Vao::Topology::LineStrip:
+            return GraphicsStateObjectDesc::PrimitiveType::Line;
+        case Vao::Topology::TriangleList:
+        case Vao::Topology::TriangleStrip:
+            return GraphicsStateObjectDesc::PrimitiveType::Triangle;
+        default:
+            FALCOR_UNREACHABLE();
+            return GraphicsStateObjectDesc::PrimitiveType::Undefined;
     }
 }
 
@@ -65,8 +64,7 @@ GraphicsState::GraphicsState(ref<Device> pDevice) : mpDevice(pDevice)
     mScissors.resize(vpCount);
     mVpStack.resize(vpCount);
     mScStack.resize(vpCount);
-    for (uint32_t i = 0; i < vpCount; i++)
-    {
+    for (uint32_t i = 0; i < vpCount; i++) {
         setViewport(i, mViewports[i], true);
     }
 
@@ -77,38 +75,37 @@ GraphicsState::~GraphicsState() = default;
 
 ref<GraphicsStateObject> GraphicsState::getGSO(const ProgramVars* pVars)
 {
-    auto pProgramKernels = mpProgram ? mpProgram->getActiveVersion()->getKernels(mpDevice, pVars) : nullptr;
+    auto pProgramKernels =
+        mpProgram ? mpProgram->getActiveVersion()->getKernels(mpDevice, pVars)
+                  : nullptr;
     bool newProgVersion = pProgramKernels.get() != mCachedData.pProgramKernels;
-    if (newProgVersion)
-    {
+    if (newProgVersion) {
         mCachedData.pProgramKernels = pProgramKernels.get();
         mpGsoGraph->walk((void*)pProgramKernels.get());
     }
 
     const Fbo::Desc* pFboDesc = mpFbo ? &mpFbo->getDesc() : nullptr;
-    if (mCachedData.pFboDesc != pFboDesc)
-    {
+    if (mCachedData.pFboDesc != pFboDesc) {
         mpGsoGraph->walk((void*)pFboDesc);
         mCachedData.pFboDesc = pFboDesc;
     }
 
     ref<GraphicsStateObject> pGso = mpGsoGraph->getCurrentNode();
-    if (pGso == nullptr)
-    {
+    if (pGso == nullptr) {
         mDesc.pProgramKernels = pProgramKernels;
-        mDesc.fboDesc = mpFbo ? mpFbo->getDesc() : Fbo::Desc();
+        mDesc.fboDesc = mpFbo ? mpFbo->getDesc() : nvrhi::FramebufferDesc();
         mDesc.pVertexLayout = mpVao->getVertexLayout();
         mDesc.primitiveType = topology2Type(mpVao->getPrimitiveTopology());
 
-        GraphicsStateGraph::CompareFunc cmpFunc = [&desc = mDesc](ref<GraphicsStateObject> pGso) -> bool
-        { return pGso && (desc == pGso->getDesc()); };
+        GraphicsStateGraph::CompareFunc cmpFunc =
+            [&desc = mDesc](ref<GraphicsStateObject> pGso) -> bool {
+            return pGso && (desc == pGso->getDesc());
+        };
 
-        if (mpGsoGraph->scanForMatchingNode(cmpFunc))
-        {
+        if (mpGsoGraph->scanForMatchingNode(cmpFunc)) {
             pGso = mpGsoGraph->getCurrentNode();
         }
-        else
-        {
+        else {
             pGso = mpDevice->createGraphicsStateObject(mDesc);
             pGso->breakStrongReferenceToDevice();
             mpGsoGraph->setCurrentNodeData(pGso);
@@ -121,10 +118,9 @@ GraphicsState& GraphicsState::setFbo(const ref<Fbo>& pFbo, bool setVp0Sc0)
 {
     mpFbo = pFbo;
 
-    if (setVp0Sc0 && pFbo)
-    {
-        uint32_t w = pFbo->getWidth();
-        uint32_t h = pFbo->getHeight();
+    if (setVp0Sc0 && pFbo) {
+        uint32_t w = pFbo->getFramebufferInfo().width;
+        uint32_t h = pFbo->getFramebufferInfo().height;
         GraphicsState::Viewport vp(0, 0, float(w), float(h), 0, 1);
         setViewport(0, vp, true);
     }
@@ -147,8 +143,7 @@ void GraphicsState::popFbo(bool setVp0Sc0)
 
 GraphicsState& GraphicsState::setVao(const ref<Vao>& pVao)
 {
-    if (mpVao != pVao)
-    {
+    if (mpVao != pVao) {
         mpVao = pVao;
         mpGsoGraph->walk(pVao ? (void*)pVao->getVertexLayout().get() : nullptr);
     }
@@ -157,18 +152,17 @@ GraphicsState& GraphicsState::setVao(const ref<Vao>& pVao)
 
 GraphicsState& GraphicsState::setBlendState(ref<BlendState> pBlendState)
 {
-    if (mDesc.pBlendState != pBlendState)
-    {
+    if (mDesc.pBlendState != pBlendState) {
         mDesc.pBlendState = pBlendState;
         mpGsoGraph->walk((void*)pBlendState.get());
     }
     return *this;
 }
 
-GraphicsState& GraphicsState::setRasterizerState(ref<RasterizerState> pRasterizerState)
+GraphicsState& GraphicsState::setRasterizerState(
+    ref<RasterizerState> pRasterizerState)
 {
-    if (mDesc.pRasterizerState != pRasterizerState)
-    {
+    if (mDesc.pRasterizerState != pRasterizerState) {
         mDesc.pRasterizerState = pRasterizerState;
         mpGsoGraph->walk((void*)pRasterizerState.get());
     }
@@ -177,25 +171,27 @@ GraphicsState& GraphicsState::setRasterizerState(ref<RasterizerState> pRasterize
 
 GraphicsState& GraphicsState::setSampleMask(uint32_t sampleMask)
 {
-    if (mDesc.sampleMask != sampleMask)
-    {
+    if (mDesc.sampleMask != sampleMask) {
         mDesc.sampleMask = sampleMask;
         mpGsoGraph->walk((void*)(uint64_t)sampleMask);
     }
     return *this;
 }
 
-GraphicsState& GraphicsState::setDepthStencilState(ref<DepthStencilState> pDepthStencilState)
+GraphicsState& GraphicsState::setDepthStencilState(
+    ref<DepthStencilState> pDepthStencilState)
 {
-    if (mDesc.pDepthStencilState != pDepthStencilState)
-    {
+    if (mDesc.pDepthStencilState != pDepthStencilState) {
         mDesc.pDepthStencilState = pDepthStencilState;
         mpGsoGraph->walk((void*)pDepthStencilState.get());
     }
     return *this;
 }
 
-void GraphicsState::pushViewport(uint32_t index, const GraphicsState::Viewport& vp, bool setScissors)
+void GraphicsState::pushViewport(
+    uint32_t index,
+    const GraphicsState::Viewport& vp,
+    bool setScissors)
 {
     FALCOR_CHECK(index < mVpStack.size(), "'index' is out of range.");
 
@@ -213,7 +209,9 @@ void GraphicsState::popViewport(uint32_t index, bool setScissors)
     mVpStack[index].pop();
 }
 
-void GraphicsState::pushScissors(uint32_t index, const GraphicsState::Scissor& sc)
+void GraphicsState::pushScissors(
+    uint32_t index,
+    const GraphicsState::Scissor& sc)
 {
     FALCOR_CHECK(index < mScStack.size(), "'index' is out of range.");
 
@@ -231,12 +229,14 @@ void GraphicsState::popScissors(uint32_t index)
     mScStack[index].pop();
 }
 
-void GraphicsState::setViewport(uint32_t index, const GraphicsState::Viewport& vp, bool setScissors)
+void GraphicsState::setViewport(
+    uint32_t index,
+    const GraphicsState::Viewport& vp,
+    bool setScissors)
 {
     mViewports[index] = vp;
 
-    if (setScissors)
-    {
+    if (setScissors) {
         GraphicsState::Scissor sc;
         sc.left = (int32_t)vp.originX;
         sc.right = sc.left + (int32_t)vp.width;
@@ -246,7 +246,9 @@ void GraphicsState::setViewport(uint32_t index, const GraphicsState::Viewport& v
     }
 }
 
-void GraphicsState::setScissors(uint32_t index, const GraphicsState::Scissor& sc)
+void GraphicsState::setScissors(
+    uint32_t index,
+    const GraphicsState::Scissor& sc)
 {
     mScissors[index] = sc;
 }
@@ -260,4 +262,4 @@ FALCOR_SCRIPT_BINDING(GraphicsState)
 {
     pybind11::class_<GraphicsState, ref<GraphicsState>>(m, "GraphicsState");
 }
-} // namespace Falcor
+}  // namespace Falcor

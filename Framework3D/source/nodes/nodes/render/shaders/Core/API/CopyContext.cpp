@@ -60,7 +60,7 @@ void CopyContext::submit(bool wait)
 {
     if (mCommandsPending) {
         mpLowLevelData->close();
-        getDevice()->executeCommandList(mpLowLevelData);
+        getDevice()->getGfxDevice()->executeCommandList(mpLowLevelData);
         mCommandsPending = false;
     }
     else {
@@ -156,9 +156,9 @@ bool CopyContext::resourceBarrier(
 bool CopyContext::subresourceBarriers(
     const Texture* pTexture,
     ResourceStates newState,
-    const ResourceViewInfo* pViewInfo)
+    const nvrhi::TextureSubresourceSet* pViewInfo)
 {
-    ResourceViewInfo fullResource;
+    nvrhi::TextureSubresourceSet fullResource;
     bool setGlobal = false;
     if (pViewInfo == nullptr) {
         fullResource.arraySize = pTexture->getArraySize();
@@ -197,8 +197,8 @@ void CopyContext::updateTextureData(const Texture* pTexture, const void* pData)
 {
     mCommandsPending = true;
     uint32_t subresourceCount =
-        pTexture->getArraySize() * pTexture->getMipCount();
-    if (pTexture->getType() == Texture::Type::TextureCube) {
+        pTexture->getDesc().arraySize * pTexture->getDesc().mipLevels;
+    if (pTexture->getDesc().dimension == nvrhi::TextureDimension::TextureCube) {
         subresourceCount *= 6;
     }
     updateTextureSubresources(pTexture, 0, subresourceCount, pData);
