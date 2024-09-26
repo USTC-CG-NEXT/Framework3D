@@ -32,6 +32,7 @@
 #include <set>
 
 #include "Core/API/RenderContext.h"
+#include "Core/API/RtStateObject.h"
 #include "Program.h"
 #include "Utils/Logger.h"
 

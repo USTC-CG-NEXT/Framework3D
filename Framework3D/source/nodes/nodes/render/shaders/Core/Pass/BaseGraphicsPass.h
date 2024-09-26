@@ -33,6 +33,7 @@
 #include "Core/Program/Program.h"
 #include "Core/Program/ProgramVars.h"
 #include "Core/Program/ShaderVar.h"
+#include "Core/State/GraphicsState.h"
 
 namespace Falcor {
 class FALCOR_API BaseGraphicsPass : public Object {

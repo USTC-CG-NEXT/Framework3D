@@ -82,7 +82,7 @@ namespace Falcor
         FALCOR_CHECK(!compressed || (brickWidth + 1) % 4 == 0, "'brickWidth' ({}) must be a multiple of 4 minus 1 for compressed SDFSBSs", brickWidth);
 
 
-        mpSharedData = sSharedCache.acquire(mpDevice.get(), [this]() { return std::make_shared<SharedData>(mpDevice); });
+        mpSharedData = sSharedCache.acquire(mpDevice.Get(), [this]() { return std::make_shared<SharedData>(mpDevice); });
     }
 
     size_t SDFSBS::getSize() const

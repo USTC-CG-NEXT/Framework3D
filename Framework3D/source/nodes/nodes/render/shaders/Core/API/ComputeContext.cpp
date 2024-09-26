@@ -26,7 +26,6 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "ComputeContext.h"
-#include "GFXAPI.h"
 #include "Core/State/ComputeState.h"
 #include "Core/Program/ProgramVars.h"
 

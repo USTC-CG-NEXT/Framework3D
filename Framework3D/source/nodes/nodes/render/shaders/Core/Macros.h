@@ -162,3 +162,17 @@ using Fbo = nvrhi::IFramebuffer;
 using ShaderOffset = unsigned;
 
 using RtAccelerationStructure = nvrhi::rt::IAccelStruct;
+using nvrhi::IDevice;
+using nvrhi::IResource;
+using nvrhi::ResourceStates;
+using nvrhi::ShaderType;
+using Vao = nvrhi::VertexBufferBinding;
+using nvrhi::BlendState;
+using nvrhi::DepthStencilState;
+using RasterizerState = nvrhi::RasterState;
+
+using VertexLayout = nvrhi::VertexAttributeDesc;
+
+using nvrhi::ResourceType;
+
+#include <RCore/internal/nvrhi/nvrhi_equality.hpp>

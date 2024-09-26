@@ -51,12 +51,12 @@ static GraphicsStateObjectDesc::PrimitiveType topology2Type(Vao::Topology t)
     }
 }
 
-ref<GraphicsState> GraphicsState::create(ref<Device> pDevice)
+ref<GraphicsState> GraphicsState::create(nvrhi::DeviceHandle pDevice)
 {
     return ref<GraphicsState>(new GraphicsState(pDevice));
 }
 
-GraphicsState::GraphicsState(ref<Device> pDevice) : mpDevice(pDevice)
+GraphicsState::GraphicsState(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 {
     uint32_t vpCount = getMaxViewportCount();
 

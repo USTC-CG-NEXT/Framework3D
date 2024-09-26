@@ -25,45 +25,53 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "BaseGraphicsPass.h"
+#pragma once
+#include "fwd.h"
+#include "Handles.h"
+#include "Raytracing.h"
+#include "Core/Macros.h"
+#include "Core/Object.h"
+#include "Core/Program/ProgramVersion.h"
+#include <string>
+#include <vector>
 
-#include "Core/State/GraphicsState.h"
-
-namespace Falcor {
-BaseGraphicsPass::BaseGraphicsPass(
-    nvrhi::DeviceHandle pDevice,
-    const ProgramDesc& progDesc,
-    const DefineList& programDefines)
-    : mpDevice(pDevice)
+namespace Falcor
 {
-    auto pProg = Program::create(mpDevice, progDesc, programDefines);
 
-    mpState->setProgram(pProg);
-
-    mpVars = ProgramVars::create(mpDevice, pProg.get());
-}
-
-void BaseGraphicsPass::addDefine(
-    const std::string& name,
-    const std::string& value,
-    bool updateVars)
+struct RtStateObjectDesc
 {
-    mpState->getProgram()->addDefine(name, value);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+    ref<const ProgramKernels> pProgramKernels;
+    uint32_t maxTraceRecursionDepth = 0;
+    RtPipelineFlags pipelineFlags = RtPipelineFlags::None;
 
-void BaseGraphicsPass::removeDefine(const std::string& name, bool updateVars)
+    bool operator==(const RtStateObjectDesc& other) const
+    {
+        bool result = true;
+        result = result && (pProgramKernels == other.pProgramKernels);
+        result = result && (maxTraceRecursionDepth == other.maxTraceRecursionDepth);
+        result = result && (pipelineFlags == other.pipelineFlags);
+        return result;
+    }
+};
+
+class FALCOR_API RtStateObject : public Object
 {
-    mpState->getProgram()->removeDefine(name);
-    if (updateVars)
-        mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+    FALCOR_OBJECT(RtStateObject)
+public:
+    RtStateObject(ref<Device> pDevice, const RtStateObjectDesc& desc);
+    ~RtStateObject();
 
-void BaseGraphicsPass::setVars(const ref<ProgramVars>& pVars)
-{
-    mpVars = pVars ? pVars
-                   : ProgramVars::create(mpDevice, mpState->getProgram().get());
-}
+    gfx::IPipelineState* getGfxPipelineState() const { return mGfxPipelineState; }
 
-}  // namespace Falcor
+    const ref<const ProgramKernels>& getKernels() const { return mDesc.pProgramKernels; };
+    uint32_t getMaxTraceRecursionDepth() const { return mDesc.maxTraceRecursionDepth; }
+    void const* getShaderIdentifier(uint32_t index) const { return mEntryPointGroupExportNames[index].c_str(); }
+    const RtStateObjectDesc& getDesc() const { return mDesc; }
+
+private:
+    ref<Device> mpDevice;
+    RtStateObjectDesc mDesc;
+    Slang::ComPtr<gfx::IPipelineState> mGfxPipelineState;
+    std::vector<std::string> mEntryPointGroupExportNames;
+};
+} // namespace Falcor

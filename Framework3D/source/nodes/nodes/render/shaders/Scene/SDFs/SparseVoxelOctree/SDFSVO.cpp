@@ -77,7 +77,7 @@ namespace Falcor
         FALCOR_THROW("SDFSVO requires NVAPI. See installation instructions in README.");
 #endif
 
-        mpSharedData = sSharedCache.acquire(mpDevice.get(), [this]() { return std::make_shared<SharedData>(mpDevice); });
+        mpSharedData = sSharedCache.acquire(mpDevice.Get(), [this]() { return std::make_shared<SharedData>(mpDevice); });
     }
 
     size_t SDFSVO::getSize() const

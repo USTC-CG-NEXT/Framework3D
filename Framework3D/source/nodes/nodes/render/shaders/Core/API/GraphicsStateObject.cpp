@@ -232,7 +232,7 @@ GraphicsStateObject::~GraphicsStateObject()
     mpDevice->releaseResource(mpGFXRenderPassLayout);
 }
 
-GraphicsStateObject::GraphicsStateObject(ref<Device> pDevice, const GraphicsStateObjectDesc& desc) : mpDevice(pDevice), mDesc(desc)
+GraphicsStateObject::GraphicsStateObject(nvrhi::DeviceHandle pDevice, const GraphicsStateObjectDesc& desc) : mpDevice(pDevice), mDesc(desc)
 {
     if (spDefaultBlendState == nullptr)
     {

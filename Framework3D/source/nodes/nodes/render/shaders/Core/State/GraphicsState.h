@@ -26,60 +26,66 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "StateGraph.h"
-#include "Core/Macros.h"
-#include "Core/Object.h"
-#include "Core/API/FBO.h"
-#include "Core/API/VAO.h"
-#include "Core/API/DepthStencilState.h"
-#include "Core/API/RasterizerState.h"
-#include "Core/API/BlendState.h"
-#include "Core/API/GraphicsStateObject.h"
-#include "Core/Program/Program.h"
+#include <memory>
 #include <stack>
 #include <vector>
-#include <memory>
 
-namespace Falcor
-{
+#include "Core/API/GraphicsStateObject.h"
+#include "Core/Macros.h"
+#include "Core/Object.h"
+#include "Core/Program/Program.h"
+#include "StateGraph.h"
+
+namespace Falcor {
 class ProgramVars;
 
 /**
  * Pipeline state.
- * This class contains the entire state required by a single draw-call. It's not an immutable object - you can change it dynamically during
- * rendering. The recommended way to use it is to create multiple PipelineState objects (ideally, a single object per render-pass)
+ * This class contains the entire state required by a single draw-call. It's not
+ * an immutable object - you can change it dynamically during rendering. The
+ * recommended way to use it is to create multiple PipelineState objects
+ * (ideally, a single object per render-pass)
  */
-class FALCOR_API GraphicsState : public Object
-{
+class FALCOR_API GraphicsState : public Object {
     FALCOR_OBJECT(GraphicsState)
-public:
+   public:
     virtual ~GraphicsState();
 
     /**
      * Defines the region to render to.
      */
-    struct Viewport
-    {
+    struct Viewport {
         Viewport() = default;
         Viewport(float x, float y, float w, float h, float minZ, float maxZ)
-            : originX(x), originY(y), width(w), height(h), minDepth(minZ), maxDepth(maxZ)
-        {}
+            : originX(x),
+              originY(y),
+              width(w),
+              height(h),
+              minDepth(minZ),
+              maxDepth(maxZ)
+        {
+        }
 
-        float originX = 0;   ///< Top left X position
-        float originY = 0;   ///< Top left Y position
-        float width = 1.0f;  ///< Viewport width.
-        float height = 1.0f; ///< Viewport height.
-        float minDepth = 0;  ///< Minimum depth (0-1)
-        float maxDepth = 1;  ///< Maximum depth (0-1)
+        float originX = 0;    ///< Top left X position
+        float originY = 0;    ///< Top left Y position
+        float width = 1.0f;   ///< Viewport width.
+        float height = 1.0f;  ///< Viewport height.
+        float minDepth = 0;   ///< Minimum depth (0-1)
+        float maxDepth = 1;   ///< Maximum depth (0-1)
     };
 
     /**
      * Defines a region to clip render results to.
      */
-    struct Scissor
-    {
+    struct Scissor {
         Scissor() = default;
-        Scissor(int32_t l, int32_t t, int32_t r, int32_t b) : left(l), top(t), right(r), bottom(b) {}
+        Scissor(int32_t l, int32_t t, int32_t r, int32_t b)
+            : left(l),
+              top(t),
+              right(r),
+              bottom(b)
+        {
+        }
 
         int32_t left = 0;
         int32_t top = 0;
@@ -92,43 +98,57 @@ public:
      * @param pDevice GPU device.
      * @return A new object, or an exception is thrown if creation failed.
      */
-    static ref<GraphicsState> create(ref<Device> pDevice);
+    static ref<GraphicsState> create(nvrhi::DeviceHandle pDevice);
 
     /**
      * Get current FBO.
      */
-    ref<Fbo> getFbo() const { return mpFbo; }
+    ref<Fbo> getFbo() const
+    {
+        return mpFbo;
+    }
 
     /**
      * Set an FBO. This function doesn't store the current FBO state.
-     * @param[in] pFbo An FBO object. If nullptr is used, will detach the current FBO
-     * @param[in] setVp0Sc0 If true, will set viewport 0 and scissor 0 to match the FBO dimensions
+     * @param[in] pFbo An FBO object. If nullptr is used, will detach the
+     * current FBO
+     * @param[in] setVp0Sc0 If true, will set viewport 0 and scissor 0 to match
+     * the FBO dimensions
      */
     GraphicsState& setFbo(const ref<Fbo>& pFbo, bool setVp0Sc0 = true);
 
     /**
-     * Set a new FBO and store the current FBO into a stack. Useful for multi-pass effects.
-     * @param[in] pFbo - a new FBO object. If nullptr is used, will bind an empty framebuffer object
-     * @param[in] setVp0Sc0 If true, viewport 0 and scissor 0 will be set to match the FBO dimensions
+     * Set a new FBO and store the current FBO into a stack. Useful for
+     * multi-pass effects.
+     * @param[in] pFbo - a new FBO object. If nullptr is used, will bind an
+     * empty framebuffer object
+     * @param[in] setVp0Sc0 If true, viewport 0 and scissor 0 will be set to
+     * match the FBO dimensions
      */
     void pushFbo(const ref<Fbo>& pFbo, bool setVp0Sc0 = true);
 
     /**
-     * Restore the last FBO pushed into the FBO stack. If the stack is empty, an error will be logged.
-     * @param[in] setVp0Sc0 If true, viewport 0 and scissor 0 will be set to match the FBO dimensions
+     * Restore the last FBO pushed into the FBO stack. If the stack is empty, an
+     * error will be logged.
+     * @param[in] setVp0Sc0 If true, viewport 0 and scissor 0 will be set to
+     * match the FBO dimensions
      */
     void popFbo(bool setVp0Sc0 = true);
 
     /**
      * Set a new vertex array object. By default, no VAO is bound.
-     * @param[in] pVao The Vao object to bind. If this is nullptr, will unbind the current VAO.
+     * @param[in] pVao The Vao object to bind. If this is nullptr, will unbind
+     * the current VAO.
      */
     GraphicsState& setVao(const ref<Vao>& pVao);
 
     /**
      * Get the currently bound VAO.
      */
-    ref<Vao> getVao() const { return mpVao; }
+    ref<Vao> getVao() const
+    {
+        return mpVao;
+    }
 
     /**
      * Set the stencil reference value.
@@ -142,39 +162,53 @@ public:
     /**
      * Get the current stencil reference value.
      */
-    uint8_t getStencilRef() const { return mStencilRef; }
+    uint8_t getStencilRef() const
+    {
+        return mStencilRef;
+    }
 
     /**
      * Set a viewport.
      * @param[in] index Viewport index
      * @param[in] vp Viewport to set
-     * @param[in] setScissors If true, corresponding scissor will be set to the same dimensions
+     * @param[in] setScissors If true, corresponding scissor will be set to the
+     * same dimensions
      */
-    void setViewport(uint32_t index, const Viewport& vp, bool setScissors = true);
+    void
+    setViewport(uint32_t index, const Viewport& vp, bool setScissors = true);
 
     /**
      * Get a viewport.
      * @param[in] index Viewport index
      */
-    const Viewport& getViewport(uint32_t index) const { return mViewports[index]; }
+    const Viewport& getViewport(uint32_t index) const
+    {
+        return mViewports[index];
+    }
 
     /**
      * Get the array of all the current viewports.
      */
-    const std::vector<Viewport>& getViewports() const { return mViewports; }
+    const std::vector<Viewport>& getViewports() const
+    {
+        return mViewports;
+    }
 
     /**
      * Push the current viewport and sets a new one
      * @param[in] index Viewport index
      * @param[in] vp Viewport to set
-     * @param[in] setScissors If true, corresponding scissor will be set to the same dimensions
+     * @param[in] setScissors If true, corresponding scissor will be set to the
+     * same dimensions
      */
-    void pushViewport(uint32_t index, const Viewport& vp, bool setScissors = true);
+    void
+    pushViewport(uint32_t index, const Viewport& vp, bool setScissors = true);
 
     /**
      * Pops the last viewport from the stack and sets it
      * @param[in] index Viewport index
-     * @param[in] setScissors If true, corresponding scissor will be set to the same dimensions
+     * @param[in] setScissors If true, corresponding scissor will be set to the
+     * same dimensions
      */
     void popViewport(uint32_t index, bool setScissors = true);
 
@@ -189,12 +223,18 @@ public:
      * Get a Scissor.
      * @param[in] index Scissor index
      */
-    const Scissor& getScissors(uint32_t index) const { return mScissors[index]; }
+    const Scissor& getScissors(uint32_t index) const
+    {
+        return mScissors[index];
+    }
 
     /**
      * Get the array of all the current scissors.
      */
-    const std::vector<Scissor>& getScissors() const { return mScissors; }
+    const std::vector<Scissor>& getScissors() const
+    {
+        return mScissors;
+    }
 
     /**
      * Push a current Scissor and sets a new one
@@ -222,7 +262,10 @@ public:
     /**
      * Get the currently bound program.
      */
-    ref<Program> getProgram() const { return mpProgram; }
+    ref<Program> getProgram() const
+    {
+        return mpProgram;
+    }
 
     /**
      * Set a blend-state.
@@ -232,7 +275,10 @@ public:
     /**
      * Get the currently bound blend-state.
      */
-    ref<BlendState> getBlendState() const { return mDesc.pBlendState; }
+    ref<BlendState> getBlendState() const
+    {
+        return mDesc.pBlendState;
+    }
 
     /**
      * Set a rasterizer-state.
@@ -242,17 +288,24 @@ public:
     /**
      * Get the currently bound rasterizer-state.
      */
-    ref<RasterizerState> getRasterizerState() const { return mDesc.pRasterizerState; }
+    ref<RasterizerState> getRasterizerState() const
+    {
+        return mDesc.pRasterizerState;
+    }
 
     /**
      * Set a depth-stencil state.
      */
-    GraphicsState& setDepthStencilState(ref<DepthStencilState> pDepthStencilState);
+    GraphicsState& setDepthStencilState(
+        ref<DepthStencilState> pDepthStencilState);
 
     /**
      * Get the currently bound depth-stencil state.
      */
-    ref<DepthStencilState> getDepthStencilState() const { return mDesc.pDepthStencilState; }
+    ref<DepthStencilState> getDepthStencilState() const
+    {
+        return mDesc.pDepthStencilState;
+    }
 
     /**
      * Set the sample mask.
@@ -262,7 +315,10 @@ public:
     /**
      * Get the current sample mask.
      */
-    uint32_t getSampleMask() const { return mDesc.sampleMask; }
+    uint32_t getSampleMask() const
+    {
+        return mDesc.sampleMask;
+    }
 
     /**
      * Get the active graphics state object.
@@ -272,12 +328,15 @@ public:
     /**
      * Get the desc
      */
-    const GraphicsStateObjectDesc& getDesc() const { return mDesc; }
+    const GraphicsStateObjectDesc& getDesc() const
+    {
+        return mDesc;
+    }
 
     void breakStrongReferenceToDevice();
 
-private:
-    GraphicsState(ref<Device> pDevice);
+   private:
+    GraphicsState(nvrhi::DeviceHandle pDevice);
 
     BreakableReference<Device> mpDevice;
     ref<Vao> mpVao;
@@ -292,14 +351,13 @@ private:
     std::vector<std::stack<Viewport>> mVpStack;
     std::vector<std::stack<Scissor>> mScStack;
 
-    struct CachedData
-    {
+    struct CachedData {
         const ProgramKernels* pProgramKernels = nullptr;
-        const Fbo::Desc* pFboDesc = nullptr;
+        const nvrhi::FramebufferDesc* pFboDesc = nullptr;
     };
     CachedData mCachedData;
 
     using GraphicsStateGraph = StateGraph<ref<GraphicsStateObject>, void*>;
     std::unique_ptr<GraphicsStateGraph> mpGsoGraph;
 };
-} // namespace Falcor
+}  // namespace Falcor

@@ -54,7 +54,7 @@ class FALCOR_API ComputeState : public Object {
      * @param pDevice GPU device.
      * @return A new object, or an exception is thrown if creation failed.
      */
-    static ref<ComputeState> create(ref<Device> pDevice);
+    static ref<ComputeState> create(nvrhi::DeviceHandle pDevice);
 
     /**
      * Bind a program to the pipeline
@@ -79,9 +79,9 @@ class FALCOR_API ComputeState : public Object {
     ref<ComputeStateObject> getCSO(const ProgramVars* pVars);
 
    private:
-    ComputeState(ref<Device> pDevice);
+    ComputeState(nvrhi::DeviceHandle pDevice);
 
-    ref<Device> mpDevice;
+    nvrhi::DeviceHandle mpDevice;
     ref<Program> mpProgram;
     ComputeStateObjectDesc mDesc;
 

@@ -34,6 +34,7 @@
 #include "Core/Program/Program.h"
 #include "Core/Program/ProgramVars.h"
 #include "Core/Program/ShaderVar.h"
+#include "Core/State/ComputeState.h"
 
 namespace Falcor {
 class FALCOR_API ComputePass : public Object {
@@ -110,7 +111,7 @@ class FALCOR_API ComputePass : public Object {
      */
     virtual void executeIndirect(
         ComputeContext* context,
-        const IBuffer* pArgBuffer,
+        const nvrhi::IBuffer* pArgBuffer,
         uint64_t argBufferOffset = 0);
 
     /**

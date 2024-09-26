@@ -55,7 +55,7 @@ namespace Falcor
         : SDFGrid(pDevice)
         , mNarrowBandThickness(std::max(narrowBandThickness, 1.0f))
     {
-        mpSharedData = sSharedCache.acquire(mpDevice.get(), [this]() { return std::make_shared<SharedData>(mpDevice); });
+        mpSharedData = sSharedCache.acquire(mpDevice.Get(), [this]() { return std::make_shared<SharedData>(mpDevice); });
     }
 
     size_t NDSDFGrid::getSize() const

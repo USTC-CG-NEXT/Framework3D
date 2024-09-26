@@ -27,14 +27,18 @@
  **************************************************************************/
 #include "ComputePass.h"
 
-
 #include "Core/API/ComputeContext.h"
+#include "Core/State/ComputeState.h"
 #include "Utils/Math/Common.h"
 #include "Utils/Scripting/ScriptBindings.h"
 
-namespace Falcor
-{
-ComputePass::ComputePass(nvrhi::DeviceHandle pDevice, const ProgramDesc& desc, const DefineList& defines, bool createVars) : mpDevice(pDevice)
+namespace Falcor {
+ComputePass::ComputePass(
+    nvrhi::DeviceHandle pDevice,
+    const ProgramDesc& desc,
+    const DefineList& defines,
+    bool createVars)
+    : mpDevice(pDevice)
 {
     auto pProg = Program::create(mpDevice, desc, defines);
     mpState = ComputeState::create(mpDevice);
@@ -49,38 +53,54 @@ ref<ComputePass> ComputePass::create(
     const std::filesystem::path& path,
     const std::string& csEntry,
     const DefineList& defines,
-    bool createVars
-)
+    bool createVars)
 {
     ProgramDesc desc;
     desc.addShaderLibrary(path).csEntry(csEntry);
     return create(pDevice, desc, defines, createVars);
 }
 
-ref<ComputePass> ComputePass::create(nvrhi::DeviceHandle pDevice, const ProgramDesc& desc, const DefineList& defines, bool createVars)
+ref<ComputePass> ComputePass::create(
+    nvrhi::DeviceHandle pDevice,
+    const ProgramDesc& desc,
+    const DefineList& defines,
+    bool createVars)
 {
-    return ref<ComputePass>(new ComputePass(pDevice, desc, defines, createVars));
+    return ref<ComputePass>(
+        new ComputePass(pDevice, desc, defines, createVars));
 }
 
-void ComputePass::execute(ComputeContext* pContext, uint32_t nThreadX, uint32_t nThreadY, uint32_t nThreadZ)
+void ComputePass::execute(
+    ComputeContext* pContext,
+    uint32_t nThreadX,
+    uint32_t nThreadY,
+    uint32_t nThreadZ)
 {
     FALCOR_ASSERT(mpVars);
-    uint3 threadGroupSize = mpState->getProgram()->getReflector()->getThreadGroupSize();
-    uint3 groups = div_round_up(uint3(nThreadX, nThreadY, nThreadZ), threadGroupSize);
+    uint3 threadGroupSize =
+        mpState->getProgram()->getReflector()->getThreadGroupSize();
+    uint3 groups =
+        div_round_up(uint3(nThreadX, nThreadY, nThreadZ), threadGroupSize);
     pContext->dispatch(mpState.get(), mpVars.get(), groups);
 }
 
-void ComputePass::executeIndirect(ComputeContext* pContext, const Buffer* pArgBuffer, uint64_t argBufferOffset)
+void ComputePass::executeIndirect(
+    ComputeContext* pContext,
+    const Buffer* pArgBuffer,
+    uint64_t argBufferOffset)
 {
     FALCOR_ASSERT(mpVars);
-    pContext->dispatchIndirect(mpState.get(), mpVars.get(), pArgBuffer, argBufferOffset);
+    pContext->dispatchIndirect(
+        mpState.get(), mpVars.get(), pArgBuffer, argBufferOffset);
 }
 
-void ComputePass::addDefine(const std::string& name, const std::string& value, bool updateVars)
+void ComputePass::addDefine(
+    const std::string& name,
+    const std::string& value,
+    bool updateVars)
 {
     nvrhi::ComputeState state;
-    state.
-    mpState->getProgram()->addDefine(name, value);
+    state.mpState->getProgram()->addDefine(name, value);
     if (updateVars)
         mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
 }
@@ -94,8 +114,9 @@ void ComputePass::removeDefine(const std::string& name, bool updateVars)
 
 void ComputePass::setVars(const ref<ProgramVars>& pVars)
 {
-    mpVars = pVars ? pVars : ProgramVars::create(mpDevice, mpState->getProgram().get());
+    mpVars = pVars ? pVars
+                   : ProgramVars::create(mpDevice, mpState->getProgram().get());
     FALCOR_ASSERT(mpVars);
 }
 
-} // namespace Falcor
+}  // namespace Falcor

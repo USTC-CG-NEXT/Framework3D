@@ -33,12 +33,12 @@
 
 namespace Falcor {
 
-ref<ComputeState> ComputeState::create(ref<Device> pDevice)
+ref<ComputeState> ComputeState::create(nvrhi::DeviceHandle pDevice)
 {
     return ref<ComputeState>(new ComputeState(pDevice));
 }
 
-ComputeState::ComputeState(ref<Device> pDevice) : mpDevice(pDevice)
+ComputeState::ComputeState(nvrhi::DeviceHandle pDevice) : mpDevice(pDevice)
 {
     mpCsoGraph = std::make_unique<ComputeStateGraph>();
 }
@@ -47,7 +47,7 @@ ref<ComputeStateObject> ComputeState::getCSO(const ProgramVars* pVars)
 {
     auto pProgramKernels =
         mpProgram
-            ? mpProgram->getActiveVersion()->getKernels(mpDevice.get(), pVars)
+            ? mpProgram->getActiveVersion()->getKernels(mpDevice.Get(), pVars)
             : nullptr;
     bool newProgram = (pProgramKernels.get() != mCachedData.pProgramKernels);
     if (newProgram) {

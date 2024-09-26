@@ -26,28 +26,19 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Handles.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "Core/API/VertexLayout.h"
-#include "Core/API/FBO.h"
-#include "Core/API/RasterizerState.h"
-#include "Core/API/DepthStencilState.h"
-#include "Core/API/BlendState.h"
 #include "Core/Program/ProgramVersion.h"
 
-namespace Falcor
-{
+namespace Falcor {
 
-struct GraphicsStateObjectDesc
-{
+struct GraphicsStateObjectDesc {
     static constexpr uint32_t kSampleMaskAll = -1;
 
     /**
      * Primitive topology
      */
-    enum class PrimitiveType
-    {
+    enum class PrimitiveType {
         Undefined,
         Point,
         Line,
@@ -55,7 +46,7 @@ struct GraphicsStateObjectDesc
         Patch,
     };
 
-    Fbo::Desc fboDesc;
+    nvrhi::FramebufferDesc fboDesc;
     ref<const VertexLayout> pVertexLayout;
     ref<const ProgramKernels> pProgramKernels;
     ref<RasterizerState> pRasterizerState;
@@ -79,33 +70,44 @@ struct GraphicsStateObjectDesc
     }
 };
 
-class FALCOR_API GraphicsStateObject : public Object
-{
+class FALCOR_API GraphicsStateObject : public Object {
     FALCOR_OBJECT(GraphicsStateObject)
-public:
-    GraphicsStateObject(ref<Device> pDevice, const GraphicsStateObjectDesc& desc);
+   public:
+    GraphicsStateObject(
+        nvrhi::DeviceHandle pDevice,
+        const GraphicsStateObjectDesc& desc);
     ~GraphicsStateObject();
 
-    gfx::IPipelineState* getGfxPipelineState() const { return mGfxPipelineState; }
+    nvrhi::IGraphicsPipeline* getGfxPipelineState() const
+    {
+        return mGfxPipelineState.Get();
+    }
 
-    const GraphicsStateObjectDesc& getDesc() const { return mDesc; }
+    const GraphicsStateObjectDesc& getDesc() const
+    {
+        return mDesc;
+    }
 
-    gfx::IRenderPassLayout* getGFXRenderPassLayout() const { return mpGFXRenderPassLayout.get(); }
+    gfx::IRenderPassLayout* getGFXRenderPassLayout() const
+    {
+        return mpGFXRenderPassLayout.get();
+    }
 
     void breakStrongReferenceToDevice();
 
-private:
+   private:
     BreakableReference<Device> mpDevice;
     GraphicsStateObjectDesc mDesc;
-    nvrhi::PipelineHandle mGfxPipelineState;
+    nvrhi::GraphicsPipelineHandle mGfxPipelineState;
 
     Slang::ComPtr<gfx::IInputLayout> mpGFXInputLayout;
     Slang::ComPtr<gfx::IFramebufferLayout> mpGFXFramebufferLayout;
     Slang::ComPtr<gfx::IRenderPassLayout> mpGFXRenderPassLayout;
 
     // Default state objects
-    static ref<BlendState> spDefaultBlendState;               // TODO: REMOVEGLOBAL
-    static ref<RasterizerState> spDefaultRasterizerState;     // TODO: REMOVEGLOBAL
-    static ref<DepthStencilState> spDefaultDepthStencilState; // TODO: REMOVEGLOBAL
+    static ref<BlendState> spDefaultBlendState;            // TODO: REMOVEGLOBAL
+    static ref<RasterizerState> spDefaultRasterizerState;  // TODO: REMOVEGLOBAL
+    static ref<DepthStencilState>
+        spDefaultDepthStencilState;  // TODO: REMOVEGLOBAL
 };
-} // namespace Falcor
+}  // namespace Falcor
