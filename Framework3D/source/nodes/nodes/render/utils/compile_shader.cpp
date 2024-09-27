@@ -15,7 +15,7 @@ ShaderHandle compile_shader(
     bool nvapi_support,
     bool absolute)
 {
-    ShaderCompileDesc shader_compile_desc;
+    ProgramDesc shader_compile_desc;
 
     if (!absolute) {
         shader_path =

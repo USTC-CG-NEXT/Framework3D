@@ -71,14 +71,15 @@ static void node_exec(ExeParams params)
     auto m_CommandList = resource_allocator.create(CommandListDesc{});
     MARK_DESTROY_NVRHI_RESOURCE(m_CommandList);
 
-    ShaderCompileDesc shader_compile_desc;
-    shader_compile_desc.set_path(
+    ProgramDesc program_desc;
+    program_desc.set_path(
         std::filesystem::path(RENDER_NODES_FILES_DIR) /
         std::filesystem::path("shaders/material_eval_sample_pdf.slang"));
-    shader_compile_desc.shaderType = nvrhi::ShaderType::AllRayTracing;
-    shader_compile_desc.nvapi_support = true;
+    program_desc.shaderType = nvrhi::ShaderType::AllRayTracing;
+    program_desc.nvapi_support = true;
+    program_desc.define("FALCOR_MATERIAL_INSTANCE_SIZE", std::to_string(c_FalcorMaterialInstanceSize));
 
-    auto raytrace_compiled = resource_allocator.create(shader_compile_desc);
+    auto raytrace_compiled = resource_allocator.create(program_desc);
     MARK_DESTROY_NVRHI_RESOURCE(raytrace_compiled);
 
     auto buffer_size = params.get_input<int>("Buffer Size");

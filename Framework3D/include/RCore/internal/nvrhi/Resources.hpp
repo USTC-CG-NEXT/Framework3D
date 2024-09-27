@@ -34,8 +34,8 @@ using CPUBufferHandle = std::shared_ptr<CPUBuffer>;
 }  // namespace nvrhi
 struct IDxcBlob;
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct ShaderCompileResult;
-struct ShaderCompileDesc;
+struct Program;
+struct ProgramDesc;
 #define USING_NVRHI_SYMBOL(RESOURCE) \
     using nvrhi::RESOURCE##Desc;     \
     using nvrhi::RESOURCE##Handle;
@@ -48,14 +48,14 @@ struct ShaderCompileDesc;
     Texture, Sampler, Framebuffer, Shader, Buffer, BindingLayout, BindingSet, \
         CommandList, StagingTexture, ComputePipeline, GraphicsPipeline
 #define NVRHI_RT_RESOURCE_LIST Pipeline, AccelStruct
-#define RESOURCE_LIST          NVRHI_RESOURCE_LIST, NVRHI_RT_RESOURCE_LIST, ShaderCompile
+#define RESOURCE_LIST          NVRHI_RESOURCE_LIST, NVRHI_RT_RESOURCE_LIST, Program
 
 MACRO_MAP(USING_NVRHI_SYMBOL, NVRHI_RESOURCE_LIST);
 MACRO_MAP(USING_NVRHI_RT_SYMBOL, NVRHI_RT_RESOURCE_LIST);
 
-using ShaderCompileHandle = nvrhi::RefCountPtr<ShaderCompileResult>;
+using ProgramHandle = nvrhi::RefCountPtr<Program>;
 
-class IShaderCompileResult : public nvrhi::IResource {
+class IProgram : public nvrhi::IResource {
    public:
     virtual void const* getBufferPointer() const = 0;
     virtual size_t getBufferSize() const = 0;
@@ -64,7 +64,7 @@ class IShaderCompileResult : public nvrhi::IResource {
     get_binding_layout() const = 0;
 };
 
-struct ShaderCompileResult : nvrhi::RefCounter<IShaderCompileResult> {
+struct Program : nvrhi::RefCounter<IProgram> {
     void const* getBufferPointer() const override;
     size_t getBufferSize() const override;
 
@@ -80,8 +80,7 @@ struct ShaderCompileResult : nvrhi::RefCounter<IShaderCompileResult> {
     }
 
    private:
-    friend ShaderCompileHandle createShaderCompile(
-        const ShaderCompileDesc& desc);
+    friend ProgramHandle createProgram(const ProgramDesc& desc);
 
     nvrhi::BindingLayoutDescVector binding_layout_;
     Slang::ComPtr<ISlangBlob> blob;
@@ -99,10 +98,8 @@ struct ShaderMacro {
     }
 };
 
-struct ShaderCompileDesc {
-    friend bool operator==(
-        const ShaderCompileDesc& lhs,
-        const ShaderCompileDesc& rhs)
+struct ProgramDesc {
+    friend bool operator==(const ProgramDesc& lhs, const ProgramDesc& rhs)
     {
         return lhs.path == rhs.path && lhs.entry_name == rhs.entry_name &&
                lhs.lastWriteTime == rhs.lastWriteTime &&
@@ -110,9 +107,7 @@ struct ShaderCompileDesc {
                lhs.nvapi_support == rhs.nvapi_support;
     }
 
-    friend bool operator!=(
-        const ShaderCompileDesc& lhs,
-        const ShaderCompileDesc& rhs)
+    friend bool operator!=(const ProgramDesc& lhs, const ProgramDesc& rhs)
     {
         return !(lhs == rhs);
     }
@@ -132,19 +127,20 @@ struct ShaderCompileDesc {
     void update_last_write_time(const std::filesystem::path& path);
     std::vector<ShaderMacro> macros;
     std::string get_profile() const;
-    friend ShaderCompileHandle createShaderCompile(
-        const ShaderCompileDesc& desc);
+    friend ProgramHandle createProgram(const ProgramDesc& desc);
     std::filesystem::path path;
     std::filesystem::file_time_type lastWriteTime;
     std::string entry_name;
 };
 
-ShaderCompileHandle createShaderCompile(const ShaderCompileDesc& desc);
+ProgramHandle createProgram(const ProgramDesc& desc);
 
 // Function to merge two BindingLayoutDescVector objects
 nvrhi::BindingLayoutDescVector mergeBindingLayoutDescVectors(
     const nvrhi::BindingLayoutDescVector& vec1,
     const nvrhi::BindingLayoutDescVector& vec2);
+
+constexpr uint32_t c_FalcorMaterialInstanceSize = 128;
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 

@@ -17,35 +17,35 @@
 using namespace Microsoft::WRL;
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-void const* ShaderCompileResult::getBufferPointer() const
+void const* Program::getBufferPointer() const
 {
     return blob->getBufferPointer();
 }
 
-size_t ShaderCompileResult::getBufferSize() const
+size_t Program::getBufferSize() const
 {
     return blob->getBufferSize();
 }
 
-void ShaderCompileDesc::set_path(const std::filesystem::path& path)
+void ProgramDesc::set_path(const std::filesystem::path& path)
 {
     this->path = path;
     update_last_write_time(path);
 }
 
-void ShaderCompileDesc::set_shader_type(nvrhi::ShaderType shaderType)
+void ProgramDesc::set_shader_type(nvrhi::ShaderType shaderType)
 {
     this->shaderType = shaderType;
 }
 
-void ShaderCompileDesc::set_entry_name(const std::string& entry_name)
+void ProgramDesc::set_entry_name(const std::string& entry_name)
 {
     this->entry_name = entry_name;
     update_last_write_time(path);
 }
 namespace fs = std::filesystem;
 
-void ShaderCompileDesc::update_last_write_time(
+void ProgramDesc::update_last_write_time(
     const std::filesystem::path& path)
 {
     if (fs::exists(path)) {
@@ -59,7 +59,7 @@ void ShaderCompileDesc::update_last_write_time(
     }
 }
 
-std::string ShaderCompileDesc::get_profile() const
+std::string ProgramDesc::get_profile() const
 {
     switch (shaderType) {
         case nvrhi::ShaderType::None: break;
@@ -376,11 +376,10 @@ void SlangCompileHLSLToDXIL(
     spDestroyCompileRequest(slangRequest);
 }
 
-ShaderCompileHandle createShaderCompile(const ShaderCompileDesc& desc)
+ProgramHandle createProgram(const ProgramDesc& desc)
 {
     Slang::ComPtr<ISlangBlob> blob;
-    ShaderCompileHandle ret =
-        ShaderCompileHandle::Create(new ShaderCompileResult);
+    ProgramHandle ret = ProgramHandle::Create(new Program);
 
     SlangCompileHLSLToDXIL(
         desc.path.generic_string().c_str(),

@@ -70,7 +70,7 @@ static void node_exec(ExeParams params)
 
     // 2. Prepare the shader
 
-    ShaderCompileDesc shader_compile_desc;
+    ProgramDesc shader_compile_desc;
     shader_compile_desc.set_path(
         std::filesystem::path(RENDER_NODES_FILES_DIR) /
         std::filesystem::path("shaders/ray_launch.slang"));

@@ -202,8 +202,8 @@ class ResourceAllocator {
     RESOURCE create_resource(const desc<RESOURCE>& desc, Args&&... rest)
     {
         MACRO_MAP(CREATE_CONCRETE, NVRHI_RESOURCE_LIST)
-        if constexpr (std::is_same_v<ShaderCompileHandle, RESOURCE>) {
-            return createShaderCompile(desc);
+        if constexpr (std::is_same_v<ProgramHandle, RESOURCE>) {
+            return createProgram(desc);
         }
         if constexpr (std::is_same_v<PipelineHandle, RESOURCE>) {
             return device->createRayTracingPipeline(desc, rest...);

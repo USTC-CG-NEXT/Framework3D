@@ -32,6 +32,10 @@ void RayGen()
 
     HitObjectInfo hitObject = hitObjects[id];
 
+    BSDFContext context;
+    
+    StandardBSDF bsdf;
+    
     HitObject object = HitObject.MakeHit<Attributes>(
         SceneBVH,
         hitObject.InstanceIndex,
