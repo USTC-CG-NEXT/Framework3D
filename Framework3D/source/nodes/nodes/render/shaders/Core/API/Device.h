@@ -332,6 +332,7 @@ class FALCOR_API Device : public Object {
      */
     ref<Buffer> createBuffer(
         size_t size,
+        bool isSRV,
         ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
                                       ResourceBindFlags::UnorderedAccess,
         MemoryType memoryType = MemoryType::DeviceLocal,

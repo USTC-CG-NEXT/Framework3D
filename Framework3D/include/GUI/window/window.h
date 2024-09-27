@@ -50,8 +50,8 @@ protected:
 
     std::string name_;             // Name (title) of the window.
     GLFWwindow* window_ = nullptr; // Pointer to the GLFW window.
-    int width_ = 1920;             // Width of the window.
-    int height_ = 1080;            // Height of the window.
+    int width_ = 2560;             // Width of the window.
+    int height_ = 1440;            // Height of the window.
 
     pxr::Hgi* hgi_;
 private:
