@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "FrameRate.h"
-#include <fmt/core.h>
+#include <format>
 
 namespace Falcor
 {

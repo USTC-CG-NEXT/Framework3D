@@ -438,7 +438,7 @@ namespace Falcor
         {
             uint32_t width, height, mipLevels;
             rtxdi::ComputePdfTextureSize(localLightCount, width, height, mipLevels);
-            if (!mpLocalLightPdfTexture || mpLocalLightPdfTexture->getWidth() != width || mpLocalLightPdfTexture->getHeight() != height || mpLocalLightPdfTexture->getMipCount() != mipLevels)
+            if (!mpLocalLightPdfTexture || mpLocalLightPdfTexture->getWidth() != width || mpLocalLightPdfTexture->getHeight() != height || mpLocalLightPdfTexture->getDesc().mipLevels != mipLevels)
             {
                 mpLocalLightPdfTexture = mpDevice->createTexture2D(width, height,
                     nvrhi::Format::R16Float, 1, mipLevels, nullptr,

@@ -24,11 +24,7 @@
 #ifndef PXR_IMAGING_PLUGIN_HD_EMBREE_SAMPLER_H
 #define PXR_IMAGING_PLUGIN_HD_EMBREE_SAMPLER_H
 
-#include "pxr/pxr.h"
 #include <cstddef>
-
-#include "pxr/imaging/hd/enums.h"
-#include "pxr/imaging/hd/vtBufferSource.h"
 
 #include "pxr/base/gf/matrix4d.h"
 #include "pxr/base/gf/matrix4f.h"
@@ -41,6 +37,9 @@
 #include "pxr/base/gf/vec4d.h"
 #include "pxr/base/gf/vec4f.h"
 #include "pxr/base/gf/vec4i.h"
+#include "pxr/imaging/hd/enums.h"
+#include "pxr/imaging/hd/vtBufferSource.h"
+#include "pxr/pxr.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
@@ -49,7 +48,7 @@ using namespace pxr;
 ///
 /// A utility class that helps map between C++ types and Hd type tags.
 class HdEmbreeTypeHelper {
-public:
+   public:
     /// Return the HdTupleType corresponding to the given C++ type.
     template<typename T>
     static HdTupleType GetTupleType();
@@ -60,30 +59,33 @@ public:
 
 // Define template specializations of HdEmbreeTypeHelper methods for
 // all our supported types...
-#define TYPE_HELPER(T,type)\
-template<> inline HdTupleType \
-HdEmbreeTypeHelper::GetTupleType<T>() { return HdTupleType{type, 1}; }
+#define TYPE_HELPER(T, type)                                 \
+    template<>                                               \
+    inline HdTupleType HdEmbreeTypeHelper::GetTupleType<T>() \
+    {                                                        \
+        return HdTupleType{ type, 1 };                       \
+    }
 
-    TYPE_HELPER(bool, HdTypeBool)
-    TYPE_HELPER(char, HdTypeInt8)
-    TYPE_HELPER(short, HdTypeInt16)
-    TYPE_HELPER(unsigned short, HdTypeUInt16)
-    TYPE_HELPER(int, HdTypeInt32)
-    TYPE_HELPER(GfVec2i, HdTypeInt32Vec2)
-    TYPE_HELPER(GfVec3i, HdTypeInt32Vec3)
-    TYPE_HELPER(GfVec4i, HdTypeInt32Vec4)
-    TYPE_HELPER(unsigned int, HdTypeUInt32)
-    TYPE_HELPER(float, HdTypeFloat)
-    TYPE_HELPER(GfVec2f, HdTypeFloatVec2)
-    TYPE_HELPER(GfVec3f, HdTypeFloatVec3)
-    TYPE_HELPER(GfVec4f, HdTypeFloatVec4)
-    TYPE_HELPER(double, HdTypeDouble)
-    TYPE_HELPER(GfVec2d, HdTypeDoubleVec2)
-    TYPE_HELPER(GfVec3d, HdTypeDoubleVec3)
-    TYPE_HELPER(GfVec4d, HdTypeDoubleVec4)
-    TYPE_HELPER(GfMatrix4f, HdTypeFloatMat4)
-    TYPE_HELPER(GfMatrix4d, HdTypeDoubleMat4)
-    TYPE_HELPER(GfQuath, HdTypeHalfFloatVec4)
+TYPE_HELPER(bool, HdTypeBool)
+TYPE_HELPER(char, HdTypeInt8)
+TYPE_HELPER(short, HdTypeInt16)
+TYPE_HELPER(unsigned short, HdTypeUInt16)
+TYPE_HELPER(int, HdTypeInt32)
+TYPE_HELPER(GfVec2i, HdTypeInt32Vec2)
+TYPE_HELPER(GfVec3i, HdTypeInt32Vec3)
+TYPE_HELPER(GfVec4i, HdTypeInt32Vec4)
+TYPE_HELPER(unsigned int, HdTypeUInt32)
+TYPE_HELPER(float, HdTypeFloat)
+TYPE_HELPER(GfVec2f, HdTypeFloatVec2)
+TYPE_HELPER(GfVec3f, HdTypeFloatVec3)
+TYPE_HELPER(GfVec4f, HdTypeFloatVec4)
+TYPE_HELPER(double, HdTypeDouble)
+TYPE_HELPER(GfVec2d, HdTypeDoubleVec2)
+TYPE_HELPER(GfVec3d, HdTypeDoubleVec3)
+TYPE_HELPER(GfVec4d, HdTypeDoubleVec4)
+TYPE_HELPER(GfMatrix4f, HdTypeFloatMat4)
+TYPE_HELPER(GfMatrix4d, HdTypeDoubleMat4)
+TYPE_HELPER(GfQuath, HdTypeHalfFloatVec4)
 #undef TYPE_HELPER
 
 /// \class HdEmbreeBufferSampler
@@ -95,13 +97,14 @@ HdEmbreeTypeHelper::GetTupleType<T>() { return HdTupleType{type, 1}; }
 /// final sample type; it also does bounds checks and type checks.
 ///
 class HdEmbreeBufferSampler {
-public:
+   public:
     /// The constructor takes a reference to a buffer source. The data is
     /// owned externally; the caller is responsible for ensuring the buffer
     /// is alive while Sample() is being called.
     /// \param buffer The buffer being sampled.
-    HdEmbreeBufferSampler(HdVtBufferSource const& buffer)
-        : _buffer(buffer) {}
+    HdEmbreeBufferSampler(HdVtBufferSource const& buffer) : _buffer(buffer)
+    {
+    }
 
     /// Sample the buffer at element index \p index, and write the sample to
     /// \p value. Interpret \p value as having arity \p numComponents, each of
@@ -119,12 +122,14 @@ public:
     bool Sample(int index, void* value, HdTupleType dataType) const;
 
     // Convenient, templated frontend for Sample().
-    template<typename T> bool Sample(int index, T* value) const {
-        return Sample(index, static_cast<void*>(value),
-            HdEmbreeTypeHelper::GetTupleType<T>());
+    template<typename T>
+    bool Sample(int index, T* value) const
+    {
+        return Sample(
+            index, static_cast<void*>(value), HdEmbreeTypeHelper::GetTupleType<T>());
     }
 
-private:
+   private:
     HdVtBufferSource const& _buffer;
 };
 
@@ -135,7 +140,7 @@ private:
 /// accessors, but derived classes are responsible for implementing appropriate
 /// sampling or interpolation modes.
 class HdEmbreePrimvarSampler {
-public:
+   public:
     /// Default constructor.
     HdEmbreePrimvarSampler() = default;
     /// Default destructor.
@@ -157,17 +162,26 @@ public:
     /// \param value The memory to write the value to (only written on success).
     /// \param dataType The HdTupleType describing element values.
     /// \return True if the value was successfully sampled.
-    virtual bool Sample(unsigned int element, float u, float v, void* value,
-                        HdTupleType dataType) const = 0;
+    virtual bool Sample(
+        unsigned int element,
+        float u,
+        float v,
+        void* value,
+        HdTupleType dataType) const = 0;
 
     // Convenient, templated frontend for Sample().
-    template<typename T> bool Sample(unsigned int element, float u, float v,
-                                     T* value) const {
-        return Sample(element, u, v, static_cast<void*>(value),
+    template<typename T>
+    bool Sample(unsigned int element, float u, float v, T* value) const
+    {
+        return Sample(
+            element,
+            u,
+            v,
+            static_cast<void*>(value),
             HdEmbreeTypeHelper::GetTupleType<T>());
     }
 
-protected:
+   protected:
     /// Utility function for derived classes: combine multiple samples with
     /// blend weights: \p out = sum_i { \p samples[i] * \p weights[i] }.
     /// \param out The memory to write the output to (only written on success).
@@ -176,10 +190,14 @@ protected:
     /// \param sampleCount The number of samples to combine.
     /// \param dataType The HdTupleType describing element values.
     /// \return True if the samples were successfully combined.
-    static bool _Interpolate(void* out, void** samples, float* weights,
-        size_t sampleCount, HdTupleType dataType);
+    static bool _Interpolate(
+        void* out,
+        void** samples,
+        float* weights,
+        size_t sampleCount,
+        HdTupleType dataType);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 
-#endif // PXR_IMAGING_PLUGIN_HD_EMBREE_SAMPLER_H
+#endif  // PXR_IMAGING_PLUGIN_HD_EMBREE_SAMPLER_H

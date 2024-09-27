@@ -29,7 +29,7 @@
 #include "Core/Macros.h"
 #include "MaterialTypes.slang"
 #include "MaterialParamLayout.h"
-#include <fmt/format.h>
+#include <format>
 
 namespace Falcor
 {

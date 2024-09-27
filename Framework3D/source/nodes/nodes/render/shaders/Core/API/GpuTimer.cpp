@@ -91,7 +91,7 @@ void GpuTimer::begin()
     }
 
     mpDevice->getRenderContext()
-        ->getLowLevelData()
+        ->getCommandList()
         ->getResourceCommandEncoder()
         ->writeTimestamp(
             mpDevice->getTimestampQueryHeap()->getGfxQueryPool(), mStart);
@@ -108,7 +108,7 @@ void GpuTimer::end()
     }
 
     mpDevice->getRenderContext()
-        ->getLowLevelData()
+        ->getCommandList()
         ->getResourceCommandEncoder()
         ->writeTimestamp(
             mpDevice->getTimestampQueryHeap()->getGfxQueryPool(), mEnd);
@@ -134,7 +134,7 @@ void GpuTimer::resolve()
     // copied into a single staging buffer once per frame instead.
 
     // Resolve timestamps into buffer.
-    auto encoder = mpDevice->getRenderContext()->getLowLevelData();
+    auto encoder = mpDevice->getRenderContext()->getCommandList();
 
     encoder->resolveQuery(
         mpDevice->getTimestampQueryHeap()->getGfxQueryPool(),

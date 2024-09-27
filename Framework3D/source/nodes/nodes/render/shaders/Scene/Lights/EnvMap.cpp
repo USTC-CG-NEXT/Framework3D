@@ -55,7 +55,7 @@ namespace Falcor
         widgets.text("EnvMap: " + mpEnvMap->getSourcePath().string());
 
         widgets.text(fmt::format("Resolution: {}x{}", mpEnvMap->getWidth(), mpEnvMap->getHeight()));
-        widgets.text(fmt::format("Mip levels: {}", mpEnvMap->getMipCount()));
+        widgets.text(fmt::format("Mip levels: {}", mpEnvMap->getDesc().mipLevels));
         widgets.text(fmt::format("Format: {}", to_string(mpEnvMap->getFormat())));
     }
 

@@ -40,7 +40,7 @@
 
 #include "Core/Error.h"
 
-#include <fmt/core.h>
+#include <format>
 
 namespace Falcor
 {

@@ -28,7 +28,7 @@
 #pragma once
 #include "Macros.h"
 #include <source_location> // TODO C++20: Replace with <source_location>
-#include <fmt/format.h>           // TODO C++20: Replace with <format>
+#include <format>           // TODO C++20: Replace with <format>
 #include <exception>
 #include <memory>
 #include <string>

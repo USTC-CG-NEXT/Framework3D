@@ -33,16 +33,16 @@
 #include "Utils/Scripting/ScriptBindings.h"
 
 namespace Falcor {
-static GraphicsStateObjectDesc::PrimitiveType topology2Type(Vao::Topology t)
+static GraphicsStateObjectDesc::PrimitiveType topology2Type(nvrhi::PrimitiveType t)
 {
     switch (t) {
-        case Vao::Topology::PointList:
+        case nvrhi::PrimitiveType::PointList:
             return GraphicsStateObjectDesc::PrimitiveType::Point;
-        case Vao::Topology::LineList:
-        case Vao::Topology::LineStrip:
+        case nvrhi::PrimitiveType::LineList:
+        case nvrhi::PrimitiveType::LineStrip:
             return GraphicsStateObjectDesc::PrimitiveType::Line;
-        case Vao::Topology::TriangleList:
-        case Vao::Topology::TriangleStrip:
+        case nvrhi::PrimitiveType::TriangleList:
+        case nvrhi::PrimitiveType::TriangleStrip:
             return GraphicsStateObjectDesc::PrimitiveType::Triangle;
         default:
             FALCOR_UNREACHABLE();

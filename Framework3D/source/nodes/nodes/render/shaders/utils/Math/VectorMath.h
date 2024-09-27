@@ -30,7 +30,7 @@
 #include "VectorTypes.h"
 #include "ScalarMath.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <string>
 

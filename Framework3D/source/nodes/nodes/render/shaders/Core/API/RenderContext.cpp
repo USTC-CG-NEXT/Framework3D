@@ -29,11 +29,13 @@
 
 #include <cstddef>  // for offsetof
 
+#include "BlitContext.h"
 #include "Core/Pass/FullScreenPass.h"
 #include "Core/Program/ProgramVars.h"
 #include "Core/State/GraphicsState.h"
 #include "Utils/Logger.h"
 #include "Utils/Scripting/ScriptBindings.h"
+#include "nvrhi/common/misc.h"
 
 namespace Falcor {
 namespace {
@@ -82,7 +84,7 @@ namespace {
                     pCtx->resourceBarrier(
                         pTexture->getNvrhiTexture(),
                         nvrhi::ResourceStates::RenderTarget,
-                        &pRTV->getViewInfo());
+                        &pRTV.subresources);
                 }
             }
 
@@ -92,26 +94,8 @@ namespace {
                 pCtx->resourceBarrier(
                     pTexture->getNvrhiTexture(),
                     nvrhi::ResourceStates::DepthWrite,
-                    &pDSV->getViewInfo());
+                    &pDSV.subresources);
             }
-        }
-    }
-
-    PrimitiveTopology getGFXPrimitiveTopology(Vao::Topology topology)
-    {
-        switch (topology) {
-            case Vao::Topology::Undefined:
-                return PrimitiveTopology::TriangleList;
-            case Vao::Topology::PointList: return PrimitiveTopology::PointList;
-            case Vao::Topology::LineList: return PrimitiveTopology::LineList;
-            case Vao::Topology::LineStrip: return PrimitiveTopology::LineStrip;
-            case Vao::Topology::TriangleList:
-                return PrimitiveTopology::TriangleList;
-            case Vao::Topology::TriangleStrip:
-                return PrimitiveTopology::TriangleStrip;
-            default:
-                FALCOR_UNREACHABLE();
-                return PrimitiveTopology::TriangleList;
         }
     }
 
@@ -228,7 +212,7 @@ void RenderContext::submit(bool wait)
 
 void RenderContext::blit(
     const nvrhi::BindingSetItem& pSrc,
-    const ref<RenderTargetView>& pDst,
+    const nvrhi::BindingSetItem& pDst,
     uint4 srcRect,
     uint4 dstRect,
     TextureFilteringMode filter)
@@ -258,7 +242,7 @@ void RenderContext::blit(
 
 void RenderContext::blit(
     const nvrhi::BindingSetItem& pSrc,
-    const ref<RenderTargetView>& pDst,
+    const nvrhi::BindingSetItem& pDst,
     uint4 srcRect,
     uint4 dstRect,
     bool useFilter,
@@ -270,11 +254,13 @@ void RenderContext::blit(
 
     // Fetch textures from views.
     FALCOR_ASSERT(pSrc && pDst);
-    auto pSrcResource = pSrc->getResource();
-    auto pDstResource = pDst->getResource();
+    auto pSrcResource =
+        nvrhi::checked_cast<nvrhi::ITexture*>(pSrc.resourceHandle);
+    auto pDstResource =
+        nvrhi::checked_cast<nvrhi::ITexture*>(pDst.resourceHandle);
     FALCOR_ASSERT(pSrcResource && pDstResource);
-    if (pSrcResource->getType() == Resource::Type::Buffer ||
-        pDstResource->getType() == Resource::Type::Buffer) {
+
+    if (!pSrcResource || !pDstResource) {
         FALCOR_THROW("RenderContext::blit does not support buffers");
     }
 
@@ -283,8 +269,8 @@ void RenderContext::blit(
     FALCOR_ASSERT(pSrcTexture != nullptr && pDstTexture != nullptr);
 
     // Clamp rectangles to the dimensions of the source/dest views.
-    const uint32_t srcMipLevel = pSrc->getViewInfo().mostDetailedMip;
-    const uint32_t dstMipLevel = pDst->getViewInfo().mostDetailedMip;
+    const uint32_t srcMipLevel = pSrc.subresources.baseMipLevel;
+    const uint32_t dstMipLevel = pDst.subresources.baseMipLevel;
     const uint2 srcSize(
         pSrcTexture->getWidth(srcMipLevel),
         pSrcTexture->getHeight(srcMipLevel));
@@ -306,7 +292,7 @@ void RenderContext::blit(
     }
 
     // Determine the type of blit.
-    const uint32_t sampleCount = pSrcTexture->getSampleCount();
+    const uint32_t sampleCount = pSrcTexture->getDesc().sampleCount;
     const bool complexBlit =
         !((componentsReduction[0] == TextureReductionMode::Standard) &&
           (componentsReduction[1] == TextureReductionMode::Standard) &&
@@ -317,11 +303,12 @@ void RenderContext::blit(
           all(componentsTransform[2] == float4(0.0f, 0.0f, 1.0f, 0.0f)) &&
           all(componentsTransform[3] == float4(0.0f, 0.0f, 0.0f, 1.0f)));
 
-    auto isFullView = [](const auto& view, const Texture* tex) {
-        const auto& info = view->getViewInfo();
-        return info.mostDetailedMip == 0 && info.firstArraySlice == 0 &&
-               info.mipCount == tex->getMipCount() &&
-               info.arraySize == tex->getArraySize();
+    auto isFullView = [](const nvrhi::BindingSetItem& view,
+                         const Texture* tex) {
+        const auto& info = view.subresources;
+        return info.baseMipLevel == 0 && info.baseArraySlice == 0 &&
+               info.numMipLevels == tex->getDesc().mipLevels &&
+               info.numArraySlices == tex->getDesc().arraySize;
     };
     const bool srcFullRect = srcRect.x == 0 && srcRect.y == 0 &&
                              srcRect.z == srcSize.x && srcRect.w == srcSize.y;
@@ -365,10 +352,10 @@ void RenderContext::blit(
     }
 
     // Blit does not support texture arrays or mip maps.
-    if (!(pSrc->getViewInfo().arraySize == 1 &&
-          pSrc->getViewInfo().mipCount == 1) ||
-        !(pDst->getViewInfo().arraySize == 1 &&
-          pDst->getViewInfo().mipCount == 1)) {
+    if (!(pSrc.subresources.numArraySlices == 1 &&
+          pSrc.subresources.numMipLevels == 1) ||
+        !(pDst.subresources.numArraySlices == 1 &&
+          pDst.subresources.numMipLevels == 1)) {
         FALCOR_THROW(
             "RenderContext::blit() does not support texture arrays or mip "
             "maps");
@@ -465,9 +452,9 @@ void RenderContext::blit(
     blitCtx.pFbo->attachColorTarget(
         pSharedTex,
         0,
-        pDst->getViewInfo().mostDetailedMip,
-        pDst->getViewInfo().firstArraySlice,
-        pDst->getViewInfo().arraySize);
+        pDst.subresources.baseMipLevel,
+        pDst.subresources.baseArraySlice,
+        pDst.subresources.numArraySlices);
     blitCtx.pPass->getVars()->setSrv(blitCtx.texBindLoc, pSrc);
     blitCtx.pPass->getState()->setViewport(0, dstViewport);
     blitCtx.pPass->execute(this, blitCtx.pFbo, false);
@@ -477,19 +464,6 @@ void RenderContext::blit(
     blitCtx.pPass->getVars()->setSrv(blitCtx.texBindLoc, nullptr);
 }
 
-void RenderContext::clearRtv(const RenderTargetView* pRtv, const float4& color)
-{
-    resourceBarrier(pRtv->getResource(), ResourceStates::RenderTarget, TODO);
-    ClearValue clearValue = {};
-    memcpy(clearValue.color.floatValues, &color, sizeof(float) * 4);
-    auto encoder = getLowLevelData()->getResourceCommandEncoder();
-    encoder->clearResourceView(
-        pRtv->getGfxResourceView(),
-        &clearValue,
-        ClearResourceViewFlags::FloatClearValues);
-    mCommandsPending = true;
-}
-
 void RenderContext::clearDsv(
     const DepthStencilView* pDsv,
     float depth,
@@ -497,11 +471,11 @@ void RenderContext::clearDsv(
     bool clearDepth,
     bool clearStencil)
 {
-    resourceBarrier(pDsv->getResource(), ResourceStates::DepthStencil, TODO);
+    resourceBarrier(pDsv, ResourceStates::DepthStencil, TODO);
     ClearValue clearValue = {};
     clearValue.depthStencil.depth = depth;
     clearValue.depthStencil.stencil = stencil;
-    auto encoder = getLowLevelData()->getResourceCommandEncoder();
+    auto encoder = getCommandList()->getResourceCommandEncoder();
     ClearResourceViewFlags::Enum flags = ClearResourceViewFlags::None;
     if (clearDepth)
         flags = (ClearResourceViewFlags::Enum)(
@@ -510,7 +484,6 @@ void RenderContext::clearDsv(
         flags = (ClearResourceViewFlags::Enum)(
             (int)flags | ClearResourceViewFlags::ClearStencil);
     encoder->clearResourceView(pDsv->getGfxResourceView(), &clearValue, flags);
-    mCommandsPending = true;
 }
 
 void RenderContext::drawInstanced(
@@ -527,7 +500,6 @@ void RenderContext::drawInstanced(
         instanceCount,
         startVertexLocation,
         startInstanceLocation));
-    mCommandsPending = true;
 }
 
 void RenderContext::draw(
@@ -538,7 +510,6 @@ void RenderContext::draw(
 {
     auto encoder = drawCallCommon(pState, pVars);
     FALCOR_GFX_CALL(encoder->draw(vertexCount, startVertexLocation));
-    mCommandsPending = true;
 }
 
 void RenderContext::drawIndexedInstanced(
@@ -557,7 +528,6 @@ void RenderContext::drawIndexedInstanced(
         startIndexLocation,
         baseVertexLocation,
         startInstanceLocation));
-    mCommandsPending = true;
 }
 
 void RenderContext::drawIndexed(
@@ -570,7 +540,6 @@ void RenderContext::drawIndexed(
     auto encoder = drawCallCommon(pState, pVars);
     FALCOR_GFX_CALL(encoder->drawIndexed(
         indexCount, startIndexLocation, baseVertexLocation));
-    mCommandsPending = true;
 }
 
 void RenderContext::drawIndirect(
@@ -590,7 +559,6 @@ void RenderContext::drawIndirect(
         argBufferOffset,
         pCountBuffer ? pCountBuffer->getGfxBufferResource() : nullptr,
         countBufferOffset));
-    mCommandsPending = true;
 }
 
 void RenderContext::drawIndexedIndirect(
@@ -610,7 +578,6 @@ void RenderContext::drawIndexedIndirect(
         argBufferOffset,
         pCountBuffer ? pCountBuffer->getGfxBufferResource() : nullptr,
         countBufferOffset));
-    mCommandsPending = true;
 }
 
 void RenderContext::raytrace(
@@ -630,7 +597,6 @@ void RenderContext::raytrace(
         pRtso->getGfxPipelineState(), pVars->getShaderObject()));
     FALCOR_GFX_CALL(rtEncoder->dispatchRays(
         0, pVars->getShaderTable(), width, height, depth));
-    mCommandsPending = true;
 }
 
 void RenderContext::resolveSubresource(
@@ -643,18 +609,18 @@ void RenderContext::resolveSubresource(
     resourceBarrier(pSrc.get(), ResourceStates::ResolveSource, TODO);
     resourceBarrier(pDst.get(), ResourceStates::ResolveDest, TODO);
 
-    auto resourceEncoder = getLowLevelData()->getResourceCommandEncoder();
+    auto resourceEncoder = getCommandList()->getResourceCommandEncoder();
     SubresourceRange srcRange = {};
-    srcRange.baseArrayLayer = pSrc->getSubresourceArraySlice(srcSubresource);
-    srcRange.layerCount = 1;
-    srcRange.mipLevel = pSrc->getSubresourceMipLevel(srcSubresource);
-    srcRange.mipLevelCount = 1;
+    srcRange.baseArraySlice = pSrc->getSubresourceArraySlice(srcSubresource);
+    srcRange.numArraySlices = 1;
+    srcRange.baseMipLevel = pSrc->getSubresourceMipLevel(srcSubresource);
+    srcRange.numMipLevels = 1;
 
     SubresourceRange dstRange = {};
-    dstRange.baseArrayLayer = pDst->getSubresourceArraySlice(dstSubresource);
-    dstRange.layerCount = 1;
-    dstRange.mipLevel = pDst->getSubresourceMipLevel(dstSubresource);
-    dstRange.mipLevelCount = 1;
+    dstRange.baseArraySlice = pDst->getSubresourceArraySlice(dstSubresource);
+    dstRange.numArraySlices = 1;
+    dstRange.baseMipLevel = pDst->getSubresourceMipLevel(dstSubresource);
+    dstRange.numMipLevels = 1;
 
     resourceEncoder->resolveResource(
         pSrc->getGfxTextureResource(),
@@ -663,7 +629,6 @@ void RenderContext::resolveSubresource(
         pDst->getGfxTextureResource(),
         ResourceState::ResolveDestination,
         dstRange);
-    mCommandsPending = true;
 }
 
 void RenderContext::resolveResource(
@@ -684,23 +649,23 @@ void RenderContext::resolveResource(
             pSrc->getHeight() == pDst->getHeight(),
         "Source and destination textures must have the same dimensions.");
     FALCOR_CHECK(
-        pSrc->getArraySize() == pDst->getArraySize(),
+        pSrc->getnumArraySlices() == pDst->getnumArraySlices(),
         "Source and destination textures must have the same array size.");
     FALCOR_CHECK(
-        pSrc->getMipCount() == pDst->getMipCount(),
+        pSrc->getnumMipLevels() == pDst->getnumMipLevels(),
         "Source and destination textures must have the same mip count.");
 
     resourceBarrier(pSrc.get(), ResourceStates::ResolveSource, TODO);
     resourceBarrier(pDst.get(), ResourceStates::ResolveDest, TODO);
 
-    auto resourceEncoder = getLowLevelData()->getResourceCommandEncoder();
+    auto resourceEncoder = getCommandList()->getResourceCommandEncoder();
 
     SubresourceRange srcRange = {};
-    srcRange.layerCount = pSrc->getArraySize();
-    srcRange.mipLevelCount = pSrc->getMipCount();
+    srcRange.numArraySlices = pSrc->getnumArraySlices();
+    srcRange.numMipLevels = pSrc->getnumMipLevels();
     SubresourceRange dstRange = {};
-    dstRange.layerCount = pDst->getArraySize();
-    dstRange.mipLevelCount = pDst->getMipCount();
+    dstRange.numArraySlices = pDst->getnumArraySlices();
+    dstRange.numMipLevels = pDst->getnumMipLevels();
 
     resourceEncoder->resolveResource(
         pSrc->getGfxTextureResource(),
@@ -709,7 +674,6 @@ void RenderContext::resolveResource(
         pDst->getGfxTextureResource(),
         ResourceState::ResolveDestination,
         dstRange);
-    mCommandsPending = true;
 }
 
 void RenderContext::buildAccelerationStructure(
@@ -734,10 +698,9 @@ void RenderContext::buildAccelerationStructure(
         queryDescs[i].queryType = getGFXAccelerationStructurePostBuildQueryType(
             pPostBuildInfoDescs[i].type);
     }
-    auto rtEncoder = getLowLevelData()->getRayTracingCommandEncoder();
+    auto rtEncoder = getCommandList()->getRayTracingCommandEncoder();
     rtEncoder->buildAccelerationStructure(
         buildDesc, (int)postBuildInfoCount, queryDescs.data());
-    mCommandsPending = true;
 }
 
 void RenderContext::copyAccelerationStructure(
@@ -745,12 +708,11 @@ void RenderContext::copyAccelerationStructure(
     RtAccelerationStructure* source,
     RenderContext::RtAccelerationStructureCopyMode mode)
 {
-    auto rtEncoder = getLowLevelData()->getRayTracingCommandEncoder();
+    auto rtEncoder = getCommandList()->getRayTracingCommandEncoder();
     rtEncoder->copyAccelerationStructure(
         dest->getGfxAccelerationStructure(),
         source->getGfxAccelerationStructure(),
         getGFXAcclerationStructureCopyMode(mode));
-    mCommandsPending = true;
 }
 
 IRenderCommandEncoder* RenderContext::drawCallCommon(
@@ -778,7 +740,7 @@ IRenderCommandEncoder* RenderContext::drawCallCommon(
     }
 
     bool isNewEncoder = false;
-    auto encoder = getLowLevelData()->getRenderCommandEncoder(
+    auto encoder = getCommandList()->getRenderCommandEncoder(
         pGso->getGFXRenderPassLayout(),
         pState->getFbo() ? pState->getFbo()->getGfxFramebuffer() : nullptr,
         isNewEncoder);

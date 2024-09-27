@@ -99,20 +99,6 @@ struct AdapterLUID {
     }
 };
 
-struct AdapterInfo {
-    /// Descriptive name of the adapter.
-    std::string name;
-
-    /// Unique identifier for the vendor.
-    uint32_t vendorID;
-
-    // Unique identifier for the physical device among devices from the vendor.
-    uint32_t deviceID;
-
-    // Logically unique identifier of the adapter.
-    AdapterLUID luid;
-};
-
 class FALCOR_API Device : public Object {
     FALCOR_OBJECT(Device)
 
@@ -123,9 +109,10 @@ class FALCOR_API Device : public Object {
 
     uint64_t executeCommandList(const nvrhi::CommandListHandle& commands);
 
-    nvrhi::TextureHandle createTexture(const nvrhi::TextureDesc& texture_desc) const;
+    nvrhi::TextureHandle createTexture(
+        const nvrhi::TextureDesc& texture_desc) const;
 
-public:
+   public:
     /**
      * Maximum number of in-flight frames.
      * Typically there are at least two frames, one being rendered to, the other
@@ -133,34 +120,14 @@ public:
      */
     static constexpr uint32_t kInFlightFrameCount = 3;
 
-    /// Device type.
-    enum Type {
-        Default,  ///< Default device type, favors D3D12 over Vulkan.
-        D3D12,
-        Vulkan,
-    };
-    FALCOR_ENUM_INFO(
-        Type,
-        {
-            { Type::Default, "Default" },
-            { Type::D3D12, "D3D12" },
-            { Type::Vulkan, "Vulkan" },
-        });
-
     /// Device descriptor.
     struct Desc {
-        /// The device type (D3D12/Vulkan).
-        Type type = Type::Default;
-
         /// GPU index (indexing into GPU list returned by getGPUList()).
         uint32_t gpu = 0;
 
         /// Enable the debug layer. The default for release build is false, for
         /// debug build it's true.
         bool enableDebugLayer = FALCOR_DEFAULT_ENABLE_DEBUG_LAYER;
-
-        /// Enable NVIDIA NSight Aftermath GPU crash dump.
-        bool enableAftermath = false;
 
         /// The maximum number of entries allowable in the shader cache. A value
         /// of 0 indicates no limit.
@@ -178,17 +145,6 @@ public:
 
         /// Whether to enable ray tracing validation (requires NVAPI)
         bool enableRaytracingValidation = false;
-    };
-
-    struct Info {
-        std::string adapterName;
-        AdapterLUID adapterLUID;
-        std::string apiName;
-    };
-
-    struct Limits {
-        uint3 maxComputeDispatchThreadGroups;
-        uint32_t maxShaderVisibleSamplers;
     };
 
     /**
@@ -268,14 +224,6 @@ public:
     }
 
     /**
-     * Get the device type.
-     */
-    Type getType() const
-    {
-        return mDesc.type;
-    }
-
-    /**
      * Throws an exception if the device is not a D3D12 device.
      */
     void requireD3D12() const;
@@ -313,37 +261,11 @@ public:
     }
 #endif  // FALCOR_HAS_D3D12
 
-    const ref<GpuMemoryHeap>& getUploadHeap() const
-    {
-        return mpUploadHeap;
-    }
-    const ref<GpuMemoryHeap>& getReadBackHeap() const
-    {
-        return mpReadBackHeap;
-    }
-    const ref<QueryHeap>& getTimestampQueryHeap() const
-    {
-        return mpTimestampQueryHeap;
-    }
-    void releaseResource(ISlangUnknown* pResource);
 
     double getGpuTimestampFrequency() const
     {
         return mGpuTimestampFrequency;
     }  // ms/tick
-
-    const Info& getInfo() const
-    {
-        return mInfo;
-    }
-
-    /**
-     * Get the device limits.
-     */
-    const Limits& getLimits() const
-    {
-        return mLimits;
-    }
 
     /// Get the texture row memory alignment in bytes.
     size_t getTextureRowAlignment() const;
@@ -379,11 +301,6 @@ public:
      * @return Return true if D3D12 Agility SDK was successfully enabled.
      */
     static bool enableAgilitySDK();
-
-    /**
-     * Get a list of all available GPUs.
-     */
-    static std::vector<AdapterInfo> getGPUs(Type deviceType);
 
     /**
      * Get the global device mutex.
@@ -424,20 +341,13 @@ public:
     uint32_t mCurrentTransientResourceHeapIndex = 0;
 
     nvrhi::SamplerHandle mpDefaultSampler;
-    ref<GpuMemoryHeap> mpUploadHeap;
-    ref<GpuMemoryHeap> mpReadBackHeap;
-    ref<QueryHeap> mpTimestampQueryHeap;
 #if FALCOR_HAS_D3D12
     ref<D3D12DescriptorPool> mpD3D12CpuDescPool;
     ref<D3D12DescriptorPool> mpD3D12GpuDescPool;
 #endif
-    nvrhi::EventQueryHandle mpFrameFence;
 
     std::unique_ptr<RenderContext> mpRenderContext;
     double mGpuTimestampFrequency;
-
-    Info mInfo;
-    Limits mLimits;
 
 #if FALCOR_HAS_AFTERMATH
     std::unique_ptr<AftermathContext> mpAftermathContext;
@@ -466,7 +376,5 @@ inline constexpr uint32_t getMaxViewportCount()
 {
     return 8;
 }
-
-FALCOR_ENUM_REGISTER(Device::Type);
 
 }  // namespace Falcor

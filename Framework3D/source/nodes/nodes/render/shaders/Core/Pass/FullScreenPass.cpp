@@ -67,7 +67,7 @@ struct FullScreenPass::SharedData {
         pLayout->addBufferLayout(0, pBufLayout);
 
         Vao::BufferVec buffers{ pVertexBuffer };
-        pVao = Vao::create(Vao::Topology::TriangleStrip, pLayout, buffers);
+        pVao = Vao::create(nvrhi::PrimitiveType::TriangleStrip, pLayout, buffers);
     }
 };
 

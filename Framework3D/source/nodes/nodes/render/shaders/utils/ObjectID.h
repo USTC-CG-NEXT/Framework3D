@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 #include "Core/Error.h"
-#include <fmt/format.h>
+#include <format>
 
 #include <limits>
 #include <functional>

@@ -86,7 +86,7 @@ void ComputePass::execute(
 
 void ComputePass::executeIndirect(
     ComputeContext* pContext,
-    const Buffer* pArgBuffer,
+    Buffer* pArgBuffer,
     uint64_t argBufferOffset)
 {
     FALCOR_ASSERT(mpVars);
@@ -99,8 +99,8 @@ void ComputePass::addDefine(
     const std::string& value,
     bool updateVars)
 {
-    nvrhi::ComputeState state;
-    state.mpState->getProgram()->addDefine(name, value);
+    ref<ComputeState> state = ComputeState::create(getDevice());
+    state->getProgram()->addDefine(name, value);
     if (updateVars)
         mpVars = ProgramVars::create(mpDevice, mpState->getProgram().get());
 }

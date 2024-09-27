@@ -143,7 +143,7 @@ namespace Falcor
 
         // Set state.
         mIntegrator.pState->setProgram(mIntegrator.pProgram);
-        mIntegrator.pState->setVao(Vao::create(Vao::Topology::PointList));
+        mIntegrator.pState->setVao(Vao::create(nvrhi::PrimitiveType::PointList));
 
         // Set viewport. Note we don't bind any render targets so the size just determines the dispatch limits.
         const uint32_t vpDim = 16384;       // 16K x 16K

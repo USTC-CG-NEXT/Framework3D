@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include <fmt/format.h>
+#include <format>
 #include <filesystem>
 #include <optional>
 #include <string>

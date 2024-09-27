@@ -430,7 +430,7 @@ namespace Falcor
         mesh.vertexCount = (uint32_t)vertices.size();
         mesh.indexCount = (uint32_t)indices.size();
         mesh.pIndices = indices.data();
-        mesh.topology = Vao::Topology::TriangleList;
+        mesh.topology = nvrhi::PrimitiveType::TriangleList;
         mesh.isFrontFaceCW = pTriangleMesh->getFrontFaceCW();
         mesh.pMaterial = pMaterial;
         mesh.isAnimated = isAnimated;
@@ -481,7 +481,7 @@ namespace Falcor
             logWarning("The mesh '{}' is missing the element {}. This is not an error, the element will be filled with zeros which may result in incorrect rendering.", mesh.name, element);
         };
 
-        if (mesh.topology != Vao::Topology::TriangleList) FALCOR_THROW("Error when adding the mesh '{}' to the scene. Only triangle list topology is supported.", mesh.name);
+        if (mesh.topology != nvrhi::PrimitiveType::TriangleList) FALCOR_THROW("Error when adding the mesh '{}' to the scene. Only triangle list topology is supported.", mesh.name);
         if (mesh.pMaterial == nullptr) throw_on_missing_element("material");
 
         if (mesh.faceCount == 0) throw_on_missing_element("faces");
@@ -817,7 +817,7 @@ namespace Falcor
         ProcessedCurve processedCurve;
 
         processedCurve.name = curve.name;
-        processedCurve.topology = Vao::Topology::LineStrip;
+        processedCurve.topology = nvrhi::PrimitiveType::LineStrip;
         processedCurve.pMaterial = curve.pMaterial;
 
         // Error checking.
@@ -1733,7 +1733,7 @@ namespace Falcor
 
     void SceneBuilder::flipTriangleWinding(MeshSpec& mesh)
     {
-        FALCOR_ASSERT(mesh.topology == Vao::Topology::TriangleList);
+        FALCOR_ASSERT(mesh.topology == nvrhi::PrimitiveType::TriangleList);
 
         // Abort if mesh is non-indexed. Implement this code path when/if needed.
         // Note that both static and dynamic vertices have to be swapped for dynamic meshes.
@@ -1995,7 +1995,7 @@ namespace Falcor
         {
             FALCOR_THROW("Cannot split mesh '{}', only non-dynamic meshes supported", mesh.name);
         }
-        if (mesh.topology != Vao::Topology::TriangleList)
+        if (mesh.topology != nvrhi::PrimitiveType::TriangleList)
         {
             FALCOR_THROW("Cannot split mesh '{}', only triangle list topology supported", mesh.name);
         }

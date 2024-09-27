@@ -35,7 +35,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <vector>
-#include <fmt/core.h>
+#include <format>
 
 namespace Falcor
 {

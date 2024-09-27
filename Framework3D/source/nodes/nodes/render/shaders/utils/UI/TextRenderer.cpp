@@ -61,7 +61,7 @@ ref<Vao> createVAO(const nvrhi::BufferHandle& pVB)
     pLayout->addBufferLayout(0, pBufLayout);
     Vao::BufferVec buffers{pVB};
 
-    return Vao::create(Vao::Topology::TriangleList, pLayout, buffers);
+    return Vao::create(nvrhi::PrimitiveType::TriangleList, pLayout, buffers);
 }
 
 } // namespace

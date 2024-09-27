@@ -29,7 +29,7 @@
 
 #include "Core/Macros.h"
 
-#include <fmt/core.h>
+#include <format>
 
 #include <atomic>
 #include <utility>

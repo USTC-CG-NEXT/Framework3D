@@ -85,7 +85,7 @@ void ParallelReduction::execute(
     FALCOR_PROFILE(pRenderContext, "ParallelReduction::execute");
 
     // Check texture array/mip/sample count.
-    if (pInput->getArraySize() != 1 || pInput->getMipCount() != 1 || pInput->getSampleCount() != 1)
+    if (pInput->getDesc().arraySize != 1 || pInput->getDesc().mipLevels != 1 || pInput->getSampleCount() != 1)
     {
         FALCOR_THROW("ParallelReduction::execute() - Input texture is unsupported.");
     }

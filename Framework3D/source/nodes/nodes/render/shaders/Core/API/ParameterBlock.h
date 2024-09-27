@@ -175,7 +175,7 @@ class FALCOR_API ParameterBlock : public Object {
      * @param[in] bindLocation The bind location of the variable.
      * @return The bound buffer or nullptr if none is bound.
      */
-    nvrhi::BufferHandle getBuffer(const BindLocation& bindLocation) const;
+    nvrhi::IBuffer* getBuffer(const BindLocation& bindLocation) const;
 
     //
     // Texture
@@ -219,7 +219,7 @@ class FALCOR_API ParameterBlock : public Object {
      * @param[in] bindLocation The bind location of the variable.
      * @return The bound texture or nullptr if none is bound.
      */
-    nvrhi::TextureHandle getTexture(const BindLocation& bindLocation) const;
+    nvrhi::ITexture* getTexture(const BindLocation& bindLocation) const;
 
     //
     // ResourceView

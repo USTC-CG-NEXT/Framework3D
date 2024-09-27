@@ -28,7 +28,7 @@
 #include "SceneBuilderDump.h"
 #include "Scene/SceneBuilder.h"
 #include "Utils/Math/FNVHash.h"
-#include <fmt/format.h>
+#include <format>
 #include <BS_thread_pool/BS_thread_pool.hpp>
 
 /// SceneBuilder printing is split off to its own file to avoid polluting the SceneBuilder.cpp with debug prints

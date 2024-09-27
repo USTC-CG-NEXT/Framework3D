@@ -465,7 +465,7 @@ const ref<Vao>& GuiImpl::getNextVao(uint32_t vertexCount, uint32_t indexCount)
                                      nullptr)
                                : pVao->getIndexBuffer();
     pVao = Vao::create(
-        Vao::Topology::TriangleList,
+        nvrhi::PrimitiveType::TriangleList,
         mpLayout,
         pVB,
         pIB,

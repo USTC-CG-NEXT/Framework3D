@@ -78,7 +78,7 @@ class FALCOR_API ComputeContext : public CopyContext {
      * @param[in] pUav The UAV to clear
      * @param[in] value The clear value
      */
-    void clearUAV(const UnorderedAccessView* pUav, const uint4& value);
+    void clearUAV(const UnorderedAccessView* pUav, const uint& value);
 
     /**
      * Clear a structured buffer's UAV counter

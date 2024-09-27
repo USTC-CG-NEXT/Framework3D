@@ -112,7 +112,7 @@ namespace Falcor
             uint32_t vertexCount = 0;                   ///< The number of vertices the mesh has.
             uint32_t indexCount = 0;                    ///< The number of indices the mesh has.
             const uint32_t* pIndices = nullptr;         ///< Array of indices. The element count must match `indexCount`. This field is required.
-            Vao::Topology topology = Vao::Topology::Undefined; ///< The primitive topology of the mesh
+            nvrhi::PrimitiveType topology = nvrhi::PrimitiveType::Undefined; ///< The primitive topology of the mesh
             ref<Material> pMaterial;                    ///< The mesh's material. Can't be nullptr.
 
             Attribute<float3> positions;                ///< Array of vertex positions. This field is required.
@@ -267,7 +267,7 @@ namespace Falcor
         struct ProcessedMesh
         {
             std::string name;
-            Vao::Topology topology = Vao::Topology::Undefined;
+            nvrhi::PrimitiveType topology = nvrhi::PrimitiveType::Undefined;
             ref<Material> pMaterial;
             NodeID skeletonNodeId{ NodeID::Invalid() }; ///< Forwarded from Mesh struct.
 
@@ -311,7 +311,7 @@ namespace Falcor
         struct ProcessedCurve
         {
             std::string name;
-            Vao::Topology topology = Vao::Topology::LineStrip;
+            nvrhi::PrimitiveType topology = nvrhi::PrimitiveType::LineStrip;
             ref<Material> pMaterial;
 
             std::vector<uint32_t> indexData;
@@ -690,7 +690,7 @@ namespace Falcor
         struct MeshSpec
         {
             std::string name;
-            Vao::Topology topology = Vao::Topology::Undefined;
+            nvrhi::PrimitiveType topology = nvrhi::PrimitiveType::Undefined;
             MaterialID materialId{ 0 };             ///< Global material ID.
             uint32_t staticVertexOffset = 0;        ///< Offset into the shared 'staticData' array. This is calculated in createGlobalBuffers().
             uint32_t staticVertexCount = 0;         ///< Number of static vertices.
@@ -718,7 +718,7 @@ namespace Falcor
 
             uint32_t getTriangleCount() const
             {
-                FALCOR_ASSERT(topology == Vao::Topology::TriangleList);
+                FALCOR_ASSERT(topology == nvrhi::PrimitiveType::TriangleList);
                 return (indexCount > 0 ? indexCount : vertexCount) / 3;
             }
 
@@ -743,7 +743,7 @@ namespace Falcor
         struct CurveSpec
         {
             std::string name;
-            Vao::Topology topology;
+            nvrhi::PrimitiveType topology;
             MaterialID materialId{ 0 };         ///< Global material ID.
             uint32_t staticVertexOffset = 0;    ///< Offset into the shared 'staticData' array. This is calculated in createCurveGlobalBuffers().
             uint32_t staticVertexCount = 0;     ///< Number of static curve vertices.

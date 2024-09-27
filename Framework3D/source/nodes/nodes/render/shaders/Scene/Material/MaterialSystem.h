@@ -33,8 +33,9 @@
 #include "Core/Macros.h"
 #include "Core/Program/DefineList.h"
 #include "Core/Program/Program.h"
+#include "Core/Program/ShaderVar.h"
 #include "Material.h"
-#include "Utils/Image/TextureManager.h"
+#include "Scene/SceneIDs.h"
 #include "utils/UI/Gui.h"
 
 namespace Falcor {
@@ -275,13 +276,6 @@ class FALCOR_API MaterialSystem {
      */
     MaterialStats getStats() const;
 
-    /** Get texture manager. This holds all textures.
-     */
-    TextureManager& getTextureManager()
-    {
-        return *mpTextureManager;
-    }
-
     void loadLightProfile(
         const std::filesystem::path& absoluteFilename,
         bool normalize);
@@ -303,8 +297,7 @@ class FALCOR_API MaterialSystem {
     std::vector<Material::UpdateFlags>
         mMaterialsUpdateFlags;  ///< List of all material update flags, after
                                 ///< the update() calls
-    std::unique_ptr<TextureManager>
-        mpTextureManager;  ///< Texture manager holding all material textures.
+
     ProgramDesc::ShaderModuleList
         mShaderModules;  ///< Shader modules for all materials in use.
     std::map<MaterialType, TypeConformanceList>

@@ -38,7 +38,6 @@ class GraphicsStateObject;
 class GraphicsState;
 class ProgramVars;
 
-class RenderTargetView;
 
 class Program;
 class RtProgramVars;
@@ -123,12 +122,6 @@ class FALCOR_API RenderContext : public ComputeContext {
         uint8_t stencil,
         FboAttachmentType flags = FboAttachmentType::All);
 
-    /**
-     * Clear a render-target view.
-     * @param[in] pRtv The RTV to clear
-     * @param[in] color The clear color
-     */
-    void clearRtv(const RenderTargetView* pRtv, const float4& color);
 
     /**
      * Clear a depth-stencil view.
@@ -282,7 +275,7 @@ class FALCOR_API RenderContext : public ComputeContext {
      */
     void blit(
         const nvrhi::BindingSetItem& pSrc,
-        const ref<RenderTargetView>& pDst,
+        const nvrhi::BindingSetItem& pDst,
         uint4 srcRect = kMaxRect,
         uint4 dstRect = kMaxRect,
         bool useFilter = true);
@@ -306,7 +299,7 @@ class FALCOR_API RenderContext : public ComputeContext {
      */
     void blit(
         const nvrhi::BindingSetItem& pSrc,
-        const ref<RenderTargetView>& pDst,
+        const nvrhi::BindingSetItem& pDst,
         uint4 srcRect,
         uint4 dstRect,
         bool useFilter,

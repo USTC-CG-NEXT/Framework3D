@@ -48,10 +48,8 @@ class FALCOR_API CopyContext {
     class FALCOR_API ReadTextureTask {
        public:
         using SharedPtr = std::shared_ptr<ReadTextureTask>;
-        static SharedPtr create(
-            CopyContext* pCtx,
-            Texture* pTexture,
-            uint32_t subresourceIndex);
+        static SharedPtr
+        create(CopyContext* pCtx, Texture* pTexture, uint32_t subresourceIndex);
         void getData(void* pData, size_t size) const;
         std::vector<uint8_t> getData() const;
 
@@ -109,12 +107,17 @@ class FALCOR_API CopyContext {
      * state is the same as the new state or when only some subresources were
      * transitioned)
      */
-    virtual bool resourceBarrier(
+    virtual void resourceBarrier(
+        Resource* pResource,
+        ResourceStates newState,
+        const void* pViewInfo = nullptr);
+
+    virtual void resourceBarrier(
         Texture* pTexture,
         ResourceStates newState,
         const nvrhi::TextureSubresourceSet* pViewInfo = nullptr);
 
-    virtual bool resourceBarrier(
+    virtual void resourceBarrier(
         Buffer* pResource,
         ResourceStates newState,
         const nvrhi::BufferRange* pViewInfo = nullptr);
@@ -122,7 +125,7 @@ class FALCOR_API CopyContext {
     /**
      * Insert a UAV barrier
      */
-    virtual void uavBarrier(const Resource* pResource);
+    virtual void uavBarrier(Resource* pResource);
 
     /**
      * Copy an entire resource
@@ -220,15 +223,21 @@ class FALCOR_API CopyContext {
      */
     void addAftermathMarker(std::string_view name);
 
-    nvrhi::ICommandList* getLowLevelData() const
+    nvrhi::ICommandList* getCommandList() const
     {
         return mpLowLevelData.Get();
     }
 
    protected:
-    bool textureBarrier(Texture* pTexture, ResourceStates newState);
-    bool bufferBarrier(Buffer* pBuffer, ResourceStates newState);
-    bool subresourceBarriers(
+    void updateTextureSubresources(
+        Texture* pTexture,
+        uint32_t firstSubresource,
+        uint32_t subresourceCount,
+        const void* pData,
+        const uint3& offset = uint3(0),
+        const uint3& size = uint3(-1));
+
+    void subresourceBarriers(
         Texture* pTexture,
         ResourceStates newState,
         const nvrhi::TextureSubresourceSet* pViewInfo);

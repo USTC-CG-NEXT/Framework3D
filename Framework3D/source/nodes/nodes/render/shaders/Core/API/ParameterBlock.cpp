@@ -33,6 +33,7 @@
 #include "Device.h"
 #include "Utils/Logger.h"
 #include "Utils/Math/Matrix.h"
+#include "nvrhi/common/misc.h"
 
 namespace Falcor {
 namespace {
@@ -329,9 +330,7 @@ void ParameterBlock::initializeResourceBindings()
                 case ResourceType::TypedBuffer_UAV:
                 case ResourceType::StructuredBuffer_UAV:
                 case ResourceType::StructuredBuffer_SRV:
-                case ResourceType::RayTracingAccelStruct:
-                    mpShaderObject->setResource(offset, nullptr);
-                    break;
+                case ResourceType::RayTracingAccelStruct: break;
                 default: break;
             }
         }
@@ -593,8 +592,7 @@ void ParameterBlock::setBuffer(
                 "flag as a UAV.",
                 pBuffer->getName());
         auto pUAV = pBuffer ? pBuffer->getUAV() : nullptr;
-        mpShaderObject->setResource(
-            gfxOffset, pUAV ? pUAV->getGfxResourceView() : nullptr);
+
         mUAVs[gfxOffset] = pUAV;
         mResources[gfxOffset] = pBuffer;
     }
@@ -606,8 +604,7 @@ void ParameterBlock::setBuffer(
                 "flag as an SRV.",
                 pBuffer->getName());
         auto pSRV = pBuffer ? pBuffer->getSRV() : nullptr;
-        mpShaderObject->setResource(
-            gfxOffset, pSRV ? pSRV->getGfxResourceView() : nullptr);
+
         mSRVs[gfxOffset] = pSRV;
         mResources[gfxOffset] = pBuffer;
     }
@@ -621,22 +618,22 @@ nvrhi::BufferHandle ParameterBlock::getBuffer(std::string_view name) const
     return getRootVar()[name].getBuffer();
 }
 
-nvrhi::BufferHandle ParameterBlock::getBuffer(const BindLocation& bindLoc) const
+nvrhi::IBuffer* ParameterBlock::getBuffer(const BindLocation& bindLoc) const
 {
     ShaderOffset gfxOffset = getGFXShaderOffset(bindLoc);
     if (isUavType(bindLoc.getType())) {
         auto iter = mUAVs.find(gfxOffset);
         if (iter == mUAVs.end())
             return nullptr;
-        auto pResource = iter->second->getResource();
-        return pResource ? pResource->asBuffer() : nullptr;
+        auto pResource = iter->second;
+        return dynamic_cast<nvrhi::IBuffer*>(pResource.resourceHandle);
     }
     else if (isSrvType(bindLoc.getType())) {
         auto iter = mSRVs.find(gfxOffset);
         if (iter == mSRVs.end())
             return nullptr;
-        auto pResource = iter->second->getResource();
-        return pResource ? pResource->asBuffer() : nullptr;
+        auto pResource = iter->second;
+        return dynamic_cast<nvrhi::IBuffer*>(pResource.resourceHandle);
     }
     else {
         FALCOR_THROW("Error trying to get buffer from a non SRV/UAV variable.");
@@ -668,8 +665,7 @@ void ParameterBlock::setTexture(
                 "flag as a UAV.",
                 pTexture->getName());
         auto pUAV = pTexture ? pTexture->getUAV() : nullptr;
-        mpShaderObject->setResource(
-            gfxOffset, pUAV ? pUAV->getGfxResourceView() : nullptr);
+
         mUAVs[gfxOffset] = pUAV;
         mResources[gfxOffset] = pTexture;
     }
@@ -682,8 +678,7 @@ void ParameterBlock::setTexture(
                 "flag as an SRV.",
                 pTexture->getName());
         auto pSRV = pTexture ? pTexture->getSRV() : nullptr;
-        mpShaderObject->setResource(
-            gfxOffset, pSRV ? pSRV->getGfxResourceView() : nullptr);
+
         mSRVs[gfxOffset] = pSRV;
         mResources[gfxOffset] = pTexture;
     }
@@ -697,7 +692,7 @@ nvrhi::TextureHandle ParameterBlock::getTexture(std::string_view name) const
     return getRootVar()[name].getTexture();
 }
 
-nvrhi::TextureHandle ParameterBlock::getTexture(
+nvrhi::ITexture* ParameterBlock::getTexture(
     const BindLocation& bindLocation) const
 {
     ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
@@ -705,15 +700,15 @@ nvrhi::TextureHandle ParameterBlock::getTexture(
         auto iter = mUAVs.find(gfxOffset);
         if (iter == mUAVs.end())
             return nullptr;
-        auto pResource = iter->second->getResource();
-        return pResource ? pResource->asTexture() : nullptr;
+        auto pResource = iter->second;
+        return dynamic_cast<nvrhi::ITexture*>(pResource.resourceHandle);
     }
     else if (isSrvType(bindLocation.getType())) {
         auto iter = mSRVs.find(gfxOffset);
         if (iter == mSRVs.end())
             return nullptr;
-        auto pResource = iter->second->getResource();
-        return pResource ? pResource->asTexture() : nullptr;
+        auto pResource = iter->second;
+        return dynamic_cast<nvrhi::ITexture*>(pResource.resourceHandle);
     }
     else {
         FALCOR_THROW(
@@ -731,13 +726,11 @@ void ParameterBlock::setSrv(
 {
     if (isSrvType(bindLocation.getType())) {
         ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
-        mpShaderObject->setResource(
-            gfxOffset, pSrv ? pSrv->getGfxResourceView() : nullptr);
+
         mSRVs[gfxOffset] = pSrv;
         // Note: The resource view does not hold a strong reference to the
         // resource, so we need to keep it alive here.
-        mResources[gfxOffset] =
-            ref<Resource>(pSrv ? pSrv->getResource() : nullptr);
+        mResources[gfxOffset] = ref<Resource>(pSrv ? pSrv : nullptr);
     }
     else {
         FALCOR_THROW("Error trying to bind an SRV to a non SRV variable.");
@@ -765,13 +758,11 @@ void ParameterBlock::setUav(
 {
     if (isUavType(bindLocation.getType())) {
         ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
-        mpShaderObject->setResource(
-            gfxOffset, pUav ? pUav->getGfxResourceView() : nullptr);
+
         mUAVs[gfxOffset] = pUav;
         // Note: The resource view does not hold a strong reference to the
         // resource, so we need to keep it alive here.
-        mResources[gfxOffset] =
-            ref<Resource>(pUav ? pUav->getResource() : nullptr);
+        mResources[gfxOffset] = ref<Resource>(pUav ? pUav : nullptr);
     }
     else {
         FALCOR_THROW("Error trying to bind a UAV to a non UAV variable.");
@@ -800,8 +791,7 @@ void ParameterBlock::setAccelerationStructure(
     if (isAccelerationStructureType(bindLocation.getType())) {
         ShaderOffset gfxOffset = getGFXShaderOffset(bindLocation);
         mAccelerationStructures[gfxOffset] = pAccl;
-        FALCOR_GFX_CALL(mpShaderObject->setResource(
-            gfxOffset, pAccl ? pAccl->getGfxAccelerationStructure() : nullptr));
+        FALCOR_GFX_CALL(
     }
     else {
         FALCOR_THROW(
@@ -942,16 +932,10 @@ bool ParameterBlock::prepareDescriptorSets(CopyContext* pCopyContext)
 {
     // Insert necessary resource barriers for bound resources.
     for (auto& srv : mSRVs) {
-        prepareResource(
-            pCopyContext,
-            srv.second ? srv.second->getResource() : nullptr,
-            false);
+        prepareResource(pCopyContext, srv.second ? srv.second : nullptr, false);
     }
     for (auto& uav : mUAVs) {
-        prepareResource(
-            pCopyContext,
-            uav.second ? uav.second->getResource() : nullptr,
-            true);
+        prepareResource(pCopyContext, uav.second ? uav.second : nullptr, true);
     }
     for (auto& subObj : this->mParameterBlocks) {
         subObj.second->prepareDescriptorSets(pCopyContext);

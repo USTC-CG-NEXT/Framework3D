@@ -27,72 +27,96 @@
  **************************************************************************/
 #pragma once
 
-
-#include "Core/Program/DefineList.h"
-#include "Core/Program/ShaderVar.h"
-#include "Core/Error.h"
+#include <format>
 
 #include <vector>
-#include <fmt/format.h>
 
-namespace Falcor
-{
+#include "Core/Error.h"
+#include "Core/Program/DefineList.h"
+#include "Core/Program/ShaderVar.h"
+
+namespace Falcor {
 
 /**
- * @brief Represents a cpu/gpu buffer, that handles the GPU limit on 4GB buffers, up to 4 billion items.
+ * @brief Represents a cpu/gpu buffer, that handles the GPU limit on 4GB
+ * buffers, up to 4 billion items.
  *
- * GPU's currently handle at most 4GB buffers. If we want to store more data, it has to be split into multiple buffers.
- * This class facilitates this for objects with the power-of-2 byte size, by using the upper bits of the 32b index
- * to select which 4GB buffer. The number of buffers is equal to the size of the stored object, i.e.,
- * for uint32_t, we can have up to 2^30 in a single 4GB buffer, leaving only 2 bits for buffer selection.
- * This naturally limites the size to the total of 2^32 items.
+ * GPU's currently handle at most 4GB buffers. If we want to store more data, it
+ * has to be split into multiple buffers. This class facilitates this for
+ * objects with the power-of-2 byte size, by using the upper bits of the 32b
+ * index to select which 4GB buffer. The number of buffers is equal to the size
+ * of the stored object, i.e., for uint32_t, we can have up to 2^30 in a single
+ * 4GB buffer, leaving only 2 bits for buffer selection. This naturally limites
+ * the size to the total of 2^32 items.
  *
  * @tparam T - Type of the object stored in the buffer.
  */
 template<typename T, bool TByteBuffer>
-class SplitBuffer
-{
+class SplitBuffer {
     /// We are encoding the buffer index in the top bits of the index,
     /// so we can only have as many buffers as it the sizeof(T) rounded down
     /// to the nearest power of two
-    static_assert((sizeof(T) & (sizeof(T) - 1)) == 0, "Size has to be power of 2");
+    static_assert(
+        (sizeof(T) & (sizeof(T) - 1)) == 0,
+        "Size has to be power of 2");
 
-public:
+   public:
     using ElementType = T;
 
-public:
-    SplitBuffer() : mCpuBuffers(1) {}
+   public:
+    SplitBuffer() : mCpuBuffers(1)
+    {
+    }
 
-    /// Returns the maximum number of buffers supported for the given split buffer.
-    size_t getMaxBufferCount() const { return kMaxBufferCount; }
+    /// Returns the maximum number of buffers supported for the given split
+    /// buffer.
+    size_t getMaxBufferCount() const
+    {
+        return kMaxBufferCount;
+    }
 
     /// Forces the number of buffers to be at least bufferCount.
-    /// Used for debugging, as SplitBuffer will balance content of all existing buffers
-    /// before creating new ones, so setting this to MaxBufferCount will create balanced
-    /// buffers even for small scenes.
+    /// Used for debugging, as SplitBuffer will balance content of all existing
+    /// buffers before creating new ones, so setting this to MaxBufferCount will
+    /// create balanced buffers even for small scenes.
     void setBufferCount(uint32_t bufferCount)
     {
-        FALCOR_ASSERT(mGpuBuffers.empty(), "Cannot change buffer count after creating GPU buffers.");
-        FALCOR_CHECK(bufferCount >= getBufferCount(), "Cannot reduce number of existing buffers ({}).", getBufferCount());
-        FALCOR_CHECK(bufferCount <= kMaxBufferCount, "Cannot exceed the max number of buffers ({}).", kMaxBufferCount);
+        FALCOR_ASSERT(
+            mGpuBuffers.empty(),
+            "Cannot change buffer count after creating GPU buffers.");
+        FALCOR_CHECK(
+            bufferCount >= getBufferCount(),
+            "Cannot reduce number of existing buffers ({}).",
+            getBufferCount());
+        FALCOR_CHECK(
+            bufferCount <= kMaxBufferCount,
+            "Cannot exceed the max number of buffers ({}).",
+            kMaxBufferCount);
         mCpuBuffers.resize(bufferCount);
     }
 
     /// Sets name used for CPU reporting, and for GPU buffer names
-    void setName(std::string_view name) { mBufferName = name; }
+    void setName(std::string_view name)
+    {
+        mBufferName = name;
+    }
 
-    /// Sets the name of the define that governs the number of buffers in the GPU code.
-    /// This is less than ideal, but there is no way to automatically detect which
-    /// type/define it is on the GPU.
-    void setBufferCountDefinePrefix(std::string bufferCountDefinePrefix) { mBufferCountDefinePrefix = bufferCountDefinePrefix; }
+    /// Sets the name of the define that governs the number of buffers in the
+    /// GPU code. This is less than ideal, but there is no way to automatically
+    /// detect which type/define it is on the GPU.
+    void setBufferCountDefinePrefix(std::string bufferCountDefinePrefix)
+    {
+        mBufferCountDefinePrefix = bufferCountDefinePrefix;
+    }
 
-    /// Insert range of items into the split buffer, returning an index at which it starts.
-    /// All items in the range will be in the same GPU buffer.
-    /// Not possible after the GPU buffers have been created.
+    /// Insert range of items into the split buffer, returning an index at which
+    /// it starts. All items in the range will be in the same GPU buffer. Not
+    /// possible after the GPU buffers have been created.
     template<typename Iter>
     uint32_t insert(Iter first, Iter last)
     {
-        FALCOR_ASSERT(mGpuBuffers.empty(), "Cannot insert after creating GPU buffers.");
+        FALCOR_ASSERT(
+            mGpuBuffers.empty(), "Cannot insert after creating GPU buffers.");
         if (first == last)
             return 0;
         const size_t itemCount = std::distance(first, last);
@@ -101,30 +125,38 @@ public:
         auto it = std::min_element(
             mCpuBuffers.begin(),
             mCpuBuffers.end(),
-            [](const std::vector<T>& lhs, const std::vector<T>& rhs) { return lhs.size() < rhs.size(); }
-        );
+            [](const std::vector<T>& lhs, const std::vector<T>& rhs) {
+                return lhs.size() < rhs.size();
+            });
         uint32_t bufferIndex = std::distance(mCpuBuffers.begin(), it);
 
-        // If new items wouldn't fit into the buffer with fewest items, create a new buffer,
-        // throw if new buffer cannot be created.
-        if ((mCpuBuffers[bufferIndex].size() + itemCount) * sizeof(T) > kBufferSizeLimit)
-        {
+        // If new items wouldn't fit into the buffer with fewest items, create a
+        // new buffer, throw if new buffer cannot be created.
+        if ((mCpuBuffers[bufferIndex].size() + itemCount) * sizeof(T) >
+            kBufferSizeLimit) {
             bufferIndex = mCpuBuffers.size();
             if (bufferIndex >= kMaxBufferCount)
-                FALCOR_THROW("Buffers {} cannot accomodate all the date within the buffer limit.", mBufferName);
+                FALCOR_THROW(
+                    "Buffers {} cannot accomodate all the date within the "
+                    "buffer limit.",
+                    mBufferName);
             mCpuBuffers.push_back({});
         }
 
         const uint32_t elementIndex = mCpuBuffers[bufferIndex].size();
-        FALCOR_ASSERT((((1 << kBufferIndexOffset) - 1) & elementIndex) == elementIndex, "Element index overflows into buffer index");
-        mCpuBuffers[bufferIndex].insert(mCpuBuffers[bufferIndex].end(), first, last);
+        FALCOR_ASSERT(
+            (((1 << kBufferIndexOffset) - 1) & elementIndex) == elementIndex,
+            "Element index overflows into buffer index");
+        mCpuBuffers[bufferIndex].insert(
+            mCpuBuffers[bufferIndex].end(), first, last);
         return ((bufferIndex << kBufferIndexOffset) | elementIndex);
     }
 
     /// Inserts an empty range, mostly for testing and debugging purposes
     uint32_t insertEmpty(size_t itemCount)
     {
-        FALCOR_ASSERT(mGpuBuffers.empty(), "Cannot insert after creating GPU buffers.");
+        FALCOR_ASSERT(
+            mGpuBuffers.empty(), "Cannot insert after creating GPU buffers.");
         if (itemCount == 0)
             return 0;
 
@@ -132,43 +164,54 @@ public:
         auto it = std::min_element(
             mCpuBuffers.begin(),
             mCpuBuffers.end(),
-            [](const std::vector<T>& lhs, const std::vector<T>& rhs) { return lhs.size() < rhs.size(); }
-        );
+            [](const std::vector<T>& lhs, const std::vector<T>& rhs) {
+                return lhs.size() < rhs.size();
+            });
         uint32_t bufferIndex = std::distance(mCpuBuffers.begin(), it);
 
-        // If new items wouldn't fit into the buffer with fewest items, create a new buffer,
-        // throw if new buffer cannot be created.
-        if ((mCpuBuffers[bufferIndex].size() + itemCount) * sizeof(T) > kBufferSizeLimit)
-        {
+        // If new items wouldn't fit into the buffer with fewest items, create a
+        // new buffer, throw if new buffer cannot be created.
+        if ((mCpuBuffers[bufferIndex].size() + itemCount) * sizeof(T) >
+            kBufferSizeLimit) {
             bufferIndex = mCpuBuffers.size();
             if (bufferIndex >= kMaxBufferCount)
-                FALCOR_THROW("Buffers {} cannot accomodate all the date within the buffer limit.", mBufferName);
+                FALCOR_THROW(
+                    "Buffers {} cannot accomodate all the date within the "
+                    "buffer limit.",
+                    mBufferName);
             mCpuBuffers.push_back({});
         }
 
         const uint32_t elementIndex = mCpuBuffers[bufferIndex].size();
-        FALCOR_ASSERT((((1 << kBufferIndexOffset) - 1) & elementIndex) == elementIndex, "Element index overflows into buffer index");
-        mCpuBuffers[bufferIndex].resize(mCpuBuffers[bufferIndex].size() + itemCount);
+        FALCOR_ASSERT(
+            (((1 << kBufferIndexOffset) - 1) & elementIndex) == elementIndex,
+            "Element index overflows into buffer index");
+        mCpuBuffers[bufferIndex].resize(
+            mCpuBuffers[bufferIndex].size() + itemCount);
         return ((bufferIndex << kBufferIndexOffset) | elementIndex);
     }
 
     /// Creates the GPU buffers, locking further inserts.
     /// Will clear any existing GPU buffers.
-    void createGpuBuffers(const ref<Device>& mpDevice, ResourceBindFlags bindFlags)
+    void createGpuBuffers(
+        const ref<Device>& mpDevice,
+        ResourceBindFlags bindFlags)
     {
         mGpuBuffers.clear();
         mGpuBuffers.reserve(mCpuBuffers.size());
-        for (size_t i = 0; i < mCpuBuffers.size(); ++i)
-        {
-            if (mCpuBuffers[i].empty())
-            {
+        for (size_t i = 0; i < mCpuBuffers.size(); ++i) {
+            if (mCpuBuffers[i].empty()) {
                 mGpuBuffers.push_back({});
                 continue;
             }
 
             nvrhi::BufferHandle buffer = mpDevice->createStructuredBuffer(
-                sizeof(T), mCpuBuffers[i].size(), bindFlags, MemoryType::DeviceLocal, mCpuBuffers[i].data(), false
-            );
+                sizeof(T),
+                mCpuBuffers[i].size(),
+                bindFlags,
+                MemoryType::DeviceLocal,
+                mCpuBuffers[i].data(),
+                false);
             buffer->setName(fmt::format("SplitBuffer:{}:[{}]", mBufferName, i));
             mGpuBuffers.push_back(std::move(buffer));
         }
@@ -177,8 +220,8 @@ public:
     /// Return true when the SplitBuffer empty.
     bool empty() const
     {
-        // We check if all CPU buffers are empty. If so, we also check GPU buffers, as the CPU buffers
-        // maybe have been dropped.
+        // We check if all CPU buffers are empty. If so, we also check GPU
+        // buffers, as the CPU buffers maybe have been dropped.
         for (auto& it : mCpuBuffers)
             if (!it.empty())
                 return false;
@@ -191,8 +234,8 @@ public:
     /// Returns the number of buffers.
     size_t getBufferCount() const
     {
-        // We check both CPU and GPU buffers, to get correct answer even before `createGpuBuffers`
-        // and after `dropCpuBuffers`
+        // We check both CPU and GPU buffers, to get correct answer even before
+        // `createGpuBuffers` and after `dropCpuBuffers`
         return std::max(mCpuBuffers.size(), mGpuBuffers.size());
     }
 
@@ -200,22 +243,26 @@ public:
     size_t getByteSize() const
     {
         size_t result = 0;
-        if (!mCpuBuffers.empty())
-        {
+        if (!mCpuBuffers.empty()) {
             for (auto& it : mCpuBuffers)
                 result += it.size() * sizeof(T);
         }
-        else
-        {
+        else {
             for (auto& it : mGpuBuffers)
                 result += it->getSize();
         }
         return result;
     }
 
-    uint32_t getBufferIndex(uint32_t index) const { return (index >> kBufferIndexOffset); }
+    uint32_t getBufferIndex(uint32_t index) const
+    {
+        return (index >> kBufferIndexOffset);
+    }
 
-    uint32_t getElementIndex(uint32_t index) const { return index & kElementIndexMask; }
+    uint32_t getElementIndex(uint32_t index) const
+    {
+        return index & kElementIndexMask;
+    }
 
     /// Access to the CPU data via index returned from `insert`
     const T& operator[](uint32_t index) const
@@ -236,30 +283,48 @@ public:
     }
 
     /// Removes all CPU data, to conserve memory.
-    void dropCpuData() { mCpuBuffers.clear(); }
+    void dropCpuData()
+    {
+        mCpuBuffers.clear();
+    }
 
     /// True when there is any CPU buffer present.
-    bool hasCpuData() const { return !mCpuBuffers.empty(); }
+    bool hasCpuData() const
+    {
+        return !mCpuBuffers.empty();
+    }
 
     /// Return a GPU buffer, indexed by buffer index.
-    nvrhi::BufferHandle getGpuBuffer(uint32_t bufferIndex) const { return mGpuBuffers[bufferIndex]; }
+    nvrhi::BufferHandle getGpuBuffer(uint32_t bufferIndex) const
+    {
+        return mGpuBuffers[bufferIndex];
+    }
 
-    const std::vector<T>& getCpuBuffer(uint32_t bufferIndex) const { return mCpuBuffers[bufferIndex]; }
+    const std::vector<T>& getCpuBuffer(uint32_t bufferIndex) const
+    {
+        return mCpuBuffers[bufferIndex];
+    }
 
     /// Gets GPU address of the index returned from `insert`
     uint64_t getGpuAddress(uint32_t index) const
     {
         const uint32_t bufferIndex = getBufferIndex(index);
         const uint32_t elementIndex = getElementIndex(index);
-        return getGpuBuffer(bufferIndex)->getGpuAddress() + size_t(elementIndex) * sizeof(T);
+        return getGpuBuffer(bufferIndex)->getGpuAddress() +
+               size_t(elementIndex) * sizeof(T);
     }
 
-    /// Sets the define that governs how many buffers will the corresponding GPU type have.
+    /// Sets the define that governs how many buffers will the corresponding GPU
+    /// type have.
     void getShaderDefines(DefineList& defines) const
     {
         FALCOR_ASSERT(!mBufferCountDefinePrefix.empty());
-        defines.add(mBufferCountDefinePrefix + "_BUFFER_COUNT", std::to_string(mGpuBuffers.size()));
-        defines.add(mBufferCountDefinePrefix + "_BUFFER_INDEX_BITS", std::to_string(kBufferIndexBits));
+        defines.add(
+            mBufferCountDefinePrefix + "_BUFFER_COUNT",
+            std::to_string(mGpuBuffers.size()));
+        defines.add(
+            mBufferCountDefinePrefix + "_BUFFER_INDEX_BITS",
+            std::to_string(kBufferIndexBits));
     }
 
     /// Binds the SplitBuffer to the corresponding GPU type
@@ -270,15 +335,21 @@ public:
             var[kDataStr][i] = mGpuBuffers[i];
     }
 
-private:
+   private:
     /// Min number of bits needed to store the number
-    static constexpr uint32_t bitCount(uint32_t number) { return number < 2 ? number : (bitCount(number / 2) + 1); }
+    static constexpr uint32_t bitCount(uint32_t number)
+    {
+        return number < 2 ? number : (bitCount(number / 2) + 1);
+    }
 
-private:
-    static constexpr size_t k4GBSizeLimit = (UINT64_C(1) << UINT64_C(32)) - UINT64_C(1024);
+   private:
+    static constexpr size_t k4GBSizeLimit =
+        (UINT64_C(1) << UINT64_C(32)) - UINT64_C(1024);
     static constexpr size_t k2GBSizeLimit = (UINT64_C(1) << UINT64_C(31));
-    static constexpr size_t kBufferSizeLimit = (sizeof(T) < 16 || TByteBuffer) ? k2GBSizeLimit : k4GBSizeLimit;
-    static constexpr size_t kMaxElementCount = (kBufferSizeLimit + 1 - sizeof(T)) / sizeof(T);
+    static constexpr size_t kBufferSizeLimit =
+        (sizeof(T) < 16 || TByteBuffer) ? k2GBSizeLimit : k4GBSizeLimit;
+    static constexpr size_t kMaxElementCount =
+        (kBufferSizeLimit + 1 - sizeof(T)) / sizeof(T);
     static_assert(kMaxElementCount * sizeof(T) <= kBufferSizeLimit);
     static constexpr size_t kElementIndexBits = bitCount(kMaxElementCount - 1);
     static constexpr size_t kBufferIndexBits = 32 - kElementIndexBits;
@@ -295,4 +366,4 @@ private:
     friend class SceneCache;
 };
 
-} // namespace Falcor
+}  // namespace Falcor

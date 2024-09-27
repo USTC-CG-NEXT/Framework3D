@@ -36,7 +36,7 @@
 
 #include <Utils/json.hpp>
 
-#include <fmt/format.h>
+#include <format>
 
 namespace Falcor
 {

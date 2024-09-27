@@ -29,7 +29,7 @@
 
 #include "Float16.h"
 
-#include <fmt/core.h>
+#include <format>
 
 #include <string>
 #include <cstdint>

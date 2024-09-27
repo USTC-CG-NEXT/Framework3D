@@ -28,7 +28,7 @@
 #pragma once
 #include "Core/Macros.h"
 #include "Utils/StringFormatters.h"
-#include <fmt/core.h>
+#include <format>
 #include <string_view>
 #include <filesystem>
 

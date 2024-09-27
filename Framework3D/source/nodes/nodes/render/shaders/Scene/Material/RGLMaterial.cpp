@@ -243,7 +243,7 @@ namespace Falcor
                 if (mpAlbedoLUT->getFormat() == kAlbedoLUTFormat &&
                     mpAlbedoLUT->getWidth() == kAlbedoLUTSize &&
                     mpAlbedoLUT->getHeight() == 1 && mpAlbedoLUT->getDepth() == 1 &&
-                    mpAlbedoLUT->getMipCount() == 1 && mpAlbedoLUT->getArraySize() == 1)
+                    mpAlbedoLUT->getDesc().mipLevels == 1 && mpAlbedoLUT->getDesc().arraySize == 1)
                 {
                     logInfo("Loaded albedo LUT from '{}'.", texPath.string());
                     return;

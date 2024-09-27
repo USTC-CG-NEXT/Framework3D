@@ -111,7 +111,7 @@ class FALCOR_API ComputePass : public Object {
      */
     virtual void executeIndirect(
         ComputeContext* context,
-        const nvrhi::IBuffer* pArgBuffer,
+        Buffer* pArgBuffer,
         uint64_t argBufferOffset = 0);
 
     /**

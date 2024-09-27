@@ -31,7 +31,7 @@
 #include "Utils/Scripting/Scripting.h"
 #include "Utils/Math/Vector.h"
 #include "Utils/Math/Matrix.h"
-#include <fmt/format.h>
+#include <format>
 #include <pybind11/embed.h>
 #include <pybind11/operators.h>
 #include <algorithm>

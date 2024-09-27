@@ -25,15 +25,43 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "Animatable.h"
-#include "Utils/Scripting/ScriptBindings.h"
+#pragma once
+#include <memory>
 
-namespace Falcor
-{
-    FALCOR_SCRIPT_BINDING(Animatable)
-    {
-        pybind11::class_<Animatable, ref<Animatable>> animatable(m, "Animatable");
-        animatable.def_property_readonly("hasAnimation", &Animatable::hasAnimation);
-        animatable.def_property("animated", &Animatable::isAnimated, &Animatable::setIsAnimated);
-    }
-}
+#include "ParameterBlock.h"
+#include "Utils/Math/Vector.h"
+
+namespace Falcor {
+class Device;
+class FullScreenPass;
+
+struct BlitContext {
+    ref<FullScreenPass> pPass;
+    nvrhi::FramebufferHandle pFbo;
+
+    nvrhi::SamplerHandle pLinearSampler;
+    nvrhi::SamplerHandle pPointSampler;
+    nvrhi::SamplerHandle pLinearMinSampler;
+    nvrhi::SamplerHandle pPointMinSampler;
+    nvrhi::SamplerHandle pLinearMaxSampler;
+    nvrhi::SamplerHandle pPointMaxSampler;
+
+    ref<ParameterBlock> pBlitParamsBuffer;
+    float2 prevSrcRectOffset = float2(0, 0);
+    float2 prevSrcReftScale = float2(0, 0);
+
+    // Variable offsets in constant buffer
+    TypedShaderVarOffset offsetVarOffset;
+    TypedShaderVarOffset scaleVarOffset;
+    ProgramReflection::BindLocation texBindLoc;
+
+    // Parameters for complex blit
+    float4 prevComponentsTransform[4] = { float4(0),
+                                          float4(0),
+                                          float4(0),
+                                          float4(0) };
+    TypedShaderVarOffset compTransVarOffset[4];
+
+    BlitContext(Device* pDevice);
+};
+}  // namespace Falcor

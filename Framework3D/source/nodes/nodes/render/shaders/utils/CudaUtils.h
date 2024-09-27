@@ -36,6 +36,7 @@
 #include "Core/Macros.h"
 #include "Core/Object.h"
 #include "CudaRuntime.h"  // Instead of <cuda_runtime.h> to avoid name clashes.
+#include "nvrhi/utils.h"
 
 #define FALCOR_CUDA_CHECK(call)                                   \
     {                                                             \
@@ -158,11 +159,12 @@ namespace cuda_utils {
         ExternalSemaphore(nvrhi::EventQueryHandle pFence)
             : mpFence(pFence.Get())
         {
-            FALCOR_CHECK(mpFence, "'fence' is null.");
-            FALCOR_CHECK(
-                mpFence->getDesc().shared,
-                "'fence' must be created with shared=true.");
-            mExternalSemaphore = importExternalSemaphore(mpFence);
+            nvrhi::utils::NotImplemented();
+            // FALCOR_CHECK(mpFence, "'fence' is null.");
+            // FALCOR_CHECK(
+            //     mpFence->getDesc().shared,
+            //     "'fence' must be created with shared=true.");
+            // mExternalSemaphore = importExternalSemaphore(mpFence);
         }
 
         ~ExternalSemaphore()
@@ -183,20 +185,23 @@ namespace cuda_utils {
         void waitForCuda(
             CopyContext* pCopyContext,
             cudaStream_t stream = 0,
-            uint64_t value = Fence::kAuto)
+            uint64_t value = 0)
         {
-            uint64_t signalValue = mpFence->updateSignaledValue(value);
-            signal(signalValue, stream);
-            pCopyContext->wait(mpFence, signalValue);
+            nvrhi::utils::NotImplemented();
+            // uint64_t signalValue = mpFence->updateSignaledValue(value);
+            // signal(signalValue, stream);
+            // pCopyContext->wait(mpFence, signalValue);
         }
 
         void waitForFalcor(
             CopyContext* pCopyContext,
             cudaStream_t stream = 0,
-            uint64_t value = Fence::kAuto)
+            uint64_t value = 0)
         {
-            uint64_t signalValue = pCopyContext->signal(mpFence, value);
-            wait(signalValue, stream);
+            nvrhi::utils::NotImplemented();
+
+            // uint64_t signalValue = pCopyContext->signal(mpFence, value);
+            // wait(signalValue, stream);
         }
 
        private:
@@ -226,21 +231,23 @@ struct InteropBuffer {
 
 inline InteropBuffer createInteropBuffer(ref<Device> pDevice, size_t byteSize)
 {
+    nvrhi::utils::NotImplemented();
     InteropBuffer interop;
 
-    // Create a new DX <-> CUDA shared buffer using the Falcor API to create,
-    // then find its CUDA pointer.
-    interop.buffer = pDevice->getNvrhiDevice()->createBuffer(
-        byteSize,
-        ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess |
-            ResourceBindFlags::Shared);
-    interop.devicePtr = (CUdeviceptr)cuda_utils::getSharedDevicePtr(
-        pDevice->getType(),
-        interop.buffer->getSharedApiHandle(),
-        (uint32_t)interop.buffer->getSize());
-    FALCOR_CHECK(
-        interop.devicePtr != (CUdeviceptr)0,
-        "Failed to create CUDA device ptr for buffer");
+    //// Create a new DX <-> CUDA shared buffer using the Falcor API to create,
+    //// then find its CUDA pointer.
+    // interop.buffer = pDevice->getNvrhiDevice()->createBuffer(
+    //     byteSize,
+    //     ResourceBindFlags::ShaderResource |
+    //     ResourceBindFlags::UnorderedAccess |
+    //         ResourceBindFlags::Shared);
+    // interop.devicePtr = (CUdeviceptr)cuda_utils::getSharedDevicePtr(
+    //     pDevice->getType(),
+    //     interop.buffer->getSharedApiHandle(),
+    //     (uint32_t)interop.buffer->getSize());
+    // FALCOR_CHECK(
+    //     interop.devicePtr != (CUdeviceptr)0,
+    //     "Failed to create CUDA device ptr for buffer");
 
     return interop;
 }
