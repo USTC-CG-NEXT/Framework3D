@@ -2264,7 +2264,7 @@ FALCOR_SCRIPT_BINDING(ReflectionArrayType)
     reflectionArrayType.def_property_readonly(
         "element_byte_stride", &ReflectionArrayType::getElementByteStride);
     reflectionArrayType.def("__repr__", [](const ReflectionArrayType& self) {
-        return fmt::format(
+        return std::format(
             "ReflectionArrayType(element_type={}, element_count={}, "
             "element_byte_stride={})",
             ScriptBindings::repr(self.getElementType()),
@@ -2299,7 +2299,7 @@ FALCOR_SCRIPT_BINDING(ReflectionStructType)
                 members += ", ";
             members += ScriptBindings::repr(self.getMember(i));
         }
-        return fmt::format(
+        return std::format(
             "ReflectionStructType(name={}, members=[{}])",
             ScriptBindings::repr(self.getName()),
             members);
@@ -2334,7 +2334,7 @@ FALCOR_SCRIPT_BINDING(ReflectionBasicType)
     reflectionBasicType.def_property_readonly(
         "is_row_major", &ReflectionBasicType::isRowMajor);
     reflectionBasicType.def("__repr__", [](const ReflectionBasicType& self) {
-        return fmt::format(
+        return std::format(
             "ReflectionBasicType(type={}, is_row_major={})",
             ScriptBindings::repr(self.getType()),
             self.isRowMajor());
@@ -2379,7 +2379,7 @@ FALCOR_SCRIPT_BINDING(ReflectionResourceType)
         "shader_access", &ReflectionResourceType::getShaderAccess);
     reflectionResourceType.def(
         "__repr__", [](const ReflectionResourceType& self) {
-            return fmt::format(
+            return std::format(
                 "ReflectionResourceType(type={}, size={}, dimensions={}, "
                 "structured_buffer_type={}, return_type={}, shader_access={})",
                 ScriptBindings::repr(self.getType()),
@@ -2432,7 +2432,7 @@ FALCOR_SCRIPT_BINDING(ReflectionType)
     reflectionType.def_property_readonly(
         "as_interface_type", &ReflectionType::asInterfaceType);
     reflectionType.def("__repr__", [](const ReflectionType& self) {
-        return fmt::format(
+        return std::format(
             "ReflectionType(kind={})", ScriptBindings::repr(self.getKind()));
     });
 }
@@ -2448,7 +2448,7 @@ FALCOR_SCRIPT_BINDING(ReflectionVar)
     reflectionVar.def_property_readonly("type", &ReflectionVar::getType);
     reflectionVar.def_property_readonly("offset", &ReflectionVar::getOffset);
     reflectionVar.def("__repr__", [](const ReflectionVar& self) {
-        return fmt::format(
+        return std::format(
             "ReflectionVar(name=\"{}\", type={}, offset={})",
             self.getName(),
             ScriptBindings::repr(self.getType()),

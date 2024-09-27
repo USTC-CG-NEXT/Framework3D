@@ -341,16 +341,16 @@ std::string getStackTrace(size_t skip, size_t maxDepth)
     {
         auto trace = resolver.resolve(st[i]);
 
-        result += fmt::format(" {}#", i);
+        result += std::format(" {}#", i);
         if (!trace.source.filename.empty())
         {
-            result += fmt::format(" {} at {}:{}", trace.source.function, trace.source.filename, trace.source.line);
+            result += std::format(" {} at {}:{}", trace.source.function, trace.source.filename, trace.source.line);
         }
         else
         {
-            result += fmt::format(" 0x{:016x} ({})", reinterpret_cast<uintptr_t>(trace.addr), trace.object_function);
+            result += std::format(" 0x{:016x} ({})", reinterpret_cast<uintptr_t>(trace.addr), trace.object_function);
             if (!trace.object_filename.empty())
-                result += fmt::format(" in {}", trace.object_filename);
+                result += std::format(" in {}", trace.object_filename);
         }
         result += "\n";
     }

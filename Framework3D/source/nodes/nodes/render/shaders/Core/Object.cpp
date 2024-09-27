@@ -82,7 +82,7 @@ void Object::dumpAliveObjects()
 
 void Object::dumpRefs() const
 {
-    logInfo("Object (class={} address={}) has {} reference(s)", getClassName(), fmt::ptr(this), refCount());
+    logInfo("Object (class={} address={}) has {} reference(s)", getClassName(), std::ptr(this), refCount());
 #if FALCOR_ENABLE_REF_TRACKING
     std::lock_guard<std::mutex> lock(mRefTrackerMutex);
     for (const auto& it : mRefTrackers)

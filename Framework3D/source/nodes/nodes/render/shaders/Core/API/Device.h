@@ -261,7 +261,6 @@ class FALCOR_API Device : public Object {
     }
 #endif  // FALCOR_HAS_D3D12
 
-
     double getGpuTimestampFrequency() const
     {
         return mGpuTimestampFrequency;
@@ -320,6 +319,69 @@ class FALCOR_API Device : public Object {
      * Vulkan, in which the driver flushes automatically at device idle/lost.
      */
     void flushRaytracingValidation();
+
+    /**
+     * Create a new buffer.
+     * @param[in] size Size of the buffer in bytes.
+     * @param[in] bindFlags Buffer bind flags.
+     * @param[in] memoryType Type of memory to use for the buffer.
+     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
+     * buffer size should be at least 'size' bytes.
+     * @return A pointer to a new buffer object, or throws an exception if
+     * creation failed.
+     */
+    ref<Buffer> createBuffer(
+        size_t size,
+        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
+                                      ResourceBindFlags::UnorderedAccess,
+        MemoryType memoryType = MemoryType::DeviceLocal,
+        const void* pInitData = nullptr);
+
+    /**
+     * Create a new typed buffer.
+     * @param[in] format Typed buffer format.
+     * @param[in] elementCount Number of elements.
+     * @param[in] bindFlags Buffer bind flags.
+     * @param[in] memoryType Type of memory to use for the buffer.
+     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
+     * buffer should hold at least 'elementCount' elements.
+     * @return A pointer to a new buffer object, or throws an exception if
+     * creation failed.
+     */
+    ref<Buffer> createTypedBuffer(
+        ResourceFormat format,
+        uint32_t elementCount,
+        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
+                                      ResourceBindFlags::UnorderedAccess,
+        MemoryType memoryType = MemoryType::DeviceLocal,
+        const void* pInitData = nullptr);
+
+    /**
+     * Create a new typed buffer. The format is deduced from the template
+     * parameter.
+     * @param[in] elementCount Number of elements.
+     * @param[in] bindFlags Buffer bind flags.
+     * @param[in] memoryType Type of memory to use for the buffer.
+     * @param[in] pInitData Optional parameter. Initial buffer data. Pointed
+     * buffer should hold at least 'elementCount' elements.
+     * @return A pointer to a new buffer object, or throws an exception if
+     * creation failed.
+     */
+    template<typename T>
+    ref<Buffer> createTypedBuffer(
+        uint32_t elementCount,
+        ResourceBindFlags bindFlags = ResourceBindFlags::ShaderResource |
+                                      ResourceBindFlags::UnorderedAccess,
+        MemoryType memoryType = MemoryType::DeviceLocal,
+        const T* pInitData = nullptr)
+    {
+        return createTypedBuffer(
+            detail::FormatForElementType<T>::kFormat,
+            elementCount,
+            bindFlags,
+            memoryType,
+            pInitData);
+    }
 
    private:
     struct ResourceRelease {

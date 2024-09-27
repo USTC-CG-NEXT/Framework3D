@@ -42,19 +42,19 @@ std::string printMatrix(const float4x4& m)
 {
     if (m == float4x4::identity())
         return "identity";
-    return fmt::format("{}", m);
+    return std::format("{}", m);
 }
 
 std::string printNodeID(NodeID id)
 {
     if (!id.isValid())
         return "N/A";
-    return fmt::format("{}", id);
+    return std::format("{}", id);
 }
 
 std::string toString(const StaticVertexData& vertex)
 {
-    return fmt::format("pos: {}; nrm: {}; tan: {}; uvs: {}", vertex.position, vertex.normal, vertex.tangent, vertex.texCrd);
+    return std::format("pos: {}; nrm: {}; tan: {}; uvs: {}", vertex.position, vertex.normal, vertex.tangent, vertex.texCrd);
 }
 
 std::string toString(const PackedStaticVertexData& vertex)
@@ -64,12 +64,12 @@ std::string toString(const PackedStaticVertexData& vertex)
 
 std::string toString(const StaticCurveVertexData& vertex)
 {
-    return fmt::format("pos: {}; rad: {}; uvs: {}", vertex.position, vertex.radius, vertex.texCrd);
+    return std::format("pos: {}; rad: {}; uvs: {}", vertex.position, vertex.radius, vertex.texCrd);
 }
 
 std::string toString(const DynamicCurveVertexData& vertex)
 {
-    return fmt::format("pos: {}", vertex.position);
+    return std::format("pos: {}", vertex.position);
 }
 
 template<typename T>
@@ -152,7 +152,7 @@ std::map<std::string, std::string> SceneBuilderDump::getDebugContent(const Scene
         int counter = 0;
         while (true)
         {
-            std::string temp = fmt::format("{}_{}", name, counter);
+            std::string temp = std::format("{}_{}", name, counter);
             if (auto it = result.find(temp); it == result.end())
                 return temp;
             ++counter;
@@ -190,36 +190,36 @@ std::map<std::string, std::string> SceneBuilderDump::getDebugContent(const Scene
         std::string name = meshDesc.deduplicatedName;
 
         std::string res;
-        res += fmt::format("Mesh: {}\n", name);
-        res += fmt::format("   material: {}\n", sceneBuilder.mSceneData.pMaterials->getMaterial(mesh.materialId)->getName());
-        res += fmt::format("   skinned: {}\n", mesh.isSkinned() ? "YES" : "NO");
-        res += fmt::format("   mesh.staticData: {}\n", hash64(mesh.staticData));
-        // res += fmt::format("   mesh.staticData:\n");
+        res += std::format("Mesh: {}\n", name);
+        res += std::format("   material: {}\n", sceneBuilder.mSceneData.pMaterials->getMaterial(mesh.materialId)->getName());
+        res += std::format("   skinned: {}\n", mesh.isSkinned() ? "YES" : "NO");
+        res += std::format("   mesh.staticData: {}\n", hash64(mesh.staticData));
+        // res += std::format("   mesh.staticData:\n");
         // for (auto& it : mesh.staticData)
-        //     res += fmt::format("      {}\n", toString(it));
-        res += fmt::format("   mesh.indexData: {}\n", hash64(mesh.indexData));
+        //     res += std::format("      {}\n", toString(it));
+        res += std::format("   mesh.indexData: {}\n", hash64(mesh.indexData));
         if (mesh.isSkinned())
         {
             NodeID bindMatrixID = *mesh.instances.begin();
             if (bindMatrixID.isValid())
-                res += fmt::format("   bindXform: {}\n", printMatrix(sceneBuilder.mSceneGraph[bindMatrixID.get()].meshBind));
+                res += std::format("   bindXform: {}\n", printMatrix(sceneBuilder.mSceneGraph[bindMatrixID.get()].meshBind));
 
             NodeID skeletonMatrixID = (mesh.skeletonNodeID == NodeID::Invalid()) ? *mesh.instances.begin() : mesh.skeletonNodeID;
             if (skeletonMatrixID.isValid())
-                res += fmt::format("   skeletonXform: {}\n", printMatrix(sceneBuilder.mSceneGraph[skeletonMatrixID.get()].transform));
+                res += std::format("   skeletonXform: {}\n", printMatrix(sceneBuilder.mSceneGraph[skeletonMatrixID.get()].transform));
 
             for (size_t j = 0; j < mesh.skinningData.size(); ++j)
             {
                 const SkinningVertexData& skinningData = mesh.skinningData[j];
-                res += fmt::format("   Vertex#{}\n", j);
+                res += std::format("   Vertex#{}\n", j);
                 for (int k = 0; k < 4; ++k)
                 {
                     NodeID boneID{skinningData.boneID[k]};
                     float weight = skinningData.boneWeight[k];
                     if (weight == 0 || !boneID.isValid())
                         continue;
-                    res += fmt::format("      Bone#{}\n", k);
-                    res += fmt::format("         boneXform: {} x w{}\n", printMatrix(sceneBuilder.mSceneGraph[boneID.get()].transform), weight);
+                    res += std::format("      Bone#{}\n", k);
+                    res += std::format("         boneXform: {} x w{}\n", printMatrix(sceneBuilder.mSceneGraph[boneID.get()].transform), weight);
                 }
             }
         }
@@ -228,11 +228,11 @@ std::map<std::string, std::string> SceneBuilderDump::getDebugContent(const Scene
         {
             res += "   Cached meshes:";
             for (auto t : meshDesc.cachedCurve->timeSamples)
-                res += fmt::format(" {}", t);
+                res += std::format(" {}", t);
             res += "\n";
 
             for (size_t t = 0; t < meshDesc.cachedMesh->timeSamples.size(); ++t)
-                res += fmt::format("         t{}: {}\n", t, hash64(meshDesc.cachedMesh->vertexData[t]));
+                res += std::format("         t{}: {}\n", t, hash64(meshDesc.cachedMesh->vertexData[t]));
         }
 
         if (meshDesc.cachedCurve)
@@ -241,12 +241,12 @@ std::map<std::string, std::string> SceneBuilderDump::getDebugContent(const Scene
 
             res += "   Cached curves:\n";
             for (auto t : cached.timeSamples)
-                res += fmt::format(" {}", t);
+                res += std::format(" {}", t);
             res += "\n";
-            res += fmt::format("      Index data: {}\n", hash64(cached.indexData));
+            res += std::format("      Index data: {}\n", hash64(cached.indexData));
 
             for (size_t t = 0; t < cached.timeSamples.size(); ++t)
-                res += fmt::format("         t{}: {}\n", t, hash64(cached.vertexData[t]));
+                res += std::format("         t{}: {}\n", t, hash64(cached.vertexData[t]));
         }
         std::lock_guard<std::mutex> lock(resultMutex);
         result[name] = std::move(res);
@@ -259,14 +259,14 @@ std::map<std::string, std::string> SceneBuilderDump::getDebugContent(const Scene
         std::string name = curveDesc.deduplicatedName;
 
         std::string res;
-        res += fmt::format("Curve: {}\n", name);
-        res += fmt::format("   material: {}\n", sceneBuilder.mSceneData.pMaterials->getMaterial(curve.materialId)->getName());
-        res += fmt::format("   staticVertexCount: {}\n", curve.staticVertexCount);
-        res += fmt::format("   indexCount: {}\n", curve.indexCount);
-        res += fmt::format("   vertexCount: {}\n", curve.vertexCount);
-        res += fmt::format("   degree: {}\n", curve.degree);
-        res += fmt::format("   curve.staticData: {}\n", hash64(curve.staticData));
-        res += fmt::format("   curve.indexData: {}\n", hash64(curve.indexData));
+        res += std::format("Curve: {}\n", name);
+        res += std::format("   material: {}\n", sceneBuilder.mSceneData.pMaterials->getMaterial(curve.materialId)->getName());
+        res += std::format("   staticVertexCount: {}\n", curve.staticVertexCount);
+        res += std::format("   indexCount: {}\n", curve.indexCount);
+        res += std::format("   vertexCount: {}\n", curve.vertexCount);
+        res += std::format("   degree: {}\n", curve.degree);
+        res += std::format("   curve.staticData: {}\n", hash64(curve.staticData));
+        res += std::format("   curve.indexData: {}\n", hash64(curve.indexData));
 
         if (curveDesc.cachedCurve)
         {
@@ -274,12 +274,12 @@ std::map<std::string, std::string> SceneBuilderDump::getDebugContent(const Scene
 
             res += "   Cached curves:\n";
             for (auto t : cached.timeSamples)
-                res += fmt::format(" {}", t);
+                res += std::format(" {}", t);
             res += "\n";
-            res += fmt::format("      Index data: {}\n", hash64(cached.indexData));
+            res += std::format("      Index data: {}\n", hash64(cached.indexData));
 
             for (size_t t = 0; t < cached.timeSamples.size(); ++t)
-                res += fmt::format("         t{}: {}\n", t, hash64(cached.vertexData[t]));
+                res += std::format("         t{}: {}\n", t, hash64(cached.vertexData[t]));
         }
 
         std::lock_guard<std::mutex> lock(resultMutex);

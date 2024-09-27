@@ -51,8 +51,8 @@ namespace Falcor
         {}
 
         template<typename... Args>
-        explicit ImporterError(const std::filesystem::path& path, fmt::format_string<Args...> format, Args&&... args)
-            : ImporterError(path, fmt::format(format, std::forward<Args>(args)...))
+        explicit ImporterError(const std::filesystem::path& path, std::format_string<Args...> format, Args&&... args)
+            : ImporterError(path, std::format(format, std::forward<Args>(args)...))
         {}
 
         virtual ~ImporterError() override

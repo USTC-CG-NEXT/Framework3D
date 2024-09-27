@@ -27,13 +27,12 @@
  **************************************************************************/
 #pragma once
 
-#include "Core/Macros.h"
-
-#include <format>
-
 #include <atomic>
-#include <utility>
 #include <cstdint>
+#include <format>
+#include <utility>
+
+#include "Core/Macros.h"
 
 /**
  * Enable/disable object lifetime tracking.
@@ -59,8 +58,7 @@
 #include <mutex>
 #endif
 
-namespace Falcor
-{
+namespace Falcor {
 
 /**
  * @brief Base class for reference counted objects.
@@ -87,23 +85,27 @@ namespace Falcor
  * Finally, if we want to migrate from pybind11 to nanobind at some point in
  * the future, we will need to use a custom reference counting system.
  */
-class FALCOR_API Object
-{
-public:
+class FALCOR_API Object {
+   public:
     /// Default constructor.
     Object() = default;
 
     /// Copy constructor.
     /// Note: We don't copy the reference counter, so that the new object
     /// starts with a reference count of 0.
-    Object(const Object&) {}
+    Object(const Object&)
+    {
+    }
 
     /// Copy assignment.
     /// Note: We don't copy the reference counter, but leave the reference
     /// counts of the two objects unchanged. This results in the same semantics
     /// that we would get if we used `std::shared_ptr` where the reference
     /// counter is stored in a separate place from the object.
-    Object& operator=(const Object&) { return *this; }
+    Object& operator=(const Object&)
+    {
+        return *this;
+    }
 
     /// Make the object non-movable.
     Object(Object&&) = delete;
@@ -114,10 +116,16 @@ public:
 
     /// Return the name of the class.
     /// Note: This reports the actual class name if FALCOR_OBJECT() is used.
-    virtual const char* getClassName() const { return "Object"; }
+    virtual const char* getClassName() const
+    {
+        return "Object";
+    }
 
     /// Return the current reference count.
-    int refCount() const { return mRefCount; };
+    int refCount() const
+    {
+        return mRefCount;
+    };
 
     /// Increase the object's reference count by one.
     void incRef() const;
@@ -141,15 +149,16 @@ public:
     void setEnableRefTracking(bool enable);
 #endif
 
-private:
-    mutable std::atomic<uint32_t> mRefCount{0};
+   private:
+    mutable std::atomic<uint32_t> mRefCount{ 0 };
 
 #if FALCOR_ENABLE_REF_TRACKING
-    struct RefTracker
-    {
+    struct RefTracker {
         uint32_t count;
         std::string origin;
-        RefTracker(std::string origin_) : count(1), origin(std::move(origin_)) {}
+        RefTracker(std::string origin_) : count(1), origin(std::move(origin_))
+        {
+        }
     };
     mutable std::map<uint64_t, RefTracker> mRefTrackers;
     mutable std::mutex mRefTrackerMutex;
@@ -167,7 +176,7 @@ static uint64_t nextRefId()
 
 /// Macro to declare the object class name.
 #define FALCOR_OBJECT(class_)                 \
-public:                                       \
+   public:                                    \
     const char* getClassName() const override \
     {                                         \
         return #class_;                       \
@@ -186,21 +195,30 @@ public:                                       \
  * pointers.
  */
 template<typename T>
-class ref
-{
-public:
+class ref {
+   public:
     /// Default constructor (nullptr).
-    ref() {}
+    ref()
+    {
+    }
 
     /// Construct a reference from a nullptr.
-    ref(std::nullptr_t) {}
+    ref(std::nullptr_t)
+    {
+    }
 
     /// Construct a reference from a convertible pointer.
     template<typename T2 = T>
     explicit ref(T2* ptr) : mPtr(ptr)
     {
-        static_assert(std::is_base_of_v<Object, T2>, "Cannot create reference to object not inheriting from Object class.");
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot create reference to object from unconvertible pointer type.");
+        static_assert(
+            std::is_base_of_v<Object, T2>,
+            "Cannot create reference to object not inheriting from Object "
+            "class.");
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot create reference to object from unconvertible pointer "
+            "type.");
         if (mPtr)
             incRef((const Object*)(mPtr));
     }
@@ -216,8 +234,13 @@ public:
     template<typename T2 = T>
     ref(const ref<T2>& r) : mPtr(r.mPtr)
     {
-        static_assert(std::is_base_of_v<Object, T>, "Cannot create reference to object not inheriting from Object class.");
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot create reference to object from unconvertible reference.");
+        static_assert(
+            std::is_base_of_v<Object, T>,
+            "Cannot create reference to object not inheriting from Object "
+            "class.");
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot create reference to object from unconvertible reference.");
         if (mPtr)
             incRef((const Object*)(mPtr));
     }
@@ -226,7 +249,8 @@ public:
     ref(ref&& r) noexcept
         : mPtr(r.mPtr)
 #if FALCOR_ENABLE_REF_TRACKING
-        , mRefId(r.mRefId)
+          ,
+          mRefId(r.mRefId)
 #endif
     {
         r.mPtr = nullptr;
@@ -240,11 +264,17 @@ public:
     ref(ref<T2>&& r) noexcept
         : mPtr(r.mPtr)
 #if FALCOR_ENABLE_REF_TRACKING
-        , mRefId(r.mRefId)
+          ,
+          mRefId(r.mRefId)
 #endif
     {
-        static_assert(std::is_base_of_v<Object, T>, "Cannot create reference to object not inheriting from Object class.");
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot create reference to object from unconvertible reference.");
+        static_assert(
+            std::is_base_of_v<Object, T>,
+            "Cannot create reference to object not inheriting from Object "
+            "class.");
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot create reference to object from unconvertible reference.");
         r.mPtr = nullptr;
 #if FALCOR_ENABLE_REF_TRACKING
         r.mRefId = uint64_t(-1);
@@ -261,8 +291,7 @@ public:
     /// Assign another reference into the current one.
     ref& operator=(const ref& r) noexcept
     {
-        if (r != *this)
-        {
+        if (r != *this) {
             if (r.mPtr)
                 incRef((const Object*)(r.mPtr));
             T* prevPtr = mPtr;
@@ -277,9 +306,10 @@ public:
     template<typename T2>
     ref& operator=(const ref<T2>& r) noexcept
     {
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot assign reference to object from unconvertible reference.");
-        if (r != *this)
-        {
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot assign reference to object from unconvertible reference.");
+        if (r != *this) {
             if (r.mPtr)
                 incRef((const Object*)(r.mPtr));
             T* prevPtr = mPtr;
@@ -293,8 +323,7 @@ public:
     /// Move another reference into the current one.
     ref& operator=(ref&& r) noexcept
     {
-        if (static_cast<void*>(&r) != this)
-        {
+        if (static_cast<void*>(&r) != this) {
             if (mPtr)
                 decRef((const Object*)(mPtr));
             mPtr = r.mPtr;
@@ -311,9 +340,10 @@ public:
     template<typename T2>
     ref& operator=(ref<T2>&& r) noexcept
     {
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot move reference to object from unconvertible reference.");
-        if (static_cast<void*>(&r) != this)
-        {
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot move reference to object from unconvertible reference.");
+        if (static_cast<void*>(&r) != this) {
             if (mPtr)
                 decRef((const Object*)(mPtr));
             mPtr = r.mPtr;
@@ -330,9 +360,10 @@ public:
     template<typename T2 = T>
     void reset(T2* ptr = nullptr) noexcept
     {
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot assign reference to object from unconvertible pointer.");
-        if (ptr != mPtr)
-        {
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot assign reference to object from unconvertible pointer.");
+        if (ptr != mPtr) {
             if (ptr)
                 incRef((const Object*)(ptr));
             T* prevPtr = mPtr;
@@ -347,8 +378,8 @@ public:
     bool operator==(const ref<T2>& r) const
     {
         static_assert(
-            std::is_convertible_v<T2*, T*> || std::is_convertible_v<T*, T2*>, "Cannot compare references of non-convertible types."
-        );
+            std::is_convertible_v<T2*, T*> || std::is_convertible_v<T*, T2*>,
+            "Cannot compare references of non-convertible types.");
         return mPtr == r.mPtr;
     }
 
@@ -357,8 +388,8 @@ public:
     bool operator!=(const ref<T2>& r) const
     {
         static_assert(
-            std::is_convertible_v<T2*, T*> || std::is_convertible_v<T*, T2*>, "Cannot compare references of non-convertible types."
-        );
+            std::is_convertible_v<T2*, T*> || std::is_convertible_v<T*, T2*>,
+            "Cannot compare references of non-convertible types.");
         return mPtr != r.mPtr;
     }
 
@@ -367,8 +398,8 @@ public:
     bool operator<(const ref<T2>& r) const
     {
         static_assert(
-            std::is_convertible_v<T2*, T*> || std::is_convertible_v<T*, T2*>, "Cannot compare references of non-convertible types."
-        );
+            std::is_convertible_v<T2*, T*> || std::is_convertible_v<T*, T2*>,
+            "Cannot compare references of non-convertible types.");
         return mPtr < r.mPtr;
     }
 
@@ -376,7 +407,9 @@ public:
     template<typename T2 = T>
     bool operator==(const T2* ptr) const
     {
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot compare reference to pointer of non-convertible types.");
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot compare reference to pointer of non-convertible types.");
         return mPtr == ptr;
     }
 
@@ -384,30 +417,53 @@ public:
     template<typename T2 = T>
     bool operator!=(const T2* ptr) const
     {
-        static_assert(std::is_convertible_v<T2*, T*>, "Cannot compare reference to pointer of non-convertible types.");
+        static_assert(
+            std::is_convertible_v<T2*, T*>,
+            "Cannot compare reference to pointer of non-convertible types.");
         return mPtr != ptr;
     }
 
     /// Compare this reference to a null pointer.
-    bool operator==(std::nullptr_t) const { return mPtr == nullptr; }
+    bool operator==(std::nullptr_t) const
+    {
+        return mPtr == nullptr;
+    }
 
     /// Compare this reference to a null pointer.
-    bool operator!=(std::nullptr_t) const { return mPtr != nullptr; }
+    bool operator!=(std::nullptr_t) const
+    {
+        return mPtr != nullptr;
+    }
 
     /// Compare this reference to a null pointer.
-    bool operator<(std::nullptr_t) const { return mPtr < nullptr; }
+    bool operator<(std::nullptr_t) const
+    {
+        return mPtr < nullptr;
+    }
 
     /// Access the object referenced by this reference.
-    T* operator->() const { return mPtr; }
+    T* operator->() const
+    {
+        return mPtr;
+    }
 
     /// Return a C++ reference to the referenced object.
-    T& operator*() const { return *mPtr; }
+    T& operator*() const
+    {
+        return *mPtr;
+    }
 
     /// Return a pointer to the referenced object.
-    T* get() const { return mPtr; }
+    T* get() const
+    {
+        return mPtr;
+    }
 
     /// Check if the object is defined
-    operator bool() const { return mPtr != nullptr; }
+    operator bool() const
+    {
+        return mPtr != nullptr;
+    }
 
     /// Swap this reference with another reference.
     void swap(ref& r) noexcept
@@ -418,7 +474,7 @@ public:
 #endif
     }
 
-private:
+   private:
     inline void incRef(const Object* object)
     {
 #if FALCOR_ENABLE_REF_TRACKING
@@ -437,12 +493,12 @@ private:
 #endif
     }
 
-    T* mPtr{nullptr};
+    T* mPtr{ nullptr };
 #if FALCOR_ENABLE_REF_TRACKING
-    uint64_t mRefId{nextRefId()};
+    uint64_t mRefId{ nextRefId() };
 #endif
 
-private:
+   private:
     template<typename T2>
     friend class ref;
 };
@@ -483,35 +539,60 @@ ref<T> dynamic_ref_cast(const ref<U>& r) noexcept
  * This helper can be used in place of a @a ref, but it cannot be reassigned.
  */
 template<typename T>
-class BreakableReference
-{
-public:
-    BreakableReference(const ref<T>& r) : mStrongRef(r), mWeakRef(mStrongRef.get()) {}
-    BreakableReference(ref<T>&& r) : mStrongRef(r), mWeakRef(mStrongRef.get()) {}
+class BreakableReference {
+   public:
+    BreakableReference(const ref<T>& r)
+        : mStrongRef(r),
+          mWeakRef(mStrongRef.get())
+    {
+    }
+    BreakableReference(ref<T>&& r) : mStrongRef(r), mWeakRef(mStrongRef.get())
+    {
+    }
 
     BreakableReference() = delete;
     BreakableReference& operator=(const ref<T>&) = delete;
     BreakableReference& operator=(ref<T>&&) = delete;
 
-    T* get() const { return mWeakRef; }
-    T* operator->() const { return get(); }
-    T& operator*() const { return *get(); }
-    operator ref<T>() const { return ref<T>(get()); }
-    operator T*() const { return get(); }
-    operator bool() const { return get() != nullptr; }
+    T* get() const
+    {
+        return mWeakRef;
+    }
+    T* operator->() const
+    {
+        return get();
+    }
+    T& operator*() const
+    {
+        return *get();
+    }
+    operator ref<T>() const
+    {
+        return ref<T>(get());
+    }
+    operator T*() const
+    {
+        return get();
+    }
+    operator bool() const
+    {
+        return get() != nullptr;
+    }
 
-    void breakStrongReference() { mStrongRef.reset(); }
+    void breakStrongReference()
+    {
+        mStrongRef.reset();
+    }
 
-private:
+   private:
     ref<T> mStrongRef;
     T* mWeakRef = nullptr;
 };
 
-} // namespace Falcor
+}  // namespace Falcor
 
 template<typename T>
-struct fmt::formatter<Falcor::ref<T>> : formatter<const void*>
-{
+struct std::formatter<Falcor::ref<T>> : formatter<const void*> {
     template<typename FormatContext>
     auto format(const Falcor::ref<T>& ref, FormatContext& ctx) const
     {
@@ -520,17 +601,16 @@ struct fmt::formatter<Falcor::ref<T>> : formatter<const void*>
 };
 
 template<typename T>
-struct fmt::formatter<Falcor::BreakableReference<T>> : formatter<const void*>
-{
+struct std::formatter<Falcor::BreakableReference<T>> : formatter<const void*> {
     template<typename FormatContext>
-    auto format(const Falcor::BreakableReference<T>& ref, FormatContext& ctx) const
+    auto format(const Falcor::BreakableReference<T>& ref, FormatContext& ctx)
+        const
     {
         return formatter<const void*>::format(ref.get(), ctx);
     }
 };
 
-namespace std
-{
+namespace std {
 template<typename T>
 void swap(::Falcor::ref<T>& x, ::Falcor::ref<T>& y) noexcept
 {
@@ -538,9 +618,11 @@ void swap(::Falcor::ref<T>& x, ::Falcor::ref<T>& y) noexcept
 }
 
 template<typename T>
-struct hash<::Falcor::ref<T>>
-{
-    constexpr size_t operator()(const ::Falcor::ref<T>& r) const { return std::hash<T*>()(r.get()); }
+struct hash<::Falcor::ref<T>> {
+    constexpr size_t operator()(const ::Falcor::ref<T>& r) const
+    {
+        return std::hash<T*>()(r.get());
+    }
 };
 
-} // namespace std
+}  // namespace std

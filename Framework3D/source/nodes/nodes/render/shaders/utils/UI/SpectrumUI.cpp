@@ -288,7 +288,7 @@ void SpectrumUI<T>::drawTextWavelengthsAndTicks(
         [&](ImDrawList* drawList, const float wavelength, const float2& canvasPos, const float2& xAxisRange, const float2& yAxisRange)
     {
         float x = toXCoord(wavelength, xAxisRange);
-        const auto str = fmt::format("{}", uint32_t(std::round(wavelength)));
+        const auto str = std::format("{}", uint32_t(std::round(wavelength)));
         textHorizontallyCentered(str, float2(x, yAxisRange.x + 2.0f), textColor);
         if (mDrawGridX)
         {
@@ -347,7 +347,7 @@ void SpectrumUI<T>::drawTextSpectralIntensityAndTicks(
                                  const float2& yAxisRange,
                                  const bool first = false)
     {
-        const auto str = fmt::format("{:1.1f}", spectralIntensity);
+        const auto str = std::format("{:1.1f}", spectralIntensity);
         float y = toYCoord(spectralIntensity, yAxisRange);
         textVerticallyCenteredLeft(first ? "0" : str, float2(xAxisRange.x - (first ? 18.0f : 7.0f), y), textColor);
         if (mDrawGridY)
@@ -520,7 +520,7 @@ bool SpectrumUI<T>::handleMouse(
         {
             float2 p = toCoords(spectrum, mPointIndexToBeEdited, xAxisRange, yAxisRange, float3Index);
             drawCircle(drawList, canvasPos, p, nearRadius, float4(1.0f, 1.0f, 1.0f, 0.1f));
-            const auto str = fmt::format("{:2.4f}", getSpectralIntensity(mPointIndexToBeEdited, spectrum, float3Index));
+            const auto str = std::format("{:2.4f}", getSpectralIntensity(mPointIndexToBeEdited, spectrum, float3Index));
             ImGui::SetCursorPosX(p.x + 20.0f);
             ImGui::SetCursorPosY(p.y - ImGui::CalcTextSize("0").y * 0.5f);
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32_WHITE);
@@ -555,7 +555,7 @@ bool SpectrumUI<T>::handleMouse(
         float2 p = toCoords(spectrum, mPointIndexToBeEdited, xAxisRange, yAxisRange);
         drawCircle(drawList, canvasPos, p, nearRadius, float4(1.0f, 1.0f, 1.0f, 0.1f));
 
-        const auto str = fmt::format("{:2.4f}", getSpectralIntensity(mPointIndexToBeEdited, spectrum, float3Index));
+        const auto str = std::format("{:2.4f}", getSpectralIntensity(mPointIndexToBeEdited, spectrum, float3Index));
         ImGui::SetCursorPosX(p.x + 20.0f);
         ImGui::SetCursorPosY(p.y - ImGui::CalcTextSize("0").y * 0.5f);
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32_WHITE);
@@ -640,7 +640,7 @@ bool SpectrumUI<T>::render(Gui::Widgets& w, const std::string name, std::vector<
         for (uint32_t index = 0; index < numComponents; index++)
         {
             float3 c = SpectrumUtils::toRGB_D65<T>(*spectra[q], mInterpolationType, index);
-            const auto str = fmt::format("{:1.2f}, {:1.2f}, {:1.2f}", c.x, c.y, c.z);
+            const auto str = std::format("{:1.2f}, {:1.2f}, {:1.2f}", c.x, c.y, c.z);
             c = sRGBToLinear(c);
             ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x + rgbWidth, p.y + rgbHeight), ImColor(c.r, c.g, c.b, 1.0f));
             ImGui::GetWindowDrawList()->AddText(ImVec2(p.x, p.y + rgbHeight + separation), IM_COL32_WHITE, str.c_str());

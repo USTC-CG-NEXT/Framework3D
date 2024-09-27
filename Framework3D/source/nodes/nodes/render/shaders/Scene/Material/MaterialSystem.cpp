@@ -85,7 +85,7 @@ namespace Falcor
         {
             uint32_t count = getMaterialCountByType(materialType);
             std::string name = to_string(materialType);
-            widget.text(fmt::format("  {}: {}", name, count));
+            widget.text(std::format("  {}: {}", name, count));
         }
 
         widget.text("");
@@ -733,7 +733,7 @@ namespace Falcor
         auto it = mTypeConformances.find(type);
         if (it == mTypeConformances.end())
         {
-            FALCOR_THROW(fmt::format("No type conformances for material type '{}'.", to_string(type)));
+            FALCOR_THROW(std::format("No type conformances for material type '{}'.", to_string(type)));
         }
         return it->second;
     }

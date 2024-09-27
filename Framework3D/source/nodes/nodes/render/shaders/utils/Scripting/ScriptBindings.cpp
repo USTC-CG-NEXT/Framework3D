@@ -97,7 +97,7 @@ static std::vector<DeferredBinding>& getDeferredBindings()
 static std::string getUniqueDeferredBindingName()
 {
     static uint32_t id = 0;
-    return fmt::format("_DeferredBinding{}", id++);
+    return std::format("_DeferredBinding{}", id++);
 }
 
 static pybind11::module sModule;

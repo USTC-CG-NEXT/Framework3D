@@ -32,6 +32,7 @@
 #include "Core/Program/ProgramVersion.h"
 #include "Device.h"
 #include "Utils/Logger.h"
+#include "Utils/Logging/Logging.h"
 #include "Utils/Math/Matrix.h"
 #include "nvrhi/common/misc.h"
 
@@ -236,34 +237,20 @@ void ParameterBlock::prepareResource(
         return;
 
     // If it's a buffer with a UAV counter, insert a UAV barrier
-    const Buffer* pBuffer = pResource->asBuffer().get();
-    if (isUav && pBuffer && pBuffer->getUAVCounter()) {
-        pContext->resourceBarrier(
-            pBuffer->getUAVCounter().get(),
-            ResourceStates::UnorderedAccess,
-            TODO);
-        pContext->uavBarrier(pBuffer->getUAVCounter().get());
-    }
+    Buffer* pBuffer = nvrhi::checked_cast<nvrhi::IBuffer*>(pResource);
 
-    bool insertBarrier = true;
-    insertBarrier =
-        (is_set(
-             pResource->getBindFlags(),
-             ResourceBindFlags::AccelerationStructure) == false);
-    if (insertBarrier) {
-        insertBarrier = !pContext->resourceBarrier(
-            pResource,
-            isUav ? ResourceStates::UnorderedAccess
-                  : ResourceStates::ShaderResource,
-            TODO);
-    }
-
-    // Insert UAV barrier automatically if the resource is an UAV that is
-    // already in UnorderedAccess state. Otherwise the user would have to insert
-    // barriers explicitly between passes accessing UAVs, which is easily
-    // forgotten.
-    if (insertBarrier && isUav)
-        pContext->uavBarrier(pResource);
+    USTC_CG::logging("UAV Counter not implemented");
+    // if (isUav && pBuffer && pBuffer->getUAVCounter()) {
+    //     pContext->resourceBarrier(
+    //         pBuffer->getUAVCounter().get(),
+    //         ResourceStates::UnorderedAccess,
+    //         TODO);
+    //     pContext->uavBarrier(pBuffer->getUAVCounter().get());
+    // }
+    pContext->resourceBarrier(
+        pResource,
+        isUav ? ResourceStates::UnorderedAccess
+              : ResourceStates::ShaderResource);
 }
 
 ParameterBlock::~ParameterBlock()
@@ -277,6 +264,30 @@ ParameterBlock::ParameterBlock(
       mpProgramVersion(pReflector->getProgramVersion()),
       mpReflector(pReflector->getDefaultParameterBlock())
 {
+    slang::TypeLayoutReflection* typeLayout = mpReflector->getElementType()->
+        getSlangTypeLayout();
+
+    nvrhi::BindingLayoutDesc bindingLayoutDesc;
+
+
+    // Convert the reflection data to a binding layout description
+    for (uint32_t i = 0; i < mpReflector->getResourceRangeCount(); i++) {
+        auto range = mpReflector->getResourceRange(i);
+        auto info = mpReflector->getResourceRangeBindingInfo(i);
+        mpReflector->getRootDescriptorRangeCount()
+        range.descriptorType
+        
+        nvrhi::BindingLayoutRange rangeDesc;
+        rangeDesc.baseRegister = info.baseRegister;
+        info.baseRegister += range.count;
+        rangeDesc.numDescriptors = range.count;
+        rangeDesc.descriptorType = info.descriptorType;
+        rangeDesc.visibility = nvrhi::ShaderType::All;
+
+        bindingLayoutDesc.ranges.push_back(rangeDesc);
+    }
+
+
     FALCOR_GFX_CALL(mpDevice->getNvrhiDevice()->createMutableRootShaderObject(
         pReflector->getProgramVersion()
             ->getKernels(mpDevice, nullptr)
@@ -364,7 +375,7 @@ void ParameterBlock::checkForNestedTextureArrayResources()
                     FALCOR_THROW(
                         "Nested texture array '{}' detected in parameter "
                         "block. This will fail silently on Vulkan.",
-                        member->getName());
+                        member->getDesc().debugName);
                 }
             }
         }
@@ -590,7 +601,7 @@ void ParameterBlock::setBuffer(
             FALCOR_THROW(
                 "Trying to bind buffer '{}' created without UnorderedAccess "
                 "flag as a UAV.",
-                pBuffer->getName());
+                pBuffer->getDesc().debugName);
         auto pUAV = pBuffer ? pBuffer->getUAV() : nullptr;
 
         mUAVs[gfxOffset] = pUAV;
@@ -602,7 +613,7 @@ void ParameterBlock::setBuffer(
             FALCOR_THROW(
                 "Trying to bind buffer '{}' created without ShaderResource "
                 "flag as an SRV.",
-                pBuffer->getName());
+                pBuffer->getDesc().debugName);
         auto pSRV = pBuffer ? pBuffer->getSRV() : nullptr;
 
         mSRVs[gfxOffset] = pSRV;
@@ -663,7 +674,7 @@ void ParameterBlock::setTexture(
             FALCOR_THROW(
                 "Trying to bind texture '{}' created without UnorderedAccess "
                 "flag as a UAV.",
-                pTexture->getName());
+                pTexture->getDesc().debugName);
         auto pUAV = pTexture ? pTexture->getUAV() : nullptr;
 
         mUAVs[gfxOffset] = pUAV;
@@ -676,7 +687,7 @@ void ParameterBlock::setTexture(
             FALCOR_THROW(
                 "Trying to bind texture '{}' created without ShaderResource "
                 "flag as an SRV.",
-                pTexture->getName());
+                pTexture->getDesc().debugName);
         auto pSRV = pTexture ? pTexture->getSRV() : nullptr;
 
         mSRVs[gfxOffset] = pSRV;
@@ -730,7 +741,7 @@ void ParameterBlock::setSrv(
         mSRVs[gfxOffset] = pSrv;
         // Note: The resource view does not hold a strong reference to the
         // resource, so we need to keep it alive here.
-        mResources[gfxOffset] = ref<Resource>(pSrv ? pSrv : nullptr);
+        mResources[gfxOffset] = nvrhi::ResourceHandle(pSrv ? pSrv : nullptr);
     }
     else {
         FALCOR_THROW("Error trying to bind an SRV to a non SRV variable.");
@@ -762,7 +773,7 @@ void ParameterBlock::setUav(
         mUAVs[gfxOffset] = pUav;
         // Note: The resource view does not hold a strong reference to the
         // resource, so we need to keep it alive here.
-        mResources[gfxOffset] = ref<Resource>(pUav ? pUav : nullptr);
+        mResources[gfxOffset] = ResourceHandle(pUav ? pUav : nullptr);
     }
     else {
         FALCOR_THROW("Error trying to bind a UAV to a non UAV variable.");

@@ -54,9 +54,9 @@ namespace Falcor
         widgets.var("Color tint", mData.tint, 0.f, 1.f);
         widgets.text("EnvMap: " + mpEnvMap->getSourcePath().string());
 
-        widgets.text(fmt::format("Resolution: {}x{}", mpEnvMap->getWidth(), mpEnvMap->getHeight()));
-        widgets.text(fmt::format("Mip levels: {}", mpEnvMap->getDesc().mipLevels));
-        widgets.text(fmt::format("Format: {}", to_string(mpEnvMap->getFormat())));
+        widgets.text(std::format("Resolution: {}x{}", mpEnvMap->getWidth(), mpEnvMap->getHeight()));
+        widgets.text(std::format("Mip levels: {}", mpEnvMap->getDesc().mipLevels));
+        widgets.text(std::format("Format: {}", to_string(mpEnvMap->getFormat())));
     }
 
     void EnvMap::setRotation(float3 degreesXYZ)

@@ -56,7 +56,7 @@ inline SlangStage getSlangStage(ShaderType type)
 
 inline std::string getSlangProfileString()
 {
-    return fmt::format("sm_{}_{}", 6, 5);
+    return std::format("sm_{}_{}", 6, 5);
 }
 
 inline bool doSlangReflection(
@@ -252,13 +252,13 @@ ref<const ProgramKernels> ProgramManager::createProgramKernels(
                 pSlangGlobalScope->getLayout()->findTypeByName(
                     typeConformance.first.interfaceName.c_str());
             if (!slangType) {
-                log += fmt::format(
+                log += std::format(
                     "Type '{}' in type conformance was not found.\n",
                     typeConformance.first.typeName.c_str());
                 return {};
             }
             if (!slangInterfaceType) {
-                log += fmt::format(
+                log += std::format(
                     "Interface type '{}' in type conformance was not found.\n",
                     typeConformance.first.interfaceName.c_str());
                 return {};
@@ -563,7 +563,7 @@ ref<const EntryPointGroupKernels> ProgramManager::createEntryPointGroupKernels(
                     "Local root signatures are not supported for raytracing "
                     "entry points.");
             }
-            std::string exportName = fmt::format("HitGroup{}", mHitGroupID++);
+            std::string exportName = std::format("HitGroup{}", mHitGroupID++);
             return EntryPointGroupKernels::create(
                 EntryPointGroupKernels::Type::RtHitGroup, kernels, exportName);
         }
@@ -760,7 +760,7 @@ SlangCompileRequest* ProgramManager::createSlangCompileRequest(
     addSlangDefine(targetMacroName, "1");
 
     // Add a `#define` based on the shader model.
-    std::string sm = fmt::format("__SM_{}_{}__", 6, 5);
+    std::string sm = std::format("__SM_{}_{}__", 6, 5);
     addSlangDefine(sm.c_str(), "1");
 
     sessionDesc.preprocessorMacros = slangDefines.data();

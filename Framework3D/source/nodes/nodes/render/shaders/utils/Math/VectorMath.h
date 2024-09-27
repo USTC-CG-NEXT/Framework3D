@@ -1744,7 +1744,7 @@ template<typename T, int N>
 template<typename T, int N>
 [[nodiscard]] std::string to_string(const vector<T, N>& v)
 {
-    return ::fmt::format("{}", v);
+    return ::std::format("{}", v);
 }
 
 } // namespace math
@@ -1800,7 +1800,7 @@ struct std::hash<::Falcor::math::vector<T, N>>
 
 /// Vector string formatter.
 template<typename T, int N>
-struct fmt::formatter<Falcor::math::vector<T, N>> : formatter<T>
+struct std::formatter<Falcor::math::vector<T, N>> : formatter<T>
 {
     template<typename FormatContext>
     auto format(const Falcor::math::vector<T, N>& v, FormatContext& ctx) const
@@ -1808,10 +1808,10 @@ struct fmt::formatter<Falcor::math::vector<T, N>> : formatter<T>
         auto out = ctx.out();
         for (int i = 0; i < N; ++i)
         {
-            out = ::fmt::format_to(out, "{}", (i == 0) ? "{" : ", ");
+            out = ::std::format_to(out, "{}", (i == 0) ? "{" : ", ");
             out = formatter<T>::format(v[i], ctx);
         }
-        out = ::fmt::format_to(out, "}}");
+        out = ::std::format_to(out, "}}");
         return out;
     }
 };

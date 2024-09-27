@@ -32,7 +32,7 @@
 #include <string>
 
 template<>
-struct fmt::formatter<std::filesystem::path> : formatter<std::string>
+struct std::formatter<std::filesystem::path> : formatter<std::string>
 {
     template<typename FormatContext>
     auto format(const std::filesystem::path& p, FormatContext& ctx)
@@ -42,7 +42,7 @@ struct fmt::formatter<std::filesystem::path> : formatter<std::string>
 };
 
 template<typename T>
-struct fmt::formatter<std::optional<T>> : formatter<T>
+struct std::formatter<std::optional<T>> : formatter<T>
 {
     template<typename FormatContext>
     auto format(const std::optional<T>& opt, FormatContext& ctx)
@@ -52,6 +52,6 @@ struct fmt::formatter<std::optional<T>> : formatter<T>
             formatter<T>::format(*opt, ctx);
             return ctx.out();
         }
-        return fmt::format_to(ctx.out(), "nullopt");
+        return std::format_to(ctx.out(), "nullopt");
     }
 };

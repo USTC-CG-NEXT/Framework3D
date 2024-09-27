@@ -79,7 +79,7 @@ void AttributeFilter::addDictionary(const nlohmann::json& dict)
 
     Record record;
 
-    record.name = fmt::format("filter_{}", mAttributes.size());
+    record.name = std::format("filter_{}", mAttributes.size());
     if (nameIt != dict.end())
         record.name = nameIt.value().get<std::string>();
 
@@ -147,7 +147,7 @@ nlohmann::json AttributeFilter::processDeprecatedFilters(std::string_view name, 
             if (!isNegatedRegex)
             {
                 Record filteredRecord;
-                filteredRecord.name = fmt::format("{}_{}", name, filterKey);
+                filteredRecord.name = std::format("{}_{}", name, filterKey);
                 filteredRecord.regex = std::regex(filterRegexStr);
                 filteredRecord.attributes = nlohmann::json::object();
                 filteredRecord.attributes[attrIT.key()] = attrIT.value();
@@ -156,13 +156,13 @@ nlohmann::json AttributeFilter::processDeprecatedFilters(std::string_view name, 
             else
             {
                 Record filteredRecord;
-                filteredRecord.name = fmt::format("{}_{}_apply", name, filterKey);
+                filteredRecord.name = std::format("{}_{}_apply", name, filterKey);
                 filteredRecord.regex = std::regex(".*");
                 filteredRecord.attributes = nlohmann::json::object();
                 filteredRecord.attributes[attrIT.key()] = attrIT.value();
                 mAttributes.push_back(std::move(filteredRecord));
 
-                filteredRecord.name = fmt::format("{}_{}_unapply", name, filterKey);
+                filteredRecord.name = std::format("{}_{}_unapply", name, filterKey);
                 filteredRecord.regex = std::regex(filterRegexStr);
                 filteredRecord.attributes = nlohmann::json::object();
                 filteredRecord.attributes[attrIT.key()] = nullptr;

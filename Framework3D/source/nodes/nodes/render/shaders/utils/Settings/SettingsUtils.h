@@ -56,7 +56,7 @@ void flattenDictionary(const nlohmann::json& dict, const std::string& prefix, nl
 
     for (auto& it : dict.items())
     {
-        std::string name = fmt::format("{}{}{}", prefix, prefix.empty() ? "" : ":", it.key());
+        std::string name = std::format("{}{}{}", prefix, prefix.empty() ? "" : ":", it.key());
         flattenDictionary(it.value(), name, flattened);
     }
 }

@@ -469,7 +469,7 @@ class FALCOR_API ParameterBlock : public Object {
     std::map<ShaderOffset, ref<ParameterBlock>> mParameterBlocks;
     std::map<ShaderOffset, nvrhi::BindingSetItem> mSRVs;
     std::map<ShaderOffset, nvrhi::BindingSetItem> mUAVs;
-    std::map<ShaderOffset, ref<Resource>> mResources;
+    std::map<ShaderOffset, nvrhi::ResourceHandle> mResources;
     std::map<ShaderOffset, nvrhi::SamplerHandle> mSamplers;
     std::map<ShaderOffset, nvrhi::rt::AccelStructHandle>
         mAccelerationStructures;

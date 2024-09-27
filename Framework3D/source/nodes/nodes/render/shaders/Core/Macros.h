@@ -159,7 +159,11 @@ using Resource = nvrhi::IResource;
 using Fbo = nvrhi::IFramebuffer;
 using Sampler = nvrhi::ISampler;
 
-using ShaderOffset = unsigned;
+struct ShaderOffset {
+    int uniformOffset = 0;  // TODO: Change to Offset?
+    int bindingRangeIndex = 0;
+    int bindingArrayIndex = 0;
+};
 
 using RtAccelerationStructure = nvrhi::rt::IAccelStruct;
 using nvrhi::IDevice;

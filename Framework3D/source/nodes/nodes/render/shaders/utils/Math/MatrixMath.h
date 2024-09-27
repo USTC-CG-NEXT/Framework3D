@@ -756,7 +756,7 @@ template<typename T>
 template<typename T, int R, int C>
 [[nodiscard]] std::string to_string(const matrix<T, R, C>& m)
 {
-    return ::fmt::format("{}", m);
+    return ::std::format("{}", m);
 }
 
 template<int R, int C, typename T>
@@ -776,7 +776,7 @@ bool lex_lt(const matrix<T, R, C>& lhs, const matrix<T, R, C>& rhs)
 } // namespace Falcor
 
 template<typename T, int R, int C>
-struct fmt::formatter<Falcor::math::matrix<T, R, C>> : formatter<typename Falcor::math::matrix<T, R, C>::RowType>
+struct std::formatter<Falcor::math::matrix<T, R, C>> : formatter<typename Falcor::math::matrix<T, R, C>::RowType>
 {
     using MatrixRowType = typename Falcor::math::matrix<T, R, C>::RowType;
 
@@ -786,10 +786,10 @@ struct fmt::formatter<Falcor::math::matrix<T, R, C>> : formatter<typename Falcor
         auto out = ctx.out();
         for (int r = 0; r < R; ++r)
         {
-            out = ::fmt::format_to(out, "{}", (r == 0) ? "{" : ", ");
+            out = ::std::format_to(out, "{}", (r == 0) ? "{" : ", ");
             out = formatter<MatrixRowType>::format(matrix.getRow(r), ctx);
         }
-        out = fmt::format_to(out, "}}");
+        out = std::format_to(out, "}}");
         return out;
     }
 };

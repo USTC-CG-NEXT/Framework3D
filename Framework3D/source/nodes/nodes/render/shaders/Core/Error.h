@@ -111,9 +111,9 @@ namespace detail
 
 /// Overload to allow FALCOR_THROW to be called with a format string and arguments.
 template<typename... Args>
-[[noreturn]] inline void throwException(const std::source_location& loc, fmt::format_string<Args...> fmt, Args&&... args)
+[[noreturn]] inline void throwException(const std::source_location& loc, std::format_string<Args...> fmt, Args&&... args)
 {
-    ::Falcor::throwException(loc, fmt::format(fmt, std::forward<Args>(args)...));
+    ::Falcor::throwException(loc, std::format(fmt, std::forward<Args>(args)...));
 }
 } // namespace detail
 } // namespace Falcor
@@ -171,11 +171,11 @@ template<typename... Args>
 [[noreturn]] inline void reportAssertion(
     const std::source_location& loc,
     std::string_view cond,
-    fmt::format_string<Args...> fmt,
+    std::format_string<Args...> fmt,
     Args&&... args
 )
 {
-    ::Falcor::reportAssertion(loc, cond, fmt::format(fmt, std::forward<Args>(args)...));
+    ::Falcor::reportAssertion(loc, cond, std::format(fmt, std::forward<Args>(args)...));
 }
 } // namespace detail
 } // namespace Falcor
@@ -198,7 +198,7 @@ template<typename... Args>
 #define FALCOR_ASSERT_OP(a, b, OP)                                                                                                       \
     if (!(a OP b))                                                                                                                       \
     {                                                                                                                                    \
-        ::Falcor::detail::reportAssertion(std::source_location::current(), fmt::format("{} {} {} ({} {} {})", #a, #OP, #b, a, #OP, b)); \
+        ::Falcor::detail::reportAssertion(std::source_location::current(), std::format("{} {} {} ({} {} {})", #a, #OP, #b, a, #OP, b)); \
     }
 
 #define FALCOR_ASSERT_EQ(a, b) FALCOR_ASSERT_OP(a, b, ==)

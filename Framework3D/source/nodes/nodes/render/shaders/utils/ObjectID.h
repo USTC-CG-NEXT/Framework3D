@@ -186,7 +186,7 @@ struct std::hash<Falcor::ObjectID<TKindEnum, TKind, TIntType>>
 };
 
 template<typename TKindEnum, TKindEnum TKind, typename TIntType>
-struct fmt::formatter<Falcor::ObjectID<TKindEnum, TKind, TIntType>>
+struct std::formatter<Falcor::ObjectID<TKindEnum, TKind, TIntType>>
 {
     using ObjectID = Falcor::ObjectID<TKindEnum, TKind, TIntType>;
 
@@ -199,6 +199,6 @@ struct fmt::formatter<Falcor::ObjectID<TKindEnum, TKind, TIntType>>
     template<typename FormatContext>
     auto format(const ObjectID& id, FormatContext& ctx)
     {
-        return fmt::format_to(ctx.out(), "{0}", id.get());
+        return std::format_to(ctx.out(), "{0}", id.get());
     }
 };

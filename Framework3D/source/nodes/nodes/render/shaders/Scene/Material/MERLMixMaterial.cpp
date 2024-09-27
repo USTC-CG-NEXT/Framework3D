@@ -140,12 +140,12 @@ namespace Falcor
         mUpdates = UpdateFlags::None;
 
         // Display BRDF info.
-        widget.text(fmt::format("Loaded MERL BRDFs: {}", mBRDFs.size()));
+        widget.text(std::format("Loaded MERL BRDFs: {}", mBRDFs.size()));
         if (auto g = widget.group("BRDFs"))
         {
             for (size_t i = 0; i < mBRDFs.size(); i++)
             {
-                g.text(fmt::format("ID {}: {}", i, mBRDFs[i].name));
+                g.text(std::format("ID {}: {}", i, mBRDFs[i].name));
             }
         }
 
@@ -303,7 +303,7 @@ namespace Falcor
             case nvrhi::Format::BGRX8Unorm:
                 break;
             default:
-                FALCOR_THROW(fmt::format("MERLMixMaterial: Index map unsupported format ({}).", to_string(format)));
+                FALCOR_THROW(std::format("MERLMixMaterial: Index map unsupported format ({}).", to_string(format)));
             }
         }
     }

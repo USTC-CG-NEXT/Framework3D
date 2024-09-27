@@ -212,7 +212,7 @@ class SplitBuffer {
                 MemoryType::DeviceLocal,
                 mCpuBuffers[i].data(),
                 false);
-            buffer->setName(fmt::format("SplitBuffer:{}:[{}]", mBufferName, i));
+            buffer->setName(std::format("SplitBuffer:{}:[{}]", mBufferName, i));
             mGpuBuffers.push_back(std::move(buffer));
         }
     };

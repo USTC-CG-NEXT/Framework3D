@@ -227,15 +227,15 @@ void copyStringToBuffer(char* buffer, uint32_t bufferSize, const std::string& s)
 std::string formatByteSize(size_t size)
 {
     if (size < 1024ull)
-        return fmt::format("{} B", size);
+        return std::format("{} B", size);
     else if (size < 1048576ull)
-        return fmt::format("{:.2f} kB", size / 1024.0);
+        return std::format("{:.2f} kB", size / 1024.0);
     else if (size < 1073741824ull)
-        return fmt::format("{:.2f} MB", size / 1048576.0);
+        return std::format("{:.2f} MB", size / 1048576.0);
     else if (size < 1099511627776ull)
-        return fmt::format("{:.2f} GB", size / 1073741824.0);
+        return std::format("{:.2f} GB", size / 1073741824.0);
     else
-        return fmt::format("{:.2f} TB", size / 1099511627776.0);
+        return std::format("{:.2f} TB", size / 1099511627776.0);
 }
 
 std::string encodeBase64(const void* data, size_t len)

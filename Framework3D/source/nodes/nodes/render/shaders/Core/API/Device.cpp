@@ -58,6 +58,7 @@
 #include <algorithm>
 
 #include "RenderContext.h"
+#include "Utils/Logging/Logging.h"
 
 namespace Falcor {
 
@@ -180,7 +181,7 @@ ref<RtStateObject> Device::createRtStateObject(const RtStateObjectDesc& desc)
 void Device::wait()
 {
     mpRenderContext->submit(true);
-    mpRenderContext->signal(mpFrameFence.get());
+    // mpRenderContext->signal(mpFrameFence.get());
     executeDeferredReleases();
 }
 
@@ -188,24 +189,26 @@ void Device::endFrame()
 {
     mpRenderContext->submit();
 
-    // Wait on past frames.
-    if (mpFrameFence->getSignaledValue() > kInFlightFrameCount)
-        mpFrameFence->wait(
-            mpFrameFence->getSignaledValue() - kInFlightFrameCount);
+    USTC_CG::logging("Endframe needs refactoring");
 
-    // Flush ray tracing validation if enabled
-    flushRaytracingValidation();
+    //// Wait on past frames.
+    // if (mpFrameFence->getSignaledValue() > kInFlightFrameCount)
+    //     mpFrameFence->wait(
+    //         mpFrameFence->getSignaledValue() - kInFlightFrameCount);
 
-    // Switch to next transient resource heap.
-    getCurrentTransientResourceHeap()->finish();
-    mCurrentTransientResourceHeapIndex =
-        (mCurrentTransientResourceHeapIndex + 1) % kInFlightFrameCount;
-    mpRenderContext->getCommandList()->closeCommandBuffer();
-    getCurrentTransientResourceHeap()->synchronizeAndReset();
-    mpRenderContext->getCommandList()->openCommandBuffer();
+    //// Flush ray tracing validation if enabled
+    // flushRaytracingValidation();
 
-    // Signal frame fence for new frame.
-    mpRenderContext->signal(mpFrameFence.get());
+    //// Switch to next transient resource heap.
+    // getCurrentTransientResourceHeap()->finish();
+    // mCurrentTransientResourceHeapIndex =
+    //     (mCurrentTransientResourceHeapIndex + 1) % kInFlightFrameCount;
+    // mpRenderContext->getCommandList()->closeCommandBuffer();
+    // getCurrentTransientResourceHeap()->synchronizeAndReset();
+    // mpRenderContext->getCommandList()->openCommandBuffer();
+
+    //// Signal frame fence for new frame.
+    // mpRenderContext->signal(mpFrameFence.get());
 
     // Release resources from past frames.
     executeDeferredReleases();

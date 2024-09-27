@@ -39,10 +39,10 @@ static ErrorDiagnosticFlags gErrorDiagnosticFlags = ErrorDiagnosticFlags::BreakO
 
 void throwException(const std::source_location& loc, std::string_view msg)
 {
-    std::string fullMsg = fmt::format("{}\n\n{}:{} ({})", msg, loc.file_name(), loc.line(), loc.function_name());
+    std::string fullMsg = std::format("{}\n\n{}:{} ({})", msg, loc.file_name(), loc.line(), loc.function_name());
 
     if (is_set(gErrorDiagnosticFlags, ErrorDiagnosticFlags::AppendStackTrace))
-        fullMsg += fmt::format("\n\nStacktrace:\n{}", getStackTrace(1));
+        fullMsg += std::format("\n\nStacktrace:\n{}", getStackTrace(1));
 
     if (is_set(gErrorDiagnosticFlags, ErrorDiagnosticFlags::BreakOnThrow) && isDebuggerPresent())
         debugBreak();
@@ -52,12 +52,12 @@ void throwException(const std::source_location& loc, std::string_view msg)
 
 void reportAssertion(const std::source_location& loc, std::string_view cond, std::string_view msg)
 {
-    std::string fullMsg = fmt::format(
+    std::string fullMsg = std::format(
         "Assertion failed: {}\n{}{}\n{}:{} ({})", cond, msg, msg.empty() ? "" : "\n", loc.file_name(), loc.line(), loc.function_name()
     );
 
     if (is_set(gErrorDiagnosticFlags, ErrorDiagnosticFlags::AppendStackTrace))
-        fullMsg += fmt::format("\n\nStacktrace:\n{}", getStackTrace(1));
+        fullMsg += std::format("\n\nStacktrace:\n{}", getStackTrace(1));
 
     if (is_set(gErrorDiagnosticFlags, ErrorDiagnosticFlags::BreakOnAssert) && isDebuggerPresent())
         debugBreak();
@@ -122,7 +122,7 @@ bool reportErrorAndAllowRetry(std::string_view msg)
     if (entered.exchange(true) == true)
         std::quick_exit(1);
 
-    std::string fullMsg = fmt::format("{}\n\nStacktrace:\n{}", msg, getStackTrace(3));
+    std::string fullMsg = std::format("{}\n\nStacktrace:\n{}", msg, getStackTrace(3));
 
     logFatal(fullMsg);
 

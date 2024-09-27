@@ -252,7 +252,7 @@ ref<const ProgramKernels> ProgramVersion::getKernels(
         }
         else {
             // Failure
-            std::string msg = fmt::format(
+            std::string msg = std::format(
                 "Failed to link program:\n{}\n\n{}", getName(), log);
             bool showMessageBox = is_set(
                 getErrorDiagnosticFlags(),

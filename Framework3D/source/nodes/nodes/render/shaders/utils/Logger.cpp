@@ -151,7 +151,7 @@ void Logger::log(Level level, const std::string_view msg, Frequency frequency)
     std::lock_guard<std::mutex> lock(sMutex);
     if (level <= sVerbosity)
     {
-        std::string s = fmt::format("{} {}\n", getLogLevelString(level), msg);
+        std::string s = std::format("{} {}\n", getLogLevelString(level), msg);
 
         if (frequency == Frequency::Once && MessageDeduplicator::instance().isDuplicate(s))
             return;
