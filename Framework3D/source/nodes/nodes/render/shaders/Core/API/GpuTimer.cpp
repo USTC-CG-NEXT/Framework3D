@@ -134,9 +134,7 @@ void GpuTimer::resolve()
     // copied into a single staging buffer once per frame instead.
 
     // Resolve timestamps into buffer.
-    auto encoder = mpDevice->getRenderContext()
-                       ->getLowLevelData()
-                       ->getResourceCommandEncoder();
+    auto encoder = mpDevice->getRenderContext()->getLowLevelData();
 
     encoder->resolveQuery(
         mpDevice->getTimestampQueryHeap()->getGfxQueryPool(),

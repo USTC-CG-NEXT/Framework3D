@@ -86,12 +86,13 @@ void ComputeContext::clearUAV(
     const UnorderedAccessView* pUav,
     const float4& value)
 {
-    resourceBarrier(pUav->resourceHandle, ResourceStates::UnorderedAccess, TODO);
-    
+    resourceBarrier(
+        pUav->resourceHandle, ResourceStates::UnorderedAccess, TODO);
+
     auto resourceEncoder = mpLowLevelData;
     ClearValue clearValue = {};
     memcpy(&clearValue, &value, sizeof(float) * 4);
-    resourceEncoder->clearBufferUInt() clearResourceView(
+    resourceEncoder->clearBufferUInt(pUav->resourceHandle, ) clearResourceView(
         pUav->getGfxResourceView(),
         &clearValue,
         ClearResourceViewFlags::FloatClearValues);
@@ -102,12 +103,13 @@ void ComputeContext::clearUAV(
     const UnorderedAccessView* pUav,
     const uint4& value)
 {
-    resourceBarrier(pUav->resourceHandle, ResourceStates::UnorderedAccess, TODO);
+    resourceBarrier(
+        pUav->resourceHandle, ResourceStates::UnorderedAccess, TODO);
 
     auto resourceEncoder = mpLowLevelData;
     ClearValue clearValue = {};
     memcpy(clearValue.color.uintValues, &value, sizeof(uint32_t) * 4);
-    
+
     resourceEncoder->clearResourceView(
         pUav->getGfxResourceView(), &clearValue, ClearResourceViewFlags::None);
     mCommandsPending = true;

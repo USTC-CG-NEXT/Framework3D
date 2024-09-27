@@ -231,7 +231,7 @@ bool RtProgramVars::prepareShaderTable(
         desc.hitGroupCount = (uint32_t)hitgroupShaders.size();
         desc.hitGroupNames = hitgroupShaders.data();
         desc.program = pRtso->getKernels()->getGfxProgram();
-        if (SLANG_FAILED(mpDevice->getGfxDevice()->createShaderTable(
+        if (SLANG_FAILED(mpDevice->getNvrhiDevice()->createShaderTable(
                 desc, mpShaderTable.writeRef())))
             return false;
         mpCurrentRtStateObject = pRtso;

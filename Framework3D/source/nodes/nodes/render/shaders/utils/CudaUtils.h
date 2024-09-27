@@ -107,37 +107,9 @@ namespace cuda_utils {
         cudaStream_t stream = 0);
 
     /**
-     * Get CUDA device pointer for shared resource.
-     * This takes a Windows Handle (e.g., from Resource::getSharedApiHandle())
-     * on a resource that has been declared "shared" [with
-     * ResourceBindFlags::Shared] plus a size of that resource in bytes and
-     * returns a CUDA device pointer from that resource that can be passed into
-     * OptiX or CUDA.  This pointer is a value returned from
-     * cudaExternalMemoryGetMappedBuffer(), so should follow its rules (e.g.,
-     * the docs claim you are responsible for calling cudaFree() on this
-     * pointer).
-     */
-    FALCOR_API void* getSharedDevicePtr(
-        Device::Type deviceType,
-        SharedResourceApiHandle sharedHandle,
-        uint32_t bytes);
-
-    /**
      * Calls cudaFree() on the provided pointer.
      */
     FALCOR_API bool freeSharedDevicePtr(void* ptr);
-
-    /**
-     * Imports the texture into a CUDA mipmapped array and returns the array in
-     * mipmappedArray. This method should only be called once per texture
-     * resource.
-     * @param pTex Pointer to the texture being imported
-     * @param usageFlags The requested flags to be bound to the mipmapped array
-     * @return Returns the imported mipmapped array.
-     */
-    FALCOR_API cudaMipmappedArray_t importTextureToMipmappedArray(
-        nvrhi::TextureHandle pTex,
-        uint32_t cudaUsageFlags);
 
     /**
      * Maps a texture to a surface object which can be read and written within a
@@ -177,49 +149,6 @@ namespace cuda_utils {
         CUdevice mCudaDevice;
         CUcontext mCudaContext;
         CUstream mCudaStream;
-    };
-
-    /// Wraps an external memory resource.
-    class ExternalMemory : public Object {
-        FALCOR_OBJECT(cuda_utils::ExternalMemory)
-       public:
-        ExternalMemory(ref<Resource> pResource) : mpResource(pResource.get())
-        {
-            FALCOR_CHECK(mpResource, "'resource' is null.");
-            if (auto pBuffer = pResource->asBuffer()) {
-                mExternalMemory = importExternalMemory(pBuffer.get());
-                mSize = pBuffer->getSize();
-            }
-            else {
-                FALCOR_THROW("'resource' must be a buffer.");
-            }
-        }
-
-        ~ExternalMemory()
-        {
-            destroyExternalMemory(mExternalMemory);
-        }
-
-        size_t getSize() const
-        {
-            return mSize;
-        }
-
-        void* getMappedData() const
-        {
-            if (!mMappedData)
-                mMappedData =
-                    externalMemoryGetMappedBuffer(mExternalMemory, 0, mSize);
-            return mMappedData;
-        }
-
-       private:
-        /// Keep a non-owning pointer to the resource.
-        /// TODO: If available, we should use a weak_ref here.
-        Resource* mpResource;
-        cudaExternalMemory_t mExternalMemory;
-        size_t mSize;
-        mutable void* mMappedData{ nullptr };
     };
 
     /// Wraps an external semaphore.
@@ -301,7 +230,7 @@ inline InteropBuffer createInteropBuffer(ref<Device> pDevice, size_t byteSize)
 
     // Create a new DX <-> CUDA shared buffer using the Falcor API to create,
     // then find its CUDA pointer.
-    interop.buffer = pDevice->createBuffer(
+    interop.buffer = pDevice->getNvrhiDevice()->createBuffer(
         byteSize,
         ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess |
             ResourceBindFlags::Shared);

@@ -364,6 +364,12 @@ uint64_t Device::executeCommandList(const nvrhi::CommandListHandle& commands)
     return getGfxDevice()->executeCommandList(commands);
 }
 
+nvrhi::TextureHandle Device::createTexture(
+    const nvrhi::TextureDesc& texture_desc) const
+{
+    return mGfxDevice->createTexture(texture_desc);
+}
+
 Falcor::Device::Device(const Desc& desc) : mDesc(desc)
 {
     if (mDesc.enableAftermath) {

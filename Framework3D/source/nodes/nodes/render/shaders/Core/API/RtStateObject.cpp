@@ -83,7 +83,7 @@ RtStateObject::RtStateObject(ref<Device> pDevice, const RtStateObjectDesc& desc)
     rtpDesc.maxAttributeSizeInBytes = rtProgram->getDesc().maxAttributeSize;
     rtpDesc.program = mDesc.pProgramKernels->getGfxProgram();
 
-    FALCOR_GFX_CALL(mpDevice->getGfxDevice()->createRayTracingPipelineState(
+    FALCOR_GFX_CALL(mpDevice->getNvrhiDevice()->createRayTracingPipelineState(
         rtpDesc, mGfxPipelineState.writeRef()));
 
     // Get shader identifiers.
@@ -96,7 +96,7 @@ RtStateObject::RtStateObject(ref<Device> pDevice, const RtStateObjectDesc& desc)
 
 RtStateObject::~RtStateObject()
 {
-    mpDevice->releaseResource(mGfxPipelineState);
+    mGfxPipelineState = nullptr;
 }
 
 }  // namespace Falcor

@@ -151,7 +151,7 @@ ref<ProgramKernels> ProgramKernels::create(
     }
 
     Slang::ComPtr<ISlangBlob> diagnostics;
-    if (SLANG_FAILED(pDevice->getGfxDevice()->createProgram(
+    if (SLANG_FAILED(pDevice->getNvrhiDevice()->createProgram(
             programDesc,
             pProgram->mGfxProgram.writeRef(),
             diagnostics.writeRef()))) {

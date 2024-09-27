@@ -50,7 +50,7 @@ class FALCOR_API CopyContext {
         using SharedPtr = std::shared_ptr<ReadTextureTask>;
         static SharedPtr create(
             CopyContext* pCtx,
-            const Texture* pTexture,
+            Texture* pTexture,
             uint32_t subresourceIndex);
         void getData(void* pData, size_t size) const;
         std::vector<uint8_t> getData() const;
@@ -85,23 +85,6 @@ class FALCOR_API CopyContext {
     virtual void submit(bool wait = false);
 
     /**
-     * Check if we have pending commands
-     */
-    bool hasPendingCommands() const
-    {
-        return mCommandsPending;
-    }
-
-    /**
-     * Signal the context that we have pending commands. Useful in case you make
-     * raw API calls
-     */
-    void setPendingCommands(bool commandsPending)
-    {
-        mCommandsPending = commandsPending;
-    }
-
-    /**
      * Wait for the CUDA stream to finish execution.
      * Queues a device-side wait on the command queue and adds an async fence
      * signal on the CUDA stream. Returns immediately.
@@ -127,14 +110,14 @@ class FALCOR_API CopyContext {
      * transitioned)
      */
     virtual bool resourceBarrier(
-        const Texture* pTexture,
+        Texture* pTexture,
         ResourceStates newState,
         const nvrhi::TextureSubresourceSet* pViewInfo = nullptr);
 
     virtual bool resourceBarrier(
-        const Buffer* pResource,
+        Buffer* pResource,
         ResourceStates newState,
-        const nvrhi::TextureSubresourceSet* pViewInfo = nullptr);
+        const nvrhi::BufferRange* pViewInfo = nullptr);
 
     /**
      * Insert a UAV barrier
@@ -144,24 +127,24 @@ class FALCOR_API CopyContext {
     /**
      * Copy an entire resource
      */
-    void copyResource(const Resource* pDst, const Resource* pSrc);
+    void copyResource(Resource* pDst, Resource* pSrc);
 
     /**
      * Copy a subresource
      */
     void copySubresource(
-        const Texture* pDst,
+        Texture* pDst,
         uint32_t dstSubresourceIdx,
-        const Texture* pSrc,
+        Texture* pSrc,
         uint32_t srcSubresourceIdx);
 
     /**
      * Copy part of a buffer
      */
     void copyBufferRegion(
-        const Buffer* pDst,
+        Buffer* pDst,
         uint64_t dstOffset,
-        const Buffer* pSrc,
+        Buffer* pSrc,
         uint64_t srcOffset,
         uint64_t numBytes);
 
@@ -172,51 +155,37 @@ class FALCOR_API CopyContext {
      * dimension will be used
      */
     void copySubresourceRegion(
-        const Texture* pDst,
+        Texture* pDst,
         uint32_t dstSubresource,
-        const Texture* pSrc,
+        Texture* pSrc,
         uint32_t srcSubresource,
         const uint3& dstOffset = uint3(0),
         const uint3& srcOffset = uint3(0),
         const uint3& size = uint3(-1));
 
     /**
-     * Update a texture's subresource data
-     * `offset` and `size` describe a region to update. For any channel of
-     * `extent` that is -1, the texture dimension will be used. pData can't be
-     * null. The size of the pointed buffer must be equal to a single texel size
-     * times the size of the region we are updating
-     */
-    void updateSubresourceData(
-        const Texture* pDst,
-        uint32_t subresource,
-        const void* pData,
-        const uint3& offset = uint3(0),
-        const uint3& size = uint3(-1));
-
-    /**
      * Update an entire texture
      */
-    void updateTextureData(const Texture* pTexture, const void* pData);
+    void updateTextureData(Texture* pTexture, const void* pData);
 
     /**
      * Update a buffer
      */
     void updateBuffer(
-        const Buffer* pBuffer,
+        Buffer* pBuffer,
         const void* pData,
         size_t offset = 0,
         size_t numBytes = 0);
 
     void readBuffer(
-        const Buffer* pBuffer,
+        Buffer* pBuffer,
         void* pData,
         size_t offset = 0,
         size_t numBytes = 0);
 
     template<typename T>
     std::vector<T> readBuffer(
-        const Buffer* pBuffer,
+        Buffer* pBuffer,
         size_t firstElement = 0,
         size_t elementCount = 0)
     {
@@ -236,14 +205,14 @@ class FALCOR_API CopyContext {
      * pipeline and wait for the GPU to finish execution
      */
     std::vector<uint8_t> readTextureSubresource(
-        const Texture* pTexture,
+        Texture* pTexture,
         uint32_t subresourceIndex);
 
     /**
      * Read texture data Asynchronously
      */
     ReadTextureTask::SharedPtr asyncReadTextureSubresource(
-        const Texture* pTexture,
+        Texture* pTexture,
         uint32_t subresourceIndex);
 
     /**
@@ -257,28 +226,20 @@ class FALCOR_API CopyContext {
     }
 
    protected:
-    bool textureBarrier(const Texture* pTexture, ResourceStates newState);
-    bool bufferBarrier(const Buffer* pBuffer, ResourceStates newState);
+    bool textureBarrier(Texture* pTexture, ResourceStates newState);
+    bool bufferBarrier(Buffer* pBuffer, ResourceStates newState);
     bool subresourceBarriers(
-        const Texture* pTexture,
+        Texture* pTexture,
         ResourceStates newState,
         const nvrhi::TextureSubresourceSet* pViewInfo);
     void apiSubresourceBarrier(
-        const Texture* pTexture,
+        Texture* pTexture,
         ResourceStates newState,
         ResourceStates oldState,
         uint32_t arraySlice,
         uint32_t mipLevel);
-    void updateTextureSubresources(
-        const Texture* pTexture,
-        uint32_t firstSubresource,
-        uint32_t subresourceCount,
-        const void* pData,
-        const uint3& offset = uint3(0),
-        const uint3& size = uint3(-1));
 
     Device* mpDevice;
-    bool mCommandsPending = false;
     nvrhi::CommandListHandle mpLowLevelData;
 };
 }  // namespace Falcor

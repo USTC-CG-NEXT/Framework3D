@@ -123,6 +123,8 @@ class FALCOR_API Device : public Object {
 
     uint64_t executeCommandList(const nvrhi::CommandListHandle& commands);
 
+    nvrhi::TextureHandle createTexture(const nvrhi::TextureDesc& texture_desc) const;
+
 public:
     /**
      * Maximum number of in-flight frames.
@@ -233,7 +235,7 @@ public:
     }
 
     /// Return the GFX define.
-    nvrhi::IDevice* getGfxDevice() const
+    nvrhi::IDevice* getNvrhiDevice() const
     {
         return mGfxDevice;
     }

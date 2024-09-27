@@ -32,6 +32,7 @@
 #include "Core/Program/ProgramVersion.h"
 #include "Device.h"
 #include "Utils/Logger.h"
+#include "Utils/Math/Matrix.h"
 
 namespace Falcor {
 namespace {
@@ -275,7 +276,7 @@ ParameterBlock::ParameterBlock(
       mpProgramVersion(pReflector->getProgramVersion()),
       mpReflector(pReflector->getDefaultParameterBlock())
 {
-    FALCOR_GFX_CALL(mpDevice->getGfxDevice()->createMutableRootShaderObject(
+    FALCOR_GFX_CALL(mpDevice->getNvrhiDevice()->createMutableRootShaderObject(
         pReflector->getProgramVersion()
             ->getKernels(mpDevice, nullptr)
             ->getGfxProgram(),
@@ -293,7 +294,7 @@ ParameterBlock::ParameterBlock(
       mpReflector(pReflection)
 {
     FALCOR_GFX_CALL(
-        mpDevice->getGfxDevice()->createMutableShaderObjectFromTypeLayout(
+        mpDevice->getNvrhiDevice()->createMutableShaderObjectFromTypeLayout(
             pReflection->getElementType()->getSlangTypeLayout(),
             mpShaderObject.writeRef()));
     initializeResourceBindings();
