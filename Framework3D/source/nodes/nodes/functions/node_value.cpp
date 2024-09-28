@@ -27,6 +27,19 @@ static void node_exec_float(ExeParams params)
     params.set_output("value", val);
 }
 
+static void node_declare_bool(NodeDeclarationBuilder& b)
+{
+    b.add_input<decl::Bool>("value").min(0).max(1).default_val(1);
+    b.add_output<decl::Bool>("value");
+}
+
+static void node_exec_bool(ExeParams params)
+{
+    auto val = params.get_input<bool>("value");
+    params.set_output("value", val);
+
+}
+
 static void node_register()
 {
     static NodeTypeInfo ntype_value_int;
@@ -45,6 +58,14 @@ static void node_register()
     ntype_value_float.node_execute = node_exec_float;
     ntype_value_float.declare = node_declare_float;
     nodeRegisterType(&ntype_value_float);
+
+    static NodeTypeInfo ntype_value_bool;
+    strcpy(ntype_value_bool.ui_name, "Bool Value");
+    strcpy(ntype_value_bool.id_name, "func_value_bool");
+    func_node_type_base(&ntype_value_bool);
+    ntype_value_bool.node_execute = node_exec_bool;
+    ntype_value_bool.declare = node_declare_bool;
+    nodeRegisterType(&ntype_value_bool);
 }
 
 NOD_REGISTER_NODE(node_register)

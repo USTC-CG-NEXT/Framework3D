@@ -80,6 +80,7 @@ MakeType(Int, int, 1, Buffer);
 MakeType(Int, pxr::GfVec2i, 2, Buffer);
 MakeType(Int, pxr::GfVec3i, 3, Buffer);
 MakeType(Int, pxr::GfVec4i, 4, Buffer);
+
 static SocketTypeInfo* make_socket_type_Float2()
 {
     SocketTypeInfo* socket_type = make_standard_socket_type(SocketType::Float2);
@@ -145,6 +146,13 @@ static SocketTypeInfo* make_socket_type_Any()
 {
     SocketTypeInfo* socket_type = make_standard_socket_type(SocketType::Any);
     // socket_type->cpp_type = entt::resolve<entt::meta_any>();
+    return socket_type;
+}
+
+static SocketTypeInfo* make_socket_type_Bool()
+{
+    SocketTypeInfo* socket_type = make_standard_socket_type(SocketType::Bool);
+    socket_type->cpp_type = entt::resolve<bool>();
     return socket_type;
 }
 
