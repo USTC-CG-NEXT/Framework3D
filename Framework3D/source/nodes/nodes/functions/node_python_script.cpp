@@ -60,9 +60,6 @@ static void extract_value(
 {
     using namespace pxr;
 
-    bp::dict d;
-    auto p = d[0];
-    
     auto extract = bp::extract<float>(result);
     if (extract.check()) {
         float extract_float = extract;
