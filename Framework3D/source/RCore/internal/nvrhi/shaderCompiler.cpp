@@ -33,25 +33,6 @@ std::filesystem::path SlangShaderCompiler::find_root(
     return current;
 }
 
-#if USTC_CG_WITH_CUDA
-
-SlangResult SlangShaderCompiler::addCUDAPrelude(slang::IGlobalSession* session)
-{
-    std::filesystem::path includePath = ".";
-
-    auto root = find_root(includePath);
-
-    auto prelude_name = "/slang/prelude/slang-cuda-prelude.h";
-    std::ostringstream prelude;
-    prelude << "#include \"" << root.generic_string() + prelude_name
-            << "\"\n\n";
-
-    // std::cerr << prelude.str() << std::endl;
-    session->setLanguagePrelude(
-        SLANG_SOURCE_LANGUAGE_CUDA, prelude.str().c_str());
-    return SLANG_OK;
-}
-
 SlangResult SlangShaderCompiler::addHLSLPrelude(slang::IGlobalSession* session)
 {
     std::filesystem::path includePath = ".";
@@ -89,8 +70,25 @@ SlangResult SlangShaderCompiler::addHLSLSupportPreDefine(
     slangRequest->addPreprocessorDefine("SLANG_HLSL_ENABLE_NVAPI", "1");
     slangRequest->addPreprocessorDefine(
         "NV_SHADER_EXTN_REGISTER_SPACE", "space0");
-    slangRequest->addPreprocessorDefine(
-        "NV_SHADER_EXTN_SLOT", "u127");
+    slangRequest->addPreprocessorDefine("NV_SHADER_EXTN_SLOT", "u127");
+    return SLANG_OK;
+}
+#if USTC_CG_WITH_CUDA
+
+SlangResult SlangShaderCompiler::addCUDAPrelude(slang::IGlobalSession* session)
+{
+    std::filesystem::path includePath = ".";
+
+    auto root = find_root(includePath);
+
+    auto prelude_name = "/slang/prelude/slang-cuda-prelude.h";
+    std::ostringstream prelude;
+    prelude << "#include \"" << root.generic_string() + prelude_name
+            << "\"\n\n";
+
+    // std::cerr << prelude.str() << std::endl;
+    session->setLanguagePrelude(
+        SLANG_SOURCE_LANGUAGE_CUDA, prelude.str().c_str());
     return SLANG_OK;
 }
 

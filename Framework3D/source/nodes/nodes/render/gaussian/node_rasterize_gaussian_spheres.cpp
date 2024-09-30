@@ -60,17 +60,17 @@ static void node_exec(ExeParams params)
 
     auto output =
         torch::zeros({ size[0], size[1], 4 }, std::nullopt, option) + color;
-
-    assert(output.is_cuda());
-    params.set_output("Rasterized", output);
+    params.set_output<torch::Tensor>("Rasterized", std::move(output));
     return;
-    torch::Tensor background;
-    torch::Tensor means3D;
-    torch::Tensor colors;
-    torch::Tensor opacity;
-    torch::Tensor scales;
-    torch::Tensor rotations;
-    torch::Tensor cov3D_precomp;
+
+    torch::Tensor background = params.get_input<torch::Tensor>("background");
+    torch::Tensor means3D = params.get_input<torch::Tensor>("means3D");
+    torch::Tensor colors = params.get_input<torch::Tensor>("colors");
+    torch::Tensor opacity = params.get_input<torch::Tensor>("opacity");
+    torch::Tensor scales = params.get_input<torch::Tensor>("scales");
+    torch::Tensor rotations = params.get_input<torch::Tensor>("rotations");
+    torch::Tensor cov3D_precomp =
+        params.get_input<torch::Tensor>("cov3D_precomp");
 
     torch::Tensor sh;
     int degree;

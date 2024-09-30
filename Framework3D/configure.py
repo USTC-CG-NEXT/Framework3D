@@ -169,3 +169,4 @@ def process_SDK(target):
 if __name__ == "__main__":
     process_SDK("Debug")
     process_SDK("Release")
+    process_SDK("RelWithDebInfo")

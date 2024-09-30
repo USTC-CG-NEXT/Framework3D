@@ -1,5 +1,4 @@
 import numpy as np
-import torch
 import drjit as dr
 
 def compute(arr: np.ndarray):

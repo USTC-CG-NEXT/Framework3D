@@ -1,7 +1,6 @@
 from plyfile import PlyData, PlyElement
 import numpy as np
 
-
 def read_model():
     ply_path = "test.ply"
     plydata = PlyData.read(ply_path)

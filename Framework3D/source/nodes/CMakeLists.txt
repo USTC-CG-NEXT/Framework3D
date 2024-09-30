@@ -11,7 +11,7 @@ function(add_node_discovery
   sources
   output_file
   output_function
-  )
+)
 
   set(extra_args "")
 
@@ -22,44 +22,44 @@ function(add_node_discovery
 
   add_custom_command(
     OUTPUT
-      ${output_file}
+    ${output_file}
     COMMAND
-      ${Python3_EXECUTABLE}
-        ${DISCOVER_NODES_PATH}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${output_file}
-        ${output_function}
-        ${sources}
-        ${extra_args}
+    ${Python3_EXECUTABLE}
+    ${DISCOVER_NODES_PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${output_file}
+    ${output_function}
+    ${sources}
+    ${extra_args}
     DEPENDS
-      ${sources}
-      ${DISCOVER_NODES_PATH}
+    ${sources}
+    ${DISCOVER_NODES_PATH}
   )
   set_source_files_properties(${output_file} PROPERTIES GENERATED TRUE)
   set(${lib_name} "${output_file}" PARENT_SCOPE)
 endfunction()
 
-file(GLOB_RECURSE 
-    CPP_FILES 
-    ${CMAKE_CURRENT_LIST_DIR}/*.cpp 
+file(GLOB_RECURSE
+  CPP_FILES
+  ${CMAKE_CURRENT_LIST_DIR}/*.cpp
 )
 
-file(GLOB_RECURSE 
-    CUDA_FILES 
-    ${CMAKE_CURRENT_LIST_DIR}/*.cu
+file(GLOB_RECURSE
+  CUDA_FILES
+  ${CMAKE_CURRENT_LIST_DIR}/*.cu
 )
 
-file(GLOB_RECURSE 
-    NODE_FILES 
-    ${CMAKE_CURRENT_LIST_DIR}/nodes/*.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/nodes/*.cu
+file(GLOB_RECURSE
+  NODE_FILES
+  ${CMAKE_CURRENT_LIST_DIR}/nodes/*.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/nodes/*.cu
 )
 
 add_node_discovery(
   nodes_generated
   "${NODE_FILES}"
   ${CMAKE_CURRENT_BINARY_DIR}/register_nodes.cc
-  register_nodes 
+  register_nodes
 )
 
 add_library(nodes STATIC ${CPP_FILES} ${nodes_generated})
@@ -91,10 +91,10 @@ target_include_directories(nodes PRIVATE ${CMAKE_CURRENT_LIST_DIR}/nodes/render/
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(nodes PUBLIC OpenMP::OpenMP_CXX)
-    message(STATUS "OpenMP found, building with it.")
+  target_link_libraries(nodes PUBLIC OpenMP::OpenMP_CXX)
+  message(STATUS "OpenMP found, building with it.")
 else()
-    message(WARNING "OpenMP not found, building without it.")
+  message(WARNING "OpenMP not found, building without it.")
 endif()
 
 target_compile_options(nodes PRIVATE -DUSTC_CG_BUILD_MODULE=0 -DFALCOR_DLL=1 -DNOMINMAX)
@@ -103,12 +103,28 @@ get_filename_component(NODES_FILES_DIR "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
 set(NODES_FILES_DIR_MACRO "#define NODES_FILES_DIR \"${NODES_FILES_DIR}\"")
 set(RENDER_NODES_FILES_DIR_MACRO "#define RENDER_NODES_FILES_DIR \"${NODES_FILES_DIR}/nodes/render\"")
 set(FUNC_NODES_FILES_DIR_MACRO "#define FUNC_NODES_FILES_DIR \"${NODES_FILES_DIR}/nodes/functions\"")
+
+# Grep all the .py files under this directory, and is a subdirectory of "scripts/", then write the names of the files (only the file name, no directory and no .py) into a macro SCRIPT_LISTS_MACRO, seperated with ',' , which will later be configured to the header file NODES_FILES_DIR. 
+
+file(GLOB PY_FILES_RENDER RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/nodes/render/scripts/*.py)
+file(GLOB PY_FILES_FUNCTIONS RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/nodes/functions/scripts/*.py)
+list(APPEND PY_FILES ${PY_FILES_RENDER} ${PY_FILES_FUNCTIONS})
+
+set(SCRIPT_LISTS "")
+foreach(py_file ${PY_FILES})
+  get_filename_component(py_file_name ${py_file} NAME_WE)
+  list(APPEND SCRIPT_LISTS ${py_file_name})
+endforeach()
+
+string(REPLACE ";" "," SCRIPT_LISTS_MACRO "${SCRIPT_LISTS}")
+set(SCRIPT_LISTS_MACRO "#define SCRIPT_LIST ${SCRIPT_LISTS_MACRO}")
+
 configure_file(
-    "${CMAKE_CURRENT_LIST_DIR}/NODES_FILES_DIR.h.in"
-    "${CMAKE_CURRENT_LIST_DIR}/nodes/render/NODES_FILES_DIR.h"
+  "${CMAKE_CURRENT_LIST_DIR}/NODES_FILES_DIR.h.in"
+  "${CMAKE_CURRENT_LIST_DIR}/nodes/render/NODES_FILES_DIR.h"
 )
 
 configure_file(
-    "${CMAKE_CURRENT_LIST_DIR}/NODES_FILES_DIR.h.in"
-    "${CMAKE_CURRENT_LIST_DIR}/nodes/functions/NODES_FILES_DIR.h"
+  "${CMAKE_CURRENT_LIST_DIR}/NODES_FILES_DIR.h.in"
+  "${CMAKE_CURRENT_LIST_DIR}/nodes/functions/NODES_FILES_DIR.h"
 )

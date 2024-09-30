@@ -11,6 +11,7 @@
 #include "entt/meta/resolve.hpp"
 #include "func_node_base.h"
 #include "pxr/base/vt/arrayPyBuffer.h"
+#include "NODES_FILES_DIR.h"
 
 namespace USTC_CG::node_python_script {
 namespace bp = boost::python;
@@ -59,6 +60,9 @@ static void extract_value(
 {
     using namespace pxr;
 
+    bp::dict d;
+    auto p = d[0];
+    
     auto extract = bp::extract<float>(result);
     if (extract.check()) {
         float extract_float = extract;
@@ -71,7 +75,7 @@ static void extract_value(
 
 #define InputTypes                                                  \
     float, int, VtArray<float>, VtArray<GfVec2f>, VtArray<GfVec3f>, \
-        VtArray<GfVec4f>, GfVec2f, GfVec3f, GfVec4f
+        VtArray<GfVec4f>, GfVec2f, GfVec3f, GfVec4f, bpn::ndarray
 
 static void get_inputs(bp::list& input_l, const entt::meta_any& storage)
 {
@@ -127,25 +131,24 @@ static void get_inputs(bp::list& input_l, const entt::meta_any& storage)
         }                                                                      \
     }
 
-#define SCRIPT_LIST1 add
 #define BUILD_SCRIPT(script)      \
     DECLARE_PYTHON_SCRIPT(script) \
     DEFINE_PYTHON_SCRIPT_EXEC(script)
 
-MACRO_MAP(BUILD_SCRIPT, SCRIPT_LIST1)
+MACRO_MAP(BUILD_SCRIPT, SCRIPT_LIST)
 
 static void node_register()
 {
-#define REGISTER_SCRIPT(script)                                  \
-    static NodeTypeInfo ntype##script;                           \
-    strcpy(ntype##script.ui_name, #script);                      \
-    strcpy(ntype##script.id_name, "geom_python_script" #script); \
-    func_node_type_base(&ntype##script);                         \
-    ntype##script.node_execute = node_exec_##script;             \
-    ntype##script.declare = node_declare_##script;               \
+#define REGISTER_SCRIPT(script)                             \
+    static NodeTypeInfo ntype##script;                      \
+    strcpy(ntype##script.ui_name, #script);                 \
+    strcpy(ntype##script.id_name, "python_script" #script); \
+    func_node_type_base(&ntype##script);                    \
+    ntype##script.node_execute = node_exec_##script;        \
+    ntype##script.declare = node_declare_##script;          \
     nodeRegisterType(&ntype##script);
 
-    MACRO_MAP(REGISTER_SCRIPT, SCRIPT_LIST1)
+    MACRO_MAP(REGISTER_SCRIPT, SCRIPT_LIST)
 }
 
 NOD_REGISTER_NODE(node_register)

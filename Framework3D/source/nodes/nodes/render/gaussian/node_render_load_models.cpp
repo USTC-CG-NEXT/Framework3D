@@ -66,21 +66,28 @@ static void node_exec(ExeParams params)
     auto& storage = params.get_runtime_storage<Storage&>();
 
     if (!storage.initialized) {
-        bp::object m = bp::import("read_model");
-        bp::object read_results = m.attr("read_model")();
-        auto list = bp::list(read_results);
+        try {
+            bp::object m = bp::import("read_model");
+            bp::object read_results = m.attr("read_model")();
+            auto list = bp::list(read_results);
 
-        storage.xyz = np::array(list[0]).copy();
-        storage.opacity = np::array(list[1]).copy();
-        storage.trbf_center = np::array(list[2]).copy();
-        storage.trbf_scale = np::array(list[3]).copy();
-        storage.motion = np::array(list[4]).copy();
-        storage.features_dc = np::array(list[5]).copy();
-        storage.scales = np::array(list[6]).copy();
-        storage.rots = np::array(list[7]).copy();
-        storage.omegas = np::array(list[8]).copy();
-        storage.fts = np::array(list[9]).copy();
-        storage.initialized = true;
+            storage.xyz = np::array(list[0]).copy();
+            storage.opacity = np::array(list[1]).copy();
+            storage.trbf_center = np::array(list[2]).copy();
+            storage.trbf_scale = np::array(list[3]).copy();
+            storage.motion = np::array(list[4]).copy();
+            storage.features_dc = np::array(list[5]).copy();
+            storage.scales = np::array(list[6]).copy();
+            storage.rots = np::array(list[7]).copy();
+            storage.omegas = np::array(list[8]).copy();
+            storage.fts = np::array(list[9]).copy();
+            storage.initialized = true;
+        }
+        catch (const bp::error_already_set&) {
+            PyErr_Print();
+            throw std::runtime_error(
+                "Python error. Node delare fails in read_model");
+        }
     }
 
     params.set_output("xyz", storage.xyz);

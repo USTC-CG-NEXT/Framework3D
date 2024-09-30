@@ -116,11 +116,13 @@ NodeTypeInfo* nodeTypeFind(const char* idname)
 
 void register_all()
 {
-    SetEnvironmentVariable(
-        "PYTHONPATH",
-        FUNC_NODES_FILES_DIR "/scripts;" RENDER_NODES_FILES_DIR "/scripts");
-
     Py_Initialize();
+    // Call python to set python path
+    namespace py = boost::python;
+    py::object sys = py::import("sys");
+    sys.attr("path").attr("append")(FUNC_NODES_FILES_DIR "/scripts");
+    sys.attr("path").attr("append")(RENDER_NODES_FILES_DIR "/scripts");
+
     boost::python::numpy::initialize();
     register_cpp_types();
     register_nodes();
