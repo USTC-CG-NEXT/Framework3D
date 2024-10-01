@@ -10,6 +10,7 @@
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
 #include "Nodes/node_register.h"
+#include "Nodes/socket_type_aliases.hpp"
 #include "Nodes/socket_types/render_socket_types.hpp"
 #include "Nodes/socket_types/stage_socket_types.hpp"
 #include "RCore/Backend.hpp"
@@ -300,6 +301,54 @@ void node_exec_TorchTensor_to_Texture(ExeParams exe_params)
     exe_params.set_output("texture", texture);
 }
 
+void node_declare_Float1Buffer_to_TorchTensor(NodeDeclarationBuilder& b)
+{
+    b.add_input<decl::Float1Buffer>("buffer");
+    b.add_output<decl::TorchTensor>("tensor");
+}
+
+void node_exec_Float1Buffer_to_TorchTensor(ExeParams params)
+{
+    pxr::VtArray<float> buffer =
+        params.get_input<pxr::VtArray<float>>("buffer");
+    long long width = buffer.size();
+    auto tensor = torch::empty({ width }, torch::kFloat);
+    memcpy(tensor.data_ptr(), buffer.data(), width * sizeof(float));
+    params.set_output("tensor", tensor);
+}
+
+void node_declare_Float1Buffer_to_NumpyArray(NodeDeclarationBuilder& b)
+{
+    b.add_input<decl::Float1Buffer>("buffer");
+    b.add_output<decl::NumpyArray>("arr");
+}
+
+void node_exec_Float1Buffer_to_NumpyArray(ExeParams params)
+{
+    pxr::VtArray<float> buffer =
+        params.get_input<pxr::VtArray<float>>("buffer");
+    auto width = buffer.size();
+    auto s = boost::python::make_tuple(width);
+    auto arr = bpn::empty(s, bpn::dtype::get_builtin<float>());
+    memcpy(arr.get_data(), buffer.data(), width * sizeof(float));
+    params.set_output("arr", arr);
+}
+
+void node_declare_Float_to_NumpyArray(NodeDeclarationBuilder& b)
+{
+    b.add_input<decl::Float>("float");
+    b.add_output<decl::NumpyArray>("arr");
+}
+
+void node_exec_Float_to_NumpyArray(ExeParams params)
+{
+    auto f = params.get_input<float>("float");
+    auto s = boost::python::make_tuple(1);
+    auto arr = bpn::empty(s, bpn::dtype::get_builtin<float>());
+    *reinterpret_cast<float*>(arr.get_data()) = f;
+    params.set_output("arr", arr);
+}
+
 static void node_register()
 {
 #define CONVERSION(FROM, TO)                                                 \
@@ -321,6 +370,9 @@ static void node_register()
     CONVERSION(NumpyArray, Buffer)
     CONVERSION(NumpyArray, TorchTensor)
     CONVERSION(TorchTensor, Texture)
+    CONVERSION(Float1Buffer, TorchTensor)
+    CONVERSION(Float1Buffer, NumpyArray)
+    CONVERSION(Float, NumpyArray)
 }
 
 NOD_REGISTER_NODE(node_register)

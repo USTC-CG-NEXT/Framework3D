@@ -240,7 +240,8 @@ void EagerNodeTreeExecutor::prepare_memory()
     }
 }
 
-void EagerNodeTreeExecutor::remove_storage(const std::set<std::string>::value_type& key)
+void EagerNodeTreeExecutor::remove_storage(
+    const std::set<std::string>::value_type& key)
 {
     storage.erase(key);
 }
@@ -370,6 +371,8 @@ void EagerNodeTreeExecutorGeom::set_global_param(GeomNodeGlobalParams* param)
 
 void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree)
 {
+    auto gilState = PyGILState_Ensure();
+
     tree->ensure_topology_cache();
     clear();
 
@@ -381,6 +384,7 @@ void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree)
     prepare_memory();
 
     refresh_storage();
+    PyGILState_Release(gilState);
 }
 
 void EagerNodeTreeExecutor::execute_tree(NodeTree* tree)
@@ -396,7 +400,7 @@ void EagerNodeTreeExecutor::execute_tree(NodeTree* tree)
     }
     try_storage();
 
-    //PyGILState_Release(gilState);
+    PyGILState_Release(gilState);
 }
 
 entt::meta_any* EagerNodeTreeExecutor::FindPtr(NodeSocket* socket)

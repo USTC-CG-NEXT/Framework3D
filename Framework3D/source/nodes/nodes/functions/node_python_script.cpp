@@ -182,7 +182,9 @@ static void set_outputs(
               params.set_output(name.c_str(), socket_aliases::TYPE(value));  \
           }                                                                  \
           else {                                                             \
-              throw std::runtime_error("Type mismatch for output: " + name); \
+              throw std::runtime_error(                                      \
+                  "Type not found for output, typename: " #TYPE ", name: " + \
+                  name);                                                     \
           }                                                                  \
       } },
 

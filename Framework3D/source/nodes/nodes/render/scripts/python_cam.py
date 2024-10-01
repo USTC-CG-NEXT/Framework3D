@@ -31,16 +31,40 @@ def wrap_exec(list):
 
 # import drjit as dr
 from data.data_structures import CameraInfo
+import numpy as np
+import torch
 
 
-def exec_node(a, b):
-    # print("a ", type(a))
-    # print("b ", type(b))
+def exec_node(
+    idx: int,
+    R: np.ndarray,
+    T: np.ndarray,
+    fovy: np.ndarray,
+    fovx: np.ndarray,
+    image: torch.Tensor,
+    world_view_transform: torch.Tensor,
+    projection_matrix: torch.Tensor,
+    full_proj_transform: torch.Tensor,
+    camera_center: torch.Tensor,
+    time: float,
+    rays: torch.Tensor,
+    event_image: torch.Tensor,
+):
 
-    # c =TorchTensor(a,device='cuda')
-    # d = c+b
+    camera = CameraInfo(
+        idx,
+        R,
+        T,
+        fovy,
+        fovx,
+        image,
+        world_view_transform,
+        projection_matrix,
+        full_proj_transform,
+        camera_center,
+        time,
+        rays,
+        event_image,
+    )
 
-    camera = CameraInfo()
-    a = dict()
-
-    return a + b
+    return camera
