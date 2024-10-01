@@ -1,7 +1,7 @@
 #pragma once
 
 #include "USTC_CG.h"
-#define BASIC_SOCKET_TYPES Int, String, Float, Any
+#define BASIC_SOCKET_TYPES Int, String, Float
 
 #define STAGE_SOCKET_TYPES Layer, PyObj, NumpyArray, TorchTensor, SocketGroup
 
@@ -16,6 +16,8 @@
 #define GEO_SOCKET_TYPES \
     Geometry, MassSpringSocket, SPHFluidSocket, AnimatorSocket, BUFFER_TYPES
 
-#define ALL_SOCKET_TYPES                                         \
+#define ALL_SOCKET_TYPES_EXCEPT_ANY                              \
     BASIC_SOCKET_TYPES, STAGE_SOCKET_TYPES, RENDER_SOCKET_TYPES, \
         GEO_SOCKET_TYPES
+
+#define ALL_SOCKET_TYPES ALL_SOCKET_TYPES_EXCEPT_ANY, Any
