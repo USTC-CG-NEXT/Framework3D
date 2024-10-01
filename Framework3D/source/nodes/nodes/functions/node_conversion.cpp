@@ -315,9 +315,6 @@ static void node_register()
     ntype_##FROM##_to_##TO.conversion_to = SocketType::TO;                   \
     nodeRegisterType(&ntype_##FROM##_to_##TO);
 
-#define CONVERSION_TYPES \
-    Int_to_Float, Texture_to_NumpyArray, NumpyArray_to_Texture
-
     CONVERSION(Int, Float)
     CONVERSION(Texture, NumpyArray)
     CONVERSION(NumpyArray, Texture)

@@ -2,7 +2,7 @@
 
 
 def declare_node():
-    return [["a", "b"], ["c"]]
+    return [{"a": "Float", "b": "Float"}, {"c": "Float"}]
 
 
 def wrap_exec(list):
@@ -18,7 +18,7 @@ def wrap_exec(list):
 def exec_node(a, b):
     # print("a ", type(a))
     # print("b ", type(b))
-    
+
     # c =torch.tensor(a,device='cuda')
     # d = c+b
-    return a+b
+    return a + b

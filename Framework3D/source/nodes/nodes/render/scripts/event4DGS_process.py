@@ -151,30 +151,30 @@ def render_stg(
 
 def declare_node():
     return [
-        [
-            "cam",
-            "xyz",
-            "trbf_center",
-            "trbf_scale",
-            "active_sh_degree",
-            "opacity",
-            "scale",
-            "rotation",
-            "omega",
-            "features_dc",
-            "features_t",
-            "motion",
-        ],
-        [
-            "render",
-            "viewspace_points",
-            "visibility_filter",
-            "radii",
-            "depth",
-            "opacity",
-            "events",
-            "newly_added",
-        ],
+        {
+            "cam": "PyObj",
+            "xyz": "TorchTensor",
+            "trbf_center": "TorchTensor",
+            "trbf_scale": "TorchTensor",
+            "active_sh_degree": "Int",
+            "opacity": "TorchTensor",
+            "scale": "TorchTensor",
+            "rotation": "TorchTensor",
+            "omega": "TorchTensor",
+            "features_dc": "TorchTensor",
+            "features_t": "TorchTensor",
+            "motion": "TorchTensor",
+        },
+        {
+            "render": "TorchTensor",
+            "viewspace_points": "TorchTensor",
+            "visibility_filter": "TorchTensor",
+            "radii": "TorchTensor",
+            "depth": "TorchTensor",
+            "opacity": "TorchTensor",
+            "events": "TorchTensor",
+            "newly_added": "TorchTensor",
+        },
     ]
 
 

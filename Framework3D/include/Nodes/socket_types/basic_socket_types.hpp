@@ -26,8 +26,8 @@ class Int : public SocketDeclaration {
     // TODO: Throw error on mac.
     // using DefaultValueType = bNodeSocketValue;
 
-    int soft_min = INT_MIN / 2;
-    int soft_max = INT_MAX / 2;
+    int soft_min = -10;
+    int soft_max = 10;
     int default_value_ = 0;
 };
 
@@ -67,8 +67,8 @@ class Float : public SocketDeclaration {
 
     using Builder = FloatBuilder;
 
-    float soft_min = -FLT_MAX / 2.0f;
-    float soft_max = FLT_MAX / 2.0f;
+    float soft_min = -10.f;
+    float soft_max = 10.f;
     float default_value_ = 0;
 };
 

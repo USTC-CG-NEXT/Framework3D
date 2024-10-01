@@ -51,6 +51,5 @@ using MassSpringSocket = std::shared_ptr<node_mass_spring::MassSpring>;
 using SPHFluidSocket = std::shared_ptr<node_sph_fluid::SPHBase>;
 using AnimatorSocket = std::shared_ptr<node_character_animation::Animator>;
 using TorchTensor = torch::Tensor;
-
 }  // namespace socket_aliases
 USTC_CG_NAMESPACE_CLOSE_SCOPE

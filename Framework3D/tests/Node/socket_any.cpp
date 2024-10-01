@@ -1,3 +1,4 @@
+#include <iostream>
 #include <boost/python/dict.hpp>
 
 int main()
@@ -5,9 +6,17 @@ int main()
     // An example of how to use boost::python::dict
 
     Py_Initialize();
-    auto dict = boost::python::dict();
-    dict["key1"] = 1;
-    dict["key2"] = 2;
 
-    dict.itervalues();
+    try {
+        auto dict = boost::python::dict();
+        dict["key1"] = 1;
+        dict["key2"] = 2;
+
+        auto c = dict.keys();
+
+        std::cout << dict["key1"];
+    }
+    catch (const boost::python::error_already_set&) {
+        PyErr_Print();
+    }
 }

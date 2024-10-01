@@ -396,7 +396,7 @@ void EagerNodeTreeExecutor::execute_tree(NodeTree* tree)
     }
     try_storage();
 
-    PyGILState_Release(gilState);
+    //PyGILState_Release(gilState);
 }
 
 entt::meta_any* EagerNodeTreeExecutor::FindPtr(NodeSocket* socket)

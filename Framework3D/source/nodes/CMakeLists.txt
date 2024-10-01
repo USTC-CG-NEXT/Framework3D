@@ -108,16 +108,24 @@ set(FUNC_NODES_FILES_DIR_MACRO "#define FUNC_NODES_FILES_DIR \"${NODES_FILES_DIR
 
 file(GLOB PY_FILES_RENDER RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/nodes/render/scripts/*.py)
 file(GLOB PY_FILES_FUNCTIONS RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/nodes/functions/scripts/*.py)
-list(APPEND PY_FILES ${PY_FILES_RENDER} ${PY_FILES_FUNCTIONS})
 
-set(SCRIPT_LISTS "")
-foreach(py_file ${PY_FILES})
+set(RENDER_SCRIPT_LISTS "")
+foreach(py_file ${PY_FILES_RENDER})
   get_filename_component(py_file_name ${py_file} NAME_WE)
-  list(APPEND SCRIPT_LISTS ${py_file_name})
+  list(APPEND RENDER_SCRIPT_LISTS ${py_file_name})
 endforeach()
 
-string(REPLACE ";" "," SCRIPT_LISTS_MACRO "${SCRIPT_LISTS}")
-set(SCRIPT_LISTS_MACRO "#define SCRIPT_LIST ${SCRIPT_LISTS_MACRO}")
+set(FUNC_SCRIPT_LISTS "")
+foreach(py_file ${PY_FILES_FUNCTIONS})
+  get_filename_component(py_file_name ${py_file} NAME_WE)
+  list(APPEND FUNC_SCRIPT_LISTS ${py_file_name})
+endforeach()
+
+string(REPLACE ";" "," RENDER_SCRIPT_LISTS_MACRO "${RENDER_SCRIPT_LISTS}")
+string(REPLACE ";" "," FUNC_SCRIPT_LISTS_MACRO "${FUNC_SCRIPT_LISTS}")
+
+set(RENDER_SCRIPT_LISTS_MACRO "#define RENDER_SCRIPT_LIST ${RENDER_SCRIPT_LISTS_MACRO}")
+set(FUNC_SCRIPT_LISTS_MACRO "#define FUNC_SCRIPT_LIST ${FUNC_SCRIPT_LISTS_MACRO}")
 
 configure_file(
   "${CMAKE_CURRENT_LIST_DIR}/NODES_FILES_DIR.h.in"

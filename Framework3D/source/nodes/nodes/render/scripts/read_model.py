@@ -1,8 +1,8 @@
 from plyfile import PlyData, PlyElement
 import numpy as np
 
-def read_model():
-    ply_path = "test.ply"
+
+def read_model(ply_path):
     plydata = PlyData.read(ply_path)
     xyz = np.stack(
         (
@@ -68,6 +68,30 @@ def read_model():
         fts,
     )
 
-if __name__ == "__main__":
-    d = read_model()
-    print("Done")
+
+def declare_node():
+    return [
+        {
+            "File": "String",
+        },
+        {
+            "xyz": "NumpyArray",
+            "opacity": "NumpyArray",
+            "trbf_center": "NumpyArray",
+            "trbf_scale": "NumpyArray",
+            "motion": "NumpyArray",
+            "features_dc": "NumpyArray",
+            "scales": "NumpyArray",
+            "rots": "NumpyArray",
+            "omegas": "NumpyArray",
+            "fts": "NumpyArray",
+        },
+    ]
+
+
+def exec_node(File):
+    return read_model(File)
+
+
+def wrap_exec(list):
+    return exec_node(*list)
