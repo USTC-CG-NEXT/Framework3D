@@ -10,14 +10,19 @@ project(
   LANGUAGES C CXX
 )
 
+
 option(USTC_CG_WITH_CUDA OFF)
 if(USTC_CG_WITH_CUDA)
+# Set the cuda compiler to be nvcc 12.6
+set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/bin/nvcc.exe")
 enable_language(CUDA)
 add_compile_definitions(USTC_CG_WITH_CUDA=1)
 set(CMAKE_CUDA_STANDARD 20)
 else()
 add_compile_definitions(USTC_CG_WITH_CUDA=0)
 endif()
+
+add_compile_definitions(BOOST_PYTHON_NO_LIB=1)
 
 message(STATUS "Started CMake for ${PROJECT_NAME} v${PROJECT_VERSION}...\n")
 set(BUILD_SHARED_LIBS ON)
@@ -93,6 +98,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GUI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/nodes)
 
 target_link_directories(GCore PUBLIC SDK/${SDK_FOLDER}/boost/lib64-msvc-14.3)
+
 
 # For testing
 enable_testing()

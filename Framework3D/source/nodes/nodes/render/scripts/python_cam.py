@@ -65,6 +65,7 @@ def exec_node(
         time,
         rays,
         event_image,
+        []
     )
 
     return camera

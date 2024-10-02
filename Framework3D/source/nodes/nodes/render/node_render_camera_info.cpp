@@ -16,6 +16,8 @@ static void node_declare(NodeDeclarationBuilder& b)
     b.add_output<decl::Float1Buffer>("Translation");
     b.add_output<decl::Float>("FOV x");
     b.add_output<decl::Float>("FOV y");
+    b.add_output<decl::Int>("X resolution");
+    b.add_output<decl::Int>("Y resolution");
 
     b.add_output<decl::Float1Buffer>("world_view_transform");
     b.add_output<decl::Float1Buffer>("projection_matrix");
@@ -98,6 +100,12 @@ static void node_exec(ExeParams params)
 
         // Set camera_center
         params.set_output("camera_center", translation_vec);
+
+        auto x_resolution = camera->dataWindow.GetSize()[0];
+        auto y_resolution = camera->dataWindow.GetSize()[1];
+
+        params.set_output("X resolution", x_resolution);
+        params.set_output("Y resolution", y_resolution);
     }
 }
 

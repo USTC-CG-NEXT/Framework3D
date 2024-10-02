@@ -14,7 +14,6 @@ int main()
 
         auto c = dict.keys();
 
-        std::cout << dict["key1"];
     }
     catch (const boost::python::error_already_set&) {
         PyErr_Print();

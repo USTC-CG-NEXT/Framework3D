@@ -3,9 +3,46 @@ import torch
 import math
 
 from data.data_structures import CameraInfo
+import torch.nn.functional as F
+
+def declare_node():
+    return [
+        {
+            "cam": "PyObj",
+            "xyz": "TorchTensor",
+            "trbf_center": "TorchTensor",
+            "trbf_scale": "TorchTensor",
+            "active_sh_degree": "Int",
+            "opacity": "TorchTensor",
+            "scale": "TorchTensor",
+            "rotation": "TorchTensor",
+            "omega": "TorchTensor",
+            "features_dc": "TorchTensor",
+            "features_t": "TorchTensor",
+            "motion": "TorchTensor",
+            "h": "Int",
+            "w": "Int",
+        },
+        {
+            "render": "TorchTensor",
+            "viewspace_points": "TorchTensor",
+            "visibility_filter": "TorchTensor",
+            "radii": "TorchTensor",
+            "depth": "TorchTensor",
+            "opacity": "TorchTensor",
+            "events": "TorchTensor",
+            "newly_added": "TorchTensor",
+        },
+    ]
 
 
-def render_stg(
+from diff_gaussian_rasterization_stg import (
+    GaussianRasterizationSettings as GaussianRasterizationSettingsSTG,
+    GaussianRasterizer as GaussianRasterizerSTG,
+)
+
+
+def exec_node(
     cam,
     xyz,
     trbf_center,
@@ -39,18 +76,9 @@ def render_stg(
     tanfovx = math.tan(cam.fovx * 0.5)
     tanfovy = math.tan(cam.fovy * 0.5)
 
-    if h is None:
-        img_h = int(cam.image.size(1))
-    else:
-        img_h = h
-    if w is None:
-        img_w = int(cam.image.size(2))
-    else:
-        img_w = w
-
     raster_settings = GaussianRasterizationSettingsSTG(
-        image_height=img_h,
-        image_width=img_w,
+        image_height=h,
+        image_width=w,
         tanfovx=tanfovx,
         tanfovy=tanfovy,
         bg=torch.tensor(
@@ -75,39 +103,53 @@ def render_stg(
     scale = torch.exp(scale)
     rotation = F.normalize(rotation + rel_time * omega)
 
-    motion = (
+    expanded_motion = (
         motion[:, :3] * rel_time
         + motion[:, 3:6] * rel_time**2
         + motion[:, 6:9] * rel_time**3
     )
-    xyz = xyz + motion
+    xyz = xyz + expanded_motion
 
     v = motion[:, :3] + 2 * motion[:, 3:6] * rel_time + 3 * motion[:, 6:9] * rel_time**2
 
+
+    print(type(cam.world_view_transform))
+    print((cam.world_view_transform.shape))
+    world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4)
     # compute 2d velocity
-    r1, r2, r3 = torch.chunk(cam.world_view_transform.T[:3, :3], 3, dim=0)
+    r1, r2, r3 = torch.chunk(world_view_transform_reshaped.T[:3, :3], 3, dim=0)
     t1, t2, t3 = (
-        cam.world_view_transform.T[0, 3],
-        cam.world_view_transform.T[1, 3],
-        cam.world_view_transform.T[2, 3],
+        world_view_transform_reshaped.T[0, 3],
+        world_view_transform_reshaped.T[1, 3],
+        world_view_transform_reshaped.T[2, 3],
     )
-    mx, my = cam.projection_matrix[0, 0], cam.projection_matrix[1, 1]
+    projection_matrix_reshaped = cam.projection_matrix.reshape(4, 4)
+    mx, my = projection_matrix_reshaped[0, 0], projection_matrix_reshaped[1, 1]
     vx = (r1 @ v.T) / (r3 @ xyz.T + t3.view(1, 1)) - (r3 @ v.T) * (
         r1 @ xyz.T + t1.view(1, 1)
     ) / (r3 @ xyz.T + t3.view(1, 1)) ** 2
     vy = (r2 @ v.T) / (r3 @ xyz.T + t3.view(1, 1)) - (r3 @ v.T) * (
         r2 @ xyz.T + t2.view(1, 1)
     ) / (r3 @ xyz.T + t3.view(1, 1)) ** 2
+
+    newly_added = 0
+
     dmotion = torch.cat(
         (
-            vx * mx * img_w * 0.5 * 0.25,
-            vy * my * img_h * 0.5 * 0.25,
-            newly_added.view(1, -1),
+            vx * mx * w * 0.5 * 0.25,
+            vy * my * h * 0.5 * 0.25            
         ),
         dim=0,
     ).permute(1, 0)
 
     colors_precomp = torch.cat((features_dc, rel_time * features_t, dmotion), dim=1)
+
+    print("xyz", xyz.shape)
+    print("screenspace_points", screenspace_points.shape)
+    print("colors_precomp", colors_precomp.shape)
+    print("opacity", opacity.shape)
+    print("scale", scale.shape)
+    print("rotation", rotation.shape)
 
     # rasterize visible Gaussians to image, obtain their radii (on screen).
     rendered_results, radii, depth = rasterizer(
@@ -147,92 +189,6 @@ def render_stg(
         "events": events,
         "newly_added": newly_added,
     }
-
-
-def declare_node():
-    return [
-        {
-            "cam": "PyObj",
-            "xyz": "TorchTensor",
-            "trbf_center": "TorchTensor",
-            "trbf_scale": "TorchTensor",
-            "active_sh_degree": "Int",
-            "opacity": "TorchTensor",
-            "scale": "TorchTensor",
-            "rotation": "TorchTensor",
-            "omega": "TorchTensor",
-            "features_dc": "TorchTensor",
-            "features_t": "TorchTensor",
-            "motion": "TorchTensor",
-        },
-        {
-            "render": "TorchTensor",
-            "viewspace_points": "TorchTensor",
-            "visibility_filter": "TorchTensor",
-            "radii": "TorchTensor",
-            "depth": "TorchTensor",
-            "opacity": "TorchTensor",
-            "events": "TorchTensor",
-            "newly_added": "TorchTensor",
-        },
-    ]
-
-
-def exec_node(
-    xyz,
-    trbf_center,
-    trbf_scale,
-    active_sh_degree,
-    opacity,
-    scale,
-    rotation,
-    omega,
-    features_dc,
-    features_t,
-    motion,
-):
-    # print("a ", type(a))
-    # print("b ", type(b))
-
-    # c =torch.tensor(a,device='cuda')
-    # d = c+b
-
-    cam = CameraInfo()
-
-    (
-        render,
-        viewspace_points,
-        visibility_filter,
-        radii,
-        depth,
-        opacity,
-        events,
-        newly_added,
-    ) = render_stg(
-        cam,
-        xyz,
-        trbf_center,
-        trbf_scale,
-        active_sh_degree,
-        opacity,
-        scale,
-        rotation,
-        omega,
-        features_dc,
-        features_t,
-        motion,
-    )
-
-    return (
-        render,
-        viewspace_points,
-        visibility_filter,
-        radii,
-        depth,
-        opacity,
-        events,
-        newly_added,
-    )
 
 
 def wrap_exec(list):

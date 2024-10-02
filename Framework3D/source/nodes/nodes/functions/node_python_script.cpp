@@ -1,3 +1,7 @@
+
+#include <pybind11/pybind11.h>  // pybind11 protects this file from linking to debug library.
+#include <torch/csrc/autograd/python_variable.h>
+
 #include <boost/optional/optional_io.hpp>
 #include <boost/python.hpp>
 #include <boost/python/import.hpp>
@@ -145,7 +149,7 @@ static void get_inputs(
           auto storage = params.get_input<socket_aliases::TYPE>(name.c_str()); \
           input_l.append(storage);                                             \
       } },
-            MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES_EXCEPT_STRING_ANY)
+            MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES_EXCEPT_SPECIAL)
         };
 
     auto it = type_map.find(tname);
@@ -156,6 +160,16 @@ static void get_inputs(
         auto storage =
             std::string(params.get_input<std::string>(name.c_str()).c_str());
         input_l.append(storage);
+    }
+    else if (tname == "PyObj") {
+        auto storage = params.get_input<bp::object>(name.c_str());
+        input_l.append(storage);
+    }
+    else if (tname == "TorchTensor") {
+        auto storage = params.get_input<torch::Tensor>(name.c_str());
+        PyObject* ptr = THPVariable_Wrap(storage);
+        auto py_tensor = bp::object(bp::handle<>(bp::borrowed(ptr)));
+        input_l.append(py_tensor);
     }
     else {
         throw std::runtime_error("Unknown type name: " + tname);
@@ -188,12 +202,32 @@ static void set_outputs(
           }                                                                  \
       } },
 
-            MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES_EXCEPT_ANY)
+            MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES_EXCEPT_SPECIAL)
         };
 
     auto it = type_map.find(tname);
     if (it != type_map.end()) {
         it->second(params, result, name);
+    }
+    else if (tname == "String") {
+        auto value = bp::extract<std::string>(result);
+        if (value.check()) {
+            params.set_output(name.c_str(), std::string(value));
+        }
+        else {
+            throw std::runtime_error(
+                "Type not found for output, typename: String, name: " + name);
+        }
+    }
+    else if (tname == "PyObj")  // If it is a pyobj, just set it.
+    {
+        auto value = result;
+        params.set_output(name.c_str(), bp::object(value));
+    }
+    else if (tname == "TorchTensor") {
+        static_assert(std::is_same_v<at::Tensor, torch::Tensor>);
+        auto tensor = THPVariable_Unpack(result.ptr());
+        params.set_output(name.c_str(), tensor);
     }
     else {
         throw std::runtime_error("Unknown type name: " + tname);

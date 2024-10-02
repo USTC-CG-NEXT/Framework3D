@@ -61,6 +61,7 @@ static void node_exec(ExeParams params)
     auto output =
         torch::zeros({ size[0], size[1], 4 }, std::nullopt, option) + color;
     params.set_output<torch::Tensor>("Rasterized", std::move(output));
+    
     return;
 
     torch::Tensor background = params.get_input<torch::Tensor>("background");

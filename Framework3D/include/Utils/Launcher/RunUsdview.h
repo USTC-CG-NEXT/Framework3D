@@ -1,6 +1,4 @@
 #pragma once
-
-#define Py_BUILD_CORE_BUILTIN
 #include <Python.h>
 
 #include <codecvt>
