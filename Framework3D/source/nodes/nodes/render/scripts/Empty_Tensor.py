@@ -7,7 +7,7 @@ def wrap_exec(list):
 
 
 import torch
-
+torch.set_default_device('cuda')
 
 def exec_node():
     return torch.empty(1, device="cuda")

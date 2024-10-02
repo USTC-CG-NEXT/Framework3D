@@ -1,9 +1,12 @@
 # script.py
 import torch
+
+torch.set_default_device("cuda")
 import math
 
 from data.data_structures import CameraInfo
 import torch.nn.functional as F
+
 
 def declare_node():
     return [
@@ -58,6 +61,8 @@ def exec_node(
     h=None,
     w=None,
 ):
+    assert xyz.is_cuda, "fuck, xyz is not on CUDA device"
+
     screenspace_points = (
         torch.zeros_like(
             xyz,
@@ -112,9 +117,6 @@ def exec_node(
 
     v = motion[:, :3] + 2 * motion[:, 3:6] * rel_time + 3 * motion[:, 6:9] * rel_time**2
 
-
-    print(type(cam.world_view_transform))
-    print((cam.world_view_transform.shape))
     world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4)
     # compute 2d velocity
     r1, r2, r3 = torch.chunk(world_view_transform_reshaped.T[:3, :3], 3, dim=0)
@@ -123,6 +125,19 @@ def exec_node(
         world_view_transform_reshaped.T[1, 3],
         world_view_transform_reshaped.T[2, 3],
     )
+
+    # Ensure all tensors have dtype float
+    assert xyz.is_cuda, "xyz is not of dtype float"
+    assert trbf_center.is_cuda, "trbf_center is not of dtype float"
+    assert trbf_scale.is_cuda, "trbf_scale is not of dtype float"
+    assert opacity.is_cuda, "opacity is not of dtype float"
+    assert scale.is_cuda, "scale is not of dtype float"
+    assert rotation.is_cuda, "rotation is not of dtype float"
+    assert omega.is_cuda, "omega is not of dtype float"
+    assert features_dc.is_cuda, "features_dc is not of dtype float"
+    assert features_t.is_cuda, "features_t is not of dtype float"
+    assert motion.is_cuda, "motion is not of dtype float"
+
     projection_matrix_reshaped = cam.projection_matrix.reshape(4, 4)
     mx, my = projection_matrix_reshaped[0, 0], projection_matrix_reshaped[1, 1]
     vx = (r1 @ v.T) / (r3 @ xyz.T + t3.view(1, 1)) - (r3 @ v.T) * (
@@ -135,23 +150,19 @@ def exec_node(
     newly_added = 0
 
     dmotion = torch.cat(
-        (
-            vx * mx * w * 0.5 * 0.25,
-            vy * my * h * 0.5 * 0.25            
-        ),
+        (vx * mx * w * 0.5 * 0.25, vy * my * h * 0.5 * 0.25),
         dim=0,
     ).permute(1, 0)
 
     colors_precomp = torch.cat((features_dc, rel_time * features_t, dmotion), dim=1)
 
-    print("xyz", xyz.shape)
-    print("screenspace_points", screenspace_points.shape)
-    print("colors_precomp", colors_precomp.shape)
-    print("opacity", opacity.shape)
-    print("scale", scale.shape)
-    print("rotation", rotation.shape)
+    assert xyz.is_cuda, "xyz is not on CUDA device"
+    assert screenspace_points.is_cuda, "screenspace_points is not on CUDA device"
+    assert colors_precomp.is_cuda, "colors_precomp is not on CUDA device"
+    assert opacity.is_cuda, "opacity is not on CUDA device"
+    assert scale.is_cuda, "scale is not on CUDA device"
+    assert rotation.is_cuda, "rotation is not on CUDA device"
 
-    # rasterize visible Gaussians to image, obtain their radii (on screen).
     rendered_results, radii, depth = rasterizer(
         means3D=xyz,
         means2D=screenspace_points,
@@ -169,26 +180,32 @@ def exec_node(
         rendered_results[-1, :, :],
     )
 
-    rendered_image = rendered_feature.unsqueeze(0)[3, :]
+    rgb = rendered_feature[:3, :, :].permute(1, 2, 0)
+
+    # add one channel of 1 to the rendered image
+    rendered_image = torch.cat((rgb, torch.ones_like(rgb[:, :, :1])), dim=2)
+
     # rendered_image = decoder(
     #     rendered_feature.unsqueeze(0), cam.rays.to(xyz.device)
     # )
 
-    if event_decoder is None:
-        events = None
-    else:
-        events = rendered_motion.unsqueeze(0)
+    # if event_decoder is None:
+    #     events = None
+    # else:
+    #     events = rendered_motion.unsqueeze(0)
+    events = torch.zeros(1, device=xyz.device)
 
-    return {
-        "render": rendered_image,
-        "viewspace_points": screenspace_points,
-        "visibility_filter": radii > 0,
-        "radii": radii,
-        "depth": depth,
-        "opacity": opacity,
-        "events": events,
-        "newly_added": newly_added,
-    }
+
+    return (
+        rendered_image,
+        screenspace_points,
+        radii > 0,
+        radii,
+        depth,
+        opacity,
+        events,
+        newly_added,
+    )
 
 
 def wrap_exec(list):

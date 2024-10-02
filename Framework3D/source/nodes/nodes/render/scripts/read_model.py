@@ -56,16 +56,16 @@ def read_model(ply_path):
         fts[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
     return (
-        xyz,
-        opacity,
-        trbf_center,
-        trbf_scale,
-        motion,
-        features_dc,
-        scales,
-        rots,
-        omegas,
-        fts,
+        xyz.astype(np.float32),
+        opacity.astype(np.float32),
+        trbf_center.astype(np.float32),
+        trbf_scale.astype(np.float32),
+        motion.astype(np.float32),
+        features_dc.astype(np.float32),
+        scales.astype(np.float32),
+        rots.astype(np.float32),
+        omegas.astype(np.float32),
+        fts.astype(np.float32),
     )
 
 

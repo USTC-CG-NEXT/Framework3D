@@ -26,13 +26,11 @@ def wrap_exec(list):
     return exec_node(*list)
 
 
-# import numpy as np
-# import torch
-
-# import drjit as dr
 from data.data_structures import CameraInfo
 import numpy as np
 import torch
+
+torch.set_default_device("cuda")
 
 
 def exec_node(
@@ -65,7 +63,7 @@ def exec_node(
         time,
         rays,
         event_image,
-        []
+        [],
     )
 
     return camera

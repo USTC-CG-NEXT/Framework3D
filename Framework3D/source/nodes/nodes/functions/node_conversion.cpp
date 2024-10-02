@@ -245,14 +245,19 @@ void node_exec_NumpyArray_to_TorchTensor(ExeParams params)
     // Get the data type of the numpy array
     torch::Dtype dtype = convert_dtype(arr.get_dtype());
 
-    at::TensorOptions options;
-    options.dtype(dtype).device(torch::kCUDA).device_index(0);
+    at::TensorOptions options = at::TensorOptions().dtype(dtype);
+
     // Create a torch tensor from the numpy array data
     torch::Tensor tensor = torch::from_blob(
         arr.get_data(), torch::IntArrayRef(tensor_shape), options);
+    at::Tensor device_tensor = tensor.to(at::Device(at::DeviceType::CUDA, 0));
+
+    if (!device_tensor.is_cuda()) {
+        std::cout << "Fuck, already fucked in C++" << std::endl;
+    }
 
     // Set the tensor as output
-    params.set_output("tensor", tensor);
+    params.set_output("tensor", device_tensor);
 }
 
 void node_declare_TorchTensor_to_Texture(NodeDeclarationBuilder& b)
@@ -314,7 +319,10 @@ void node_exec_Float1Buffer_to_TorchTensor(ExeParams params)
     long long width = buffer.size();
     auto tensor = torch::empty({ width }, torch::kFloat);
     memcpy(tensor.data_ptr(), buffer.data(), width * sizeof(float));
-    params.set_output("tensor", tensor);
+
+    auto device_tensor = tensor.to(at::Device(at::DeviceType::CUDA, 0));
+
+    params.set_output("tensor", device_tensor);
 }
 
 void node_declare_Float1Buffer_to_NumpyArray(NodeDeclarationBuilder& b)

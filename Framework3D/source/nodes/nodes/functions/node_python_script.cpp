@@ -29,53 +29,57 @@ namespace bpn = boost::python::numpy;
 static void add_input_according_to_typename(
     NodeDeclarationBuilder& b,
     const std::string& tname,
-    const std::string& name)
-{
+    const std::string& name){
     static const std::unordered_map<
         std::string,
         std::function<void(NodeDeclarationBuilder&, const std::string&)>>
         type_map = {
-#define INSERT_INTO_MAP(tname_)                                         \
-    { #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
-         b.add_input<decl::tname_>(name.c_str());                       \
-     } },
+#define INSERT_INTO_MAP(tname_)                                           \
+    {                                                                     \
+        #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
+            b.add_input<decl::tname_>(name.c_str());                      \
+        }                                                                 \
+    }                                                                     \
+    ,
 
             MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES)
         };
 
-    auto it = type_map.find(tname);
-    if (it != type_map.end()) {
-        it->second(b, name);
-    }
-    else {
-        throw std::runtime_error("Unknown type name: " + tname);
-    }
+auto it = type_map.find(tname);
+if (it != type_map.end()) {
+    it->second(b, name);
+}
+else {
+    throw std::runtime_error("Unknown type name: " + tname);
+}
 }
 
 static void add_output_according_to_typename(
     NodeDeclarationBuilder& b,
     const std::string& tname,
-    const std::string& name)
-{
+    const std::string& name){
     static const std::unordered_map<
         std::string,
         std::function<void(NodeDeclarationBuilder&, const std::string&)>>
         type_map = {
-#define INSERT_INTO_MAP(tname_)                                         \
-    { #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
-         b.add_output<decl::tname_>(name.c_str());                      \
-     } },
+#define INSERT_INTO_MAP(tname_)                                           \
+    {                                                                     \
+        #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
+            b.add_output<decl::tname_>(name.c_str());                     \
+        }                                                                 \
+    }                                                                     \
+    ,
 
             MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES)
         };
 
-    auto it = type_map.find(tname);
-    if (it != type_map.end()) {
-        it->second(b, name);
-    }
-    else {
-        throw std::runtime_error("Unknown type name: " + tname);
-    }
+auto it = type_map.find(tname);
+if (it != type_map.end()) {
+    it->second(b, name);
+}
+else {
+    throw std::runtime_error("Unknown type name: " + tname);
+}
 }
 
 #define DECLARE_PYTHON_SCRIPT(script)                                      \
@@ -170,6 +174,7 @@ static void get_inputs(
         PyObject* ptr = THPVariable_Wrap(storage);
         auto py_tensor = bp::object(bp::handle<>(bp::borrowed(ptr)));
         input_l.append(py_tensor);
+        Py_DECREF(ptr);  // Clean up after borrowing
     }
     else {
         throw std::runtime_error("Unknown type name: " + tname);
@@ -226,13 +231,17 @@ static void set_outputs(
     }
     else if (tname == "TorchTensor") {
         static_assert(std::is_same_v<at::Tensor, torch::Tensor>);
-        auto tensor = THPVariable_Unpack(result.ptr());
+        // If fails here, check whether you are really returning a torch tensor
+        // following your declaration
+        at::Tensor tensor = THPVariable_Unpack(result.ptr());
         params.set_output(name.c_str(), tensor);
     }
     else {
         throw std::runtime_error("Unknown type name: " + tname);
     }
 }
+
+constexpr bool ALWAYS_RELOAD = true;
 
 #define DEFINE_PYTHON_SCRIPT_EXEC(script)                                     \
     static void node_exec_##script(ExeParams params)                          \
@@ -250,8 +259,10 @@ static void set_outputs(
                 auto name = bp::extract<std::string>(inputs.keys()[i]);       \
                 get_inputs(input_l, tname, name, params);                     \
             }                                                                 \
-            bp::object reload = bp::import("importlib").attr("reload");       \
-            module = reload(module);                                          \
+            if constexpr (ALWAYS_RELOAD) {                                    \
+                bp::object reload = bp::import("importlib").attr("reload");   \
+                module = reload(module);                                      \
+            }                                                                 \
             bp::object result = module.attr("wrap_exec")(input_l);            \
             if (len(outputs) > 1) {                                           \
                 for (int i = 0; i < len(result); ++i) {                       \
