@@ -1,71 +1,119 @@
 from plyfile import PlyData, PlyElement
 import numpy as np
 
+cache = {
+    "xyz": None,
+    "opacity": None,
+    "trbf_center": None,
+    "trbf_scale": None,
+    "motion": None,
+    "features_dc": None,
+    "scales": None,
+    "rots": None,
+    "omegas": None,
+    "fts": None,
+}
+
 
 def read_model(ply_path):
+    if all(value is not None for value in cache.values()):
+        return (
+            cache["xyz"],
+            cache["opacity"],
+            cache["trbf_center"],
+            cache["trbf_scale"],
+            cache["motion"],
+            cache["features_dc"],
+            cache["scales"],
+            cache["rots"],
+            cache["omegas"],
+            cache["fts"],
+        )
+
     plydata = PlyData.read(ply_path)
-    xyz = np.stack(
+    cache["xyz"] = np.stack(
         (
             np.asarray(plydata.elements[0]["x"]),
             np.asarray(plydata.elements[0]["y"]),
             np.asarray(plydata.elements[0]["z"]),
         ),
         axis=1,
-    )
-    opacity = np.asarray(plydata.elements[0]["opacity"])[..., np.newaxis]
-    trbf_center = np.asarray(plydata.elements[0]["trbf_center"])[..., np.newaxis]
-    trbf_scale = np.asarray(plydata.elements[0]["trbf_scale"])[..., np.newaxis]
+    ).astype(np.float32)
+    cache["opacity"] = np.asarray(plydata.elements[0]["opacity"])[
+        ..., np.newaxis
+    ].astype(np.float32)
+    cache["trbf_center"] = np.asarray(plydata.elements[0]["trbf_center"])[
+        ..., np.newaxis
+    ].astype(np.float32)
+    cache["trbf_scale"] = np.asarray(plydata.elements[0]["trbf_scale"])[
+        ..., np.newaxis
+    ].astype(np.float32)
 
-    motion = np.zeros((xyz.shape[0], 9))
+    cache["motion"] = np.zeros((cache["xyz"].shape[0], 9), dtype=np.float32)
     for i in range(9):
-        motion[:, i] = np.asarray(plydata.elements[0]["motion_{}".format(i)])
+        cache["motion"][:, i] = np.asarray(
+            plydata.elements[0]["motion_{}".format(i)]
+        ).astype(np.float32)
 
-    features_dc = np.zeros((xyz.shape[0], 6))
+    cache["features_dc"] = np.zeros((cache["xyz"].shape[0], 6), dtype=np.float32)
     for i in range(6):
-        features_dc[:, i] = np.asarray(plydata.elements[0]["f_dc_{}".format(i)])
+        cache["features_dc"][:, i] = np.asarray(
+            plydata.elements[0]["f_dc_{}".format(i)]
+        ).astype(np.float32)
 
     scale_names = [
         p.name for p in plydata.elements[0].properties if p.name.startswith("scale_")
     ]
     scale_names = sorted(scale_names, key=lambda x: int(x.split("_")[-1]))
-    scales = np.zeros((xyz.shape[0], len(scale_names)))
+    cache["scales"] = np.zeros(
+        (cache["xyz"].shape[0], len(scale_names)), dtype=np.float32
+    )
     for idx, attr_name in enumerate(scale_names):
-        scales[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        cache["scales"][:, idx] = np.asarray(plydata.elements[0][attr_name]).astype(
+            np.float32
+        )
 
     rot_names = [
         p.name for p in plydata.elements[0].properties if p.name.startswith("rot")
     ]
     rot_names = sorted(rot_names, key=lambda x: int(x.split("_")[-1]))
-    rots = np.zeros((xyz.shape[0], len(rot_names)))
-
+    cache["rots"] = np.zeros((cache["xyz"].shape[0], len(rot_names)), dtype=np.float32)
     for idx, attr_name in enumerate(rot_names):
-        rots[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        cache["rots"][:, idx] = np.asarray(plydata.elements[0][attr_name]).astype(
+            np.float32
+        )
 
     omega_names = [
         p.name for p in plydata.elements[0].properties if p.name.startswith("omega")
     ]
-    omegas = np.zeros((xyz.shape[0], len(omega_names)))
+    cache["omegas"] = np.zeros(
+        (cache["xyz"].shape[0], len(omega_names)), dtype=np.float32
+    )
     for idx, attr_name in enumerate(omega_names):
-        omegas[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        cache["omegas"][:, idx] = np.asarray(plydata.elements[0][attr_name]).astype(
+            np.float32
+        )
 
     ft_names = [
         p.name for p in plydata.elements[0].properties if p.name.startswith("f_t")
     ]
-    fts = np.zeros((xyz.shape[0], len(ft_names)))
+    cache["fts"] = np.zeros((cache["xyz"].shape[0], len(ft_names)), dtype=np.float32)
     for idx, attr_name in enumerate(ft_names):
-        fts[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        cache["fts"][:, idx] = np.asarray(plydata.elements[0][attr_name]).astype(
+            np.float32
+        )
 
     return (
-        xyz.astype(np.float32),
-        opacity.astype(np.float32),
-        trbf_center.astype(np.float32),
-        trbf_scale.astype(np.float32),
-        motion.astype(np.float32),
-        features_dc.astype(np.float32),
-        scales.astype(np.float32),
-        rots.astype(np.float32),
-        omegas.astype(np.float32),
-        fts.astype(np.float32),
+        cache["xyz"],
+        cache["opacity"],
+        cache["trbf_center"],
+        cache["trbf_scale"],
+        cache["motion"],
+        cache["features_dc"],
+        cache["scales"],
+        cache["rots"],
+        cache["omegas"],
+        cache["fts"],
     )
 
 
