@@ -280,8 +280,8 @@ void node_exec_TorchTensor_to_Texture(ExeParams exe_params)
             "Numpy array must have shape (height, width, 4).");
     }
 
-    auto width = shape[0];
-    auto height = shape[1];
+    auto width = shape[1];
+    auto height = shape[0];
 
     auto tex_desc =
         nvrhi::TextureDesc()

@@ -102,7 +102,9 @@ def read_model(ply_path):
         cache["fts"][:, idx] = np.asarray(plydata.elements[0][attr_name]).astype(
             np.float32
         )
-
+    all_names = [
+        p.name for p in plydata.elements[0].properties
+    ]
     return (
         cache["xyz"],
         cache["opacity"],

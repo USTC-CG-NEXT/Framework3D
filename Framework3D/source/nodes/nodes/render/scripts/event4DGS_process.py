@@ -78,8 +78,13 @@ def exec_node(
         pass
 
     time = torch.tensor(cam.time).to(xyz.device).repeat(xyz.shape[0], 1)
+
     tanfovx = math.tan(cam.fovx * 0.5)
     tanfovy = math.tan(cam.fovy * 0.5)
+
+    world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4)
+
+    projection_matrix_reshaped = cam.full_proj_transform.reshape(4, 4)
 
     raster_settings = GaussianRasterizationSettingsSTG(
         image_height=h,
@@ -87,11 +92,11 @@ def exec_node(
         tanfovx=tanfovx,
         tanfovy=tanfovy,
         bg=torch.tensor(
-            [0.0, 0.0, 0.0], device=xyz.device
+            [0, 0, 0], device=xyz.device, dtype=torch.float32
         ),  # torch.tensor([1., 1., 1.], device=xyz.device),
         scale_modifier=1.0,
-        viewmatrix=cam.world_view_transform.to(xyz.device),
-        projmatrix=cam.full_proj_transform.to(xyz.device),
+        viewmatrix=world_view_transform_reshaped,
+        projmatrix=projection_matrix_reshaped,
         sh_degree=active_sh_degree,
         campos=cam.camera_center.to(xyz.device),
         prefiltered=False,
@@ -117,7 +122,6 @@ def exec_node(
 
     v = motion[:, :3] + 2 * motion[:, 3:6] * rel_time + 3 * motion[:, 6:9] * rel_time**2
 
-    world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4)
     # compute 2d velocity
     r1, r2, r3 = torch.chunk(world_view_transform_reshaped.T[:3, :3], 3, dim=0)
     t1, t2, t3 = (
@@ -138,7 +142,6 @@ def exec_node(
     assert features_t.is_cuda, "features_t is not of dtype float"
     assert motion.is_cuda, "motion is not of dtype float"
 
-    projection_matrix_reshaped = cam.projection_matrix.reshape(4, 4)
     mx, my = projection_matrix_reshaped[0, 0], projection_matrix_reshaped[1, 1]
     vx = (r1 @ v.T) / (r3 @ xyz.T + t3.view(1, 1)) - (r3 @ v.T) * (
         r1 @ xyz.T + t1.view(1, 1)
@@ -163,6 +166,29 @@ def exec_node(
     assert scale.is_cuda, "scale is not on CUDA device"
     assert rotation.is_cuda, "rotation is not on CUDA device"
 
+    # # Calculate the number of NaNs in each input
+    # nan_count_xyz = torch.isnan(xyz).sum().item()
+    # nan_count_screenspace_points = torch.isnan(screenspace_points).sum().item()
+    # nan_count_colors_precomp = torch.isnan(colors_precomp).sum().item()
+    # nan_count_opacity = torch.isnan(opacity).sum().item()
+    # nan_count_scale = torch.isnan(scale).sum().item()
+    # nan_count_rotation = torch.isnan(rotation).sum().item()
+
+    # # Calculate the percentage of NaNs for each input
+    # nan_percentage_xyz = (nan_count_xyz / xyz.numel()) * 100
+    # nan_percentage_screenspace_points = (nan_count_screenspace_points / screenspace_points.numel()) * 100
+    # nan_percentage_colors_precomp = (nan_count_colors_precomp / colors_precomp.numel()) * 100
+    # nan_percentage_opacity = (nan_count_opacity / opacity.numel()) * 100
+    # nan_percentage_scale = (nan_count_scale / scale.numel()) * 100
+    # nan_percentage_rotation = (nan_count_rotation / rotation.numel()) * 100
+
+    # print(f"Percentage of NaNs in xyz: {nan_percentage_xyz:.2f}%")
+    # print(f"Percentage of NaNs in screenspace_points: {nan_percentage_screenspace_points:.2f}%")
+    # print(f"Percentage of NaNs in colors_precomp: {nan_percentage_colors_precomp:.2f}%")
+    # print(f"Percentage of NaNs in opacity: {nan_percentage_opacity:.2f}%")
+    # print(f"Percentage of NaNs in scale: {nan_percentage_scale:.2f}%")
+    # print(f"Percentage of NaNs in rotation: {nan_percentage_rotation:.2f}%")
+
     rendered_results, radii, depth = rasterizer(
         means3D=xyz,
         means2D=screenspace_points,
@@ -185,6 +211,10 @@ def exec_node(
     # add one channel of 1 to the rendered image
     rendered_image = torch.cat((rgb, torch.ones_like(rgb[:, :, :1])), dim=2)
 
+    # Calculate the average of the rendered image
+    # average_rendered_image = torch.mean(rendered_image)
+    # print(f"Average of the rendered image: {average_rendered_image.item()}")
+
     # rendered_image = decoder(
     #     rendered_feature.unsqueeze(0), cam.rays.to(xyz.device)
     # )
@@ -194,7 +224,6 @@ def exec_node(
     # else:
     #     events = rendered_motion.unsqueeze(0)
     events = torch.zeros(1, device=xyz.device)
-
 
     return (
         rendered_image,

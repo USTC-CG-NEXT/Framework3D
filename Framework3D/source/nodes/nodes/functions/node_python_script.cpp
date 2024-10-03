@@ -29,57 +29,53 @@ namespace bpn = boost::python::numpy;
 static void add_input_according_to_typename(
     NodeDeclarationBuilder& b,
     const std::string& tname,
-    const std::string& name){
+    const std::string& name)
+{
     static const std::unordered_map<
         std::string,
         std::function<void(NodeDeclarationBuilder&, const std::string&)>>
         type_map = {
-#define INSERT_INTO_MAP(tname_)                                           \
-    {                                                                     \
-        #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
-            b.add_input<decl::tname_>(name.c_str());                      \
-        }                                                                 \
-    }                                                                     \
-    ,
+#define INSERT_INTO_MAP(tname_)                                         \
+    { #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
+         b.add_input<decl::tname_>(name.c_str());                       \
+     } },
 
             MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES)
         };
 
-auto it = type_map.find(tname);
-if (it != type_map.end()) {
-    it->second(b, name);
-}
-else {
-    throw std::runtime_error("Unknown type name: " + tname);
-}
+    auto it = type_map.find(tname);
+    if (it != type_map.end()) {
+        it->second(b, name);
+    }
+    else {
+        throw std::runtime_error("Unknown type name: " + tname);
+    }
 }
 
 static void add_output_according_to_typename(
     NodeDeclarationBuilder& b,
     const std::string& tname,
-    const std::string& name){
+    const std::string& name)
+{
     static const std::unordered_map<
         std::string,
         std::function<void(NodeDeclarationBuilder&, const std::string&)>>
         type_map = {
-#define INSERT_INTO_MAP(tname_)                                           \
-    {                                                                     \
-        #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
-            b.add_output<decl::tname_>(name.c_str());                     \
-        }                                                                 \
-    }                                                                     \
-    ,
+#define INSERT_INTO_MAP(tname_)                                         \
+    { #tname_, [](NodeDeclarationBuilder& b, const std::string& name) { \
+         b.add_output<decl::tname_>(name.c_str());                      \
+     } },
 
             MACRO_MAP(INSERT_INTO_MAP, ALL_SOCKET_TYPES)
         };
 
-auto it = type_map.find(tname);
-if (it != type_map.end()) {
-    it->second(b, name);
-}
-else {
-    throw std::runtime_error("Unknown type name: " + tname);
-}
+    auto it = type_map.find(tname);
+    if (it != type_map.end()) {
+        it->second(b, name);
+    }
+    else {
+        throw std::runtime_error("Unknown type name: " + tname);
+    }
 }
 
 #define DECLARE_PYTHON_SCRIPT(script)                                      \

@@ -546,6 +546,8 @@ CUsurfObject mapTextureToSurface(
         return 0;
     }
 
+
+    CUDA_SYNC_CHECK();
     // Grab level 0
     cudaArray_t cudaArray;
     CUDA_CHECK(cudaGetMipmappedArrayLevel(&cudaArray, mipmap, 0));
