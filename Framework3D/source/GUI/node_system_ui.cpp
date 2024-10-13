@@ -147,6 +147,8 @@ struct NodeSystemImpl {
     ed::EditorContext* m_Editor = nullptr;
     const NodeSystemType node_system_type;
     pxr::SdfPath json_storage;
+    float leftPaneWidth = 400.0f;
+    float rightPaneWidth = 800.0f;
 
     ImTextureID LoadTexture(const unsigned char* data, size_t buffer_size);
 
@@ -401,14 +403,13 @@ void NodeSystemImpl::OnFrame(float deltaTime)
     auto& io = ImGui::GetIO();
 
     ed::SetCurrentEditor(m_Editor);
+    Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+    ShowLeftPane(leftPaneWidth - 4.0f);
+    ImGui::SameLine(0.0f, 12.0f);
+    
+    //::SameLine(0.0f, 12.0f);
+    
 
-    // float leftPaneWidth =  200;
-    // ShowLeftPane(leftPaneWidth - 4.0f);
-
-    // ImGui::SameLine(0.0f, 12.0f);
-
-    if (ImGui::Button("Zoom to Content"))
-        ed::NavigateToContent();
     ed::Begin(("Node editor" + filename).c_str());
     {
         auto cursorTopLeft = ImGui::GetCursorScreenPos();
@@ -1015,12 +1016,14 @@ void NodeSystem::consume_pickevent(PickEvent* pick)
 void NodeSystemImpl::ShowLeftPane(float paneWidth)
 {
     auto& io = ImGui::GetIO();
+    //if (ImGui::Button("Zoom to Content"))
+    //    ed::NavigateToContent();
+    ImGui::BeginChild("Selection", ImVec2(paneWidth, 0));
+
     ImGui::Text(
         "FPS: %.2f (%.2gms)",
         io.Framerate,
         io.Framerate ? 1000.0f / io.Framerate : 0.0f);
-
-    ImGui::BeginChild("Selection", ImVec2(paneWidth, 0));
 
     paneWidth = ImGui::GetContentRegionAvail().x;
 
@@ -1059,7 +1062,7 @@ void NodeSystemImpl::ShowLeftPane(float paneWidth)
     ImGui::SameLine();
     ImGui::TextUnformatted("Nodes");
     ImGui::Indent();
-    for (auto&& node : node_system_execution_->get_nodes()) {
+    for (auto& node : node_system_execution_->get_nodes()) {
         ImGui::PushID(node->ID.AsPointer());
         auto start = ImGui::GetCursorScreenPos();
 
@@ -1074,7 +1077,9 @@ void NodeSystemImpl::ShowLeftPane(float paneWidth)
         bool isSelected =
             std::find(selectedNodes.begin(), selectedNodes.end(), node->ID) !=
             selectedNodes.end();
+#if IMGUI_VERSION_NUM >= 18967
         ImGui::SetNextItemAllowOverlap();
+#endif
         if (ImGui::Selectable(
                 (node->ui_name + "##" +
                  std::to_string(
