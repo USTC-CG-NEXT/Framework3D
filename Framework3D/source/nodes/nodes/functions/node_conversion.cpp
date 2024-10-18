@@ -298,10 +298,16 @@ void node_exec_TorchTensor_to_Texture(ExeParams exe_params)
     auto texture = resource_allocator.create(tex_desc);
 
     auto device = resource_allocator.device;
-    CUsurfObject cuda_ptr = mapTextureToSurface(texture, 0, device);
+    cudaExternalMemory_t externalMemory;
+    cudaMipmappedArray_t mipmapArray;
+    CUsurfObject cuda_ptr =
+        mapTextureToSurface(texture, 0, mipmapArray, externalMemory, device);
 
     BlitLinearBufferToSurface(
         static_cast<float4*>(tensor.data_ptr()), cuda_ptr, width, height);
+
+    cudaFreeMipmappedArray(mipmapArray);
+    cudaDestroyExternalMemory(externalMemory);
 
     exe_params.set_output("texture", texture);
 }
@@ -319,7 +325,7 @@ void node_exec_Float1Buffer_to_TorchTensor(ExeParams params)
     long long width = buffer.size();
     auto tensor = torch::empty({ width }, torch::kFloat);
     memcpy(tensor.data_ptr(), buffer.data(), width * sizeof(float));
-
+    
     auto device_tensor = tensor.to(at::Device(at::DeviceType::CUDA, 0));
 
     params.set_output("tensor", device_tensor);

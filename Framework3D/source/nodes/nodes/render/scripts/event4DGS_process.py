@@ -166,29 +166,6 @@ def exec_node(
     assert scale.is_cuda, "scale is not on CUDA device"
     assert rotation.is_cuda, "rotation is not on CUDA device"
 
-    # # Calculate the number of NaNs in each input
-    # nan_count_xyz = torch.isnan(xyz).sum().item()
-    # nan_count_screenspace_points = torch.isnan(screenspace_points).sum().item()
-    # nan_count_colors_precomp = torch.isnan(colors_precomp).sum().item()
-    # nan_count_opacity = torch.isnan(opacity).sum().item()
-    # nan_count_scale = torch.isnan(scale).sum().item()
-    # nan_count_rotation = torch.isnan(rotation).sum().item()
-
-    # # Calculate the percentage of NaNs for each input
-    # nan_percentage_xyz = (nan_count_xyz / xyz.numel()) * 100
-    # nan_percentage_screenspace_points = (nan_count_screenspace_points / screenspace_points.numel()) * 100
-    # nan_percentage_colors_precomp = (nan_count_colors_precomp / colors_precomp.numel()) * 100
-    # nan_percentage_opacity = (nan_count_opacity / opacity.numel()) * 100
-    # nan_percentage_scale = (nan_count_scale / scale.numel()) * 100
-    # nan_percentage_rotation = (nan_count_rotation / rotation.numel()) * 100
-
-    # print(f"Percentage of NaNs in xyz: {nan_percentage_xyz:.2f}%")
-    # print(f"Percentage of NaNs in screenspace_points: {nan_percentage_screenspace_points:.2f}%")
-    # print(f"Percentage of NaNs in colors_precomp: {nan_percentage_colors_precomp:.2f}%")
-    # print(f"Percentage of NaNs in opacity: {nan_percentage_opacity:.2f}%")
-    # print(f"Percentage of NaNs in scale: {nan_percentage_scale:.2f}%")
-    # print(f"Percentage of NaNs in rotation: {nan_percentage_rotation:.2f}%")
-
     rendered_results, radii, depth = rasterizer(
         means3D=xyz,
         means2D=screenspace_points,
@@ -206,25 +183,18 @@ def exec_node(
         rendered_results[-1, :, :],
     )
 
-    rgb = rendered_feature[:3, :, :].permute(1, 2, 0)
+    # rgb = rendered_feature[:3, :, :].permute(1, 2, 0)
 
-    # add one channel of 1 to the rendered image
-    rendered_image = torch.cat((rgb, torch.ones_like(rgb[:, :, :1])), dim=2)
-
-    # Calculate the average of the rendered image
-    # average_rendered_image = torch.mean(rendered_image)
-    # print(f"Average of the rendered image: {average_rendered_image.item()}")
-
-    # rendered_image = decoder(
-    #     rendered_feature.unsqueeze(0), cam.rays.to(xyz.device)
+    # # add one channel of 1 to the rendered image
+    # rendered_image = torch.cat(
+    #     (torch.sigmoid(rgb) ** (2.2), torch.ones_like(rgb[:, :, :1])), dim=2
     # )
 
-    # if event_decoder is None:
-    #     events = None
-    # else:
-    #     events = rendered_motion.unsqueeze(0)
+    rendered_image = rendered_feature.unsqueeze(0)
+
     events = torch.zeros(1, device=xyz.device)
 
+    torch.cuda.empty_cache()
     return (
         rendered_image,
         screenspace_points,

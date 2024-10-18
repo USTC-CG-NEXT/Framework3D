@@ -19,4 +19,4 @@ CUtexObject mapTextureToCudaTex(
 CUsurfObject mapTextureToSurface(
     nvrhi::ITexture* image_handle,
     uint32_t cudaUsageFlags,
-    nvrhi::IDevice* device);
+    cudaMipmappedArray_t& mipmap, cudaExternalMemory_t& externalMemory, nvrhi::IDevice* device);

@@ -237,7 +237,7 @@ static void set_outputs(
     }
 }
 
-constexpr bool ALWAYS_RELOAD = false;
+constexpr bool ALWAYS_RELOAD = true;
 
 #define DEFINE_PYTHON_SCRIPT_EXEC(script)                                     \
     static void node_exec_##script(ExeParams params)                          \

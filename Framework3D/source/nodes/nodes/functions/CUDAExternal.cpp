@@ -488,6 +488,7 @@ bool importTextureToBuffer(
 bool importTextureToMipmappedArray(
     nvrhi::ITexture* image_handle,
     cudaMipmappedArray_t& mipmappedArray,
+    cudaExternalMemory_t& externalMemory,
     uint32_t cudaUsageFlags,
     nvrhi::IDevice* device)
 {
@@ -501,7 +502,7 @@ bool importTextureToMipmappedArray(
 
     size_t actualSize;
 
-    cudaExternalMemory_t externalMemory = FetchExternalTextureMemory(
+    externalMemory = FetchExternalTextureMemory(
         image_handle, device, actualSize, sharedHandle);
 
     cudaExternalMemoryMipmappedArrayDesc mipDesc;
@@ -534,18 +535,18 @@ bool importTextureToMipmappedArray(
 CUsurfObject mapTextureToSurface(
     nvrhi::ITexture* image_handle,
     uint32_t cudaUsageFlags,
+    cudaMipmappedArray_t& mipmap,
+    cudaExternalMemory_t& externalMemory,
     nvrhi::IDevice* device)
 {
     // Create a mipmapped array from the texture
-    cudaMipmappedArray_t mipmap;
 
     if (!importTextureToMipmappedArray(
-            image_handle, mipmap, cudaUsageFlags, device)) {
+            image_handle, mipmap, externalMemory, cudaUsageFlags, device)) {
         throw std::runtime_error(
             "Failed to import texture into a mipmapped array");
         return 0;
     }
-
 
     CUDA_SYNC_CHECK();
     // Grab level 0
@@ -566,13 +567,14 @@ CUsurfObject mapTextureToSurface(
 CUtexObject mapTextureToCudaTex(
     nvrhi::ITexture* image_handle,
     uint32_t cudaUsageFlags,
+    cudaExternalMemory_t& externalMemory,
     nvrhi::IDevice* device)
 {
     // Create a mipmapped array from the texture
     cudaMipmappedArray_t mipmap;
 
     if (!importTextureToMipmappedArray(
-            image_handle, mipmap, cudaUsageFlags, device)) {
+            image_handle, mipmap, externalMemory, cudaUsageFlags, device)) {
         throw std::runtime_error(
             "Failed to import texture into a mipmapped array");
         return 0;
