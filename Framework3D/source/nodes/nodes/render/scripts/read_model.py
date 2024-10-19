@@ -1,4 +1,4 @@
-from plyfile import PlyData, PlyElement
+
 import numpy as np
 
 cache = {
@@ -16,6 +16,7 @@ cache = {
 
 
 def read_model(ply_path):
+    from plyfile import PlyData, PlyElement
     if all(value is not None for value in cache.values()):
         return (
             cache["xyz"],

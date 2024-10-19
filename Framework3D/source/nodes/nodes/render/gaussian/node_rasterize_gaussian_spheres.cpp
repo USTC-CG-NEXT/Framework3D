@@ -120,7 +120,6 @@ static void node_register()
     render_node_type_base(&ntype);
     ntype.node_execute = node_exec;
     ntype.declare = node_declare;
-    ntype.ALWAYS_REQUIRED = true;  // For debug
     nodeRegisterType(&ntype);
 }
 

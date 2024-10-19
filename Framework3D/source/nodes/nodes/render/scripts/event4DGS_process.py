@@ -39,10 +39,6 @@ def declare_node():
     ]
 
 
-from diff_gaussian_rasterization_stg import (
-    GaussianRasterizationSettings as GaussianRasterizationSettingsSTG,
-    GaussianRasterizer as GaussianRasterizerSTG,
-)
 
 
 def exec_node(
@@ -61,6 +57,11 @@ def exec_node(
     h=None,
     w=None,
 ):
+    from diff_gaussian_rasterization_stg import (
+        GaussianRasterizationSettings as GaussianRasterizationSettingsSTG,
+        GaussianRasterizer as GaussianRasterizerSTG,
+    )
+
     assert xyz.is_cuda, "fuck, xyz is not on CUDA device"
 
     screenspace_points = (

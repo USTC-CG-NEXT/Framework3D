@@ -36,6 +36,8 @@ static void node_exec(ExeParams params)
 
     auto length = hit_info_buffer->getDesc().byteSize / sizeof(HitObjectInfo);
 
+    length = std::max(length, 1ull);
+
     // The Eval, Pixel Target together should be the same size, and should
     // together be able to store the result of the material evaluation
 
@@ -77,7 +79,9 @@ static void node_exec(ExeParams params)
         std::filesystem::path("shaders/material_eval_sample_pdf.slang"));
     program_desc.shaderType = nvrhi::ShaderType::AllRayTracing;
     program_desc.nvapi_support = true;
-    program_desc.define("FALCOR_MATERIAL_INSTANCE_SIZE", std::to_string(c_FalcorMaterialInstanceSize));
+    program_desc.define(
+        "FALCOR_MATERIAL_INSTANCE_SIZE",
+        std::to_string(c_FalcorMaterialInstanceSize));
 
     auto raytrace_compiled = resource_allocator.create(program_desc);
     MARK_DESTROY_NVRHI_RESOURCE(raytrace_compiled);
