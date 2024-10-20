@@ -1,7 +1,7 @@
 #pragma once
 
 #include "USTC_CG.h"
-#define BASIC_SOCKET_TYPES Int, String, Float
+#define BASIC_SOCKET_TYPES Int, String, Float, Bool
 
 #define STAGE_SOCKET_TYPES Layer, PyObj, NumpyArray, TorchTensor, SocketGroup
 
