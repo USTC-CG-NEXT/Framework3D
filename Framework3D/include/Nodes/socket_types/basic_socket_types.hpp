@@ -134,6 +134,47 @@ class Any : public SocketDeclaration {
 
 class AnyBuilder : public SocketDeclarationBuilder<Any> { };
 
+class BoolBuilder;
+
+class Bool : public SocketDeclaration {
+   public:
+    Bool()
+    {
+        type = SocketType::Bool;
+    }
+
+    NodeSocket* build(NodeTree* ntree, Node* node) const override;
+
+    void update_default_value(NodeSocket* socket) const override;
+
+    using Builder = BoolBuilder;
+
+    bool soft_min = 0;
+    bool soft_max = 1;
+    bool default_value_ = 0;
+};
+
+class BoolBuilder : public SocketDeclarationBuilder<Bool> {
+   public:
+    BoolBuilder& min(bool val)
+    {
+        decl_->soft_min = val;
+        return *this;
+    }
+
+    BoolBuilder& max(bool val)
+    {
+        decl_->soft_max = val;
+        return *this;
+    }
+
+    BoolBuilder& default_val(bool val)
+    {
+        decl_->default_value_ = val;
+        return *this;
+    }
+};
+
 }  // namespace decl
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -41,6 +41,16 @@ void decl::String::update_default_value(NodeSocket* socket) const
     }
 }
 
+void decl::Bool::update_default_value(NodeSocket* socket) const
+{
+    if (!socket->dataField.value) {
+        socket->dataField.min = soft_min;
+        socket->dataField.max = soft_max;
+        socket->dataField.value =
+            std::max(std::min(default_value_, soft_max), soft_min);
+    }
+}
+
 #define BUILD_TYPE(NAME)                                             \
     NodeSocket* decl::NAME::build(NodeTree* ntree, Node* node) const \
     {                                                                \
