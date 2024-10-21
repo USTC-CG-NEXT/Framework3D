@@ -64,7 +64,7 @@ static void node_exec(ExeParams params)
         // Set FOV y
         params.set_output("FOV y", static_cast<float>(fov_y));
 
-        auto world_view_transform = camera->inverseViewMatrix;
+        auto world_view_transform = camera->viewMatrix;
         VtArray<float> world_view_transform_array(16);
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
@@ -85,7 +85,7 @@ static void node_exec(ExeParams params)
         // Set projection_matrix
         params.set_output("projection_matrix", projection_matrix);
 
-        auto full_projection_transform = projection * world_view_transform;
+        auto full_projection_transform = world_view_transform * projection;
         VtArray<float> full_proj_transform(16);
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {

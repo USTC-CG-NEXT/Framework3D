@@ -75,13 +75,15 @@ def exec_node(
     tanfovx = math.tan(cam.fovx * 0.5)
     tanfovy = math.tan(cam.fovy * 0.5)
 
-    world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4).T
-    projection_matrix_reshaped = cam.full_proj_transform.reshape(4, 4).T
+    world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4)
+    projection_matrix_reshaped = cam.full_proj_transform.reshape(4, 4)
     
-
+    #print(world_view_transform_reshaped)
     point = torch.tensor([0, 0, 0, 1], dtype=torch.float32, device="cuda")
-    
-    print((torch.mv(world_view_transform_reshaped, point)))
+    # print(world_view_transform_reshaped.inverse())
+    # print((torch.mv(world_view_transform_reshaped, point)))
+    #print(world_view_transform_reshaped)
+    print((torch.mv(projection_matrix_reshaped, point)))
 
     raster_settings = GaussianRasterizationSettingsSTG(
         image_height=h,
@@ -91,7 +93,7 @@ def exec_node(
         bg=torch.tensor(
             [0.0, 0.0, 0.0], device=xyz.device, dtype=torch.float32
         ).contiguous(),  # torch.tensor([1., 1., 1.], device=xyz.device),
-        scale_modifier=0.000001,
+        scale_modifier=1,
         viewmatrix=world_view_transform_reshaped.contiguous(),
         projmatrix=projection_matrix_reshaped.contiguous(),
         sh_degree=active_sh_degree,
@@ -192,14 +194,13 @@ def exec_node(
         rendered_results[-1, :, :],
     )
 
-    # rgb = rendered_feature[:3, :, :].permute(1, 2, 0)
+    rgb = rendered_feature[:3, :, :].permute(1, 2, 0).contiguous()
+    # add one channel of 1 to the rendered image
+    rendered_image = torch.cat(
+        ((rgb), torch.ones_like(rgb[:, :, :1])), dim=2
+    )
 
-    # # add one channel of 1 to the rendered image
-    # rendered_image = torch.cat(
-    #     (torch.sigmoid(rgb) ** (2.2), torch.ones_like(rgb[:, :, :1])), dim=2
-    # )
-
-    rendered_image = rendered_feature.unsqueeze(0)
+#    rendered_image = rendered_feature.unsqueeze(0)
 
     events = torch.zeros(1, device=xyz.device)
 

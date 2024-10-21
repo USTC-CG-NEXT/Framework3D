@@ -15,7 +15,6 @@ cache = {
 
 
 def exec_node(x, y, z):
-    from plyfile import PlyData, PlyElement
 
     if all(value is not None for value in cache.values()):
         return (
@@ -40,8 +39,11 @@ def exec_node(x, y, z):
     cache["motion"] = np.ones((cache["xyz"].shape[0], 9), dtype=np.float32)
     cache["features_dc"] = 1.0 * np.ones((cache["xyz"].shape[0], 6), dtype=np.float32)
     cache["features_dc"][:, 0] = 0.0
-    cache["scales"] = 0.1 * np.ones((cache["xyz"].shape[0], 1), dtype=np.float32)
-    cache["rots"] = np.ones((cache["xyz"].shape[0], 1), dtype=np.float32)
+    cache["scales"] = 0 * np.ones((cache["xyz"].shape[0], 3), dtype=np.float32)
+    cache["rots"] = np.ones((cache["xyz"].shape[0], 4), dtype=np.float32)
+    cache["rots"][0][0] = 1.0
+    cache["rots"][0][1] = 1.0
+
     cache["omegas"] = np.zeros((cache["xyz"].shape[0], 1), dtype=np.float32)
     cache["fts"] = np.ones((cache["xyz"].shape[0], 1), dtype=np.float32)
 
