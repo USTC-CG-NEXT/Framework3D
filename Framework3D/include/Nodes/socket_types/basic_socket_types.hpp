@@ -67,8 +67,8 @@ class Float : public SocketDeclaration {
 
     using Builder = FloatBuilder;
 
-    float soft_min = 0.f;
-    float soft_max = 1.f;
+    float soft_min = -10.f;
+    float soft_max = 10.f;
     float default_value_ = 0;
 };
 

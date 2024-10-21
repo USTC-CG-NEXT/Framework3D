@@ -32,6 +32,7 @@ using Float4 = pxr::GfVec4f;
 using Int2 = pxr::GfVec2i;
 using Int3 = pxr::GfVec3i;
 using Int4 = pxr::GfVec4i;
+using Bool = bool;
 using Int = int;
 using Float = float;
 using String = std::string;

@@ -62,10 +62,12 @@ def exec_node(pt_model_path: str, features: torch.Tensor, rays: torch.Tensor):
     model.eval()
 
     evaluated = model(features, rays)
-    rgb = evaluated[0, :, :, :].permute(1, 2, 0)
+    evaluated = features[:, :3, :, :] 
+
+    rgb = torch.abs(evaluated[0, :, :, :].permute(1, 2, 0))
     # add one channel of 1 to the rendered image
     rendered_image = torch.cat(
-        (rgb ** (2.2), torch.ones_like(rgb[:, :, :1])), dim=2
+        (rgb , torch.ones_like(rgb[:, :, :1])), dim=2
     )
 
     return rendered_image

@@ -39,8 +39,6 @@ def declare_node():
     ]
 
 
-
-
 def exec_node(
     cam,
     xyz,
@@ -63,29 +61,27 @@ def exec_node(
     )
 
     assert xyz.is_cuda, "fuck, xyz is not on CUDA device"
-
     screenspace_points = (
         torch.zeros_like(
             xyz,
             dtype=xyz.dtype,
-            requires_grad=True,
             device=xyz.device,
         )
         + 0
     )
-    try:
-        screenspace_points.retain_grad()
-    except:
-        pass
 
     time = torch.tensor(cam.time).to(xyz.device).repeat(xyz.shape[0], 1)
 
     tanfovx = math.tan(cam.fovx * 0.5)
     tanfovy = math.tan(cam.fovy * 0.5)
 
-    world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4)
+    world_view_transform_reshaped = cam.world_view_transform.reshape(4, 4).T
+    projection_matrix_reshaped = cam.full_proj_transform.reshape(4, 4).T
+    
 
-    projection_matrix_reshaped = cam.full_proj_transform.reshape(4, 4)
+    point = torch.tensor([0, 0, 0, 1], dtype=torch.float32, device="cuda")
+    
+    print((torch.mv(world_view_transform_reshaped, point)))
 
     raster_settings = GaussianRasterizationSettingsSTG(
         image_height=h,
@@ -93,13 +89,13 @@ def exec_node(
         tanfovx=tanfovx,
         tanfovy=tanfovy,
         bg=torch.tensor(
-            [0, 0, 0], device=xyz.device, dtype=torch.float32
-        ),  # torch.tensor([1., 1., 1.], device=xyz.device),
-        scale_modifier=1.0,
-        viewmatrix=world_view_transform_reshaped,
-        projmatrix=projection_matrix_reshaped,
+            [0.0, 0.0, 0.0], device=xyz.device, dtype=torch.float32
+        ).contiguous(),  # torch.tensor([1., 1., 1.], device=xyz.device),
+        scale_modifier=0.000001,
+        viewmatrix=world_view_transform_reshaped.contiguous(),
+        projmatrix=projection_matrix_reshaped.contiguous(),
         sh_degree=active_sh_degree,
-        campos=cam.camera_center.to(xyz.device),
+        campos=cam.camera_center.to(xyz.device).contiguous(),
         prefiltered=False,
     )
     rasterizer = GaussianRasterizerSTG(raster_settings=raster_settings)
@@ -160,21 +156,33 @@ def exec_node(
 
     colors_precomp = torch.cat((features_dc, rel_time * features_t, dmotion), dim=1)
 
-    assert xyz.is_cuda, "xyz is not on CUDA device"
-    assert screenspace_points.is_cuda, "screenspace_points is not on CUDA device"
-    assert colors_precomp.is_cuda, "colors_precomp is not on CUDA device"
-    assert opacity.is_cuda, "opacity is not on CUDA device"
-    assert scale.is_cuda, "scale is not on CUDA device"
-    assert rotation.is_cuda, "rotation is not on CUDA device"
+    assert (
+        xyz.is_cuda and xyz.dtype == torch.float32
+    ), "xyz is not on CUDA device or not of dtype float32"
+    assert (
+        screenspace_points.is_cuda and screenspace_points.dtype == torch.float32
+    ), "screenspace_points is not on CUDA device or not of dtype float32"
+    assert (
+        colors_precomp.is_cuda and colors_precomp.dtype == torch.float32
+    ), "colors_precomp is not on CUDA device or not of dtype float32"
+    assert (
+        opacity.is_cuda and opacity.dtype == torch.float32
+    ), "opacity is not on CUDA device or not of dtype float32"
+    assert (
+        scale.is_cuda and scale.dtype == torch.float32
+    ), "scale is not on CUDA device or not of dtype float32"
+    assert (
+        rotation.is_cuda and rotation.dtype == torch.float32
+    ), "rotation is not on CUDA device or not of dtype float32"
 
     rendered_results, radii, depth = rasterizer(
-        means3D=xyz,
-        means2D=screenspace_points,
+        means3D=xyz.contiguous(),
+        means2D=screenspace_points.contiguous(),
         shs=None,
-        colors_precomp=colors_precomp,
-        opacities=opacity,
-        scales=scale,
-        rotations=rotation,
+        colors_precomp=colors_precomp.contiguous(),
+        opacities=opacity.contiguous(),
+        scales=scale.contiguous(),
+        rotations=rotation.contiguous(),
         cov3D_precomp=None,
     )
 

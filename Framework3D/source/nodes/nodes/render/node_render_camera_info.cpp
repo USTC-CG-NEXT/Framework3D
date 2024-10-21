@@ -50,7 +50,7 @@ static void node_exec(ExeParams params)
         // Set Translation Matrix
         params.set_output("Translation", translation_vec);
 
-        GfMatrix4d projection = camera->ComputeProjectionMatrix();
+        GfMatrix4f projection = camera->projMatrix;
         // Inverse compute the FOV from the projection matrix, both vertical and
         // horizontal
 
@@ -64,8 +64,7 @@ static void node_exec(ExeParams params)
         // Set FOV y
         params.set_output("FOV y", static_cast<float>(fov_y));
 
-        auto transform = camera->GetTransform();
-        auto world_view_transform = transform.GetInverse();
+        auto world_view_transform = camera->inverseViewMatrix;
         VtArray<float> world_view_transform_array(16);
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
@@ -86,7 +85,7 @@ static void node_exec(ExeParams params)
         // Set projection_matrix
         params.set_output("projection_matrix", projection_matrix);
 
-        auto full_projection_transform = world_view_transform * projection;
+        auto full_projection_transform = projection * world_view_transform;
         VtArray<float> full_proj_transform(16);
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
