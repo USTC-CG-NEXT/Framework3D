@@ -147,6 +147,8 @@ struct NodeSystemImpl {
     ed::EditorContext* m_Editor = nullptr;
     const NodeSystemType node_system_type;
     pxr::SdfPath json_storage;
+    float leftPaneWidth = 400.0f;
+    float rightPaneWidth = 800.0f;
 
     ImTextureID LoadTexture(const unsigned char* data, size_t buffer_size);
 
@@ -401,14 +403,11 @@ void NodeSystemImpl::OnFrame(float deltaTime)
     auto& io = ImGui::GetIO();
 
     ed::SetCurrentEditor(m_Editor);
+    //Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+    ShowLeftPane(leftPaneWidth - 4.0f);
+    ImGui::SameLine(0.0f, 12.0f);
+    
 
-    // float leftPaneWidth =  200;
-    // ShowLeftPane(leftPaneWidth - 4.0f);
-
-    // ImGui::SameLine(0.0f, 12.0f);
-
-    if (ImGui::Button("Zoom to Content"))
-        ed::NavigateToContent();
     ed::Begin(("Node editor" + filename).c_str());
     {
         auto cursorTopLeft = ImGui::GetCursorScreenPos();
@@ -1015,26 +1014,6 @@ void NodeSystem::consume_pickevent(PickEvent* pick)
 void NodeSystemImpl::ShowLeftPane(float paneWidth)
 {
     auto& io = ImGui::GetIO();
-    ImGui::Text(
-        "FPS: %.2f (%.2gms)",
-        io.Framerate,
-        io.Framerate ? 1000.0f / io.Framerate : 0.0f);
-
-    ImGui::BeginChild("Selection", ImVec2(paneWidth, 0));
-
-    paneWidth = ImGui::GetContentRegionAvail().x;
-
-    ImGui::BeginHorizontal("Style Editor", ImVec2(paneWidth, 0));
-    ImGui::Spring(0.0f, 0.0f);
-    if (ImGui::Button("Zoom to Content"))
-        ed::NavigateToContent();
-    ImGui::Spring(0.0f);
-    if (ImGui::Button("Show Flow")) {
-        for (auto& link : node_system_execution_->get_links())
-            ed::Flow(link->ID);
-    }
-    ImGui::Spring();
-    ImGui::EndHorizontal();
 
     std::vector<NodeId> selectedNodes;
     std::vector<LinkId> selectedLinks;
@@ -1048,98 +1027,130 @@ void NodeSystemImpl::ShowLeftPane(float paneWidth)
 
     selectedNodes.resize(nodeCount);
     selectedLinks.resize(linkCount);
+    bool isShow = 0;
 
-    ImGui::GetWindowDrawList()->AddRectFilled(
-        ImGui::GetCursorScreenPos(),
-        ImGui::GetCursorScreenPos() +
-            ImVec2(paneWidth, ImGui::GetTextLineHeight()),
-        ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
-        ImGui::GetTextLineHeight() * 0.25f);
-    ImGui::Spacing();
-    ImGui::SameLine();
-    ImGui::TextUnformatted("Nodes");
-    ImGui::Indent();
-    for (auto&& node : node_system_execution_->get_nodes()) {
-        ImGui::PushID(node->ID.AsPointer());
-        auto start = ImGui::GetCursorScreenPos();
-
-        if (const auto progress = GetTouchProgress(node->ID)) {
-            ImGui::GetWindowDrawList()->AddLine(
-                start + ImVec2(-8, 0),
-                start + ImVec2(-8, ImGui::GetTextLineHeight()),
-                IM_COL32(255, 0, 0, 255 - (int)(255 * progress)),
-                4.0f);
-        }
-
+    for (auto& node : node_system_execution_->get_nodes()) {
         bool isSelected =
             std::find(selectedNodes.begin(), selectedNodes.end(), node->ID) !=
             selectedNodes.end();
-        ImGui::SetNextItemAllowOverlap();
-        if (ImGui::Selectable(
-                (node->ui_name + "##" +
-                 std::to_string(
-                     reinterpret_cast<uintptr_t>(node->ID.AsPointer())))
-                    .c_str(),
-                &isSelected)) {
-            if (io.KeyCtrl) {
-                if (isSelected)
-                    ed::SelectNode(node->ID, true);
-                else
-                    ed::DeselectNode(node->ID);
-            }
-            else
-                ed::SelectNode(node->ID, false);
-
-            ed::NavigateToSelection();
+        if (isSelected) {
+            isShow = 1;
         }
-        ImGui::PopID();
     }
-    ImGui::Unindent();
+    if (isShow) {
+        ImGui::BeginChild("Selection", ImVec2(paneWidth, 0));
 
-    static int changeCount = 0;
+        ImGui::Text(
+            "FPS: %.2f (%.2gms)",
+            io.Framerate,
+            io.Framerate ? 1000.0f / io.Framerate : 0.0f);
 
-    ImGui::GetWindowDrawList()->AddRectFilled(
-        ImGui::GetCursorScreenPos(),
-        ImGui::GetCursorScreenPos() +
-            ImVec2(paneWidth, ImGui::GetTextLineHeight()),
-        ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
-        ImGui::GetTextLineHeight() * 0.25f);
-    ImGui::Spacing();
-    ImGui::SameLine();
-    ImGui::TextUnformatted("Selection");
+        paneWidth = ImGui::GetContentRegionAvail().x;
 
-    ImGui::Indent();
-    for (int i = 0; i < nodeCount; ++i) {
-        ImGui::Text("Node (%p)", selectedNodes[i].AsPointer());
-        auto node = FindNode(selectedNodes[i]);
-        if (node->override_left_pane_info)
-            node->override_left_pane_info();
+        ImGui::BeginHorizontal("Style Editor", ImVec2(paneWidth, 0));
+        ImGui::Spring(0.0f, 0.0f);
+        if (ImGui::Button("Zoom to Content"))
+            ed::NavigateToContent();
+        ImGui::Spring(0.0f);
+        if (ImGui::Button("Show Flow")) {
+            for (auto& link : node_system_execution_->get_links())
+                ed::Flow(link->ID);
+        }
+        ImGui::Spring();
+        ImGui::EndHorizontal();
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            ImGui::GetCursorScreenPos(),
+            ImGui::GetCursorScreenPos() +
+                ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+            ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
+            ImGui::GetTextLineHeight() * 0.25f);
+        ImGui::Spacing();
+        ImGui::SameLine();
+        ImGui::TextUnformatted("Nodes");
+        ImGui::Indent();
+        for (auto& node : node_system_execution_->get_nodes()) {
+            ImGui::PushID(node->ID.AsPointer());
+            auto start = ImGui::GetCursorScreenPos();
+
+            if (const auto progress = GetTouchProgress(node->ID)) {
+                ImGui::GetWindowDrawList()->AddLine(
+                    start + ImVec2(-8, 0),
+                    start + ImVec2(-8, ImGui::GetTextLineHeight()),
+                    IM_COL32(255, 0, 0, 255 - (int)(255 * progress)),
+                    4.0f);
+            }
+
+            bool isSelected =
+                std::find(
+                    selectedNodes.begin(), selectedNodes.end(), node->ID) !=
+                selectedNodes.end();
+            ImGui::SetNextItemAllowOverlap();
+            if (ImGui::Selectable(
+                    (node->ui_name + "##" +
+                     std::to_string(
+                         reinterpret_cast<uintptr_t>(node->ID.AsPointer())))
+                        .c_str(),
+                    &isSelected)) {
+                if (io.KeyCtrl) {
+                    if (isSelected)
+                        ed::SelectNode(node->ID, true);
+                    else
+                        ed::DeselectNode(node->ID);
+                }
+                else
+                    ed::SelectNode(node->ID, false);
+
+                ed::NavigateToSelection();
+            }
+            ImGui::PopID();
+        }
+        ImGui::Unindent();
+
+        static int changeCount = 0;
+
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            ImGui::GetCursorScreenPos(),
+            ImGui::GetCursorScreenPos() +
+                ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+            ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
+            ImGui::GetTextLineHeight() * 0.25f);
+        ImGui::Spacing();
+        ImGui::SameLine();
+        ImGui::TextUnformatted("Selection");
+
+        ImGui::Indent();
+        for (int i = 0; i < nodeCount; ++i) {
+            ImGui::Text("Node (%p)", selectedNodes[i].AsPointer());
+            auto node = FindNode(selectedNodes[i]);
+            if (node->override_left_pane_info)
+                node->override_left_pane_info();
+        }
+
+        for (int i = 0; i < linkCount; ++i)
+            ImGui::Text("Link (%p)", selectedLinks[i].AsPointer());
+        ImGui::Unindent();
+
+        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)))
+            for (auto& link : node_system_execution_->get_links())
+                ed::Flow(link->ID);
+
+        if (ed::HasSelectionChanged())
+            ++changeCount;
+
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            ImGui::GetCursorScreenPos(),
+            ImGui::GetCursorScreenPos() +
+                ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+            ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
+            ImGui::GetTextLineHeight() * 0.25f);
+        ImGui::Spacing();
+        ImGui::SameLine();
+        ImGui::TextUnformatted("Node Tree Info");
+
+        node_system_execution_->show_debug_info();
+
+        ImGui::EndChild();
     }
-
-    for (int i = 0; i < linkCount; ++i)
-        ImGui::Text("Link (%p)", selectedLinks[i].AsPointer());
-    ImGui::Unindent();
-
-    if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)))
-        for (auto& link : node_system_execution_->get_links())
-            ed::Flow(link->ID);
-
-    if (ed::HasSelectionChanged())
-        ++changeCount;
-
-    ImGui::GetWindowDrawList()->AddRectFilled(
-        ImGui::GetCursorScreenPos(),
-        ImGui::GetCursorScreenPos() +
-            ImVec2(paneWidth, ImGui::GetTextLineHeight()),
-        ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
-        ImGui::GetTextLineHeight() * 0.25f);
-    ImGui::Spacing();
-    ImGui::SameLine();
-    ImGui::TextUnformatted("Node Tree Info");
-
-    node_system_execution_->show_debug_info();
-
-    ImGui::EndChild();
 }
 
 void NodeSystemImpl::DrawPinIcon(
