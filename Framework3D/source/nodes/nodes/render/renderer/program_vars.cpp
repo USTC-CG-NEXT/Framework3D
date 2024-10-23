@@ -6,7 +6,8 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 ProgramVars::ProgramVars(
     const ProgramHandle& program,
     ResourceAllocator& resource_allocator)
-    : resource_allocator_(resource_allocator)
+    : program_(program.Get()),
+      resource_allocator_(resource_allocator)
 {
 }
 
@@ -19,7 +20,10 @@ void ProgramVars::finish_setting_vars()
     for (int i = 0; i < bindingSetItems_.size(); ++i) {
         BindingSetDesc desc{};
         desc.bindings = bindingSetItems_[i];
-        bindingSetsSolid_[i] = resource_allocator_.create(desc);
+
+
+        //bindingSetsSolid_[i] =
+        //    resource_allocator_.create(desc, program_->get_binding_layout_descs());
     }
 }
 

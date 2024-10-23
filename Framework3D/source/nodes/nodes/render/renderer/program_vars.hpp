@@ -24,6 +24,8 @@ class ProgramVars {
     nvrhi::static_vector<nvrhi::BindingSetHandle, nvrhi::c_MaxBindingLayouts>
         bindingSetsSolid_;
     ResourceAllocator& resource_allocator_;
+    IProgram* program_;
+
 
     unsigned get_binding_space(const std::string& name);
     unsigned get_binding_id(const std::string& name);

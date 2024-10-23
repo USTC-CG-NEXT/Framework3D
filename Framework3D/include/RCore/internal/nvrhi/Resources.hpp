@@ -61,7 +61,7 @@ class IProgram : public nvrhi::IResource {
     virtual size_t getBufferSize() const = 0;
     virtual [[nodiscard]] const std::string& get_error_string() const = 0;
     virtual [[nodiscard]] const nvrhi::BindingLayoutDescVector&
-    get_binding_layout() const = 0;
+    get_binding_layout_descs() const = 0;
 };
 
 struct Program : nvrhi::RefCounter<IProgram> {
@@ -73,8 +73,8 @@ struct Program : nvrhi::RefCounter<IProgram> {
         return error_string;
     }
 
-    [[nodiscard]] const nvrhi::BindingLayoutDescVector& get_binding_layout()
-        const override
+    [[nodiscard]] const nvrhi::BindingLayoutDescVector&
+    get_binding_layout_descs() const override
     {
         return binding_layout_;
     }

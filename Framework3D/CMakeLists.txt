@@ -12,6 +12,9 @@ project(
 
 
 option(USTC_CG_WITH_CUDA OFF)
+option (USTC_CG_WITH_TORCH OFF)
+
+
 if(USTC_CG_WITH_CUDA)
 # Set the cuda compiler to be nvcc 12.6
 set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/bin/nvcc.exe")
@@ -56,9 +59,11 @@ set(TBB_DIR SDK/${SDK_FOLDER}/tbb/lib/cmake/tbb)
 set(MaterialX_DIR SDK/${SDK_FOLDER}/MaterialX/lib/cmake/MaterialX)
 set(Imath_DIR SDK/${SDK_FOLDER}/Imath/lib/cmake/Imath)
 set(EMBREE_DIR SDK/common/embree/lib/cmake/embree-4.3.1) 
-set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
 
+if(USTC_CG_WITH_TORCH)
+set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
+endif()
 
 find_package(Python3 3.10 EXACT COMPONENTS Development Interpreter REQUIRED)
 set_target_properties(Python3::Python PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
