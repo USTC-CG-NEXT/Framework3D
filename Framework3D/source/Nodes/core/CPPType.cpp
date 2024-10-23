@@ -27,7 +27,7 @@ void register_cpp_types()
     
     using namespace entt::literals;
     BLI_CPP_TYPE_REGISTER(float);
-    entt::meta<int32_t>().type("int32_t"_hs);
+    BLI_CPP_TYPE_REGISTER(int32_t);
     BLI_CPP_TYPE_REGISTER(std::string);
     BLI_CPP_TYPE_REGISTER(entt::any);
     BLI_CPP_TYPE_REGISTER(boost::python::object);
