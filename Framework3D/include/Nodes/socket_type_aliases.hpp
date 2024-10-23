@@ -2,8 +2,9 @@
 #include "boost/python/numpy/ndarray.hpp"
 #include "nvrhi/nvrhi.h"
 #include "rich_type_buffer.hpp"
+#if USTC_CG_WITH_TORCH
 #include "torch/torch.h"
-
+#endif
 namespace USTC_CG::node_mass_spring {
 class MassSpring;
 }
@@ -51,6 +52,10 @@ using NumpyArray = boost::python::numpy::ndarray;
 using MassSpringSocket = std::shared_ptr<node_mass_spring::MassSpring>;
 using SPHFluidSocket = std::shared_ptr<node_sph_fluid::SPHBase>;
 using AnimatorSocket = std::shared_ptr<node_character_animation::Animator>;
+
+#if USTC_CG_WITH_TORCH
 using TorchTensor = torch::Tensor;
+#endif
+
 }  // namespace socket_aliases
 USTC_CG_NAMESPACE_CLOSE_SCOPE

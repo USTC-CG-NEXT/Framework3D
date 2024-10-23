@@ -10,6 +10,8 @@
  */
 
 #pragma once
+#if USTC_CG_WITH_TORCH
+
 #define Py_BUILD_CORE_BUILTIN
 #include <torch/extension.h>
 
@@ -80,3 +82,4 @@ torch::Tensor markVisible(
     torch::Tensor& means3D,
     torch::Tensor& viewmatrix,
     torch::Tensor& projmatrix);
+#endif

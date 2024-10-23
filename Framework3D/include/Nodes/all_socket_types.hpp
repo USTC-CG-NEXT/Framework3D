@@ -5,6 +5,14 @@
 
 #define STAGE_SOCKET_TYPES Layer, PyObj, NumpyArray, TorchTensor, SocketGroup
 
+#if USTC_CG_WITH_TORCH
+#define TORCH_TENSOR TorchTensor,
+#else
+#define TORCH_TENSOR
+#endif
+
+#define STAGE_SOCKET_TYPES Layer, PyObj, NumpyArray, TORCH_TENSOR SocketGroup
+
 #define RENDER_SOCKET_TYPES \
     Lights, Camera, Texture, Meshes, Materials, AccelStruct, Buffer
 

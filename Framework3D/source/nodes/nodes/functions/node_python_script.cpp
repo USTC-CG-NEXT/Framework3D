@@ -1,6 +1,8 @@
 
+#if USTC_CG_WITH_TORCH
 #include <pybind11/pybind11.h>  // pybind11 protects this file from linking to debug library.
 #include <torch/csrc/autograd/python_variable.h>
+#endif
 
 #include <boost/optional/optional_io.hpp>
 #include <boost/python.hpp>
@@ -165,6 +167,7 @@ static void get_inputs(
         auto storage = params.get_input<bp::object>(name.c_str());
         input_l.append(storage);
     }
+#if USTC_CG_WITH_TORCH
     else if (tname == "TorchTensor") {
         auto storage = params.get_input<torch::Tensor>(name.c_str());
         PyObject* ptr = THPVariable_Wrap(storage);
@@ -172,6 +175,7 @@ static void get_inputs(
         input_l.append(py_tensor);
         Py_DECREF(ptr);  // Clean up after borrowing
     }
+#endif
     else {
         throw std::runtime_error("Unknown type name: " + tname);
     }
@@ -225,6 +229,7 @@ static void set_outputs(
         auto value = result;
         params.set_output(name.c_str(), bp::object(value));
     }
+#if USTC_CG_WITH_TORCH
     else if (tname == "TorchTensor") {
         static_assert(std::is_same_v<at::Tensor, torch::Tensor>);
         // If fails here, check whether you are really returning a torch tensor
@@ -232,6 +237,7 @@ static void set_outputs(
         at::Tensor tensor = THPVariable_Unpack(result.ptr());
         params.set_output(name.c_str(), tensor);
     }
+#endif
     else {
         throw std::runtime_error("Unknown type name: " + tname);
     }

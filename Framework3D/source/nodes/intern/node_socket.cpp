@@ -11,7 +11,9 @@
 #include "boost/python/numpy.hpp"
 #include "entt/meta/resolve.hpp"
 #include "rich_type_buffer.hpp"
+#if USTC_CG_WITH_TORCH
 #include "torch/torch.h"
+#endif
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace node_mass_spring {

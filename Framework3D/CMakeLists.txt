@@ -17,8 +17,10 @@ option (USTC_CG_WITH_TORCH OFF)
 
 if(USTC_CG_WITH_CUDA)
 # Set the cuda compiler to be nvcc 12.6
-set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/bin/nvcc.exe")
+set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/C
+UDA/v12.6/bin/nvcc.exe")
 enable_language(CUDA)
+find_package(CUDAToolkit REQUIRED)
 add_compile_definitions(USTC_CG_WITH_CUDA=1)
 set(CMAKE_CUDA_STANDARD 20)
 else()
@@ -63,6 +65,9 @@ set(EMBREE_DIR SDK/common/embree/lib/cmake/embree-4.3.1)
 if(USTC_CG_WITH_TORCH)
 set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
+add_compile_definitions(USTC_CG_WITH_TORCH=1)
+else()
+add_compile_definitions(USTC_CG_WITH_TORCH=0)
 endif()
 
 find_package(Python3 3.10 EXACT COMPONENTS Development Interpreter REQUIRED)
