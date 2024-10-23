@@ -222,6 +222,7 @@ nvrhi::BindingLayoutDescVector shader_reflect(
 {
     slang::ShaderReflection* programReflection =
         slang::ShaderReflection::get(request);
+    
     // slang::EntryPointReflection* entryPoint =
     //     programReflection->findEntryPointByName(entryPointName);
     auto parameterCount = programReflection->getParameterCount();
@@ -229,23 +230,17 @@ nvrhi::BindingLayoutDescVector shader_reflect(
     nvrhi::BindingLayoutDescVector ret;
 
     for (int pp = 0; pp < parameterCount; ++pp) {
-        slang::TypeParameterReflection* type_reflection =
-            programReflection->findTypeParameter("pp");
-        slang::TypeReflection* rr = programReflection->findTypeByName("ppp");
-
-        type_reflection->getName();
-
+        
         slang::VariableLayoutReflection* parameter =
             programReflection->getParameterByIndex(pp);
-        auto cat = parameter->getCategory();
 
         slang::TypeLayoutReflection* typeLayout = parameter->getTypeLayout();
         auto categoryCount = parameter->getCategoryCount();
         assert(categoryCount == 1);
-
         auto category =
             SlangParameterCategory(parameter->getCategoryByIndex(0));
-        auto index = parameter->getOffset(category);
+        
+        auto index = parameter->getBindingIndex();
         auto space = parameter->getBindingSpace(category);
 
         auto bindingRangeCount = typeLayout->getBindingRangeCount();
