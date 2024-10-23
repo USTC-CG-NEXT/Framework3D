@@ -83,7 +83,7 @@ def exec_node(
     # print(world_view_transform_reshaped.inverse())
     # print((torch.mv(world_view_transform_reshaped, point)))
     #print(world_view_transform_reshaped)
-    print((torch.mv(projection_matrix_reshaped, point)))
+    #print((torch.mv(projection_matrix_reshaped, point)))
 
     raster_settings = GaussianRasterizationSettingsSTG(
         image_height=h,
@@ -200,7 +200,7 @@ def exec_node(
         ((rgb), torch.ones_like(rgb[:, :, :1])), dim=2
     )
 
-#    rendered_image = rendered_feature.unsqueeze(0)
+    rendered_image = rendered_feature.unsqueeze(0)
 
     events = torch.zeros(1, device=xyz.device)
 
