@@ -4,6 +4,7 @@
 // CUDA error-checking
 //
 //------------------------------------------------------------------------------
+#if USTC_CG_WITH_CUDA
 #include <cuda_runtime_api.h>
 
 #include <sstream>
@@ -61,3 +62,4 @@
             printf("%s", ss.str().c_str());                          \
         }                                                            \
     } while (0)
+#endif

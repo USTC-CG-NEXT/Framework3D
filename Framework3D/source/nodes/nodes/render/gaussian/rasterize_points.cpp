@@ -10,10 +10,10 @@
  */
 #include "rasterize_points.h"
 
-#include <cuda_runtime_api.h>
 #include <math.h>
 
 #if USTC_CG_WITH_TORCH
+#include <cuda_runtime_api.h>
 
 #include <stdio.h>
 #include <torch/extension.h>

@@ -1,10 +1,16 @@
-﻿#include <cuda.h>
+﻿
+#if USTC_CG_WITH_CUDA
+#include <cuda.h>
 #include <cuda_runtime_api.h>
+#include "CUDAExternal.h"
+#include "CUDASurface.cuh"
+#endif
+
+
 #include <d3d12.h>
 
 #include "../render/resource_allocator_instance.hpp"
-#include "CUDAExternal.h"
-#include "CUDASurface.cuh"
+
 #include "NODES_FILES_DIR.h"
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"

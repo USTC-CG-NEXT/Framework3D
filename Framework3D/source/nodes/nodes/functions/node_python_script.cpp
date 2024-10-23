@@ -50,7 +50,7 @@ static void add_input_according_to_typename(
         it->second(b, name);
     }
     else {
-        throw std::runtime_error("Unknown type name: " + tname);
+        b.add_input<decl::PyObj>(name.c_str());
     }
 }
 
@@ -76,7 +76,7 @@ static void add_output_according_to_typename(
         it->second(b, name);
     }
     else {
-        throw std::runtime_error("Unknown type name: " + tname);
+        b.add_output<decl::PyObj>(name.c_str());
     }
 }
 
@@ -177,7 +177,8 @@ static void get_inputs(
     }
 #endif
     else {
-        throw std::runtime_error("Unknown type name: " + tname);
+        auto storage = params.get_input<bp::object>(name.c_str());
+        input_l.append(storage);
     }
 }
 
@@ -239,7 +240,8 @@ static void set_outputs(
     }
 #endif
     else {
-        throw std::runtime_error("Unknown type name: " + tname);
+        auto value = result;
+        params.set_output(name.c_str(), bp::object(value));
     }
 }
 
