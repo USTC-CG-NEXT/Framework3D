@@ -18,15 +18,6 @@
 #include "boost/python/numpy.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-namespace node_mass_spring {
-class MassSpring;
-}
-namespace node_sph_fluid {
-class SPHBase;
-}
-namespace node_character_animation {
-class Animator;
-}
 
 /** Register a #CPPType created with #BLI_CPP_TYPE_MAKE. */
 #define BLI_CPP_TYPE_REGISTER(TYPE_NAME) entt::meta<TYPE_NAME>().type(#TYPE_NAME##_hs)
@@ -47,9 +38,6 @@ void register_cpp_types()
     BLI_CPP_TYPE_REGISTER(CameraArray);
     BLI_CPP_TYPE_REGISTER(MaterialMap);
     BLI_CPP_TYPE_REGISTER(SocketGroup);
-    BLI_CPP_TYPE_REGISTER(std::shared_ptr<node_mass_spring::MassSpring>);
-    BLI_CPP_TYPE_REGISTER(std::shared_ptr<node_sph_fluid::SPHBase>);
-    BLI_CPP_TYPE_REGISTER(std::shared_ptr<node_character_animation::Animator>);
 
 #define WRAP_REGISTER(TYPE) BLI_CPP_TYPE_REGISTER(TYPE##Handle);
 

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(DISCOVER_NODES_PATH ${CMAKE_CURRENT_LIST_DIR}/core/discover_nodes.py)
+set(DISCOVER_NODES_PATH ${CMAKE_CURRENT_LIST_DIR}/discover_nodes.py)
 
 # Creates a library with the given name that exposes one function which calls
 # the register functions of all nodes in the provided source files.
@@ -39,12 +39,7 @@ function(add_node_discovery
   set(${lib_name} "${output_file}" PARENT_SCOPE)
 endfunction()
 
-file(GLOB_RECURSE
-  CPP_CORE_FILES
-  ${CMAKE_CURRENT_LIST_DIR}/core/*.cpp
-)
-
-add_library(nodes_core STATIC ${CPP_CORE_FILES})
+add_subdirectory(core)
 
 file(GLOB_RECURSE
   CUDA_FILES
@@ -93,10 +88,11 @@ endif(USTC_CG_WITH_TORCH)
 endif()
 
 target_link_libraries(nodes PRIVATE Python3::Python)
+target_link_libraries(nodes PRIVATE nodes_core)
 target_link_libraries(nodes PUBLIC GCore RCore)
 target_link_libraries(nodes PUBLIC Eigen3::Eigen)
 target_link_libraries(nodes PUBLIC Python3::Python)
-target_link_libraries(nodes PUBLIC hioOpenVDB EnTT::EnTT)
+target_link_libraries(nodes PUBLIC hioOpenVDB)
 target_link_libraries(nodes PUBLIC hioOpenVDB)
 target_link_libraries(nodes PUBLIC nvrhi DXC::dxc)
 target_link_libraries(nodes PUBLIC imgui)
