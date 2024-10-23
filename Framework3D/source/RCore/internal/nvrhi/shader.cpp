@@ -45,8 +45,7 @@ void ProgramDesc::set_entry_name(const std::string& entry_name)
 }
 namespace fs = std::filesystem;
 
-void ProgramDesc::update_last_write_time(
-    const std::filesystem::path& path)
+void ProgramDesc::update_last_write_time(const std::filesystem::path& path)
 {
     if (fs::exists(path)) {
         auto possibly_newer_lastWriteTime = fs::last_write_time(path);
@@ -230,16 +229,24 @@ nvrhi::BindingLayoutDescVector shader_reflect(
     nvrhi::BindingLayoutDescVector ret;
 
     for (int pp = 0; pp < parameterCount; ++pp) {
-        auto var = programReflection->getParameterByIndex(pp);
-        auto cat = var->getCategory();
+        slang::TypeParameterReflection* type_reflection =
+            programReflection->findTypeParameter("pp");
+        slang::TypeReflection* rr = programReflection->findTypeByName("ppp");
 
-        slang::TypeLayoutReflection* typeLayout = var->getTypeLayout();
-        auto categoryCount = var->getCategoryCount();
+        type_reflection->getName();
+
+        slang::VariableLayoutReflection* parameter =
+            programReflection->getParameterByIndex(pp);
+        auto cat = parameter->getCategory();
+
+        slang::TypeLayoutReflection* typeLayout = parameter->getTypeLayout();
+        auto categoryCount = parameter->getCategoryCount();
         assert(categoryCount == 1);
 
-        auto category = SlangParameterCategory(var->getCategoryByIndex(0));
-        auto index = var->getOffset(category);
-        auto space = var->getBindingSpace(category);
+        auto category =
+            SlangParameterCategory(parameter->getCategoryByIndex(0));
+        auto index = parameter->getOffset(category);
+        auto space = parameter->getBindingSpace(category);
 
         auto bindingRangeCount = typeLayout->getBindingRangeCount();
         assert(bindingRangeCount == 1);
