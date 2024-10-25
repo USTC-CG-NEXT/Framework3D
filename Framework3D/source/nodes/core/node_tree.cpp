@@ -1,10 +1,10 @@
-#include "Nodes/node_tree.hpp"
+#include "node_tree.hpp"
 
 #include <stack>
 
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_socket.hpp"
+#include "node.hpp"
+#include "node_declare.hpp"
+#include "node_socket.hpp"
 #include "Utils/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

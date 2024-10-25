@@ -1,9 +1,9 @@
 //  A general file containing functions related to nodes.
 
-#include "Nodes/node.hpp"
+#include "node.hpp"
 
-#include "Nodes/node_socket.hpp"
-#include "Nodes/node_tree.hpp"
+#include "node_socket.hpp"
+#include "node_tree.hpp"
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE

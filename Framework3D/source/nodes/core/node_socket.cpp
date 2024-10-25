@@ -1,9 +1,9 @@
-#include "Nodes/node_socket.hpp"
+#include "node_socket.hpp"
 
-#include "Nodes/all_socket_types.hpp"
-#include "Nodes/node.hpp"
-#include "Nodes/node_register.h"
-#include "Nodes/socket_type_aliases.hpp"
+#include "all_socket_types.hpp"
+#include "node.hpp"
+#include "node_register.h"
+#include "socket_type_aliases.hpp"
 #include "RCore/Backend.hpp"
 #include "USTC_CG.h"
 #include "Utils/Macro/map.h"
@@ -16,15 +16,6 @@
 #endif
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-namespace node_mass_spring {
-class MassSpring;
-}
-namespace node_sph_fluid {
-class SPHBase;
-}
-namespace node_character_animation {
-class Animator;
-}
 
 static std::map<std::string, std::unique_ptr<SocketTypeInfo>> socket_registry;
 

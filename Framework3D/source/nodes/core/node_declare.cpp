@@ -1,10 +1,10 @@
-#include "Nodes/node_declare.hpp"
+#include "node_declare.hpp"
 
-#include "Nodes/all_socket_types.hpp"
-#include "Nodes/node.hpp"
-#include "Nodes/socket_types/geo_socket_types.hpp"
-#include "Nodes/socket_types/render_socket_types.hpp"
-#include "Nodes/socket_types/stage_socket_types.hpp"
+#include "all_socket_types.hpp"
+#include "node.hpp"
+#include "socket_types/geo_socket_types.hpp"
+#include "socket_types/render_socket_types.hpp"
+#include "socket_types/stage_socket_types.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
