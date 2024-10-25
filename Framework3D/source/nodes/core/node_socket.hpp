@@ -1,11 +1,12 @@
 #pragma once
 
-#include "GCore/Components.h"
+#include <unordered_set>
+
 #include "USTC_CG.h"
-#include "Utils/json.hpp"
 #include "all_socket_types.hpp"
 #include "entt/meta/meta.hpp"
 #include "id.hpp"
+#include "io/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 #define TypeSizeEnum(Type, Size) Type##Size##Buffer

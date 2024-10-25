@@ -2,12 +2,30 @@
 
 #include <stack>
 
+#include "io/json.hpp"
 #include "node.hpp"
 #include "node_declare.hpp"
+#include "node_link.hpp"
 #include "node_socket.hpp"
-#include "Utils/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+NodeTreeDescriptor::~NodeTreeDescriptor()
+{
+}
+
+NodeTree::NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor)
+    : has_available_link_cycle(false),
+      descriptor_(descriptor)
+{
+    links.reserve(32);
+    sockets.reserve(32);
+    nodes.reserve(32);
+    input_sockets.reserve(32);
+    output_sockets.reserve(32);
+    toposort_right_to_left.reserve(32);
+    toposort_left_to_right.reserve(32);
+}
+
 unsigned NodeTree::input_socket_id(NodeSocket* socket)
 {
     return std::distance(

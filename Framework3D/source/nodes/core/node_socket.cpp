@@ -3,14 +3,12 @@
 #include "all_socket_types.hpp"
 #include "node.hpp"
 #include "node_register.h"
-#include "socket_type_aliases.hpp"
-#include "RCore/Backend.hpp"
+//#include "socket_type_aliases.hpp"
+//#include "RCore/Backend.hpp"
 #include "USTC_CG.h"
-#include "Utils/Macro/map.h"
-#include "boost/python.hpp"
-#include "boost/python/numpy.hpp"
+#include "Macro/map.h"
 #include "entt/meta/resolve.hpp"
-#include "rich_type_buffer.hpp"
+// #include "rich_type_buffer.hpp"
 #if USTC_CG_WITH_TORCH
 #include "torch/torch.h"
 #endif
@@ -73,7 +71,7 @@ static SocketTypeInfo* make_socket_type_Any()
         return socket_type;                                            \
     }
 
-MACRO_MAP(MAKE_SOCKET_TYPE, ALL_SOCKET_TYPES_EXCEPT_ANY)
+//MACRO_MAP(MAKE_SOCKET_TYPE, ALL_SOCKET_TYPES_EXCEPT_ANY)
 
 void register_socket(SocketTypeInfo* type_info)
 {
@@ -81,12 +79,12 @@ void register_socket(SocketTypeInfo* type_info)
         std::unique_ptr<SocketTypeInfo>(type_info);
 }
 
-void register_sockets()
-{
-#define REGISTER_NODE(NAME) register_socket(make_socket_type_##NAME());
-
-    MACRO_MAP(REGISTER_NODE, ALL_SOCKET_TYPES)
-}
+//void register_sockets()
+//{
+//#define REGISTER_NODE(NAME) register_socket(make_socket_type_##NAME());
+//
+//    MACRO_MAP(REGISTER_NODE, ALL_SOCKET_TYPES)
+//}
 SocketTypeInfo* socketTypeFind(const char* idname)
 {
     if (idname[0]) {

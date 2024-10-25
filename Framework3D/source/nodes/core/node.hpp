@@ -1,37 +1,12 @@
 #pragma once
 
-#include "Utils/json.hpp"
+#include "io/json.hpp"
 #include "node_declare.hpp"
 #include "node_socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct ExeParams;
 class Operator;
-
-struct NodeLink {
-    LinkId ID;
-
-    Node* from_node = nullptr;
-    Node* to_node = nullptr;
-    NodeSocket* from_sock = nullptr;
-    NodeSocket* to_sock = nullptr;
-
-    SocketID StartPinID;
-    SocketID EndPinID;
-
-    // Used for invisible nodes when conversion
-    NodeLink* fromLink = nullptr;
-    NodeLink* nextLink = nullptr;
-
-    NodeLink(LinkId id, SocketID startPinId, SocketID endPinId)
-        : ID(id),
-          StartPinID(startPinId),
-          EndPinID(endPinId)
-    {
-    }
-
-    void Serialize(nlohmann::json& value);
-};
 
 using ExecFunction = void (*)(ExeParams params);
 using NodeDeclareFunction = void (*)(NodeDeclarationBuilder& builder);

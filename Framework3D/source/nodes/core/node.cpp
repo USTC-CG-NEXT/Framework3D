@@ -6,6 +6,7 @@
 #include "node_tree.hpp"
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
+#include "node_link.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 NodeSocket* nodeAddSocket(
     NodeTree* ntree,

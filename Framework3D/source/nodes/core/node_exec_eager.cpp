@@ -1,12 +1,14 @@
 #include "node_exec_eager.hpp"
 
+#include <set>
+
 #include "node_tree.hpp"
 #include "USTC_CG.h"
 #include "entt/core/any.hpp"
 #include "entt/meta/resolve.hpp"
 // #include "Utils/Functions/GenericPointer_.hpp"
 //  #include "graph/node_exec_graph.h"
-#include "GCore/geom_node_global_params.h"
+//#include "GCore/geom_node_global_params.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
@@ -355,23 +357,23 @@ EagerNodeTreeExecutor::~EagerNodeTreeExecutor()
 {
     storage.clear();
 }
-
-ExeParams EagerNodeTreeExecutorGeom::prepare_params(NodeTree* tree, Node* node)
-{
-    auto result = EagerNodeTreeExecutor::prepare_params(tree, node);
-    result.global_param = *global_param;
-
-    return result;
-}
-
-void EagerNodeTreeExecutorGeom::set_global_param(GeomNodeGlobalParams* param)
-{
-    this->global_param = param;
-}
+//
+//ExeParams EagerNodeTreeExecutorGeom::prepare_params(NodeTree* tree, Node* node)
+//{
+//    auto result = EagerNodeTreeExecutor::prepare_params(tree, node);
+//    result.global_param = *global_param;
+//
+//    return result;
+//}
+//
+//void EagerNodeTreeExecutorGeom::set_global_param(GeomNodeGlobalParams* param)
+//{
+//    this->global_param = param;
+//}
 
 void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree)
 {
-    auto gilState = PyGILState_Ensure();
+    // auto gilState = PyGILState_Ensure();
 
     tree->ensure_topology_cache();
     clear();
@@ -384,12 +386,12 @@ void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree)
     prepare_memory();
 
     refresh_storage();
-    PyGILState_Release(gilState);
+    // PyGILState_Release(gilState);
 }
 
 void EagerNodeTreeExecutor::execute_tree(NodeTree* tree)
 {
-    auto gilState = PyGILState_Ensure();
+    // auto gilState = PyGILState_Ensure();
 
     for (int i = 0; i < nodes_to_execute_count; ++i) {
         auto node = nodes_to_execute[i];
@@ -400,7 +402,7 @@ void EagerNodeTreeExecutor::execute_tree(NodeTree* tree)
     }
     try_storage();
 
-    PyGILState_Release(gilState);
+    // PyGILState_Release(gilState);
 }
 
 entt::meta_any* EagerNodeTreeExecutor::FindPtr(NodeSocket* socket)

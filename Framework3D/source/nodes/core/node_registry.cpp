@@ -1,12 +1,9 @@
-#include "../nodes/functions/NODES_FILES_DIR.h"
-#include "all_socket_types.hpp"
+#include "Logging/Logging.h"
+#include "USTC_CG.h"
+#include "entt/meta/resolve.hpp"
 #include "node.hpp"
 #include "node_register.h"
-#include "RCore/Backend.hpp"
-#include "USTC_CG.h"
-#include "boost/python.hpp"
-#include "boost/python/numpy.hpp"
-#include "entt/meta/resolve.hpp"
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 static void reset_declaration(NodeDeclaration& declaration)
 {
@@ -116,17 +113,17 @@ NodeTypeInfo* nodeTypeFind(const char* idname)
 
 void register_all()
 {
-    Py_Initialize();
-    // Call python to set python path
-    namespace py = boost::python;
-    py::object sys = py::import("sys");
-    sys.attr("path").attr("append")(FUNC_NODES_FILES_DIR "/scripts");
-    sys.attr("path").attr("append")(RENDER_NODES_FILES_DIR "/scripts");
+    //Py_Initialize();
+    //// Call python to set python path
+    //namespace py = boost::python;
+    //py::object sys = py::import("sys");
+    //sys.attr("path").attr("append")(FUNC_NODES_FILES_DIR "/scripts");
+    //sys.attr("path").attr("append")(RENDER_NODES_FILES_DIR "/scripts");
 
-    boost::python::numpy::initialize();
-    register_cpp_types();
-    register_nodes();
-    register_sockets();
+    //boost::python::numpy::initialize();
+    //register_cpp_types();
+    //register_nodes();
+    //register_sockets();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
