@@ -118,7 +118,7 @@ NodeLink* NodeTree::add_link(
     }
 
     std::string node_name;
-    node_name = fromsock->type_info->conversionNode(tosock->type_info->type);
+    node_name = fromsock->type_info->conversionNode(*tosock->type_info);
 
     NodeLink* bare_ptr = nullptr;
     if (!node_name.empty()) {
@@ -223,12 +223,12 @@ bool NodeTree::can_create_link(NodeSocket* a, NodeSocket* b)
 
 bool NodeTree::can_create_direct_link(NodeSocket* socket1, NodeSocket* socket2)
 {
-    return socket1->type_info->type == socket2->type_info->type;
+    return *socket1->type_info == *socket2->type_info;
 }
 
 bool NodeTree::can_create_convert_link(NodeSocket* out, NodeSocket* in)
 {
-    return out->type_info->canConvertTo(in->type_info->type);
+    return out->type_info->canConvertTo(*in->type_info);
 }
 
 void NodeTree::delete_socket(SocketID socketId)

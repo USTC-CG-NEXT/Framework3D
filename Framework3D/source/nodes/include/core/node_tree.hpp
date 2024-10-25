@@ -7,6 +7,8 @@
 #include "USTC_CG.h"
 #include "api.hpp"
 
+#include "socket.hpp"
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 // Multiple definitions of trees
@@ -15,7 +17,7 @@ class NodeTreeDescriptor {
     ~NodeTreeDescriptor();
 
    private:
-    std::map<std::string, std::unique_ptr<SocketTypeInfo>> socket_registry;
+    std::map<std::string, std::unique_ptr<SocketType>> socket_registry;
     std::map<std::string, std::unique_ptr<NodeTypeInfo>> node_registry;
     std::map<std::string, std::unique_ptr<NodeTypeInfo>>
         conversion_node_registry;

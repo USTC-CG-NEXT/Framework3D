@@ -16,7 +16,7 @@ class Int : public SocketDeclaration {
    public:
     Int()
     {
-        type = nodes::get_socket_type_info("int").get();
+        type = nodes::get_socket_type<int>().get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
@@ -59,7 +59,7 @@ class Float : public SocketDeclaration {
    public:
     Float()
     {
-        type = nodes::get_socket_type_info<float>().get();
+        type = nodes::get_socket_type<float>().get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
@@ -100,7 +100,7 @@ class String : public SocketDeclaration {
    public:
     String()
     {
-        type = nodes::get_socket_type_info<std::string>().get();
+        type = nodes::get_socket_type<std::string>().get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
@@ -127,7 +127,7 @@ class Any : public SocketDeclaration {
    public:
     Any()
     {
-        type = nodes::get_socket_type_info<entt::meta_any>().get();
+        type = nodes::get_socket_type<entt::meta_any>().get();
     }
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
     using Builder = AnyBuilder;
@@ -141,7 +141,7 @@ class Bool : public SocketDeclaration {
    public:
     Bool()
     {
-        type = nodes::get_socket_type_info<bool>().get();
+        type = nodes::get_socket_type<bool>().get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;

@@ -1,12 +1,9 @@
 #pragma once
 
-#include <unordered_set>
-
 #include "USTC_CG.h"
-#include "all_socket_types.hpp"
 #include "entt/meta/meta.hpp"
-#include "entt/meta/resolve.hpp"
 #include "id.hpp"
+#include "socket.hpp"
 #include "io/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -30,36 +27,6 @@ enum class NodeType {
 struct Node;
 struct NodeLink;
 
-struct GeometryComponent;
-
-struct SocketTypeInfo {
-    SocketTypeInfo()
-    {
-    }
-    SocketTypeInfo(const char* type_name)
-        : type_name(type_name),
-          cpp_type(entt::resolve(entt::hashed_string{ type_name }))
-    {
-    }
-
-    std::string type_name;
-    entt::meta_type cpp_type;
-
-    bool canConvertTo(const SocketTypeInfo& other) const;
-
-    std::string conversionNode(const SocketTypeInfo& to_type) const
-    {
-        if (conversionTo.contains(
-                entt::hashed_string{ to_type.type_name.c_str() })) {
-            return std::string("conv_") + type_name + "_to_" +
-                   to_type.type_name;
-        }
-        return {};
-    }
-
-    std::unordered_set<entt::hashed_string::value_type> conversionTo;
-};
-
 struct NodeSocket {
     char identifier[64];
     char ui_name[64];
@@ -71,7 +38,7 @@ struct NodeSocket {
     SocketID ID;
     Node* Node;
 
-    SocketTypeInfo* type_info;
+    SocketType* type_info;
     PinKind in_out;
 
     // This is for simple data fields in the node graph.

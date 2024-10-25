@@ -37,8 +37,8 @@ struct NodeTypeInfo {
 
     std::unique_ptr<NodeDeclaration> static_declaration;
 
-    SocketTypeInfo* conversion_from;
-    SocketTypeInfo* conversion_to;
+    SocketType* conversion_from;
+    SocketType* conversion_to;
 };
 
 struct Node {
@@ -138,7 +138,6 @@ NodeSocket* nodeAddSocket(
     const char* name);
 
 NodeTypeInfo* nodeTypeFind(const char* idname);
-SocketTypeInfo* socketTypeFind(const char* idname);
+SocketType* socketTypeFind(const char* idname);
 
-const char* get_socket_typename(SocketType socket);
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -58,7 +58,7 @@ void decl::Bool::update_default_value(NodeSocket* socket) const
             ntree,                                                   \
             node,                                                    \
             this->in_out,                                            \
-            get_socket_typename(SocketType::NAME),                   \
+            typeid(NAME).name(),                                     \
             this->identifier.c_str(),                                \
             this->name.c_str());                                     \
         update_default_value(socket);                                \

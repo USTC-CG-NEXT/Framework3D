@@ -2,13 +2,13 @@
 
 #include <set>
 
-#include "node_tree.hpp"
 #include "USTC_CG.h"
 #include "entt/core/any.hpp"
 #include "entt/meta/resolve.hpp"
+#include "node_tree.hpp"
 // #include "Utils/Functions/GenericPointer_.hpp"
 //  #include "graph/node_exec_graph.h"
-//#include "GCore/geom_node_global_params.h"
+// #include "GCore/geom_node_global_params.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
@@ -255,7 +255,7 @@ void EagerNodeTreeExecutor::refresh_storage()
     // After executing the tree, storage all the required info
     for (int i = 0; i < input_of_nodes_to_execute.size(); ++i) {
         auto socket = input_of_nodes_to_execute[i];
-        if (socket->type_info->type == SocketType::Any) {
+        if (!socket->type_info) {
             if (std::string(socket->Node->typeinfo->id_name) ==
                 "func_storage_in") {
                 auto node = socket->Node;
@@ -292,7 +292,7 @@ void EagerNodeTreeExecutor::try_storage()
     // After executing the tree, storage all the required info
     for (int i = 0; i < input_of_nodes_to_execute.size(); ++i) {
         auto socket = input_of_nodes_to_execute[i];
-        if (socket->type_info->type == SocketType::Any) {
+        if (!socket->type_info) {
             if (std::string(socket->Node->typeinfo->id_name) ==
                 "func_storage_in") {
                 auto node = socket->Node;
@@ -358,7 +358,8 @@ EagerNodeTreeExecutor::~EagerNodeTreeExecutor()
     storage.clear();
 }
 //
-//ExeParams EagerNodeTreeExecutorGeom::prepare_params(NodeTree* tree, Node* node)
+// ExeParams EagerNodeTreeExecutorGeom::prepare_params(NodeTree* tree, Node*
+// node)
 //{
 //    auto result = EagerNodeTreeExecutor::prepare_params(tree, node);
 //    result.global_param = *global_param;
@@ -366,7 +367,7 @@ EagerNodeTreeExecutor::~EagerNodeTreeExecutor()
 //    return result;
 //}
 //
-//void EagerNodeTreeExecutorGeom::set_global_param(GeomNodeGlobalParams* param)
+// void EagerNodeTreeExecutorGeom::set_global_param(GeomNodeGlobalParams* param)
 //{
 //    this->global_param = param;
 //}

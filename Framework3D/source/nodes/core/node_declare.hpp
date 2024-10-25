@@ -19,7 +19,7 @@ using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
 class SocketDeclaration : public ItemDeclaration {
    public:
     PinKind in_out;
-    SocketTypeInfo* type;
+    SocketType* type;
     std::string name;
     std::string identifier;
 

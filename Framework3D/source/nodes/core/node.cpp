@@ -2,11 +2,11 @@
 
 #include "node.hpp"
 
-#include "node_socket.hpp"
-#include "node_tree.hpp"
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
 #include "node_link.hpp"
+#include "node_socket.hpp"
+#include "node_tree.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 NodeSocket* nodeAddSocket(
     NodeTree* ntree,
@@ -144,12 +144,12 @@ void Node::generate_socket_group_based_on_declaration(
             return std::string(socket->identifier) ==
                        socket_declaration.identifier &&
                    socket->in_out == socket_declaration.in_out &&
-                   socket->type_info->type == socket_declaration.type;
+                   *socket->type_info == *socket_declaration.type;
         });
     if (old_socket != old_sockets.end()) {
         (*old_socket)->Node = this;
         new_socket = *old_socket;
-        new_socket->type_info->type = socket_declaration.type;
+        *new_socket->type_info = *socket_declaration.type;
         socket_declaration.update_default_value(new_socket);
     }
     else {
