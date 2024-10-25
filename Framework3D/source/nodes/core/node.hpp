@@ -37,8 +37,8 @@ struct NodeTypeInfo {
 
     std::unique_ptr<NodeDeclaration> static_declaration;
 
-    SocketType conversion_from;
-    SocketType conversion_to;
+    SocketTypeInfo* conversion_from;
+    SocketTypeInfo* conversion_to;
 };
 
 struct Node {

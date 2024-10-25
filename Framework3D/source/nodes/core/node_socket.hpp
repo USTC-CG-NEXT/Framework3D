@@ -5,15 +5,16 @@
 #include "USTC_CG.h"
 #include "all_socket_types.hpp"
 #include "entt/meta/meta.hpp"
+#include "entt/meta/resolve.hpp"
 #include "id.hpp"
 #include "io/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 #define TypeSizeEnum(Type, Size) Type##Size##Buffer
-enum class SocketType : uint32_t { ALL_SOCKET_TYPES };
+// enum class SocketType : uint32_t { ALL_SOCKET_TYPES };
 #undef TypeSizeEnum
 
-const char* get_socket_name_string(SocketType socket);
+// const char* get_socket_name_string(SocketType socket);
 
 enum class PinKind { Output, Input, Storage };
 
@@ -32,22 +33,31 @@ struct NodeLink;
 struct GeometryComponent;
 
 struct SocketTypeInfo {
-    char type_name[64];
-    entt::meta_type cpp_type;
-    SocketType type;
-
-    bool canConvertTo(SocketType other) const;
-
-    std::string conversionNode(SocketType to_type) const
+    SocketTypeInfo()
     {
-        if (conversionTo.contains(to_type)) {
-            return std::string("conv_") + get_socket_name_string(type) +
-                   "_to_" + get_socket_name_string(to_type);
+    }
+    SocketTypeInfo(const char* type_name)
+        : type_name(type_name),
+          cpp_type(entt::resolve(entt::hashed_string{ type_name }))
+    {
+    }
+
+    std::string type_name;
+    entt::meta_type cpp_type;
+
+    bool canConvertTo(const SocketTypeInfo& other) const;
+
+    std::string conversionNode(const SocketTypeInfo& to_type) const
+    {
+        if (conversionTo.contains(
+                entt::hashed_string{ to_type.type_name.c_str() })) {
+            return std::string("conv_") + type_name + "_to_" +
+                   to_type.type_name;
         }
         return {};
     }
 
-    std::unordered_set<SocketType> conversionTo;
+    std::unordered_set<entt::hashed_string::value_type> conversionTo;
 };
 
 struct NodeSocket {

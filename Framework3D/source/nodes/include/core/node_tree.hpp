@@ -16,13 +16,14 @@ class NodeTreeDescriptor {
 
    private:
     std::map<std::string, std::unique_ptr<SocketTypeInfo>> socket_registry;
-    std::map<std::string, NodeTypeInfo*> node_registry;
-    std::map<std::string, NodeTypeInfo*> conversion_node_registry;
+    std::map<std::string, std::unique_ptr<NodeTypeInfo>> node_registry;
+    std::map<std::string, std::unique_ptr<NodeTypeInfo>>
+        conversion_node_registry;
 };
 
 class NodeTree {
    public:
-    NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor);
+    NodeTree(std::shared_ptr<const NodeTreeDescriptor> descriptor);
     ~NodeTree();
 
     std::vector<std::unique_ptr<NodeLink>> links;
@@ -93,7 +94,7 @@ class NodeTree {
    private:
     // No one directly edits these sockets.
     std::vector<std::unique_ptr<NodeSocket>> sockets;
-    std::shared_ptr<NodeTreeDescriptor> descriptor_;
+    std::shared_ptr<const NodeTreeDescriptor> descriptor_;
 
     void delete_socket(SocketID socketId);
 

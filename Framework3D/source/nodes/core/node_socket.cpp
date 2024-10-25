@@ -17,27 +17,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 static std::map<std::string, std::unique_ptr<SocketTypeInfo>> socket_registry;
 
-#define TYPE_NAME(CASE) \
-    case SocketType::CASE: return "Socket" #CASE;
 
-const char* get_socket_typename(SocketType socket)
-{
-    switch (socket) {
-        MACRO_MAP(TYPE_NAME, ALL_SOCKET_TYPES)
-        default: return "";
-    }
-}
-
-#define TYPE_STRING(CASE) \
-    case SocketType::CASE: return #CASE;
-
-const char* get_socket_name_string(SocketType socket)
-{
-    switch (socket) {
-        MACRO_MAP(TYPE_STRING, ALL_SOCKET_TYPES)
-        default: return "";
-    }
-}
 extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 
 SocketTypeInfo* make_standard_socket_type(SocketType socket)
@@ -98,7 +78,7 @@ SocketTypeInfo* socketTypeFind(const char* idname)
     return nullptr;
 }
 
-bool SocketTypeInfo::canConvertTo(SocketType other) const
+bool SocketTypeInfo::canConvertTo(const SocketTypeInfo& other) const
 {
     if (type == SocketType::Any) {
         return true;

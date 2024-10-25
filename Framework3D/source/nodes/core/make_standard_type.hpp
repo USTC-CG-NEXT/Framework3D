@@ -7,7 +7,6 @@
        public:                                                         \
         NAME##()                                                       \
         {                                                              \
-            type = SocketType::NAME;                                   \
         }                                                              \
         NodeSocket* build(NodeTree* ntree, Node* node) const override; \
         using Builder = NAME##Builder;                                 \

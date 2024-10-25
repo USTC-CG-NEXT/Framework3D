@@ -1,7 +1,8 @@
 #pragma once
 
-#include "node_socket.hpp"
 #include "USTC_CG.h"
+#include "api.hpp"
+#include "node_socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace decl {
@@ -15,7 +16,7 @@ class Int : public SocketDeclaration {
    public:
     Int()
     {
-        type = SocketType::Int;
+        type = nodes::get_socket_type_info("int").get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
@@ -58,7 +59,7 @@ class Float : public SocketDeclaration {
    public:
     Float()
     {
-        type = SocketType::Float;
+        type = nodes::get_socket_type_info<float>().get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
@@ -99,7 +100,7 @@ class String : public SocketDeclaration {
    public:
     String()
     {
-        type = SocketType::String;
+        type = nodes::get_socket_type_info<std::string>().get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
@@ -126,7 +127,7 @@ class Any : public SocketDeclaration {
    public:
     Any()
     {
-        type = SocketType::Any;
+        type = nodes::get_socket_type_info<entt::meta_any>().get();
     }
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
     using Builder = AnyBuilder;
@@ -140,7 +141,7 @@ class Bool : public SocketDeclaration {
    public:
     Bool()
     {
-        type = SocketType::Bool;
+        type = nodes::get_socket_type_info<bool>().get();
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override;

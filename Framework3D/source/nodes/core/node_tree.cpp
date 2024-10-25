@@ -13,7 +13,7 @@ NodeTreeDescriptor::~NodeTreeDescriptor()
 {
 }
 
-NodeTree::NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor)
+NodeTree::NodeTree(std::shared_ptr<const NodeTreeDescriptor> descriptor)
     : has_available_link_cycle(false),
       descriptor_(descriptor)
 {
