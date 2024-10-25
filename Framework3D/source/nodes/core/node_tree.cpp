@@ -26,6 +26,10 @@ NodeTree::NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor)
     toposort_left_to_right.reserve(32);
 }
 
+NodeTree::~NodeTree()
+{
+}
+
 unsigned NodeTree::input_socket_id(NodeSocket* socket)
 {
     return std::distance(

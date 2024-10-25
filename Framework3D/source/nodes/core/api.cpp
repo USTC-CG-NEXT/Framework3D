@@ -1,6 +1,7 @@
 #include "api.hpp"
 
 #include "node_tree.hpp"
+#include "node_socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 std::shared_ptr<NodeTreeDescriptor> nodes::default_node_tree_descriptor()

@@ -10,22 +10,19 @@ set(CPP_FILES
 )
 
 # Anything related to imgui should be set to STATIC
-add_library(RCore STATIC ${CPP_FILES})
-
-target_link_libraries(RCore PUBLIC OpenMeshCore)
-
-target_include_directories(RCore PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_compile_options(RCore PRIVATE -DUSTC_CG_BUILD_MODULE=1 -DNOMINMAX)
-set_target_properties(RCore PROPERTIES ${OUTPUT_DIR})
-
-target_link_libraries(RCore PUBLIC usdGeom nodes SLANG::slang)
-target_compile_features(RCore PUBLIC cxx_std_20)
+# add_library(hd_USTC_CG STATIC ${CPP_FILES})
+# 
+# target_link_libraries(hd_USTC_CG PUBLIC OpenMeshCore)
+# 
+# target_include_directories(hd_USTC_CG PUBLIC ${PROJECT_SOURCE_DIR}/include)
+# target_compile_options(hd_USTC_CG PRIVATE -DUSTC_CG_BUILD_MODULE=1 -DNOMINMAX)
+# set_target_properties(hd_USTC_CG PROPERTIES ${OUTPUT_DIR})
+# 
+# target_link_libraries(hd_USTC_CG PUBLIC usdGeom nodes SLANG::slang)
+# target_compile_features(hd_USTC_CG PUBLIC cxx_std_20)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/macros)
 include(pxrPlugin)
 
 add_subdirectory(hd_USTC_CG)
 target_compile_options(hd_USTC_CG PRIVATE -DUSTC_CG_BUILD_MODULE=1)
-
-add_subdirectory(hd_USTC_CG_GL)
-target_compile_options(hd_USTC_CG_GL PRIVATE -DUSTC_CG_BUILD_MODULE=1)

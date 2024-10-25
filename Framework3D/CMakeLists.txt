@@ -96,19 +96,14 @@ find_package(NVAPI REQUIRED)
 
 add_subdirectory(external)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GCore)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/SCore)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/RCore)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/renderer)
 
 
-target_link_libraries(GCore PUBLIC "${TORCH_LIBRARIES}")
-target_link_libraries(SCore PUBLIC GCore)
+target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GUI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/nodes)
-
-target_link_directories(GCore PUBLIC SDK/${SDK_FOLDER}/boost/lib64-msvc-14.3)
-
 
 # For testing
 enable_testing()

@@ -20,17 +20,9 @@ TEST(register, register_cpp_type)
     nodes::register_cpp_type<int>();
 }
 
-void node_declare()
-{
-}
 
-void node_execution()
-{
-}
+
 
 TEST(register, register_node)
 {
-    // auto tree = nodes::create_node_tree();
-    // auto node = tree->add_node("test");
-    // ASSERT_NE(node, nullptr);
 }
