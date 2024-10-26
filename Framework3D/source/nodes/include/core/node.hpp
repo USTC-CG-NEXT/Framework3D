@@ -4,7 +4,6 @@
 #include <string>
 
 #include "USTC_CG.h"
-#include "api.hpp"
 #include "entt/core/type_info.hpp"
 #include "entt/meta/factory.hpp"
 #include "entt/meta/meta.hpp"
@@ -13,6 +12,7 @@
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+struct NodeTypeInfo;
 class NodeDeclaration;
 class SocketDeclaration;
 enum class PinKind;
@@ -35,47 +35,6 @@ class NodeDeclarationBuilder;
 using ExecFunction = std::function<void(ExeParams params)>;
 using NodeDeclareFunction =
     std::function<void(NodeDeclarationBuilder& builder)>;
-
-// There can be many instances of nodes, while each of them has a type. The
-// templates should be declared statically. It contains the information of the
-// type of input and output.
-struct NodeTypeInfo {
-    explicit NodeTypeInfo(const char* id_name);
-
-    std::string id_name;
-    std::string ui_name;
-
-    void set_declare_function(const NodeDeclareFunction& decl_function)
-    {
-        this->declare = decl_function;
-        build_node_declaration();
-    }
-
-    void set_execution_function(const ExecFunction& exec_function)
-    {
-        this->node_execute = exec_function;
-    }
-
-    NodeTypeOfGrpah node_type_of_grpah;
-
-    float color[4];
-    ExecFunction node_execute;
-
-    bool ALWAYS_REQUIRED = false;
-    bool INVISIBLE = false;
-
-    std::unique_ptr<NodeDeclaration> static_declaration;
-
-    SocketType conversion_from;
-    SocketType conversion_to;
-
-   private:
-    NodeDeclareFunction declare;
-
-    void reset_declaration();
-
-    void build_node_declaration();
-};
 
 namespace node {
 std ::unique_ptr<NodeTypeInfo> make_node_type_info();
@@ -123,20 +82,11 @@ struct Node {
     NodeSocket* find_socket(const char* identifier, PinKind in_out) const;
     size_t find_socket_id(const char* identifier, PinKind in_out) const;
 
-    [[nodiscard]] const std::vector<NodeSocket*>& get_inputs() const
-    {
-        return inputs;
-    }
+    [[nodiscard]] const std::vector<NodeSocket*>& get_inputs() const;
 
-    [[nodiscard]] const std::vector<NodeSocket*>& get_outputs() const
-    {
-        return outputs;
-    }
+    [[nodiscard]] const std::vector<NodeSocket*>& get_outputs() const;
 
-    bool valid()
-    {
-        return valid_;
-    }
+    bool valid();
 
     void generate_socket_group_based_on_declaration(
         const SocketDeclaration& socket_declaration,
@@ -149,13 +99,13 @@ struct Node {
         const char* name,
         PinKind in_out);
 
-    void remove_socket(NodeSocket* socket, PinKind kind);
-
     // For this deserialization, we assume there are some sockets already
     // present in the node tree.
     void deserialize(const nlohmann::json& node_json);
 
    private:
+    void remove_socket(NodeSocket* socket, PinKind kind);
+
     void out_date_sockets(
         const std::vector<NodeSocket*>& olds,
         PinKind pin_kind);
@@ -183,7 +133,7 @@ class ItemDeclaration {
     virtual ~ItemDeclaration() = default;
 };
 
-using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
+using ItemDeclarationPtr = std::shared_ptr<ItemDeclaration>;
 
 class SocketDeclaration : public ItemDeclaration {
    public:
@@ -249,7 +199,7 @@ class Decl : public SocketDeclaration {
     using value_type = T;
     Decl()
     {
-        type = nodes::get_socket_type<T>();
+        type = entt::resolve(entt::type_hash<T>());
         // If type doesn't exist, throw
 
         if (!type) {
@@ -481,4 +431,36 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_socket(
 
     return socket_decl_builder_ref;
 }
+
+// There can be many instances of nodes, while each of them has a type. The
+// templates should be declared statically. It contains the information of the
+// type of input and output.
+struct NodeTypeInfo {
+    NodeTypeInfo() = default;
+    explicit NodeTypeInfo(const char* id_name);
+
+    std::string id_name;
+    std::string ui_name;
+
+    void set_declare_function(const NodeDeclareFunction& decl_function);
+
+    void set_execution_function(const ExecFunction& exec_function);
+
+    NodeTypeOfGrpah node_type_of_grpah;
+
+    float color[4];
+    ExecFunction node_execute;
+
+    bool ALWAYS_REQUIRED = false;
+    bool INVISIBLE = false;
+
+    NodeDeclaration static_declaration;
+
+   private:
+    NodeDeclareFunction declare;
+
+    void reset_declaration();
+
+    void build_node_declaration();
+};
 USTC_CG_NAMESPACE_CLOSE_SCOPE

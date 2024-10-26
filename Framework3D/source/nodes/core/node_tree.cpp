@@ -22,9 +22,9 @@ NodeTreeDescriptor::~NodeTreeDescriptor()
 }
 
 NodeTreeDescriptor& NodeTreeDescriptor::register_node(
-    std::unique_ptr<NodeTypeInfo> type_info)
+    const NodeTypeInfo& type_info)
 {
-    node_registry[type_info->id_name] = std::move(type_info);
+    node_registry[type_info.id_name] = type_info;
     return *this;
 }
 
@@ -33,12 +33,28 @@ const NodeTypeInfo* NodeTreeDescriptor::get_node_type(
 {
     auto it = node_registry.find(name);
     if (it != node_registry.end()) {
-        return it->second.get();
+        return &it->second;
     }
     return nullptr;
 }
 
-NodeTree::NodeTree(std::shared_ptr<const NodeTreeDescriptor> descriptor)
+std::string NodeTreeDescriptor::conversion_node_name(
+    SocketType from,
+    SocketType to)
+{
+    return std::string("conv_") + std::string(from.info().name()) + "_to_" +
+           std::string(to.info().name());
+}
+
+bool NodeTreeDescriptor::can_convert(SocketType from, SocketType to) const
+{
+    auto node_name = conversion_node_name(from, to);
+
+    return conversion_node_registry.find(node_name) !=
+           conversion_node_registry.end();
+}
+
+NodeTree::NodeTree(const NodeTreeDescriptor& descriptor)
     : has_available_link_cycle(false),
       descriptor_(descriptor)
 {
@@ -67,6 +83,31 @@ unsigned NodeTree::output_socket_id(NodeSocket* socket)
     return std::distance(
         output_sockets.begin(),
         std::find(output_sockets.begin(), output_sockets.end(), socket));
+}
+
+const std::vector<Node*>& NodeTree::get_toposort_right_to_left() const
+{
+    return toposort_right_to_left;
+}
+
+const std::vector<Node*>& NodeTree::get_toposort_left_to_right() const
+{
+    return toposort_left_to_right;
+}
+
+size_t NodeTree::socket_count() const
+{
+    return sockets.size();
+}
+
+void NodeTree::SetDirty(bool dirty)
+{
+    this->dirty_ = dirty;
+}
+
+bool NodeTree::GetDirty()
+{
+    return dirty_;
 }
 
 void NodeTree::clear()
@@ -146,10 +187,10 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
     }
 
     NodeLink* bare_ptr = nullptr;
-    if (descriptor_->can_convert(fromsock->type_info, tosock->type_info)) {
+    if (descriptor_.can_convert(fromsock->type_info, tosock->type_info)) {
         std::string conversion_node_name;
 
-        conversion_node_name = descriptor_->conversion_node_name(
+        conversion_node_name = descriptor_.conversion_node_name(
             fromsock->type_info, tosock->type_info);
 
         auto middle_node = add_node(conversion_node_name.c_str());
@@ -256,6 +297,7 @@ void NodeTree::delete_node(NodeId nodeId)
 
         nodes.erase(id);
     }
+    ensure_topology_cache();
 }
 
 bool NodeTree::can_create_link(NodeSocket* a, NodeSocket* b)
@@ -287,7 +329,7 @@ bool NodeTree::can_create_direct_link(NodeSocket* socket1, NodeSocket* socket2)
 
 bool NodeTree::can_create_convert_link(NodeSocket* out, NodeSocket* in)
 {
-    return descriptor_->can_convert(out->type_info, in->type_info);
+    return descriptor_.can_convert(out->type_info, in->type_info);
 }
 
 void NodeTree::delete_socket(SocketID socketId)
@@ -297,12 +339,11 @@ void NodeTree::delete_socket(SocketID socketId)
             return socket->ID == socketId;
         });
 
-    // Remove the the links connected to the socket
+    // Remove the links connected to the socket
 
-    for (auto& link : links) {
-        if (link->from_sock->ID == socketId || link->to_sock->ID == socketId) {
-            delete_link(link->ID, false);
-        }
+    auto& directly_connect_links = (*id)->directly_linked_links;
+    for (auto& link : directly_connect_links) {
+        delete_link(link->ID, false);
     }
 
     if (id != sockets.end()) {

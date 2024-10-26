@@ -30,19 +30,29 @@ NodeTypeInfo::NodeTypeInfo(const char* id_name)
     : id_name(id_name),
       ui_name(id_name)
 {
-    static_declaration = std::make_unique<NodeDeclaration>();
+}
+
+void NodeTypeInfo::set_declare_function(
+    const NodeDeclareFunction& decl_function)
+{
+    this->declare = decl_function;
+    build_node_declaration();
+}
+
+void NodeTypeInfo::set_execution_function(const ExecFunction& exec_function)
+{
+    this->node_execute = exec_function;
 }
 
 void NodeTypeInfo::reset_declaration()
 {
-    static_declaration = nullptr;
-    static_declaration = std::make_unique<NodeDeclaration>();
+    static_declaration = NodeDeclaration();
 }
 
 void NodeTypeInfo::build_node_declaration()
 {
     reset_declaration();
-    NodeDeclarationBuilder node_decl_builder{ *static_declaration };
+    NodeDeclarationBuilder node_decl_builder{ static_declaration };
     declare(node_decl_builder);
 }
 
@@ -142,6 +152,21 @@ size_t Node::find_socket_id(const char* identifier, PinKind in_out) const
     return -1;
 }
 
+const std::vector<NodeSocket*>& Node::get_inputs() const
+{
+    return inputs;
+}
+
+const std::vector<NodeSocket*>& Node::get_outputs() const
+{
+    return outputs;
+}
+
+bool Node::valid()
+{
+    return valid_;
+}
+
 void Node::generate_socket_group_based_on_declaration(
     const SocketDeclaration& socket_declaration,
     const std::vector<NodeSocket*>& old_sockets,
@@ -231,8 +256,7 @@ void Node::refresh_node()
 {
     auto ntype = typeinfo;
 
-    assert(ntype->static_declaration);
-    auto& node_decl = *ntype->static_declaration;
+    auto& node_decl = ntype->static_declaration;
 
     auto old_inputs = get_inputs();
     auto old_outputs = get_outputs();
@@ -299,7 +323,7 @@ bool Node::pre_init_node(const char* idname)
 const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
 {
     if (idname[0]) {
-        const NodeTypeInfo* nt = tree_->descriptor_->get_node_type(idname);
+        const NodeTypeInfo* nt = tree_->descriptor_.get_node_type(idname);
 
         if (nt)
             return nt;

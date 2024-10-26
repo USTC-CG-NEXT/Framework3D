@@ -8,6 +8,7 @@
 #include "Logging/Logging.h"
 #include "Macro/map.h"
 #include "USTC_CG.h"
+#include "api.hpp"
 #include "entt/meta/resolve.hpp"
 // #include "rich_type_buffer.hpp"
 #if USTC_CG_WITH_TORCH

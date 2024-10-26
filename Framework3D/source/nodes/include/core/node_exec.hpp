@@ -7,8 +7,8 @@
 
 #include "USTC_CG.h"
 #include "entt/meta/meta.hpp"
-#include "node.hpp"
 #include "entt/meta/resolve.hpp"
+#include "node.hpp"
 // #include "Utils/Functions/GenericPointer.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -167,4 +167,10 @@ struct NodeTreeExecutor {
     entt::meta_ctx& context;
 };
 
+struct ExecutorDesc {
+    enum class Policy {
+        Eager,
+        Lazy,
+    } policy;
+};
 USTC_CG_NAMESPACE_CLOSE_SCOPE

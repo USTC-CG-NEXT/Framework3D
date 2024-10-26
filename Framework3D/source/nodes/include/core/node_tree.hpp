@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -17,30 +18,18 @@ class NodeTreeDescriptor {
    public:
     ~NodeTreeDescriptor();
 
-    NodeTreeDescriptor& register_node(std::unique_ptr<NodeTypeInfo>);
+    NodeTreeDescriptor& register_node(const NodeTypeInfo& node_type);
     template<typename FROM, typename TO>
     NodeTreeDescriptor& register_conversion(
         const std::function<bool(const FROM&, TO&)>& conversion);
 
     const NodeTypeInfo* get_node_type(const std::string& name) const;
 
-    static std::string conversion_node_name(SocketType from, SocketType to)
-    {
-        return std::string("conv_") + std::string(from.info().name()) + "_to_" +
-               std::string(to.info().name());
-    }
-
-    bool can_convert(SocketType from, SocketType to) const
-    {
-        auto node_name = conversion_node_name(from, to);
-
-        return conversion_node_registry.find(node_name) !=
-               conversion_node_registry.end();
-    }
+    static std::string conversion_node_name(SocketType from, SocketType to);
+    bool can_convert(SocketType from, SocketType to) const;
 
    private:
-    std::unordered_map<std::string, std::unique_ptr<NodeTypeInfo>>
-        node_registry;
+    std::unordered_map<std::string, NodeTypeInfo> node_registry;
 
     std::unordered_set<std::string> conversion_node_registry;
 };
@@ -49,29 +38,27 @@ template<typename FROM, typename TO>
 NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
     const std::function<bool(const FROM&, TO&)>& conversion)
 {
-    std::unique_ptr<NodeTypeInfo> conversion_type_info =
-        std::make_unique<NodeTypeInfo>(
-            conversion_node_name(
-                nodes::get_socket_type<FROM>(), nodes::get_socket_type<TO>())
-                .c_str());
+    auto conversion_type_info = NodeTypeInfo(
+        conversion_node_name(
+            nodes::get_socket_type<FROM>(), nodes::get_socket_type<TO>())
+            .c_str());
 
-    conversion_type_info->ui_name = "invisible";
+    conversion_type_info.ui_name = "invisible";
 
-    conversion_type_info->set_declare_function([](NodeDeclarationBuilder& b) {
+    conversion_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<FROM>("input");
         b.add_output<TO>("output");
     });
 
-    conversion_type_info->set_execution_function(
-        [conversion](ExeParams params) {
-            auto input = params.get_input<FROM>("input");
-            TO output;
-            conversion(input, output);
-            params.set_output("output", std::move(output));
-        });
+    conversion_type_info.set_execution_function([conversion](ExeParams params) {
+        auto input = params.get_input<FROM>("input");
+        TO output;
+        conversion(input, output);
+        params.set_output("output", std::move(output));
+    });
 
-    conversion_node_registry.insert(conversion_type_info->id_name);
-    node_registry[conversion_type_info->id_name] =
+    conversion_node_registry.insert(conversion_type_info.id_name);
+    node_registry[conversion_type_info.id_name] =
         std::move(conversion_type_info);
 
     return *this;
@@ -79,7 +66,7 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
 
 class NodeTree {
    public:
-    NodeTree(std::shared_ptr<const NodeTreeDescriptor> descriptor);
+    NodeTree(const NodeTreeDescriptor& descriptor);
     ~NodeTree();
 
     std::vector<std::unique_ptr<NodeLink>> links;
@@ -92,15 +79,9 @@ class NodeTree {
     std::vector<NodeSocket*> input_sockets;
     std::vector<NodeSocket*> output_sockets;
 
-    [[nodiscard]] const std::vector<Node*>& get_toposort_right_to_left() const
-    {
-        return toposort_right_to_left;
-    }
+    [[nodiscard]] const std::vector<Node*>& get_toposort_right_to_left() const;
 
-    [[nodiscard]] const std::vector<Node*>& get_toposort_left_to_right() const
-    {
-        return toposort_left_to_right;
-    }
+    [[nodiscard]] const std::vector<Node*>& get_toposort_left_to_right() const;
 
     // The left to right topology is holding the memory
     std::vector<Node*> toposort_right_to_left;
@@ -140,15 +121,12 @@ class NodeTree {
         NodeSocket* node_socket1);
     friend struct Node;
 
-    size_t socket_count() const
-    {
-        return sockets.size();
-    }
+    size_t socket_count() const;
 
    private:
     // No one directly edits these sockets.
     std::vector<std::unique_ptr<NodeSocket>> sockets;
-    std::shared_ptr<const NodeTreeDescriptor> descriptor_;
+    const NodeTreeDescriptor descriptor_;
 
     void delete_socket(SocketID socketId);
 
@@ -163,14 +141,9 @@ class NodeTree {
     std::string serialize(int indentation = -1);
     void Deserialize(const std::string& str);
 
-    void SetDirty(bool dirty = true)
-    {
-        this->dirty_ = dirty;
-    }
-    bool GetDirty()
-    {
-        return dirty_;
-    }
+    void SetDirty(bool dirty = true);
+
+    bool GetDirty();
 
    private:
     bool dirty_ = true;
