@@ -46,13 +46,13 @@ TEST_F(NodeCoreTest, RegisterCppType)
 
 TEST_F(NodeCoreTest, GetSocketType)
 {
-    std::unique_ptr<SocketType> socket_type = nodes::get_socket_type<int>();
-    ASSERT_EQ(socket_type, nullptr);
+    SocketType socket_type = nodes::get_socket_type<int>();
+    ASSERT_FALSE(socket_type);
 
     nodes::register_cpp_type<int>();
 
     socket_type = nodes::get_socket_type<int>();
-    ASSERT_NE(socket_type, nullptr);
+    ASSERT_TRUE(socket_type);
 }
 
 TEST_F(NodeCoreTest, CreateNodeTree)
@@ -158,7 +158,7 @@ TEST_F(NodeCoreTest, NodeLink)
 
     ASSERT_NE(link, nullptr);
 
-    tree->remove_link(link);
+    tree->delete_link(link);
 
     link = tree->add_link(
         node->get_output_socket("test_output"),
@@ -208,9 +208,7 @@ TEST_F(NodeCoreTest, NodeLinkConversion)
         node->get_output_socket("test_output")->ID,
         node2->get_input_socket("test_input")->ID);
 
-    ASSERT_NE(link, nullptr);
-
-    tree->remove_link(link);
+    tree->delete_link(link);
 
     link = tree->add_link(
         node->get_output_socket("test_output"),
@@ -223,10 +221,74 @@ TEST_F(NodeCoreTest, NodeLinkConversion)
         node->get_output_socket("test_output"),
         node2->get_input_socket("test_input"));
                  , std::runtime_error);
+}
 
-    // Link count
+TEST_F(NodeCoreTest, NodeRemove)
+{
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        create_node_tree_descriptor();
+    std::unique_ptr<NodeTypeInfo> node_type_info =
+        std::make_unique<NodeTypeInfo>("test_node");
 
-    ASSERT_EQ(tree->links.size(), 1);
+    nodes::register_cpp_type<int>();
+
+    node_type_info->set_declare_function([](NodeDeclarationBuilder& b) {
+        b.add_input<int>("test_input");
+        b.add_output<int>("test_output");
+    });
+
+    descriptor->register_node(std::move(node_type_info));
+
+    auto tree = nodes::create_node_tree(descriptor);
+
+    auto node = tree->add_node("test_node");
+    auto node2 = tree->add_node("test_node");
+
+    auto link = tree->add_link(
+        node->get_output_socket("test_output"),
+        node2->get_input_socket("test_input"));
+
+    tree->delete_node(node);
+
+    ASSERT_EQ(tree->nodes.size(), 1);
+    ASSERT_EQ(tree->links.size(), 0);
+}
+
+TEST_F(NodeCoreTest, PressureTestAddRemove)
+{
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        create_node_tree_descriptor();
+    std::unique_ptr<NodeTypeInfo> node_type_info =
+        std::make_unique<NodeTypeInfo>("test_node");
+
+    nodes::register_cpp_type<int>();
+    nodes::register_cpp_type<float>();
+
+    node_type_info->set_declare_function([](NodeDeclarationBuilder& b) {
+        b.add_input<int>("test_input");
+        b.add_output<float>("test_output");
+    });
+
+    descriptor->register_node(std::move(node_type_info));
+    descriptor->register_conversion<float, int>([](const float& from, int& to) {
+        to = from;
+        return true;
+    });
+
+    auto tree = nodes::create_node_tree(descriptor);
+
+    // Randomly add and remove nodes, also links
+    for (int i = 0; i < 1000; i++) {
+        auto node = tree->add_node("test_node");
+        auto node2 = tree->add_node("test_node");
+
+        auto link = tree->add_link(
+            node->get_output_socket("test_output"),
+            node2->get_input_socket("test_input"));
+
+        tree->delete_link(link);
+        tree->delete_node(node);
+    }
 }
 
 TEST_F(NodeCoreTest, SerializeDeserialize)

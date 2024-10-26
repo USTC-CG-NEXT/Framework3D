@@ -228,7 +228,7 @@ void EagerNodeTreeExecutor::prepare_memory()
 {
     for (int i = 0; i < input_states.size(); ++i) {
         index_cache[input_of_nodes_to_execute[i]] = i;
-        auto type = input_of_nodes_to_execute[i]->type_info->cpp_type;
+        auto type = input_of_nodes_to_execute[i]->type_info;
         if (type) {
             input_states[i].value = type.construct();
         }
@@ -236,7 +236,7 @@ void EagerNodeTreeExecutor::prepare_memory()
 
     for (int i = 0; i < output_states.size(); ++i) {
         index_cache[output_of_nodes_to_execute[i]] = i;
-        auto type = output_of_nodes_to_execute[i]->type_info->cpp_type;
+        auto type = output_of_nodes_to_execute[i]->type_info;
         if (type) {
             output_states[i].value = type.construct();
         }
@@ -267,7 +267,7 @@ void EagerNodeTreeExecutor::refresh_storage()
                         input->default_value_typed<std::string>();
                     if (storage.find(name) == storage.end()) {
                         data = socket->directly_linked_sockets[0]
-                                   ->type_info->cpp_type.construct();
+                                   ->type_info.construct();
                         storage[name] = data;
                     }
                     refreshed.emplace(name);

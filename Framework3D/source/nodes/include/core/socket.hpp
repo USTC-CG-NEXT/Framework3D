@@ -13,30 +13,7 @@ struct NodeLink;
 
 enum class PinKind { Output, Input, Storage };
 
-struct SocketType {
-    SocketType()
-    {
-    }
-
-    static std::unique_ptr<SocketType> get_socket_type(const char* type_name);
-
-    template<typename T>
-    static std::unique_ptr<SocketType> get_socket_type()
-    {
-        return get_socket_type(typeid(T).name());
-    }
-
-    std::string type_name() const;
-
-    bool operator==(const SocketType&) const = default;
-
-    // Conversion
-    bool canConvertTo(const SocketType& other) const;
-    std::string conversionNode(const SocketType& to_type) const;
-
-    entt::meta_type cpp_type;
-    std::unordered_set<entt::hashed_string::value_type> conversionTo;
-};
+using SocketType = entt::meta_type;
 
 struct NodeSocket {
     char identifier[64];
@@ -49,7 +26,7 @@ struct NodeSocket {
     SocketID ID;
     Node* Node;
 
-    std::unique_ptr<SocketType> type_info;
+    SocketType type_info;
     PinKind in_out;
 
     // This is for simple data fields in the node graph.
@@ -64,7 +41,6 @@ struct NodeSocket {
           ui_name{},
           ID(id),
           Node(nullptr),
-          type_info(nullptr),
           in_out(PinKind::Input)
     {
     }

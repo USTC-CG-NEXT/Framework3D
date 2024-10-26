@@ -19,7 +19,6 @@ enum class PinKind;
 struct NodeSocket;
 class NodeTree;
 enum class NodeType;
-struct SocketType;
 
 enum class NodeTypeOfGrpah {
     Geometry,
@@ -52,6 +51,11 @@ struct NodeTypeInfo {
         build_node_declaration();
     }
 
+    void set_execution_function(const ExecFunction& exec_function)
+    {
+        this->node_execute = exec_function;
+    }
+
     NodeTypeOfGrpah node_type_of_grpah;
 
     float color[4];
@@ -62,8 +66,8 @@ struct NodeTypeInfo {
 
     std::unique_ptr<NodeDeclaration> static_declaration;
 
-    SocketType* conversion_from;
-    SocketType* conversion_to;
+    SocketType conversion_from;
+    SocketType conversion_to;
 
    private:
     NodeDeclareFunction declare;
@@ -171,7 +175,7 @@ struct Node {
 };
 
 NodeTypeInfo* nodeTypeFind(const char* idname);
-// SocketType* socketTypeFind(const char* idname);
+// SocketType socketTypeFind(const char* idname);
 
 /* Socket or panel declaration. */
 class ItemDeclaration {
@@ -184,7 +188,7 @@ using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
 class SocketDeclaration : public ItemDeclaration {
    public:
     PinKind in_out;
-    std::unique_ptr<SocketType> type;
+    SocketType type;
     std::string name;
     std::string identifier;
 

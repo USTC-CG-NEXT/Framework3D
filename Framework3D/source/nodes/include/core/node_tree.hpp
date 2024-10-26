@@ -7,6 +7,7 @@
 #include "USTC_CG.h"
 #include "api.hpp"
 #include "node.hpp"
+#include "node_exec.hpp"
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -23,25 +24,55 @@ class NodeTreeDescriptor {
 
     const NodeTypeInfo* get_node_type(const std::string& name) const;
 
+    static std::string conversion_node_name(SocketType from, SocketType to)
+    {
+        return std::string("conv_") + std::string(from.info().name()) + "_to_" +
+               std::string(to.info().name());
+    }
+
+    bool can_convert(SocketType from, SocketType to) const
+    {
+        auto node_name = conversion_node_name(from, to);
+
+        return conversion_node_registry.find(node_name) !=
+               conversion_node_registry.end();
+    }
+
    private:
-    std::map<std::string, std::unique_ptr<NodeTypeInfo>> node_registry;
-    std::map<std::string, std::unique_ptr<NodeTypeInfo>>
-        conversion_node_registry;
+    std::unordered_map<std::string, std::unique_ptr<NodeTypeInfo>>
+        node_registry;
+
+    std::unordered_set<std::string> conversion_node_registry;
 };
 
 template<typename FROM, typename TO>
 NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
     const std::function<bool(const FROM&, TO&)>& conversion)
 {
-    std::unique_ptr<NodeTypeInfo> conversion_node =
-        std::make_unique<NodeTypeInfo>((std::string("conv_") +
-                                        typeid(FROM).name() + "_to_" +
-                                        typeid(TO).name())
-                                           .c_str());
+    std::unique_ptr<NodeTypeInfo> conversion_type_info =
+        std::make_unique<NodeTypeInfo>(
+            conversion_node_name(
+                nodes::get_socket_type<FROM>(), nodes::get_socket_type<TO>())
+                .c_str());
 
-    conversion_node->ui_name = "invisible";
+    conversion_type_info->ui_name = "invisible";
 
-    // register_node(conversion_node);
+    conversion_type_info->set_declare_function([](NodeDeclarationBuilder& b) {
+        b.add_input<FROM>("input");
+        b.add_output<TO>("output");
+    });
+
+    conversion_type_info->set_execution_function(
+        [conversion](ExeParams params) {
+            auto input = params.get_input<FROM>("input");
+            TO output;
+            conversion(input, output);
+            params.set_output("output", std::move(output));
+        });
+
+    conversion_node_registry.insert(conversion_type_info->id_name);
+    node_registry[conversion_type_info->id_name] =
+        std::move(conversion_type_info);
 
     return *this;
 }
@@ -94,17 +125,17 @@ class NodeTree {
 
     NodeLink* add_link(SocketID startPinId, SocketID endPinId);
 
-    void remove_link(LinkId linkId);
-    void remove_link(NodeLink* link);
+    void delete_link(LinkId linkId, bool refresh_topology = true);
+    void delete_link(NodeLink* link, bool refresh_topology = true);
 
+    void delete_node(Node* nodeId);
     void delete_node(NodeId nodeId);
-    static bool can_create_link(
-        NodeSocket* node_socket,
-        NodeSocket* node_socket1);
+
+    bool can_create_link(NodeSocket* node_socket, NodeSocket* node_socket1);
     static bool can_create_direct_link(
         NodeSocket* socket1,
         NodeSocket* socket2);
-    static bool can_create_convert_link(
+    bool can_create_convert_link(
         NodeSocket* node_socket,
         NodeSocket* node_socket1);
     friend struct Node;

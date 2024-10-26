@@ -28,7 +28,6 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_node(
     return *this;
 }
 
-
 const NodeTypeInfo* NodeTreeDescriptor::get_node_type(
     const std::string& name) const
 {
@@ -142,18 +141,18 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         std::swap(fromsock, tosock);
     }
 
-    std::string node_name;
-    node_name = fromsock->type_info->conversionNode(*tosock->type_info);
-
-    if (*fromsock->type_info != *tosock->type_info) {
-        if (node_name.empty()) {
-            throw std::runtime_error("Cannot convert between types.");
-        }
+    if (!tosock->directly_linked_sockets.empty()) {
+        throw std::runtime_error("Socket already linked.");
     }
 
     NodeLink* bare_ptr = nullptr;
-    if (!node_name.empty()) {
-        auto middle_node = add_node(node_name.c_str());
+    if (descriptor_->can_convert(fromsock->type_info, tosock->type_info)) {
+        std::string conversion_node_name;
+
+        conversion_node_name = descriptor_->conversion_node_name(
+            fromsock->type_info, tosock->type_info);
+
+        auto middle_node = add_node(conversion_node_name.c_str());
         assert(middle_node->get_inputs().size() == 1);
         assert(middle_node->get_outputs().size() == 1);
 
@@ -167,17 +166,9 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         assert(nextLink);
         firstLink->nextLink = nextLink;
         nextLink->fromLink = firstLink;
+        bare_ptr = firstLink;
     }
-    else {
-        // If link exists, throw runtime_error
-        if (std::find_if(
-                links.begin(), links.end(), [fromsock, tosock](auto& link) {
-                    return link->from_sock == fromsock &&
-                           link->to_sock == tosock;
-                }) != links.end()) {
-            throw std::runtime_error("Link already exists.");
-        }
-
+    else if (fromsock->type_info == tosock->type_info) {
         auto link =
             std::make_unique<NodeLink>(UniqueID(), fromsock->ID, tosock->ID);
 
@@ -187,6 +178,9 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         link->to_sock = tosock;
         bare_ptr = link.get();
         links.push_back(std::move(link));
+    }
+    else {
+        throw std::runtime_error("Cannot convert between types.");
     }
     ensure_topology_cache();
     return bare_ptr;
@@ -202,7 +196,7 @@ NodeLink* NodeTree::add_link(SocketID startPinId, SocketID endPinId)
         return add_link(socket1, socket2);
 }
 
-void NodeTree::remove_link(LinkId linkId)
+void NodeTree::delete_link(LinkId linkId, bool refresh_topology)
 {
     SetDirty(true);
 
@@ -211,18 +205,39 @@ void NodeTree::remove_link(LinkId linkId)
     });
     if (link != links.end()) {
         if ((*link)->nextLink) {
-            auto nextLinkId = (*link)->nextLink->ID;
-            delete_node((*link)->to_node->ID);
-            remove_link(nextLinkId);
-        }
+            auto nextLink = (*link)->nextLink;
 
-        links.erase(link);
+            auto conversion_node = (*link)->to_node;
+
+            links.erase(link);
+
+            // Find next link iterator
+            auto nextLinkIter = std::find_if(
+                links.begin(), links.end(), [nextLink](auto& link) {
+                    return link.get() == nextLink;
+                });
+
+            links.erase(nextLinkIter);
+
+            delete_node(conversion_node);
+        }
+        else {
+            links.erase(link);
+        }
+    }
+    if (refresh_topology) {
+        ensure_topology_cache();
     }
 }
 
-void NodeTree::remove_link(NodeLink* link)
+void NodeTree::delete_link(NodeLink* link, bool refresh_topology)
 {
-    remove_link(link->ID);
+    delete_link(link->ID, refresh_topology);
+}
+
+void NodeTree::delete_node(Node* nodeId)
+{
+    delete_node(nodeId->ID);
 }
 
 void NodeTree::delete_node(NodeId nodeId)
@@ -267,12 +282,12 @@ bool NodeTree::can_create_link(NodeSocket* a, NodeSocket* b)
 
 bool NodeTree::can_create_direct_link(NodeSocket* socket1, NodeSocket* socket2)
 {
-    return *socket1->type_info == *socket2->type_info;
+    return socket1->type_info == socket2->type_info;
 }
 
 bool NodeTree::can_create_convert_link(NodeSocket* out, NodeSocket* in)
 {
-    return out->type_info->canConvertTo(*in->type_info);
+    return descriptor_->can_convert(out->type_info, in->type_info);
 }
 
 void NodeTree::delete_socket(SocketID socketId)
@@ -281,6 +296,14 @@ void NodeTree::delete_socket(SocketID socketId)
         std::find_if(sockets.begin(), sockets.end(), [socketId](auto&& socket) {
             return socket->ID == socketId;
         });
+
+    // Remove the the links connected to the socket
+
+    for (auto& link : links) {
+        if (link->from_sock->ID == socketId || link->to_sock->ID == socketId) {
+            delete_link(link->ID, false);
+        }
+    }
 
     if (id != sockets.end()) {
         sockets.erase(id);

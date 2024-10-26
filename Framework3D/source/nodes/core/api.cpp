@@ -16,10 +16,9 @@ std::shared_ptr<NodeTreeDescriptor> create_node_tree_descriptor()
 }
 
 template<>
-std::unique_ptr<SocketType> get_socket_type<entt::meta_any>()
+SocketType get_socket_type<entt::meta_any>()
 {
-    auto ptr = std::make_unique<SocketType>();
-    return ptr;
+    return SocketType();
 }
 
 std::unique_ptr<NodeTree> create_node_tree(

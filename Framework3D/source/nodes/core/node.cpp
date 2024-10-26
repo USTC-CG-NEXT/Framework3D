@@ -156,12 +156,12 @@ void Node::generate_socket_group_based_on_declaration(
             return std::string(socket->identifier) ==
                        socket_declaration.identifier &&
                    socket->in_out == socket_declaration.in_out &&
-                   *socket->type_info == *socket_declaration.type;
+                   socket->type_info == socket_declaration.type;
         });
     if (old_socket != old_sockets.end()) {
         (*old_socket)->Node = this;
         new_socket = *old_socket;
-        *new_socket->type_info = *socket_declaration.type;
+        new_socket->type_info = socket_declaration.type;
         socket_declaration.update_default_value(new_socket);
     }
     else {
@@ -179,7 +179,7 @@ NodeSocket* Node::add_socket(
 {
     auto socket = new NodeSocket(tree_->UniqueID());
 
-    socket->type_info = SocketType::get_socket_type(type_name);
+    socket->type_info = nodes::get_socket_type(type_name);
     strcpy(socket->identifier, identifier);
     strcpy(socket->ui_name, name);
     socket->in_out = in_out;

@@ -16,11 +16,11 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-// static std::map<std::string, std::unique_ptr<SocketType>> socket_registry;
+// static std::map<std::string, SocketType> socket_registry;
 
 extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 
-// SocketType* make_standard_socket_type(SocketType socket)
+// SocketType make_standard_socket_type(SocketType socket)
 //{
 //     auto type_info = new SocketType();
 //     type_info->type = socket;
@@ -36,27 +36,27 @@ extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 //     return type_info;
 // }
 //
-// static SocketType* make_socket_type_Any()
+// static SocketType make_socket_type_Any()
 //{
-//     SocketType* socket_type = make_standard_socket_type(SocketType::Any);
-//     // socket_type->cpp_type = entt::resolve<entt::meta_any>();
+//     SocketType socket_type = make_standard_socket_type(SocketType::Any);
+//     // socket_type = entt::resolve<entt::meta_any>();
 //     return socket_type;
 // }
 // #def ine  MAKE _SOCKET_TYPE(CASE)                                         \
-//    static SocketType* make_socket_type_##CASE()                   \
+//    static SocketType make_socket_type_##CASE()                   \
 //    {                                                                  \
-//        SocketType* socket_type =                                  \
+//        SocketType socket_type =                                  \
 //            make_standard_socket_type(SocketType::CASE);               \
-//        socket_type->cpp_type = entt::resolve<socket_aliases::CASE>(); \
+//        socket_type = entt::resolve<socket_aliases::CASE>(); \
 //        return socket_type;                                            \
 //    }
 
 // MACRO_MAP(MAKE_SOCKET_TYPE, ALL_SOCKET_TYPES_EXCEPT_ANY)
 
-// void register_socket(SocketType* type_info)
+// void register_socket(SocketType type_info)
 //{
 //     socket_registry[type_info->type_name()] =
-//         std::unique_ptr<SocketType>(type_info);
+//         SocketType(type_info);
 // }
 
 // void register_sockets()
@@ -65,7 +65,7 @@ extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 //
 //     MACRO_MAP(REGISTER_NODE, ALL_SOCKET_TYPES)
 // }
-// SocketType* socketTypeFind(const char* idname)
+// SocketType socketTypeFind(const char* idname)
 //{
 //    if (idname[0]) {
 //        auto& registry = socket_registry;
@@ -77,64 +77,64 @@ extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 //
 //    return nullptr;
 //}
-
-std::unique_ptr<SocketType> SocketType::get_socket_type(const char* type_name)
-{
-    auto mt = entt::resolve(entt::hashed_string{ type_name });
-    if (mt) {
-        auto ret = std::make_unique<SocketType>();
-        ret->cpp_type = mt;
-        return ret;
-    }
-    logging("Trying to get a non-existing type with " + std::string(type_name));
-    return nullptr;
-}
-
-std::string SocketType::type_name() const
-{
-    std::string_view name = cpp_type.info().name();
-    // convert it to string and return
-    return std::string(name.data(), name.size());
-}
-
-bool SocketType::canConvertTo(const SocketType& other) const
-{
-    // "any" can always convert to anything
-    if (!cpp_type) {
-        return true;
-    }
-    if (!other.cpp_type) {
-        return true;
-    }
-
-    if (!conversionNode(other).empty()) {
-        return true;
-    }
-    return cpp_type == other.cpp_type;
-}
-
-std::string SocketType::conversionNode(const SocketType& to_type) const
-{
-    if (conversionTo.contains(
-            entt::hashed_string{ to_type.type_name().c_str() })) {
-        return std::string("conv_") + type_name() + "_to_" +
-               to_type.type_name();
-    }
-    return {};
-}
+//
+// SocketType SocketType::get_socket_type(const char* type_name)
+//{
+//    auto mt = entt::resolve(entt::hashed_string{ type_name });
+//    if (mt) {
+//        auto ret = std::make_unique<SocketType>();
+//        ret = mt;
+//        return ret;
+//    }
+//    logging("Trying to get a non-existing type with " +
+//    std::string(type_name)); return nullptr;
+//}
+//
+// std::string SocketType::type_name() const
+//{
+//    std::string_view name = cpp_type.info().name();
+//    // convert it to string and return
+//    return std::string(name.data(), name.size());
+//}
+//
+// bool SocketType::canConvertTo(const SocketType& other) const
+//{
+//    // "any" can always convert to anything
+//    if (!cpp_type) {
+//        return true;
+//    }
+//    if (!other.cpp_type) {
+//        return true;
+//    }
+//
+//    if (!conversionNode(other).empty()) {
+//        return true;
+//    }
+//    return cpp_type == other.cpp_type;
+//}
+//
+// std::string SocketType::conversionNode(const SocketType& to_type) const
+//{
+//    if (conversionTo.contains(
+//            entt::hashed_string{ to_type.type_name().c_str() })) {
+//        return std::string("conv_") + type_name() + "_to_" +
+//               to_type.type_name();
+//    }
+//    return {};
+//}
 
 void NodeSocket::Serialize(nlohmann::json& value)
 {
     auto& socket = value[std::to_string(ID.Get())];
     // Repeated storage. Simpler code for iteration.
     socket["ID"] = ID.Get();
-    socket["id_name"] = type_info->type_name();
+    socket["id_name"] = type_info.info().name();
     socket["identifier"] = identifier;
     socket["ui_name"] = ui_name;
     socket["in_out"] = in_out;
 
     if (dataField.value) {
-        switch (type_info->cpp_type.id()) {
+        switch (type_info.id()) {
             using namespace entt::literals;
             case entt::type_hash<int>().value():
                 socket["value"] = default_value_typed<int>();
@@ -154,7 +154,7 @@ void NodeSocket::DeserializeInfo(nlohmann::json& socket_json)
 {
     ID = socket_json["ID"].get<unsigned>();
 
-    type_info = SocketType::get_socket_type(
+    type_info = nodes::get_socket_type(
         socket_json["id_name"].get<std::string>().c_str());
     // socketTypeFind(socket_json["id_name"].get<std::string>().c_str());
     in_out = socket_json["in_out"].get<PinKind>();
@@ -166,7 +166,7 @@ void NodeSocket::DeserializeValue(const nlohmann::json& value)
 {
     if (dataField.value) {
         if (value.find("value") != value.end()) {
-            switch (type_info->cpp_type.id()) {
+            switch (type_info.id()) {
                 case entt::type_hash<int>():
                     default_value_typed<int&>() = value["value"];
                     break;

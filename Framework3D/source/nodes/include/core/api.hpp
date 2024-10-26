@@ -10,7 +10,6 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTreeDescriptor;
-struct SocketType;
 struct NodeTreeExecutor;
 
 class NodeLink;
@@ -34,13 +33,18 @@ template<typename T>
 void register_cpp_type();
 
 template<typename T>
-std::unique_ptr<SocketType> get_socket_type()
+SocketType get_socket_type()
 {
-    return SocketType::get_socket_type(typeid(T).name());
+    return entt::resolve(entt::type_hash<T>());
+}
+
+inline SocketType get_socket_type(const char* t)
+{
+    return entt::resolve(entt::hashed_string{ t });
 }
 
 template<>
-std::unique_ptr<SocketType> get_socket_type<entt::meta_any>();
+SocketType get_socket_type<entt::meta_any>();
 
 std::unique_ptr<NodeTree> create_node_tree(std::shared_ptr<NodeTreeDescriptor>);
 std::unique_ptr<NodeTreeExecutor> create_node_tree_executor();
