@@ -20,14 +20,6 @@ struct NodeSocket;
 class NodeTree;
 enum class NodeType;
 
-enum class NodeTypeOfGrpah {
-    Geometry,
-    Function,
-    Render,
-    Composition,
-    Conversion
-};
-
 struct ExeParams;
 class Operator;
 class NodeDeclarationBuilder;
@@ -287,12 +279,6 @@ struct SocketTrait {
     using Builder = SocketDeclarationBuilder<Decl>;
 };
 
-// template<>
-// struct SocketTrait<int> {
-//     using Decl = decl::Int;
-//     using Builder = decl::IntBuilder;
-// };
-
 class NodeDeclaration {
    public:
     /* Combined list of socket and panel declarations.
@@ -432,9 +418,12 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_socket(
     return socket_decl_builder_ref;
 }
 
-// There can be many instances of nodes, while each of them has a type. The
-// templates should be declared statically. It contains the information of the
-// type of input and output.
+inline NodeDeclarationBuilder::NodeDeclarationBuilder(
+    NodeDeclaration& declaration)
+    : declaration_(declaration)
+{
+}
+
 struct NodeTypeInfo {
     NodeTypeInfo() = default;
     explicit NodeTypeInfo(const char* id_name);
@@ -445,8 +434,6 @@ struct NodeTypeInfo {
     void set_declare_function(const NodeDeclareFunction& decl_function);
 
     void set_execution_function(const ExecFunction& exec_function);
-
-    NodeTypeOfGrpah node_type_of_grpah;
 
     float color[4];
     ExecFunction node_execute;

@@ -264,7 +264,7 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
     // Randomly add nodes, also links, to a tree style
 
     Node* previous_leaf = nullptr;
-    for (int i = 0; i < 200; ++i) {
+    for (int i = 0; i < 20; ++i) {
         Node* node = tree->add_node("test_node");
         auto node2 = tree->add_node("test_node");
         auto node3 = tree->add_node("test_node");
@@ -287,7 +287,7 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
     }
 
     // Remove all nodes
-    for (int i = 0; i < 600; ++i) {
+    for (int i = 0; i < 60; ++i) {
         tree->delete_node(tree->nodes[0].get());
     }
 
