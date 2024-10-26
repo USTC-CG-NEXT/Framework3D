@@ -7,7 +7,6 @@
 #include "node_link.hpp"
 #include "node_socket.hpp"
 #include "node_tree.hpp"
-#include "nodes.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 NodeSocket* nodeAddSocket(
     NodeTree* ntree,
@@ -42,6 +41,26 @@ void NodeLink::Serialize(nlohmann::json& value)
         }
         link["EndPinID"] = endPin;
     }
+}
+
+NodeTypeInfo::NodeTypeInfo(const char* id_name)
+    : id_name(id_name),
+      ui_name(id_name)
+{
+    static_declaration = std::make_unique<NodeDeclaration>();
+}
+
+void NodeTypeInfo::reset_declaration()
+{
+    static_declaration = nullptr;
+    static_declaration = std::make_unique<NodeDeclaration>();
+}
+
+void NodeTypeInfo::build_node_declaration()
+{
+    reset_declaration();
+    NodeDeclarationBuilder node_decl_builder{ *static_declaration };
+    declare(node_decl_builder);
 }
 
 Node::Node(NodeTree* node_tree, int id, const char* idname)
@@ -157,6 +176,17 @@ void Node::generate_socket_group_based_on_declaration(
         tree_->sockets.emplace_back(new_socket);
     }
     new_sockets.push_back(new_socket);
+}
+
+NodeSocket* Node::add_socket(
+    const char* id_name,
+    const char* identifier,
+    const char* name,
+    PinKind in_out)
+{
+    auto socket = nodeAddSocket(tree_, this, in_out, id_name, identifier, name);
+    register_socket_to_node(socket, in_out);
+    return socket;
 }
 
 void Node::remove_socket(NodeSocket* socket, PinKind kind)
@@ -276,5 +306,7 @@ const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
     }
     throw std::runtime_error("Id name not found.");
 }
+
+
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

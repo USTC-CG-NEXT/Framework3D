@@ -5,7 +5,7 @@
 #include "entt/meta/resolve.hpp"
 #include "node.hpp"
 #include "node_register.h"
-#include "nodes.hpp"
+#include "node.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 //static void reset_declaration(NodeDeclaration& declaration)

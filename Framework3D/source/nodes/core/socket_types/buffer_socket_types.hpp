@@ -4,7 +4,6 @@
 #include "USTC_CG.h"
 #include "all_socket_types.hpp"
 #include "make_standard_type.hpp"
-#include "node_declare.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace decl {
 

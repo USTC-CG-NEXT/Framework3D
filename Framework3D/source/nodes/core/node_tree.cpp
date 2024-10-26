@@ -5,8 +5,6 @@
 
 #include "io/json.hpp"
 #include "node.hpp"
-#include "nodes.hpp"
-#include "node_declare.hpp"
 #include "node_link.hpp"
 #include "node_socket.hpp"
 
@@ -497,7 +495,7 @@ void NodeTree::ensure_topology_cache()
         has_available_link_cycle);
 }
 
-std::string NodeTree::Serialize()
+std::string NodeTree::serialize(int indentation)
 {
     nlohmann::json value;
 
@@ -517,7 +515,7 @@ std::string NodeTree::Serialize()
     }
 
     std::ostringstream s;
-    s << value;
+    s << value.dump(indentation);
     return s.str();
 }
 

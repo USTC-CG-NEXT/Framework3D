@@ -5,6 +5,7 @@
 #include "node_register.h"
 // #include "socket_type_aliases.hpp"
 // #include "RCore/Backend.hpp"
+#include "Logging/Logging.h"
 #include "Macro/map.h"
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
@@ -15,7 +16,7 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-//static std::map<std::string, std::unique_ptr<SocketType>> socket_registry;
+// static std::map<std::string, std::unique_ptr<SocketType>> socket_registry;
 
 extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 
@@ -52,11 +53,11 @@ extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 
 // MACRO_MAP(MAKE_SOCKET_TYPE, ALL_SOCKET_TYPES_EXCEPT_ANY)
 
-//void register_socket(SocketType* type_info)
+// void register_socket(SocketType* type_info)
 //{
-//    socket_registry[type_info->type_name()] =
-//        std::unique_ptr<SocketType>(type_info);
-//}
+//     socket_registry[type_info->type_name()] =
+//         std::unique_ptr<SocketType>(type_info);
+// }
 
 // void register_sockets()
 //{
@@ -64,7 +65,7 @@ extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 //
 //     MACRO_MAP(REGISTER_NODE, ALL_SOCKET_TYPES)
 // }
-//SocketType* socketTypeFind(const char* idname)
+// SocketType* socketTypeFind(const char* idname)
 //{
 //    if (idname[0]) {
 //        auto& registry = socket_registry;
@@ -85,6 +86,7 @@ std::unique_ptr<SocketType> SocketType::get_socket_type(const char* type_name)
         ret->cpp_type = mt;
         return ret;
     }
+    logging("Trying to get a non-existing type with " + std::string(type_name));
     return nullptr;
 }
 
@@ -134,14 +136,17 @@ void NodeSocket::Serialize(nlohmann::json& value)
     if (dataField.value) {
         switch (type_info->cpp_type.id()) {
             using namespace entt::literals;
-            case "int"_hs: socket["value"] = default_value_typed<int>(); break;
-            case "float"_hs:
+            case entt::type_hash<int>().value():
+                socket["value"] = default_value_typed<int>();
+                break;
+            case entt::type_hash<float>().value():
                 socket["value"] = default_value_typed<float>();
                 break;
-            case "std::string"_hs:
+            case entt::type_hash<std::string>().value():
                 socket["value"] = default_value_typed<std::string&>().c_str();
                 break;
-            default: break;
+            default: logging("Unknown type in serialization");
+                break;
         }
     }
 }
@@ -163,17 +168,17 @@ void NodeSocket::DeserializeValue(const nlohmann::json& value)
     if (dataField.value) {
         if (value.find("value") != value.end()) {
             switch (type_info->cpp_type.id()) {
-                using namespace entt::literals;
-                case "int"_hs:
+                case entt::type_hash<int>():
                     default_value_typed<int&>() = value["value"];
                     break;
-                case "float"_hs:
+                case entt::type_hash<float>():
                     default_value_typed<float&>() = value["value"];
                     break;
-                case "std::string"_hs: {
+                case entt::type_hash<std::string>(): {
                     std::string str = value["value"];
-                    strcpy(
+                    strcpy_s(
                         default_value_typed<std::string&>().data(),
+                        default_value_typed<std::string&>().size(),
                         str.c_str());
                 } break;
                 default: break;

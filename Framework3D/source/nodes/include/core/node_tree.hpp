@@ -114,7 +114,7 @@ class NodeTree {
     unsigned current_id = 0;
 
    public:
-    std::string Serialize();
+    std::string serialize(int indentation = -1);
     void Deserialize(const std::string& str);
 
     void SetDirty(bool dirty = true)

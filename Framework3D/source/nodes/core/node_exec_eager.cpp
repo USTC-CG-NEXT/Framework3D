@@ -3,6 +3,7 @@
 #include <set>
 
 #include "USTC_CG.h"
+#include "node_socket.hpp"
 #include "entt/core/any.hpp"
 #include "entt/meta/resolve.hpp"
 #include "node_tree.hpp"

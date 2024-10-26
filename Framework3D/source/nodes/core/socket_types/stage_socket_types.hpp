@@ -5,7 +5,6 @@
 #include "node_socket.hpp"
 #include "USTC_CG.h"
 #include "Macro/map.h"
-#include "basic_socket_types.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace decl {

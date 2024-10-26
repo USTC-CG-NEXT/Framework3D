@@ -7,7 +7,8 @@
 
 #include "USTC_CG.h"
 #include "entt/meta/meta.hpp"
-#include "nodes.hpp"
+#include "node.hpp"
+#include "entt/meta/resolve.hpp"
 // #include "Utils/Functions/GenericPointer.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
