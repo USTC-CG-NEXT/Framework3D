@@ -5,8 +5,8 @@
 
 #include "USTC_CG.h"
 #include "entt/meta/meta.hpp"
-#include "node_exec.hpp"
-#include "node_tree.hpp"
+#include "nodes/core/node_exec.hpp"
+#include "nodes/core/node_tree.hpp"
 
 namespace USTC_CG {
 struct GeomNodeGlobalParams;

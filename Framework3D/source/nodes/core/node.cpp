@@ -1,12 +1,12 @@
 //  A general file containing functions related to nodes.
 
-#include "node.hpp"
+#include "nodes/core/node.hpp"
 
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
 #include "node_link.hpp"
 
-#include "node_tree.hpp"
+#include "nodes/core/node_tree.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 void NodeLink::Serialize(nlohmann::json& value)

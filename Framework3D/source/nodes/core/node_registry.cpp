@@ -3,9 +3,9 @@
 #include "Logging/Logging.h"
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
-#include "node.hpp"
+#include "nodes/core/node.hpp"
 #include "node_register.h"
-#include "node.hpp"
+#include "nodes/core/node.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

@@ -4,14 +4,14 @@ add_library(GUI STATIC ${GUI_source})
 
 target_link_libraries(GUI PUBLIC 
 	imgui 
-	stb_image 
-	GCore
-	nodes
-	RCore
-	usdImaging
-	usdImagingGL
-	Python3::Python
-	usdFoam
+	# stb_image 
+	# GCore
+	nodes_core
+	# RCore
+	# usdImaging
+	# usdImagingGL
+	# Python3::Python
+	# usdFoam
 )
 target_compile_options(GUI PRIVATE -DUSTC_CG_BUILD_MODULE=0  -DNOMINMAX)
 

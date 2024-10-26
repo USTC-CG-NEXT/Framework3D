@@ -1,10 +1,10 @@
-#include "node_tree.hpp"
+#include "nodes/core/node_tree.hpp"
 
 #include <iostream>
 #include <stack>
 
-#include "io/json.hpp"
-#include "node.hpp"
+#include "nodes/core/io/json.hpp"
+#include "nodes/core/node.hpp"
 #include "node_link.hpp"
 
 

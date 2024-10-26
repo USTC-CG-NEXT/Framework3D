@@ -6,10 +6,7 @@
 #include "entt/core/any.hpp"
 #include "entt/meta/resolve.hpp"
 
-#include "node_tree.hpp"
-// #include "Utils/Functions/GenericPointer_.hpp"
-//  #include "graph/node_exec_graph.h"
-// #include "GCore/geom_node_global_params.h"
+#include "nodes/core/node_tree.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

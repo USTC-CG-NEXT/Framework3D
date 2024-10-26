@@ -2,8 +2,8 @@
 
 #include "Logging/Logging.h"
 #include "USTC_CG.h"
-#include "api.hpp"
-#include "node.hpp"
+#include "nodes/core/api.hpp"
+#include "nodes/core/node.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

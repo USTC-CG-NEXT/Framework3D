@@ -1,8 +1,8 @@
 #pragma once
 
 #include "USTC_CG.h"
-#include "id.hpp"
-#include "io/json.hpp"
+#include "nodes/core/id.hpp"
+#include "nodes/core/io/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct NodeLink {

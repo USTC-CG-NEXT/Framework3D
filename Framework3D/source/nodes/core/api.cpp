@@ -1,9 +1,9 @@
-#include "api.hpp"
+#include "nodes/core/api.hpp"
 
-#include "node.hpp"
+#include "nodes/core/node.hpp"
 #include "node_exec_eager.hpp"
-#include "node_tree.hpp"
-#include "socket.hpp"
+#include "nodes/core/node_tree.hpp"
+#include "nodes/core/socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
