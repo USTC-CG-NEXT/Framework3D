@@ -7,13 +7,20 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-struct SocketType {
+enum class PinKind { Output, Input, Storage };
 
+struct SocketType {
     SocketType()
     {
     }
 
     static std::unique_ptr<SocketType> get_socket_type(const char* type_name);
+
+    template<typename T>
+    static std::unique_ptr<SocketType> get_socket_type()
+    {
+        return get_socket_type(typeid(T).name());
+    }
 
     std::string type_name() const;
 

@@ -2,9 +2,12 @@
 
 #include "USTC_CG.h"
 #include "entt/meta/factory.hpp"
-#include "node_socket.hpp"
+#include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
+struct Node;
+struct NodeSocket;
 class NodeTree;
 class NodeDeclarationBuilder;
 
@@ -47,7 +50,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
    protected:
     using Self = typename SocketDecl::Builder;
     static_assert(std::is_base_of_v<SocketDeclaration, SocketDecl>);
-    SocketDecl* decl_;
+    std::unique_ptr<SocketDecl> decl_;
 
     friend class NodeDeclarationBuilder;
 };
@@ -62,25 +65,51 @@ class NodeDeclaration {
     std::vector<SocketDeclaration*> outputs;
 };
 
+namespace decl {
+class Int;
+class IntBuilder;
+
+//template<typename T>
+//class DeclClase : public SocketDeclaration {
+//   public:
+//    DeclClase()
+//    {
+//        type = nodes::get_socket_type<T>().get();
+//    }
+//
+//    NodeSocket* build(NodeTree* ntree, Node* node) const override;
+//
+//    using Builder = DeclBuilder;
+//};
+
+}  // namespace decl
+template<typename T>
+struct SocketTrait {
+    using Decl = T;
+    using Builder = SocketDeclarationBuilder<Decl>;
+};
+
+template<>
+struct SocketTrait<int> {
+    using Decl = decl::Int;
+    using Builder = decl::IntBuilder;
+};
+
 class NodeDeclarationBuilder {
    private:
     NodeDeclaration& declaration_;
     std::vector<std::unique_ptr<BaseSocketDeclarationBuilder>> socket_builders_;
-    const NodeTree* ntree_ = nullptr;
 
    public:
-    NodeDeclarationBuilder(
-        NodeDeclaration& declaration,
-        const NodeTree* ntree = nullptr,
-        const Node* node = nullptr);
+    NodeDeclarationBuilder(NodeDeclaration& declaration);
 
-    template<typename DeclType>
-    typename DeclType::Builder& add_input(
+    template<typename T>
+    typename SocketTrait<T>::Builder& add_input(
         const char* name,
         const char* identifier = "");
 
-    template<typename DeclType>
-    typename DeclType::Builder& add_output(
+    template<typename T>
+    typename T::Builder& add_output(
         const char* name,
         const char* identifier = "");
 
@@ -95,28 +124,28 @@ class NodeDeclarationBuilder {
    private:
     /* Note: in_out can be a combination of SOCK_IN and SOCK_OUT.
      * The generated socket declarations only have a single flag set. */
-    template<typename DeclType>
-    typename DeclType::Builder& add_socket(
+    template<typename T>
+    typename SocketTrait<T>::Builder& add_socket(
         const char* name,
         const char* identifier_in,
         const char* identifier_out,
         PinKind in_out);
 };
 
-template<typename DeclType>
-typename DeclType::Builder& NodeDeclarationBuilder::add_input(
+template<typename T>
+typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_input(
     const char* name,
     const char* identifier)
 {
-    return add_socket<DeclType>(name, identifier, "", PinKind::Input);
+    return add_socket<T>(name, identifier, "", PinKind::Input);
 }
 
-template<typename DeclType>
-typename DeclType::Builder& NodeDeclarationBuilder::add_output(
+template<typename T>
+typename T::Builder& NodeDeclarationBuilder::add_output(
     const char* name,
     const char* identifier)
 {
-    return add_socket<DeclType>(name, "", identifier, PinKind::Output);
+    return add_socket<T>(name, "", identifier, PinKind::Output);
 }
 
 template<typename Data>
@@ -131,21 +160,22 @@ void NodeDeclarationBuilder::add_runtime_storage()
     entt::meta<Data>().type(entt::hashed_string{ typeid(Data).name() });
 }
 
-template<typename DeclType>
-typename DeclType::Builder& NodeDeclarationBuilder::add_socket(
+template<typename T>
+typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_socket(
     const char* name,
     const char* identifier_in,
     const char* identifier_out,
     PinKind in_out)
 {
-    using Builder = typename DeclType::Builder;
+    using Builder = typename SocketTrait<T>::Builder;
+    using Decl = typename SocketTrait<T>::Decl;
 
     std::unique_ptr<Builder> socket_decl_builder = std::make_unique<Builder>();
 
     socket_decl_builder->node_decl_builder_ = this;
 
-    std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
-    socket_decl_builder->decl_ = &*socket_decl;
+    socket_decl_builder->decl_ = std::make_unique<Decl>();
+    std::unique_ptr<Decl>& socket_decl = socket_decl_builder->decl_;
     socket_decl->name = name;
     socket_decl->in_out = in_out;
     socket_decl_builder->index_ = declaration_.inputs.size();

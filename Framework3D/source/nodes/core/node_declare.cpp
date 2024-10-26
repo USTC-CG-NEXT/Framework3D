@@ -2,6 +2,7 @@
 
 #include "all_socket_types.hpp"
 #include "node.hpp"
+#include "nodes.hpp"
 #include "socket_types/geo_socket_types.hpp"
 #include "socket_types/render_socket_types.hpp"
 #include "socket_types/stage_socket_types.hpp"
@@ -68,12 +69,8 @@ void decl::Bool::update_default_value(NodeSocket* socket) const
 
 MACRO_MAP(BUILD_TYPE, ALL_SOCKET_TYPES)
 
-NodeDeclarationBuilder::NodeDeclarationBuilder(
-    NodeDeclaration& declaration,
-    const NodeTree* ntree,
-    const Node* node)
-    : declaration_(declaration),
-      ntree_(ntree)
+NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration& declaration)
+    : declaration_(declaration)
 {
 }
 

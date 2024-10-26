@@ -15,7 +15,7 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-static std::map<std::string, std::unique_ptr<SocketType>> socket_registry;
+//static std::map<std::string, std::unique_ptr<SocketType>> socket_registry;
 
 extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 
@@ -52,11 +52,11 @@ extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 
 // MACRO_MAP(MAKE_SOCKET_TYPE, ALL_SOCKET_TYPES_EXCEPT_ANY)
 
-void register_socket(SocketType* type_info)
-{
-    socket_registry[type_info->type_name()] =
-        std::unique_ptr<SocketType>(type_info);
-}
+//void register_socket(SocketType* type_info)
+//{
+//    socket_registry[type_info->type_name()] =
+//        std::unique_ptr<SocketType>(type_info);
+//}
 
 // void register_sockets()
 //{
@@ -64,18 +64,18 @@ void register_socket(SocketType* type_info)
 //
 //     MACRO_MAP(REGISTER_NODE, ALL_SOCKET_TYPES)
 // }
-SocketType* socketTypeFind(const char* idname)
-{
-    if (idname[0]) {
-        auto& registry = socket_registry;
-        auto nt = registry.at(std::string(idname)).get();
-        if (nt) {
-            return nt;
-        }
-    }
-
-    return nullptr;
-}
+//SocketType* socketTypeFind(const char* idname)
+//{
+//    if (idname[0]) {
+//        auto& registry = socket_registry;
+//        auto nt = registry.at(std::string(idname)).get();
+//        if (nt) {
+//            return nt;
+//        }
+//    }
+//
+//    return nullptr;
+//}
 
 std::unique_ptr<SocketType> SocketType::get_socket_type(const char* type_name)
 {
@@ -150,8 +150,9 @@ void NodeSocket::DeserializeInfo(nlohmann::json& socket_json)
 {
     ID = socket_json["ID"].get<unsigned>();
 
-    type_info =
-        socketTypeFind(socket_json["id_name"].get<std::string>().c_str());
+    type_info->cpp_type = entt::resolve(entt::hashed_string{
+        socket_json["id_name"].get<std::string>().c_str() });
+    // socketTypeFind(socket_json["id_name"].get<std::string>().c_str());
     in_out = socket_json["in_out"].get<PinKind>();
     strcpy(ui_name, socket_json["ui_name"].get<std::string>().c_str());
     strcpy(identifier, socket_json["identifier"].get<std::string>().c_str());

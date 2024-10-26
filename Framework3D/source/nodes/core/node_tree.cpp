@@ -1,16 +1,51 @@
 #include "node_tree.hpp"
 
+#include <iostream>
 #include <stack>
 
 #include "io/json.hpp"
 #include "node.hpp"
+#include "nodes.hpp"
 #include "node_declare.hpp"
 #include "node_link.hpp"
 #include "node_socket.hpp"
 
+// Macro for Not implemented with file and line number
+#define NOT_IMPLEMENTED()                                               \
+    do {                                                                \
+        std::cerr << "Not implemented: " << __FILE__ << ":" << __LINE__ \
+                  << std::endl;                                         \
+        std::abort();                                                   \
+    } while (0)
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 NodeTreeDescriptor::~NodeTreeDescriptor()
 {
+}
+
+NodeTreeDescriptor& NodeTreeDescriptor::register_node(
+    std::unique_ptr<NodeTypeInfo> type_info)
+{
+    node_registry[type_info->id_name] = std::move(type_info);
+    return *this;
+}
+
+NodeTreeDescriptor& NodeTreeDescriptor::register_conversion_node(
+    const SocketType& from,
+    const SocketType& to,
+    std::unique_ptr<NodeTypeInfo>)
+{
+    NOT_IMPLEMENTED();
+}
+
+const NodeTypeInfo* NodeTreeDescriptor::get_node_type(
+    const std::string& name) const
+{
+    auto it = node_registry.find(name);
+    if (it != node_registry.end()) {
+        return it->second.get();
+    }
+    return nullptr;
 }
 
 NodeTree::NodeTree(std::shared_ptr<const NodeTreeDescriptor> descriptor)

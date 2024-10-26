@@ -3,8 +3,8 @@
 #include "USTC_CG.h"
 #include "entt/meta/meta.hpp"
 #include "id.hpp"
-#include "socket.hpp"
 #include "io/json.hpp"
+#include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 #define TypeSizeEnum(Type, Size) Type##Size##Buffer
@@ -12,8 +12,6 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 #undef TypeSizeEnum
 
 // const char* get_socket_name_string(SocketType socket);
-
-enum class PinKind { Output, Input, Storage };
 
 enum class NodeType {
     Blueprint,
@@ -38,7 +36,7 @@ struct NodeSocket {
     SocketID ID;
     Node* Node;
 
-    SocketType* type_info;
+    std::unique_ptr<SocketType> type_info;
     PinKind in_out;
 
     // This is for simple data fields in the node graph.

@@ -1,45 +1,11 @@
 #pragma once
 
 #include "io/json.hpp"
+#include "node.hpp"
 #include "node_declare.hpp"
 #include "node_socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct ExeParams;
-class Operator;
-
-using ExecFunction = void (*)(ExeParams params);
-using NodeDeclareFunction = void (*)(NodeDeclarationBuilder& builder);
-
-enum class NodeTypeOfGrpah {
-    Geometry,
-    Function,
-    Render,
-    Composition,
-    Conversion
-};
-
-// There can be many instances of nodes, while each of them has a type. The
-// templates should be declared statically. It contains the information of the
-// type of input and output.
-struct NodeTypeInfo {
-    char id_name[64];
-    char ui_name[64];
-
-    NodeTypeOfGrpah node_type_of_grpah;
-
-    float color[4];
-    NodeDeclareFunction declare;
-    ExecFunction node_execute;
-
-    bool ALWAYS_REQUIRED = false;
-    bool INVISIBLE = false;
-
-    std::unique_ptr<NodeDeclaration> static_declaration;
-
-    SocketType* conversion_from;
-    SocketType* conversion_to;
-};
 
 struct Node {
     NodeId ID;
@@ -50,7 +16,7 @@ struct Node {
 
     unsigned Size[2];
 
-    NodeTypeInfo* typeinfo;
+    const NodeTypeInfo* typeinfo;
 
     bool REQUIRED = false;
     bool MISSING_INPUT = false;
@@ -115,19 +81,14 @@ struct Node {
     void refresh_node();
     bool pre_init_node(const char* idname);
 
+    const NodeTypeInfo* nodeTypeFind(const char* idname);
+
     std::vector<NodeSocket*> inputs;
     std::vector<NodeSocket*> outputs;
 
     NodeTree* tree_;
     bool valid_ = false;
 };
-
-void nodeRegisterType(NodeTypeInfo* type_info);
-
-const std::map<std::string, NodeTypeInfo*>& get_geo_node_registry();
-const std::map<std::string, NodeTypeInfo*>& get_render_node_registry();
-const std::map<std::string, NodeTypeInfo*>& get_func_node_registry();
-const std::map<std::string, NodeTypeInfo*>& get_composition_node_registry();
 
 NodeSocket* nodeAddSocket(
     NodeTree* ntree,
@@ -138,6 +99,6 @@ NodeSocket* nodeAddSocket(
     const char* name);
 
 NodeTypeInfo* nodeTypeFind(const char* idname);
-SocketType* socketTypeFind(const char* idname);
+// SocketType* socketTypeFind(const char* idname);
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

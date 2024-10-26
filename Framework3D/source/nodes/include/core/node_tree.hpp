@@ -6,7 +6,6 @@
 
 #include "USTC_CG.h"
 #include "api.hpp"
-
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -16,8 +15,15 @@ class NodeTreeDescriptor {
    public:
     ~NodeTreeDescriptor();
 
+    NodeTreeDescriptor& register_node(std::unique_ptr<NodeTypeInfo>);
+    NodeTreeDescriptor& register_conversion_node(
+        const SocketType& from,
+        const SocketType& to,
+        std::unique_ptr<NodeTypeInfo>);
+
+    const NodeTypeInfo* get_node_type(const std::string& name) const;
+
    private:
-    std::map<std::string, std::unique_ptr<SocketType>> socket_registry;
     std::map<std::string, std::unique_ptr<NodeTypeInfo>> node_registry;
     std::map<std::string, std::unique_ptr<NodeTypeInfo>>
         conversion_node_registry;
@@ -105,7 +111,7 @@ class NodeTree {
     // There is definitely better solution. However this is the most
     std::unordered_set<unsigned> used_ids;
 
-    unsigned current_id = 1;
+    unsigned current_id = 0;
 
    public:
     std::string Serialize();

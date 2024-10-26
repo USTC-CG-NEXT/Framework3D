@@ -7,6 +7,7 @@
 #include "node_link.hpp"
 #include "node_socket.hpp"
 #include "node_tree.hpp"
+#include "nodes.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 NodeSocket* nodeAddSocket(
     NodeTree* ntree,
@@ -16,10 +17,9 @@ NodeSocket* nodeAddSocket(
     const char* identifier,
     const char* name)
 {
-    auto socket_type = socketTypeFind(id_name);
     auto socket = new NodeSocket(ntree->UniqueID());
 
-    socket->type_info = socket_type;
+    socket->type_info = SocketType::get_socket_type(id_name);
     strcpy(socket->identifier, identifier);
     strcpy(socket->ui_name, name);
     socket->in_out = in_out;
@@ -264,6 +264,17 @@ bool Node::pre_init_node(const char* idname)
     memcpy(Color, typeinfo->color, sizeof(float) * 4);
 
     return true;
+}
+
+const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
+{
+    if (idname[0]) {
+        const NodeTypeInfo* nt = tree_->descriptor_->get_node_type(idname);
+
+        if (nt)
+            return nt;
+    }
+    throw std::runtime_error("Id name not found.");
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
