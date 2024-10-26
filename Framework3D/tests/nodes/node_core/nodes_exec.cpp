@@ -13,9 +13,9 @@ class NodeExecTest : public ::testing::Test {
    protected:
     void SetUp() override
     {
-        nodes::register_cpp_type<int>();
-        nodes::register_cpp_type<float>();
-        nodes::register_cpp_type<std::string>();
+        register_cpp_type<int>();
+        register_cpp_type<float>();
+        register_cpp_type<std::string>();
 
         NodeTreeDescriptor descriptor;
 

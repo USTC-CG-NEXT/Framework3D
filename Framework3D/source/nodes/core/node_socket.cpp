@@ -1,19 +1,9 @@
-#include "node_socket.hpp"
 
-// #include "all_socket_types.hpp"
-#include "node.hpp"
-#include "node_register.h"
-// #include "socket_type_aliases.hpp"
-// #include "RCore/Backend.hpp"
+
 #include "Logging/Logging.h"
-#include "Macro/map.h"
 #include "USTC_CG.h"
 #include "api.hpp"
-#include "entt/meta/resolve.hpp"
-// #include "rich_type_buffer.hpp"
-#if USTC_CG_WITH_TORCH
-#include "torch/torch.h"
-#endif
+#include "node.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
@@ -50,7 +40,7 @@ void NodeSocket::DeserializeInfo(nlohmann::json& socket_json)
 {
     ID = socket_json["ID"].get<unsigned>();
 
-    type_info = nodes::get_socket_type(
+    type_info = get_socket_type(
         socket_json["id_name"].get<std::string>().c_str());
     // socketTypeFind(socket_json["id_name"].get<std::string>().c_str());
     in_out = socket_json["in_out"].get<PinKind>();

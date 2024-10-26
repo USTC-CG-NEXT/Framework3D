@@ -5,7 +5,7 @@
 #include "USTC_CG.h"
 #include "entt/core/any.hpp"
 #include "entt/meta/resolve.hpp"
-#include "node_socket.hpp"
+
 #include "node_tree.hpp"
 // #include "Utils/Functions/GenericPointer_.hpp"
 //  #include "graph/node_exec_graph.h"

@@ -6,7 +6,6 @@
 #include "node.hpp"
 #include "node_tree.hpp"
 
-using namespace USTC_CG::nodes;
 using namespace USTC_CG;
 
 class NodeCoreTest : public ::testing::Test {
@@ -19,13 +18,13 @@ class NodeCoreTest : public ::testing::Test {
 
 TEST_F(NodeCoreTest, TYPENAME)
 {
-    nodes::register_cpp_type<int>();
+    register_cpp_type<int>();
     auto type = entt::resolve(entt::hashed_string{ typeid(int).name() });
 
     ASSERT_TRUE(type);
 
     // std::string
-    nodes::register_cpp_type<std::string>();
+    register_cpp_type<std::string>();
     auto type2 =
         entt::resolve(entt::hashed_string{ typeid(std::string).name() });
     ASSERT_TRUE(type2);
@@ -40,25 +39,25 @@ TEST_F(NodeCoreTest, TYPENAME)
 
 TEST_F(NodeCoreTest, RegisterCppType)
 {
-    nodes::register_cpp_type<int>();
+    register_cpp_type<int>();
     entt::meta_reset();
 }
 
 TEST_F(NodeCoreTest, GetSocketType)
 {
-    SocketType socket_type = nodes::get_socket_type<int>();
+    SocketType socket_type = get_socket_type<int>();
     ASSERT_FALSE(socket_type);
 
-    nodes::register_cpp_type<int>();
+    register_cpp_type<int>();
 
-    socket_type = nodes::get_socket_type<int>();
+    socket_type = get_socket_type<int>();
     ASSERT_TRUE(socket_type);
 }
 
 TEST_F(NodeCoreTest, CreateNodeTree)
 {
     NodeTreeDescriptor descriptor;
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
     ASSERT_NE(tree, nullptr);
 }
 
@@ -76,7 +75,7 @@ TEST_F(NodeCoreTest, CreateNode)
 
     descriptor.register_node(node_type_info);
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
     auto node = tree->add_node("test_node");
     ASSERT_NE(node, nullptr);
 
@@ -89,7 +88,7 @@ TEST_F(NodeCoreTest, NodeSocket)
     NodeTreeDescriptor descriptor;
 
     NodeTypeInfo node_type_info("test_node");
-    nodes::register_cpp_type<int>();
+    register_cpp_type<int>();
     node_type_info.set_declare_function(
         [](NodeDeclarationBuilder& b) { b.add_input<int>("test_socket"); });
 
@@ -100,7 +99,7 @@ TEST_F(NodeCoreTest, NodeSocket)
 
     descriptor.register_node(std::move(node_type_info));
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
     auto node = tree->add_node("test_node");
     ASSERT_NE(node, nullptr);
 }
@@ -110,7 +109,7 @@ TEST_F(NodeCoreTest, NodeSocketWithSameName)
     NodeTreeDescriptor descriptor;
 
     NodeTypeInfo node_type_info("test_node");
-    nodes::register_cpp_type<int>();
+    register_cpp_type<int>();
     ASSERT_THROW(
         node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
             b.add_input<int>("test_socket");
@@ -120,7 +119,7 @@ TEST_F(NodeCoreTest, NodeSocketWithSameName)
 
     descriptor.register_node(std::move(node_type_info));
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
 }
 
 TEST_F(NodeCoreTest, NodeLink)
@@ -128,7 +127,7 @@ TEST_F(NodeCoreTest, NodeLink)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    nodes::register_cpp_type<int>();
+    register_cpp_type<int>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<int>("test_input");
@@ -137,7 +136,7 @@ TEST_F(NodeCoreTest, NodeLink)
 
     descriptor.register_node(std::move(node_type_info));
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
 
     auto node = tree->add_node("test_node");
     auto node2 = tree->add_node("test_node");
@@ -172,8 +171,8 @@ TEST_F(NodeCoreTest, NodeLinkConversion)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    nodes::register_cpp_type<int>();
-    nodes::register_cpp_type<float>();
+    register_cpp_type<int>();
+    register_cpp_type<float>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<int>("test_input");
@@ -187,7 +186,7 @@ TEST_F(NodeCoreTest, NodeLinkConversion)
         return true;
     });
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
 
     auto node = tree->add_node("test_node");
     auto node2 = tree->add_node("test_node");
@@ -216,7 +215,7 @@ TEST_F(NodeCoreTest, NodeRemove)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    nodes::register_cpp_type<int>();
+    register_cpp_type<int>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<int>("test_input");
@@ -225,7 +224,7 @@ TEST_F(NodeCoreTest, NodeRemove)
 
     descriptor.register_node(std::move(node_type_info));
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
 
     auto node = tree->add_node("test_node");
     auto node2 = tree->add_node("test_node");
@@ -245,8 +244,8 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    nodes::register_cpp_type<int>();
-    nodes::register_cpp_type<float>();
+    register_cpp_type<int>();
+    register_cpp_type<float>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<int>("test_input");
@@ -259,7 +258,7 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
         return true;
     });
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
 
     // Randomly add nodes, also links, to a tree style
 
@@ -300,9 +299,9 @@ TEST_F(NodeCoreTest, SerializeDeserialize)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    nodes::register_cpp_type<int>();
-    nodes::register_cpp_type<float>();
-    nodes::register_cpp_type<std::string>();
+    register_cpp_type<int>();
+    register_cpp_type<float>();
+    register_cpp_type<std::string>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<float>("test_socket").min(0).max(1).default_val(0);
@@ -313,13 +312,13 @@ TEST_F(NodeCoreTest, SerializeDeserialize)
 
     descriptor.register_node(std::move(node_type_info));
 
-    auto tree = nodes::create_node_tree(descriptor);
+    auto tree = create_node_tree(descriptor);
     auto node = tree->add_node("test_node");
     ASSERT_NE(node, nullptr);
 
     auto tree_serialize = tree->serialize(4);
 
-    auto tree2 = nodes::create_node_tree(descriptor);
+    auto tree2 = create_node_tree(descriptor);
     tree2->Deserialize(tree_serialize);
 
     auto serialize_2 = tree2->serialize(4);

@@ -27,8 +27,6 @@ class SocketDeclaration;
 struct Node;
 struct NodeSocket;
 
-namespace nodes {
-
 template<typename T>
 void register_cpp_type();
 
@@ -52,10 +50,8 @@ std::unique_ptr<NodeTree> create_node_tree(
 std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(ExecutorDesc& desc);
 
 namespace io {
-    std::string serialize_node_tree(NodeTree* tree);
+std::string serialize_node_tree(NodeTree* tree);
 }
-
-}  // namespace nodes
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 

@@ -40,7 +40,7 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
 {
     auto conversion_type_info = NodeTypeInfo(
         conversion_node_name(
-            nodes::get_socket_type<FROM>(), nodes::get_socket_type<TO>())
+            get_socket_type<FROM>(), get_socket_type<TO>())
             .c_str());
 
     conversion_type_info.ui_name = "invisible";

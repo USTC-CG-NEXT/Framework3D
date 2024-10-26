@@ -5,7 +5,7 @@
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
 #include "node_link.hpp"
-#include "node_socket.hpp"
+
 #include "node_tree.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
@@ -59,7 +59,6 @@ void NodeTypeInfo::build_node_declaration()
 Node::Node(NodeTree* node_tree, int id, const char* idname)
     : ID(id),
       ui_name("Unknown"),
-      Type(NodeType::Blueprint),
       tree_(node_tree)
 {
     valid_ = pre_init_node(idname);
@@ -67,7 +66,6 @@ Node::Node(NodeTree* node_tree, int id, const char* idname)
 
 Node::Node(NodeTree* node_tree, const char* idname)
     : ui_name("Unknown"),
-      Type(NodeType::Blueprint),
       tree_(node_tree)
 {
     ID = tree_->UniqueID();
@@ -204,7 +202,7 @@ NodeSocket* Node::add_socket(
 {
     auto socket = new NodeSocket(tree_->UniqueID());
 
-    socket->type_info = nodes::get_socket_type(type_name);
+    socket->type_info = get_socket_type(type_name);
     strcpy(socket->identifier, identifier);
     strcpy(socket->ui_name, name);
     socket->in_out = in_out;

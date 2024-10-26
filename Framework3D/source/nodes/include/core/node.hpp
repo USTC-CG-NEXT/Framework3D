@@ -38,7 +38,6 @@ struct Node {
     std::string ui_name;
 
     float Color[4];
-    NodeType Type;
 
     unsigned Size[2];
 

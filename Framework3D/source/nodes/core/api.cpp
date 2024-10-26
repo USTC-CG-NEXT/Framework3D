@@ -2,12 +2,10 @@
 
 #include "node.hpp"
 #include "node_exec_eager.hpp"
-#include "node_socket.hpp"
 #include "node_tree.hpp"
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-namespace nodes {
 
 template<>
 SocketType get_socket_type<entt::meta_any>()
@@ -29,6 +27,5 @@ std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(ExecutorDesc& desc)
     }
     return nullptr;
 }
-}  // namespace nodes
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
