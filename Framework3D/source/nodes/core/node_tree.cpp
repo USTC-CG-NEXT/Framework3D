@@ -137,13 +137,12 @@ unsigned NodeTree::UniqueID()
     return current_id++;
 }
 
-NodeLink* NodeTree::add_link(
-    Node* fromnode,
-    NodeSocket* fromsock,
-    Node* tonode,
-    NodeSocket* tosock)
+NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
 {
     SetDirty(true);
+
+    auto fromnode = fromsock->Node;
+    auto tonode = tosock->Node;
 
     if (fromsock->in_out == PinKind::Input) {
         std::swap(fromnode, tonode);
@@ -162,16 +161,24 @@ NodeLink* NodeTree::add_link(
         auto middle_tosock = middle_node->get_inputs()[0];
         auto middle_fromsock = middle_node->get_outputs()[0];
 
-        auto firstLink =
-            add_link(fromnode, fromsock, middle_node, middle_tosock);
+        auto firstLink = add_link(fromsock, middle_tosock);
 
-        auto nextLink = add_link(middle_node, middle_fromsock, tonode, tosock);
+        auto nextLink = add_link(middle_fromsock, tosock);
         assert(firstLink);
         assert(nextLink);
         firstLink->nextLink = nextLink;
         nextLink->fromLink = firstLink;
     }
     else {
+        // If link exists, throw runtime_error
+        if (std::find_if(
+                links.begin(), links.end(), [fromsock, tosock](auto& link) {
+                    return link->from_sock == fromsock &&
+                           link->to_sock == tosock;
+                }) != links.end()) {
+            throw std::runtime_error("Link already exists.");
+        }
+
         auto link =
             std::make_unique<NodeLink>(UniqueID(), fromsock->ID, tosock->ID);
 
@@ -186,14 +193,14 @@ NodeLink* NodeTree::add_link(
     return bare_ptr;
 }
 
-void NodeTree::add_link(SocketID startPinId, SocketID endPinId)
+NodeLink* NodeTree::add_link(SocketID startPinId, SocketID endPinId)
 {
     SetDirty(true);
     auto socket1 = find_pin(startPinId);
     auto socket2 = find_pin(endPinId);
 
     if (socket1 && socket2)
-        add_link(socket1->Node, socket1, socket2->Node, socket2);
+        return add_link(socket1, socket2);
 }
 
 void NodeTree::remove_link(LinkId linkId)
@@ -212,6 +219,11 @@ void NodeTree::remove_link(LinkId linkId)
 
         links.erase(link);
     }
+}
+
+void NodeTree::remove_link(NodeLink* link)
+{
+    remove_link(link->ID);
 }
 
 void NodeTree::delete_node(NodeId nodeId)

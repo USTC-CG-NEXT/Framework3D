@@ -145,8 +145,7 @@ void NodeSocket::Serialize(nlohmann::json& value)
             case entt::type_hash<std::string>().value():
                 socket["value"] = default_value_typed<std::string&>().c_str();
                 break;
-            default: logging("Unknown type in serialization");
-                break;
+            default: logging("Unknown type in serialization"); break;
         }
     }
 }
@@ -155,8 +154,8 @@ void NodeSocket::DeserializeInfo(nlohmann::json& socket_json)
 {
     ID = socket_json["ID"].get<unsigned>();
 
-    type_info->cpp_type = entt::resolve(entt::hashed_string{
-        socket_json["id_name"].get<std::string>().c_str() });
+    type_info = SocketType::get_socket_type(
+        socket_json["id_name"].get<std::string>().c_str());
     // socketTypeFind(socket_json["id_name"].get<std::string>().c_str());
     in_out = socket_json["in_out"].get<PinKind>();
     strcpy(ui_name, socket_json["ui_name"].get<std::string>().c_str());
@@ -176,10 +175,8 @@ void NodeSocket::DeserializeValue(const nlohmann::json& value)
                     break;
                 case entt::type_hash<std::string>(): {
                     std::string str = value["value"];
-                    strcpy_s(
-                        default_value_typed<std::string&>().data(),
-                        default_value_typed<std::string&>().size(),
-                        str.c_str());
+                    default_value_typed<std::string&>() = str;
+
                 } break;
                 default: break;
             }

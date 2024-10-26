@@ -112,6 +112,9 @@ struct Node {
     // according the info of the node, we record the information.
     void register_socket_to_node(NodeSocket* socket, PinKind in_out);
 
+    NodeSocket* get_output_socket(const char* identifier) const;
+    NodeSocket* get_input_socket(const char* identifier) const;
+
     NodeSocket* find_socket(const char* identifier, PinKind in_out) const;
     size_t find_socket_id(const char* identifier, PinKind in_out) const;
 
@@ -354,7 +357,7 @@ class NodeDeclarationBuilder {
         const char* identifier = "");
 
     template<typename T>
-    typename T::Builder& add_output(
+    typename SocketTrait<T>::Builder& add_output(
         const char* name,
         const char* identifier = "");
 
@@ -386,7 +389,7 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_input(
 }
 
 template<typename T>
-typename T::Builder& NodeDeclarationBuilder::add_output(
+typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_output(
     const char* name,
     const char* identifier)
 {
@@ -432,13 +435,16 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_socket(
 
         // Make sure there are no sockets in a same node with the same
         // identifier
-        assert(
-            (std::find_if(
-                 declaration_.inputs.begin(),
-                 declaration_.inputs.end(),
-                 [&](SocketDeclaration* socket) {
-                     return socket->identifier == socket_decl->identifier;
-                 }) == declaration_.inputs.end()));
+        if (std::find_if(
+                declaration_.inputs.begin(),
+                declaration_.inputs.end(),
+                [&](SocketDeclaration* socket) {
+                    return socket->identifier == socket_decl->identifier;
+                }) != declaration_.inputs.end()) {
+            throw std::runtime_error(
+                "Duplicate socket identifier found in inputs: " +
+                socket_decl->identifier);
+        }
         declaration_.inputs.push_back(socket_decl.get());
     }
     else {

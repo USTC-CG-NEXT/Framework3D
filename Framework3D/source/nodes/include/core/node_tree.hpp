@@ -72,15 +72,13 @@ class NodeTree {
 
     void update_socket_vectors_and_owner_node();
     void ensure_topology_cache();
-    NodeLink* add_link(
-        Node* fromnode,
-        NodeSocket* fromsock,
-        Node* tonode,
-        NodeSocket* tosock);
 
-    void add_link(SocketID startPinId, SocketID endPinId);
+    NodeLink* add_link(NodeSocket* fromsock, NodeSocket* tosock);
+
+    NodeLink* add_link(SocketID startPinId, SocketID endPinId);
 
     void remove_link(LinkId linkId);
+    void remove_link(NodeLink* link);
 
     void delete_node(NodeId nodeId);
     static bool can_create_link(

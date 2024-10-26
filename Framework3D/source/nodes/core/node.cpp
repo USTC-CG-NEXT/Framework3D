@@ -111,6 +111,16 @@ void Node::register_socket_to_node(NodeSocket* socket, PinKind in_out)
     }
 }
 
+NodeSocket* Node::get_output_socket(const char* identifier) const
+{
+    return find_socket(identifier, PinKind::Output);
+}
+
+NodeSocket* Node::get_input_socket(const char* identifier) const
+{
+    return find_socket(identifier, PinKind::Input);
+}
+
 NodeSocket* Node::find_socket(const char* identifier, PinKind in_out) const
 {
     const std::vector<NodeSocket*>* socket_group;
@@ -306,7 +316,5 @@ const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
     }
     throw std::runtime_error("Id name not found.");
 }
-
-
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
