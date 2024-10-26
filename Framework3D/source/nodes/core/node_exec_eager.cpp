@@ -3,9 +3,9 @@
 #include <set>
 
 #include "USTC_CG.h"
-#include "node_socket.hpp"
 #include "entt/core/any.hpp"
 #include "entt/meta/resolve.hpp"
+#include "node_socket.hpp"
 #include "node_tree.hpp"
 // #include "Utils/Functions/GenericPointer_.hpp"
 //  #include "graph/node_exec_graph.h"
@@ -426,6 +426,14 @@ void EagerNodeTreeExecutor::sync_node_from_external_storage(
     if (index_cache.find(socket) != index_cache.end()) {
         entt::meta_any* ptr = FindPtr(socket);
         *ptr = data;
+
+        // if it has dataField, fill it
+        if (socket->in_out == PinKind::Input) {
+            if (socket->dataField.value) {
+                socket->dataField.value = data;
+            }
+            input_states[index_cache[socket]].is_forwarded = true;
+        }
     }
 }
 

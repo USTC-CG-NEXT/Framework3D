@@ -49,7 +49,7 @@ class NodeExecTest : public ::testing::Test {
     std::unique_ptr<NodeTree> tree;
 };
 
-TEST_F(NodeExecTest, NodeExec)
+TEST_F(NodeExecTest, NodeExecSimple)
 {
     ExecutorDesc desc;
     desc.policy = ExecutorDesc::Policy::Eager;
@@ -73,4 +73,49 @@ TEST_F(NodeExecTest, NodeExec)
     // Type is int
     ASSERT_EQ(result.type().info().name(), "int");
     ASSERT_EQ(result.cast<int>(), 3);
+}
+
+TEST_F(NodeExecTest, NodeExecWithLink)
+{
+    ExecutorDesc desc;
+    desc.policy = ExecutorDesc::Policy::Eager;
+    auto executor = create_node_tree_executor(desc);
+
+    std::vector<Node*> add_nodes;
+
+    for (int i = 0; i < 20; i++) {
+        auto add_node = tree->add_node("add");
+        add_nodes.push_back(add_node);
+    }
+
+    for (int i = 0; i < add_nodes.size() - 1; i++) {
+        auto link = tree->add_link(
+            add_nodes[i]->get_output_socket("result"),
+            add_nodes[i + 1]->get_input_socket("a"));
+    }
+
+    executor->prepare_tree(tree.get());
+
+    // Set the first node.a to 1
+
+    auto a = add_nodes[0]->get_input_socket("a");
+    executor->sync_node_from_external_storage(a, 1);
+
+    // Set all the node.b to 2
+    for (auto node : add_nodes) {
+        auto b = node->get_input_socket("b");
+        executor->sync_node_from_external_storage(b, 2);
+    }
+
+    executor->execute_tree(tree.get());
+
+    // Get the last node result
+
+    entt::meta_any result;
+    executor->sync_node_to_external_storage(
+        add_nodes.back()->get_output_socket("result"), result);
+
+    // Type is int
+    ASSERT_EQ(result.type().info().name(), "int");
+    ASSERT_EQ(result.cast<int>(), 41);
 }
