@@ -8,23 +8,6 @@
 #include "node_socket.hpp"
 #include "node_tree.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
-NodeSocket* nodeAddSocket(
-    NodeTree* ntree,
-    Node* node,
-    PinKind in_out,
-    const char* id_name,
-    const char* identifier,
-    const char* name)
-{
-    auto socket = new NodeSocket(ntree->UniqueID());
-
-    socket->type_info = SocketType::get_socket_type(id_name);
-    strcpy(socket->identifier, identifier);
-    strcpy(socket->ui_name, name);
-    socket->in_out = in_out;
-    socket->Node = node;
-    return socket;
-}
 
 void NodeLink::Serialize(nlohmann::json& value)
 {
@@ -189,12 +172,19 @@ void Node::generate_socket_group_based_on_declaration(
 }
 
 NodeSocket* Node::add_socket(
-    const char* id_name,
+    const char* type_name,
     const char* identifier,
     const char* name,
     PinKind in_out)
 {
-    auto socket = nodeAddSocket(tree_, this, in_out, id_name, identifier, name);
+    auto socket = new NodeSocket(tree_->UniqueID());
+
+    socket->type_info = SocketType::get_socket_type(type_name);
+    strcpy(socket->identifier, identifier);
+    strcpy(socket->ui_name, name);
+    socket->in_out = in_out;
+    socket->Node = this;
+
     register_socket_to_node(socket, in_out);
     return socket;
 }

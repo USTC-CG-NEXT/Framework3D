@@ -17,6 +17,27 @@ class NodeCoreTest : public ::testing::Test {
     }
 };
 
+TEST_F(NodeCoreTest, TYPENAME)
+{
+    nodes::register_cpp_type<int>();
+    auto type = entt::resolve(entt::hashed_string{ typeid(int).name() });
+
+    ASSERT_TRUE(type);
+
+    // std::string
+    nodes::register_cpp_type<std::string>();
+    auto type2 =
+        entt::resolve(entt::hashed_string{ typeid(std::string).name() });
+    ASSERT_TRUE(type2);
+
+    // false
+    auto type3 = entt::resolve(entt::hashed_string{ typeid(float).name() });
+    ASSERT_FALSE(type3);
+
+    ASSERT_EQ(
+        entt::hashed_string{ typeid(float).name() }, entt::type_hash<float>());
+}
+
 TEST_F(NodeCoreTest, RegisterCppType)
 {
     nodes::register_cpp_type<int>();
@@ -77,6 +98,11 @@ TEST_F(NodeCoreTest, NodeSocket)
     nodes::register_cpp_type<int>();
     node_type_info->set_declare_function(
         [](NodeDeclarationBuilder& b) { b.add_input<int>("test_socket"); });
+
+    // Don't allow unregistered types
+    ASSERT_THROW(node_type_info->set_declare_function(
+        [](NodeDeclarationBuilder& b) { b.add_input<float>("test_socket2"); });
+                 , std::runtime_error);
 
     descriptor->register_node(std::move(node_type_info));
 
@@ -145,6 +171,62 @@ TEST_F(NodeCoreTest, NodeLink)
         node->get_output_socket("test_output"),
         node2->get_input_socket("test_input"));
                  , std::runtime_error);
+
+    // Link count
+
+    ASSERT_EQ(tree->links.size(), 1);
+}
+
+TEST_F(NodeCoreTest, NodeLinkConversion)
+{
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        create_node_tree_descriptor();
+    std::unique_ptr<NodeTypeInfo> node_type_info =
+        std::make_unique<NodeTypeInfo>("test_node");
+
+    nodes::register_cpp_type<int>();
+    nodes::register_cpp_type<float>();
+
+    node_type_info->set_declare_function([](NodeDeclarationBuilder& b) {
+        b.add_input<int>("test_input");
+        b.add_output<float>("test_output");
+    });
+
+    descriptor->register_node(std::move(node_type_info));
+
+    descriptor->register_conversion<float, int>([](const float& from, int& to) {
+        to = from;
+        return true;
+    });
+
+    auto tree = nodes::create_node_tree(descriptor);
+
+    auto node = tree->add_node("test_node");
+    auto node2 = tree->add_node("test_node");
+
+    auto link = tree->add_link(
+        node->get_output_socket("test_output")->ID,
+        node2->get_input_socket("test_input")->ID);
+
+    ASSERT_NE(link, nullptr);
+
+    tree->remove_link(link);
+
+    link = tree->add_link(
+        node->get_output_socket("test_output"),
+        node2->get_input_socket("test_input"));
+
+    ASSERT_NE(link, nullptr);
+
+    // Re adding link is not acceptable
+    ASSERT_THROW(tree->add_link(
+        node->get_output_socket("test_output"),
+        node2->get_input_socket("test_input"));
+                 , std::runtime_error);
+
+    // Link count
+
+    ASSERT_EQ(tree->links.size(), 1);
 }
 
 TEST_F(NodeCoreTest, SerializeDeserialize)

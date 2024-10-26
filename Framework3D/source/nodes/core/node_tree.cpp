@@ -28,13 +28,6 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_node(
     return *this;
 }
 
-NodeTreeDescriptor& NodeTreeDescriptor::register_conversion_node(
-    const SocketType& from,
-    const SocketType& to,
-    std::unique_ptr<NodeTypeInfo>)
-{
-    NOT_IMPLEMENTED();
-}
 
 const NodeTypeInfo* NodeTreeDescriptor::get_node_type(
     const std::string& name) const
@@ -151,6 +144,12 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
 
     std::string node_name;
     node_name = fromsock->type_info->conversionNode(*tosock->type_info);
+
+    if (*fromsock->type_info != *tosock->type_info) {
+        if (node_name.empty()) {
+            throw std::runtime_error("Cannot convert between types.");
+        }
+    }
 
     NodeLink* bare_ptr = nullptr;
     if (!node_name.empty()) {

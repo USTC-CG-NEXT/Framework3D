@@ -6,6 +6,7 @@
 
 #include "USTC_CG.h"
 #include "api.hpp"
+#include "node.hpp"
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -16,10 +17,9 @@ class NodeTreeDescriptor {
     ~NodeTreeDescriptor();
 
     NodeTreeDescriptor& register_node(std::unique_ptr<NodeTypeInfo>);
-    NodeTreeDescriptor& register_conversion_node(
-        const SocketType& from,
-        const SocketType& to,
-        std::unique_ptr<NodeTypeInfo>);
+    template<typename FROM, typename TO>
+    NodeTreeDescriptor& register_conversion(
+        const std::function<bool(const FROM&, TO&)>& conversion);
 
     const NodeTypeInfo* get_node_type(const std::string& name) const;
 
@@ -28,6 +28,23 @@ class NodeTreeDescriptor {
     std::map<std::string, std::unique_ptr<NodeTypeInfo>>
         conversion_node_registry;
 };
+
+template<typename FROM, typename TO>
+NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
+    const std::function<bool(const FROM&, TO&)>& conversion)
+{
+    std::unique_ptr<NodeTypeInfo> conversion_node =
+        std::make_unique<NodeTypeInfo>((std::string("conv_") +
+                                        typeid(FROM).name() + "_to_" +
+                                        typeid(TO).name())
+                                           .c_str());
+
+    conversion_node->ui_name = "invisible";
+
+    // register_node(conversion_node);
+
+    return *this;
+}
 
 class NodeTree {
    public:

@@ -5,6 +5,7 @@
 
 #include "USTC_CG.h"
 #include "api.hpp"
+#include "entt/core/type_info.hpp"
 #include "entt/meta/factory.hpp"
 #include "entt/meta/meta.hpp"
 #include "id.hpp"
@@ -139,7 +140,7 @@ struct Node {
         std::vector<NodeSocket*>& new_sockets);
 
     NodeSocket* add_socket(
-        const char* id_name,
+        const char* type_name,
         const char* identifier,
         const char* name,
         PinKind in_out);
@@ -245,6 +246,11 @@ class Decl : public SocketDeclaration {
     Decl()
     {
         type = nodes::get_socket_type<T>();
+        // If type doesn't exist, throw
+
+        if (!type) {
+            throw std::runtime_error("Type not found");
+        }
     }
 
     NodeSocket* build(NodeTree* ntree, Node* node) const override
@@ -399,13 +405,13 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_output(
 template<typename Data>
 void NodeDeclarationBuilder::add_storage()
 {
-    entt::meta<Data>().type(entt::hashed_string{ typeid(Data).name() });
+    entt::meta<Data>().type(entt::type_hash<Data>());
 }
 
 template<typename Data>
 void NodeDeclarationBuilder::add_runtime_storage()
 {
-    entt::meta<Data>().type(entt::hashed_string{ typeid(Data).name() });
+    entt::meta<Data>().type(entt::type_hash<Data>());
 }
 
 template<typename T>
