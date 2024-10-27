@@ -15,9 +15,14 @@ target_link_libraries(GUI PUBLIC
 )
 target_compile_options(GUI PRIVATE -DUSTC_CG_BUILD_MODULE=0  -DNOMINMAX)
 
-target_include_directories(GUI PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(GUI PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui-node-editor)
-target_include_directories(GUI PRIVATE ${CMAKE_BINARY_DIR}/include)
+target_include_directories(GUI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
 set_target_properties(GUI PROPERTIES ${OUTPUT_DIR})
+
+USTC_CG_ADD_LIB(GUI 
+	INC_DIR 
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui-node-editor 
+	${CMAKE_BINARY_DIR}/include 
+	${PROJECT_SOURCE_DIR}/include
+)

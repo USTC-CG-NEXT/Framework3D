@@ -40,6 +40,8 @@ function(add_node_discovery
 endfunction()
 
 add_subdirectory(core)
+add_subdirectory(system)
+add_subdirectory(ui_imgui)
 
 # file(GLOB_RECURSE
 #   CUDA_FILES
