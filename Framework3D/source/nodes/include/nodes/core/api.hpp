@@ -27,8 +27,12 @@ class SocketDeclaration;
 struct Node;
 struct NodeSocket;
 
-template<typename T>
-void register_cpp_type();
+template<typename TYPE>
+inline void register_cpp_type()
+{
+    entt::meta<TYPE>().type(entt::type_hash<TYPE>());
+    assert(entt::hashed_string{ typeid(TYPE).name() }, entt::type_hash<TYPE>());
+}
 
 template<typename T>
 SocketType get_socket_type()
@@ -54,5 +58,3 @@ std::string serialize_node_tree(NodeTree* tree);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
-
-#include "internal/register_cpp_type.inl"

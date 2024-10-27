@@ -70,13 +70,30 @@ else()
 add_compile_definitions(USTC_CG_WITH_TORCH=0)
 endif()
 
+# The following packages optional
+
+option(USTC_CG_WITH_PYTHON OFF)
+if(USTC_CG_WITH_PYTHON)
 find_package(Python3 3.10 EXACT COMPONENTS Development Interpreter REQUIRED)
 set_target_properties(Python3::Python PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
 set_target_properties(Python3::Module PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
+endif()
 
+
+option(USTC_CG_WITH_OPENUSD OFF)
+if(USTC_CG_WITH_OPENUSD)
 find_package(pxr REQUIRED)
 find_package(TBB REQUIRED)
 find_package(EMBREE REQUIRED)
+
+
+set(TBB_tbb_LIBRARY TBB::tbb TBB::tbbmalloc TBB::tbbmalloc_proxy)
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+	set_target_properties(TBB::tbb PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1")
+endif()
+
+endif()
+
 
 # Include Slang
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -87,10 +104,6 @@ set(DXC_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/common/dxc)
 find_package(DXC REQUIRED)
 
 
-set(TBB_tbb_LIBRARY TBB::tbb TBB::tbbmalloc TBB::tbbmalloc_proxy)
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-	set_target_properties(TBB::tbb PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1")
-endif()
 
 find_package(NVAPI REQUIRED)
 
