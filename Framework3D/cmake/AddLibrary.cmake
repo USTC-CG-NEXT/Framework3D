@@ -88,4 +88,5 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         PUBLIC ${USTC_CG_ADD_LIB_PUBLIC_LIBS}
         PRIVATE ${USTC_CG_ADD_LIB_PRIVATE_LIBS}
     )
+    set_target_properties(${name} PROPERTIES ${OUTPUT_DIR})
 endfunction()
