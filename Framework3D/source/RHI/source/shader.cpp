@@ -1,3 +1,5 @@
+#include "RHI/shader.hpp"
+
 #include <Windows.h>
 #include <dxcapi.h>
 #include <wrl.h>
