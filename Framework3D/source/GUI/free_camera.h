@@ -3,9 +3,9 @@
 
 #include "USTC_CG.h"
 #include "imgui.h"
-#include "pxr/base/gf/camera.h"
-#include "pxr/base/gf/matrix4f.h"
-#include "pxr/base/gf/vec2f.h"
+// #include "pxr/base/gf/camera.h"
+// #include "pxr/base/gf/matrix4f.h"
+// #include "pxr/base/gf/vec2f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

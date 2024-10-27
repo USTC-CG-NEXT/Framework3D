@@ -2,11 +2,10 @@
 
 #include <entt/meta/meta.hpp>
 
-#include "api.hpp"
-#include "node.hpp"
-#include "node_tree.hpp"
+#include "nodes/core/api.hpp"
+#include "nodes/core/node.hpp"
+#include "nodes/core/node_tree.hpp"
 
-using namespace USTC_CG::nodes;
 using namespace USTC_CG;
 
 class NodeExecTest : public ::testing::Test {

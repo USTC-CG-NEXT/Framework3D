@@ -7,7 +7,7 @@
 
 #include "USTC_CG.h"
 #include "ui_event.h"
-#include "pxr/usd/sdf/path.h"
+// #include "pxr/usd/sdf/path.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct NodeTreeExecutor;
