@@ -2,6 +2,7 @@
 #include <nvrhi/nvrhi.h>
 
 #include "USTC_CG.h"
+#include "internal/nvrhi_patch.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

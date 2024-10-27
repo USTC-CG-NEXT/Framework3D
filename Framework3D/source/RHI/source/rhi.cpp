@@ -7,25 +7,33 @@
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
-
 USTC_CG_NAMESPACE_OPEN_SCOPE
 nvrhi::DeviceHandle device;
+std::unique_ptr<vk::DynamicLoader> dl = nullptr;
+
 int init()
 {
+    if (!dl) {
+        // Long live the loader!
+        dl = std::make_unique<vk::DynamicLoader>();
+    }
     if (!device) {
         nvrhi::vulkan::DeviceDesc desc;
 
         // Initialize the required fields
-        vk::DynamicLoader dl;
-        PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr =
-            dl.getProcAddress<PFN_vkGetInstanceProcAddr>(
+        void (*(*vkGetInstanceProcAddr)(VkInstance_T*, const char*))() =
+            dl->getProcAddress<PFN_vkGetInstanceProcAddr>(
                 "vkGetInstanceProcAddr");
         VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+
+        const char* instanceExtensions[] = { "VK_KHR_surface",
+                                             "VK_KHR_win32_surface" };
 
         vk::ApplicationInfo appInfo(
             "USTC_CG", 1, "USTC_CG_RHI", 1, VK_API_VERSION_1_3);
         vk::InstanceCreateInfo instanceCreateInfo({}, &appInfo);
+        instanceCreateInfo.setPEnabledExtensionNames(instanceExtensions);
+
         vk::Instance instance = vk::createInstance(instanceCreateInfo);
         VULKAN_HPP_DEFAULT_DISPATCHER.init(instance);
 
@@ -93,8 +101,6 @@ int init()
         desc.computeQueueIndex = 0;
         desc.allocationCallbacks = nullptr;
 
-        const char* instanceExtensions[] = { "VK_KHR_surface",
-                                             "VK_KHR_win32_surface" };
         desc.instanceExtensions = instanceExtensions;
         desc.numInstanceExtensions =
             sizeof(instanceExtensions) / sizeof(instanceExtensions[0]);
@@ -113,11 +119,15 @@ int init()
 
 nvrhi::DeviceHandle get_device()
 {
+    if (!device) {
+        init();
+    }
     return device;
 }
 
 int shutdown()
 {
+    dl = nullptr;
     device = nullptr;
     return device == nullptr;
 }

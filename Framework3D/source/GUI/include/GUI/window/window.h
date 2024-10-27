@@ -1,11 +1,16 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "USTC_CG.h"
+#include "nvrhi/nvrhi.h"
 struct GLFWwindow;
 
 namespace USTC_CG {
+
+struct ImGui_NVRHI;
+
 // Represents a window in a GUI application, providing basic functionalities
 // such as initialization and rendering.
 class Window {
@@ -14,10 +19,6 @@ class Window {
     explicit Window(const std::string& window_name);
 
     virtual ~Window();
-
-    // Initializes the window and its dependencies (GLFW, GLAD, ImGui,
-    // etc.).
-    bool init();
 
     // Enters the main rendering loop.
     void run();
@@ -29,7 +30,6 @@ class Window {
 
     virtual void Render();
 
-   protected:
     // Initializes GLFW library.
     bool init_glfw();
 
@@ -43,5 +43,7 @@ class Window {
     GLFWwindow* window_ = nullptr;  // Pointer to the GLFW window.
     int width_ = 1920;              // Width of the window.
     int height_ = 1080;             // Height of the window.
+
+    std::unique_ptr<ImGui_NVRHI> imgui_nvrhi;  // ImGui NVRHI instance.
 };
 }  // namespace USTC_CG

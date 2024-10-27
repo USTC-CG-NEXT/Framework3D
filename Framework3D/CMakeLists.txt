@@ -101,7 +101,7 @@ endif()
 
 # Include Slang
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-set(SLANG_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/common/slang)
+set(SLANG_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/slang)
 find_package(Slang REQUIRED COMPONENTS slang slang-rt gfx)
 
 set(DXC_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/common/dxc)

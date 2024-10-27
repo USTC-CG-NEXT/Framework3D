@@ -9,10 +9,10 @@ set(SLANG_SEARCH_DIR ${SLANG_ROOT_DIR})
 ##################################
   
 find_path(SLANG_INCLUDE_DIRS slang.h
-    HINTS ${SLANG_INCLUDE_DIR} ${SLANG_SEARCH_DIR})
+    HINTS ${SLANG_INCLUDE_DIR} ${SLANG_SEARCH_DIR}/include)
 
 set(SLANG_SEARCH_COMPOMPONENTS slang slang-rt gfx)
-set(SLANG_LIB_PATH_SUFFIX "bin/windows-x64/release")
+set(SLANG_LIB_PATH_SUFFIX "lib")
 # Find each component
 foreach(_comp ${SLANG_SEARCH_COMPOMPONENTS})
 if(";${Slang_FIND_COMPONENTS};slang;" MATCHES ";${_comp};")
