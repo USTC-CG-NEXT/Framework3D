@@ -286,12 +286,90 @@ SlangStage ConvertShaderTypeToSlangStage(nvrhi::ShaderType shaderType)
     }
 }
 
-void SlangCompileHLSLToDXIL(
+nvrhi::BindingLayoutDescVector mergeBindingLayoutDescVectors(
+    const nvrhi::BindingLayoutDescVector& vec1,
+    const nvrhi::BindingLayoutDescVector& vec2)
+{
+    nvrhi::BindingLayoutDescVector result;
+    size_t maxSize = std::max(vec1.size(), vec2.size());
+
+    for (size_t i = 0; i < maxSize; ++i) {
+        BindingLayoutDesc mergedDesc;
+
+        if (i < vec1.size()) {
+            mergedDesc = vec1[i];
+        }
+        else {
+            mergedDesc = BindingLayoutDesc();
+        }
+
+        if (i < vec2.size()) {
+            const BindingLayoutDesc& desc2 = vec2[i];
+            mergedDesc.visibility = mergedDesc.visibility | desc2.visibility;
+            for (int j = 0; j < desc2.bindings.size(); ++j) {
+                mergedDesc.bindings.push_back(desc2.bindings[j]);
+            }
+        }
+
+        result.push_back(mergedDesc);
+    }
+
+    return result;
+}
+
+nvrhi::ShaderHandle ShaderFactory::compile_shader(
+    const std::string& entryName,
+    nvrhi::ShaderType shader_type,
+    std::filesystem::path shader_path,
+    nvrhi::BindingLayoutDescVector& binding_layout_desc,
+    std::string& error_string,
+    const std::vector<ShaderMacro>& macro_defines,
+    bool nvapi_support,
+    bool absolute)
+{
+    ProgramDesc shader_compile_desc;
+
+    if (!absolute) {
+        shader_path = std::filesystem::path(shader_search_path) / shader_path;
+    }
+    shader_compile_desc.set_entry_name(entryName);
+    shader_compile_desc.set_path(shader_path);
+    for (auto&& macro_define : macro_defines) {
+        shader_compile_desc.define(macro_define.name, macro_define.definition);
+    }
+    shader_compile_desc.shaderType = shader_type;
+    shader_compile_desc.nvapi_support = nvapi_support;
+    auto shader_compiled = createProgram(shader_compile_desc);
+
+    if (!shader_compiled->get_error_string().empty()) {
+        error_string = shader_compiled->get_error_string();
+        shader_compiled = nullptr;
+        return nullptr;
+    }
+
+    nvrhi::ShaderDesc desc;
+    desc.shaderType = shader_compile_desc.shaderType;
+    desc.entryName = entryName;
+    desc.debugName = std::to_string(
+        reinterpret_cast<long long>(shader_compiled->getBufferPointer()));
+
+    binding_layout_desc = shader_compiled->get_binding_layout_descs();
+
+    auto compute_shader = device->createShader(
+        desc,
+        shader_compiled->getBufferPointer(),
+        shader_compiled->getBufferSize());
+    shader_compiled = nullptr;
+
+    return compute_shader;
+}
+
+void ShaderFactory::SlangCompileHLSLToDXIL(
     const char* filename,
     const char* entryPoint,
     nvrhi::ShaderType shaderType,
     const char* profile,
-    const std::vector<ShaderMacro>& defines,  // List of macro defines
+    const std::vector<ShaderMacro>& defines,
     nvrhi::BindingLayoutDescVector& shader_reflection,
     Slang::ComPtr<ISlangBlob>& ppResultBlob,
     std::string& error_string,
@@ -306,7 +384,7 @@ void SlangCompileHLSLToDXIL(
     Slang::ComPtr<slang::ISession> pSlangSession;
 
     slang::SessionDesc sessionDesc;
-    std::vector<std::string> searchPaths = { RENDER_NODES_FILES_DIR +
+    std::vector<std::string> searchPaths = { shader_search_path +
                                              std::string("/shaders/") };
     std::vector<const char*> slangSearchPaths;
     for (auto& path : searchPaths) {
@@ -377,12 +455,98 @@ void SlangCompileHLSLToDXIL(
     spDestroyCompileRequest(slangRequest);
 }
 
-ProgramHandle createProgram(const ProgramDesc& desc)
+void ShaderFactory::SlangCompileHLSLToSPIRV(
+    const char* filename,
+    const char* entryPoint,
+    nvrhi::ShaderType shaderType,
+    const char* profile,
+    const std::vector<ShaderMacro>& defines,
+    nvrhi::BindingLayoutDescVector& shader_reflection,
+    Slang::ComPtr<ISlangBlob>& ppResultBlob,
+    std::string& error_string,
+    bool nvapi_support)
+{
+    auto stage = ConvertShaderTypeToSlangStage(shaderType);
+    // Ensure global session is created
+    if (!globalSession) {
+        globalSession = createGlobal();
+    }
+
+    Slang::ComPtr<slang::ISession> pSlangSession;
+
+    slang::SessionDesc sessionDesc;
+    std::vector<std::string> searchPaths = { shader_search_path +
+                                             std::string("/shaders/") };
+    std::vector<const char*> slangSearchPaths;
+    for (auto& path : searchPaths) {
+        slangSearchPaths.push_back(path.data());
+    }
+    sessionDesc.searchPaths = slangSearchPaths.data();
+    sessionDesc.searchPathCount = (SlangInt)slangSearchPaths.size();
+    auto result =
+        globalSession->createSession(sessionDesc, pSlangSession.writeRef());
+    assert(result == SLANG_OK);
+
+    // Create a compile request
+    Slang::ComPtr<SlangCompileRequest> slangRequest;
+    result = pSlangSession->createCompileRequest(slangRequest.writeRef());
+
+    // Set the code generation target to SPIRV
+    int targetIndex = slangRequest->addCodeGenTarget(SLANG_SPIRV);
+    spSetTargetFlags(slangRequest, targetIndex, kDefaultTargetFlags);
+
+    if (nvapi_support) {
+        SlangShaderCompiler::addHLSLHeaderInclude(slangRequest);
+        SlangShaderCompiler::addHLSLSupportPreDefine(slangRequest);
+    }
+
+    // Add a translation unit to the compile request
+    int translationUnitIndex = spAddTranslationUnit(
+        slangRequest, SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
+
+    // Set the profile ID
+    auto profile_id = globalSession->findProfile(profile);
+    slangRequest->setTargetProfile(targetIndex, profile_id);
+
+    // Add the source file to the translation unit
+    spAddTranslationUnitSourceFile(
+        slangRequest, translationUnitIndex, filename);
+
+    // Add macro defines to the compile request
+    for (const auto& define : defines) {
+        spAddPreprocessorDefine(
+            slangRequest, define.name.c_str(), define.definition.c_str());
+    }
+
+    // If an entry point is provided, set it
+    auto entryPointIndex =
+        slangRequest->addEntryPoint(translationUnitIndex, entryPoint, stage);
+
+    // Compile the request
+    const SlangResult compileRes = slangRequest->compile();
+
+    // Handle compile errors
+    if (SLANG_FAILED(compileRes)) {
+        if (auto diagnostics = spGetDiagnosticOutput(slangRequest)) {
+            error_string = diagnostics;
+        }
+        // Cleanup and return early if compilation failed
+        return;
+    }
+
+    shader_reflection = shader_reflect(slangRequest, shaderType);
+
+    // Retrieve the compiled code blob
+    slangRequest->getEntryPointCodeBlob(
+        entryPointIndex, targetIndex, ppResultBlob.writeRef());
+}
+
+ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc)
 {
     Slang::ComPtr<ISlangBlob> blob;
     ProgramHandle ret = ProgramHandle::Create(new Program);
 
-    SlangCompileHLSLToDXIL(
+    SlangCompileHLSLToSPIRV(
         desc.path.generic_string().c_str(),
         desc.entry_name.c_str(),
         desc.shaderType,
@@ -393,86 +557,6 @@ ProgramHandle createProgram(const ProgramDesc& desc)
         ret->error_string,
         desc.nvapi_support);
     return ret;
-}
-
-nvrhi::BindingLayoutDescVector mergeBindingLayoutDescVectors(
-    const nvrhi::BindingLayoutDescVector& vec1,
-    const nvrhi::BindingLayoutDescVector& vec2)
-{
-    nvrhi::BindingLayoutDescVector result;
-    size_t maxSize = std::max(vec1.size(), vec2.size());
-
-    for (size_t i = 0; i < maxSize; ++i) {
-        BindingLayoutDesc mergedDesc;
-
-        if (i < vec1.size()) {
-            mergedDesc = vec1[i];
-        }
-        else {
-            mergedDesc = BindingLayoutDesc();
-        }
-
-        if (i < vec2.size()) {
-            const BindingLayoutDesc& desc2 = vec2[i];
-            mergedDesc.visibility = mergedDesc.visibility | desc2.visibility;
-            for (int j = 0; j < desc2.bindings.size(); ++j) {
-                mergedDesc.bindings.push_back(desc2.bindings[j]);
-            }
-        }
-
-        result.push_back(mergedDesc);
-    }
-
-    return result;
-}
-
-nvrhi::ShaderHandle compile_shader(
-    const std::string& entryName,
-    nvrhi::ShaderType shader_type,
-    std::filesystem::path shader_path,
-    nvrhi::BindingLayoutDescVector& binding_layout_desc,
-    std::string& error_string,
-    const std::vector<ShaderMacro>& macro_defines,
-    bool nvapi_support,
-    bool absolute)
-{
-    ProgramDesc shader_compile_desc;
-
-    if (!absolute) {
-        shader_path =
-            std::filesystem::path(RENDER_NODES_FILES_DIR) / shader_path;
-    }
-    shader_compile_desc.set_entry_name(entryName);
-    shader_compile_desc.set_path(shader_path);
-    for (auto&& macro_define : macro_defines) {
-        shader_compile_desc.define(macro_define.name, macro_define.definition);
-    }
-    shader_compile_desc.shaderType = shader_type;
-    shader_compile_desc.nvapi_support = nvapi_support;
-    auto shader_compiled = resource_allocator.create(shader_compile_desc);
-
-    if (!shader_compiled->get_error_string().empty()) {
-        error_string = shader_compiled->get_error_string();
-        resource_allocator.destroy(shader_compiled);
-        return nullptr;
-    }
-
-    nvrhi::ShaderDesc desc;
-    desc.shaderType = shader_compile_desc.shaderType;
-    desc.entryName = entryName;
-    desc.debugName = std::to_string(
-        reinterpret_cast<long long>(shader_compiled->getBufferPointer()));
-
-    binding_layout_desc = shader_compiled->get_binding_layout_descs();
-
-    auto compute_shader = resource_allocator.create(
-        desc,
-        shader_compiled->getBufferPointer(),
-        shader_compiled->getBufferSize());
-
-    resource_allocator.destroy(shader_compiled);
-
-    return compute_shader;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

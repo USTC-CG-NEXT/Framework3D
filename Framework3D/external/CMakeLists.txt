@@ -23,6 +23,7 @@ set(imgui_file_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFileDialog" CACHE ST
 file(GLOB source
     "${imgui_SOURCE_DIR}/*.h"
     "${imgui_SOURCE_DIR}/*.cpp"
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.*"
     "${imgui_file_SOURCE_DIR}/*.h"
     "${imgui_file_SOURCE_DIR}/*.cpp"
 )

@@ -4,12 +4,10 @@
 #include <cassert>
 #include <iterator>
 
-#include "Backend.hpp"
+#include "Logging/Logging.h"
 #include "USTC_CG.h"
-#include "Utils/Logging/Logging.h"
-#include "Utils/Macro/map.h"
-#include "entt/meta/meta.hpp"
-#include "entt/meta/resolve.hpp"
+//#include "entt/meta/meta.hpp"
+//#include "entt/meta/resolve.hpp"
 #include "internal/resources.hpp"
 
 #ifdef USTC_CG_BACKEND_NVRHI
@@ -95,17 +93,17 @@ class ResourceAllocator {
         RESOLVE_DESTROY_DYNAMIC(RESOURCE) \
     }
 
-    void destroy(entt::meta_any handle) noexcept
-    {
-        if constexpr (mEnabled) {
-            // If code runs here, It means some of your output resource is not
-            // created;
-            MACRO_MAP(FOREACH_DESTROY_DYNAMIC, RESOURCE_LIST)
-        }
-        else {
-            handle = nullptr;
-        }
-    }
+    //void destroy(entt::meta_any handle) noexcept
+    //{
+    //    if constexpr (mEnabled) {
+    //        // If code runs here, It means some of your output resource is not
+    //        // created;
+    //        MACRO_MAP(FOREACH_DESTROY_DYNAMIC, RESOURCE_LIST)
+    //    }
+    //    else {
+    //        handle = nullptr;
+    //    }
+    //}
 
 #define FOREACH_DESTROY(RESOURCE) \
     JUDGE_RESOURCE(RESOURCE)      \
@@ -159,14 +157,12 @@ class ResourceAllocator {
         }
         return handle;
     }
-#ifdef USTC_CG_BACKEND_NVRHI
     nvrhi::IDevice* device;
     void set_device(nvrhi::IDevice* device)
     {
         assert(device);
         this->device = device;
     }
-#endif
 
 #define DEFINEContainer(RESOURCE)                                     \
     struct PAYLOAD_NAME(RESOURCE) {                                   \

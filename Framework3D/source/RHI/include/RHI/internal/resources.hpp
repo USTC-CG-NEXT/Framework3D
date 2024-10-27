@@ -82,7 +82,7 @@ struct Program : nvrhi::RefCounter<IProgram> {
     }
 
    private:
-    friend ProgramHandle createProgram(const ProgramDesc& desc);
+    friend class ShaderFactory;
 
     nvrhi::BindingLayoutDescVector binding_layout_;
     Slang::ComPtr<ISlangBlob> blob;
@@ -129,7 +129,7 @@ struct ProgramDesc {
     void update_last_write_time(const std::filesystem::path& path);
     std::vector<ShaderMacro> macros;
     std::string get_profile() const;
-    friend ProgramHandle createProgram(const ProgramDesc& desc);
+    friend class ShaderFactory;
     std::filesystem::path path;
     std::filesystem::file_time_type lastWriteTime;
     std::string entry_name;

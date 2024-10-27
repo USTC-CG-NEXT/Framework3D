@@ -1,5 +1,3 @@
-
-
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include "GUI/window/window.h"
 
@@ -13,11 +11,13 @@
 #define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
 #include "Logging/Logging.h"
+#include "RHI/shader.hpp"
 #include "vulkan/vulkan.hpp"
 
 namespace USTC_CG {
 
 struct ImGui_NVRHI {
+    ImGui_NVRHI();
     nvrhi::DeviceHandle renderer;
     nvrhi::CommandListHandle m_commandList;
 
@@ -57,6 +57,8 @@ struct ImGui_NVRHI {
     nvrhi::IGraphicsPipeline* getPSO(nvrhi::IFramebuffer* fb);
     nvrhi::IBindingSet* getBindingSet(nvrhi::ITexture* texture);
     bool updateGeometry(nvrhi::ICommandList* commandList);
+
+    std::unique_ptr<ShaderFactory> shader_factory;
 };
 
 struct VERTEX_CONSTANT_BUFFER {
@@ -110,6 +112,11 @@ bool ImGui_NVRHI::createFontTexture(nvrhi::ICommandList* commandList)
     return true;
 }
 
+ImGui_NVRHI::ImGui_NVRHI()
+{
+    shader_factory = std::make_unique<ShaderFactory>();
+}
+
 bool ImGui_NVRHI::init(nvrhi::DeviceHandle renderer)
 {
     this->renderer = renderer;
@@ -118,18 +125,24 @@ bool ImGui_NVRHI::init(nvrhi::DeviceHandle renderer)
 
     m_commandList->open();
 
-    vertexShader = shaderFactory->CreateAutoShader(
-        "donut/imgui_vertex",
+    std::string error_string;
+    nvrhi::BindingLayoutDescVector binding_layout;
+
+    vertexShader = shader_factory->compile_shader(
         "main",
-        DONUT_MAKE_PLATFORM_SHADER(g_imgui_vertex),
-        nullptr,
-        nvrhi::ShaderType::Vertex);
-    pixelShader = shaderFactory->CreateAutoShader(
-        "donut/imgui_pixel",
+        nvrhi::ShaderType::Vertex,
+        "imgui_shader/imgui_vertex.slang",
+        binding_layout,
+        error_string,
+        {});
+
+    pixelShader = shader_factory->compile_shader(
         "main",
-        DONUT_MAKE_PLATFORM_SHADER(g_imgui_pixel),
-        nullptr,
-        nvrhi::ShaderType::Pixel);
+        nvrhi::ShaderType::Pixel,
+        "imgui_shader/imgui_vertex.slang",
+        binding_layout,
+        error_string,
+        {});
 
     if (!vertexShader || !pixelShader) {
         logging("Failed to create an ImGUI shader");
@@ -454,9 +467,6 @@ Window::Window(const std::string& window_name) : name_(window_name)
         throw std::runtime_error("Failed to initialize GLFW!");
     }
 
-    imgui_nvrhi = std::make_unique<ImGui_NVRHI>();
-    imgui_nvrhi->init(get_device());
-
     window_ =
         glfwCreateWindow(width_, height_, name_.c_str(), nullptr, nullptr);
     if (window_ == nullptr) {
@@ -470,6 +480,9 @@ Window::Window(const std::string& window_name) : name_(window_name)
         glfwTerminate();
         throw std::runtime_error("Failed to initialize GUI!");
     }
+
+    imgui_nvrhi = std::make_unique<ImGui_NVRHI>();
+    imgui_nvrhi->init(get_device());
 }
 
 Window::~Window()
@@ -511,7 +524,6 @@ bool Window::init_glfw()
     glfwSetErrorCallback([](int error, const char* desc) {
         fprintf(stderr, "GLFW Error %d: %s\n", error, desc);
     });
-    glfwInitVulkanLoader(VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr);
     if (!glfwInit()) {
         return false;
     }
@@ -584,6 +596,8 @@ void Window::render()
     ImGui::End();
 
     ImGui::Render();
+
+    
 
     // Record Vulkan command buffer and submit it to the queue
     // Example:
