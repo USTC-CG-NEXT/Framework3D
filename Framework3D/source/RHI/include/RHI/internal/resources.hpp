@@ -5,9 +5,8 @@
 #include <filesystem>
 
 #include "USTC_CG.h"
-#include "Utils/Macro/map.h"
+#include "map.h"
 #include "nvrhi/nvrhi.h"
-#include "nvrhi_format.hpp"
 #include "slang-com-ptr.h"
 
 namespace nvrhi {

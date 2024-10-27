@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "Utils/Logging/Logging.h"
+#include "Logging/Logging.h"
 #include "slang.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
