@@ -12,10 +12,15 @@ project(
 
 
 option(USTC_CG_WITH_CUDA OFF)
+option (USTC_CG_WITH_TORCH OFF)
+
+
 if(USTC_CG_WITH_CUDA)
 # Set the cuda compiler to be nvcc 12.6
+set(CMAKE_CUDA_ARCHITECTURES 86)
 set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/bin/nvcc.exe")
 enable_language(CUDA)
+find_package(CUDAToolkit REQUIRED)
 add_compile_definitions(USTC_CG_WITH_CUDA=1)
 set(CMAKE_CUDA_STANDARD 20)
 else()
@@ -56,9 +61,14 @@ set(TBB_DIR SDK/${SDK_FOLDER}/tbb/lib/cmake/tbb)
 set(MaterialX_DIR SDK/${SDK_FOLDER}/MaterialX/lib/cmake/MaterialX)
 set(Imath_DIR SDK/${SDK_FOLDER}/Imath/lib/cmake/Imath)
 set(EMBREE_DIR SDK/common/embree/lib/cmake/embree-4.3.1) 
-set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
 
+if(USTC_CG_WITH_TORCH)
+set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
+add_compile_definitions(USTC_CG_WITH_TORCH=1)
+else()
+add_compile_definitions(USTC_CG_WITH_TORCH=0)
+endif()
 
 find_package(Python3 3.10 EXACT COMPONENTS Development Interpreter REQUIRED)
 set_target_properties(Python3::Python PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
@@ -86,19 +96,14 @@ find_package(NVAPI REQUIRED)
 
 add_subdirectory(external)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GCore)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/SCore)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/RCore)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/renderer)
 
 
-target_link_libraries(GCore PUBLIC "${TORCH_LIBRARIES}")
-target_link_libraries(SCore PUBLIC GCore)
+target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GUI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/nodes)
-
-target_link_directories(GCore PUBLIC SDK/${SDK_FOLDER}/boost/lib64-msvc-14.3)
-
 
 # For testing
 enable_testing()

@@ -1,7 +1,7 @@
 function(UCG_ADD_TEST)
     set(options SHARED)
     set(oneValueArgs SRC)
-    set(multiValueArgs LIBS LIB_FLAGS EXTRA_FILES)
+    set(multiValueArgs LIBS LIB_FLAGS EXTRA_FILES INCLUDE_DIRS)
     cmake_parse_arguments(UCG_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     string(REGEX REPLACE "(.*/)([a-zA-Z0-9_ ]+)(\.cpp|\.cu)" "\\2" test_name ${UCG_TEST_SRC}) 
@@ -14,8 +14,7 @@ function(UCG_ADD_TEST)
     # There should be googletest available
     target_link_libraries(${test_name}_test PUBLIC GTest::gtest GTest::gtest_main)
     target_link_libraries(${test_name}_test PUBLIC ${UCG_TEST_LIBS})
-    target_include_directories(${test_name}_test PUBLIC ${PROJECT_SOURCE_DIR}/source)
-    target_include_directories(${test_name}_test PRIVATE ${CMAKE_BINARY_DIR}/include)
+    target_include_directories(${test_name}_test PUBLIC ${UCG_TEST_INCLUDE_DIRS})
     target_compile_definitions(${test_name}_test PUBLIC NOMINMAX=1)
 
     add_test(
@@ -26,6 +25,7 @@ function(UCG_ADD_TEST)
   )
 endfunction(UCG_ADD_TEST)
 
-add_subdirectory(RCore)
+# add_subdirectory(renderer)
 add_subdirectory(GUI)
-add_subdirectory(Node)
+add_subdirectory(nodes)
+# add_subdirectory(geometry)

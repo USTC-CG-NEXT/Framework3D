@@ -42,7 +42,7 @@ ShaderHandle compile_shader(
     desc.debugName = std::to_string(
         reinterpret_cast<long long>(shader_compiled->getBufferPointer()));
 
-    binding_layout_desc = shader_compiled->get_binding_layout();
+    binding_layout_desc = shader_compiled->get_binding_layout_descs();
 
     auto compute_shader = resource_allocator.create(
         desc,

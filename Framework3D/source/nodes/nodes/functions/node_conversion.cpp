@@ -1,11 +1,16 @@
-﻿#include <cuda.h>
+﻿
+#if USTC_CG_WITH_CUDA
+#include <cuda.h>
 #include <cuda_runtime_api.h>
-#include <d3d12.h>
-#include <torch/torch.h>
-
-#include "../render/resource_allocator_instance.hpp"
 #include "CUDAExternal.h"
 #include "CUDASurface.cuh"
+#endif
+
+
+#include <d3d12.h>
+
+#include "../render/resource_allocator_instance.hpp"
+
 #include "NODES_FILES_DIR.h"
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
@@ -19,6 +24,10 @@
 #include "func_node_base.h"
 #include "nvrhi/utils.h"
 #include "pxr/imaging/hd/types.h"
+
+#if USTC_CG_WITH_TORCH
+#include <torch/torch.h>
+#endif
 
 namespace USTC_CG::node_conversion {
 static void node_declare_Int_to_Float(NodeDeclarationBuilder& b)
@@ -203,6 +212,8 @@ void node_exec_NumpyArray_to_Buffer(ExeParams params)
     params.set_output("Buffer", buffer);
 }
 
+#if USTC_CG_WITH_TORCH
+
 void node_declare_NumpyArray_to_TorchTensor(NodeDeclarationBuilder& b)
 {
     b.add_input<decl::NumpyArray>("arr");
@@ -325,11 +336,12 @@ void node_exec_Float1Buffer_to_TorchTensor(ExeParams params)
     long long width = buffer.size();
     auto tensor = torch::empty({ width }, torch::kFloat);
     memcpy(tensor.data_ptr(), buffer.data(), width * sizeof(float));
-    
+
     auto device_tensor = tensor.to(at::Device(at::DeviceType::CUDA, 0));
 
     params.set_output("tensor", device_tensor);
 }
+#endif
 
 void node_declare_Float1Buffer_to_NumpyArray(NodeDeclarationBuilder& b)
 {
@@ -382,9 +394,13 @@ static void node_register()
     CONVERSION(Texture, NumpyArray)
     CONVERSION(NumpyArray, Texture)
     CONVERSION(NumpyArray, Buffer)
+
+#if USTC_CG_WITH_TORCH
     CONVERSION(NumpyArray, TorchTensor)
     CONVERSION(TorchTensor, Texture)
     CONVERSION(Float1Buffer, TorchTensor)
+#endif
+
     CONVERSION(Float1Buffer, NumpyArray)
     CONVERSION(Float, NumpyArray)
 }

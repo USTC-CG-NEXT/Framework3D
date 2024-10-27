@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(DISCOVER_NODES_PATH ${CMAKE_CURRENT_LIST_DIR}/intern/discover_nodes.py)
+set(DISCOVER_NODES_PATH ${CMAKE_CURRENT_LIST_DIR}/discover_nodes.py)
 
 # Creates a library with the given name that exposes one function which calls
 # the register functions of all nodes in the provided source files.
@@ -39,21 +39,25 @@ function(add_node_discovery
   set(${lib_name} "${output_file}" PARENT_SCOPE)
 endfunction()
 
-file(GLOB_RECURSE
-  CPP_FILES
-  ${CMAKE_CURRENT_LIST_DIR}/*.cpp
-)
+add_subdirectory(core)
 
 file(GLOB_RECURSE
   CUDA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/*.cu
 )
 
+if(USTC_CG_WITH_CUDA)
 file(GLOB_RECURSE
   NODE_FILES
   ${CMAKE_CURRENT_LIST_DIR}/nodes/*.cpp
   ${CMAKE_CURRENT_LIST_DIR}/nodes/*.cu
 )
+else()
+file(GLOB_RECURSE
+  NODE_FILES
+  ${CMAKE_CURRENT_LIST_DIR}/nodes/*.cpp
+)
+endif()
 
 add_node_discovery(
   nodes_generated
@@ -62,31 +66,38 @@ add_node_discovery(
   register_nodes
 )
 
-add_library(nodes STATIC ${CPP_FILES} ${nodes_generated})
+add_library(nodes STATIC ${NODE_FILES} ${nodes_generated})
 
+if(USTC_CG_WITH_CUDA)
 add_library(nodes_cuda SHARED "${CUDA_FILES}")
-message("Torch has libraries: ${${TORCH_LIBRARIES}}")
-target_link_libraries(nodes_cuda PUBLIC "${TORCH_LIBRARIES}")
-target_link_libraries(nodes_cuda PUBLIC torch)
 target_link_libraries(nodes_cuda PUBLIC glm::glm-header-only)
 target_link_libraries(nodes_cuda PUBLIC Python3::Python)
+target_link_libraries(nodes_cuda PUBLIC CUDA::toolkit)
 target_include_directories(nodes_cuda PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_compile_options(nodes_cuda PRIVATE -DUSTC_CG_BUILD_MODULE=1)
 set_target_properties(nodes_cuda PROPERTIES ${OUTPUT_DIR})
 
+# Add --extended-lambda flag for CUDA
+target_compile_options(nodes_cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
 
 target_link_libraries(nodes PUBLIC nodes_cuda)
+
+if(USTC_CG_WITH_TORCH)
+target_link_libraries(nodes_cuda PUBLIC "${TORCH_LIBRARIES}")
+endif(USTC_CG_WITH_TORCH)
+endif()
+
 target_link_libraries(nodes PRIVATE Python3::Python)
+target_link_libraries(nodes PRIVATE nodes_core)
 target_link_libraries(nodes PUBLIC GCore RCore)
 target_link_libraries(nodes PUBLIC Eigen3::Eigen)
 target_link_libraries(nodes PUBLIC Python3::Python)
-target_link_libraries(nodes PUBLIC hioOpenVDB EnTT::EnTT)
+target_link_libraries(nodes PUBLIC hioOpenVDB)
 target_link_libraries(nodes PUBLIC hioOpenVDB)
 target_link_libraries(nodes PUBLIC nvrhi DXC::dxc)
-target_link_libraries(nodes PUBLIC CUDA::toolkit)
 target_link_libraries(nodes PUBLIC imgui)
 
-target_include_directories(nodes PRIVATE ${CMAKE_CURRENT_LIST_DIR}/intern)
+target_include_directories(nodes PRIVATE ${CMAKE_CURRENT_LIST_DIR}/core)
 target_include_directories(nodes PRIVATE ${PROJECT_SOURCE_DIR}/source/RCore/hd_USTC_CG_GL)
 target_include_directories(nodes PRIVATE ${CMAKE_CURRENT_LIST_DIR}/nodes/render/shaders)
 

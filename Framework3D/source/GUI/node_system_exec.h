@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GCore/geom_node_global_params.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_tree.hpp"
-#include "USTC_CG.h"
+// #include "GCore/geom_node_global_params.h"
 #include "GUI/ui_event.h"
+#include "USTC_CG.h"
+#include "nodes/core/node.hpp"
+#include "nodes/core/node_tree.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct NodeTreeExecutor;
@@ -16,7 +16,6 @@ class NodeSystemExecution {
     virtual void set_required_time_code(float time_code_to_render)
     {
     }
-
 
     NodeSystemExecution();
 

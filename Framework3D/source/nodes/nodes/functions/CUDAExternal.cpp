@@ -1,4 +1,4 @@
-
+#if USTC_CG_WITH_CUDA
 #include <cuda_runtime_api.h>
 #include <driver_types.h>
 
@@ -642,3 +642,5 @@ CUdeviceptr mapBufferToCUDABuffer(
 
     return (CUdeviceptr)devicePtr;
 }
+
+#endif
