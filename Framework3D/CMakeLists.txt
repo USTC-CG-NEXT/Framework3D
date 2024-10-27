@@ -107,17 +107,13 @@ find_package(Slang REQUIRED COMPONENTS slang slang-rt gfx)
 set(DXC_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/common/dxc)
 find_package(DXC REQUIRED)
 
-
-
 find_package(NVAPI REQUIRED)
 
 add_subdirectory(external)
 
-
-
-
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GUI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/nodes)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/logger)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
 

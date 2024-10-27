@@ -33,6 +33,10 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS)
     cmake_parse_arguments(USTC_CG_ADD_LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
+    if(NOT LIB_NAME)
+        get_filename_component(LIB_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    endif()
+
     set(name ${LIB_NAME})
 
     set(folder ${USTC_CG_ADD_LIB_SRC_DIR})
