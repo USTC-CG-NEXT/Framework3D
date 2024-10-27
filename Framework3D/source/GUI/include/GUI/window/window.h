@@ -1,11 +1,9 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-
 #include <string>
 
 #include "USTC_CG.h"
-#include "Utils/Logging/Logging.h"
+struct GLFWwindow;
 
 namespace USTC_CG {
 // Represents a window in a GUI application, providing basic functionalities
@@ -17,7 +15,8 @@ class Window {
 
     virtual ~Window();
 
-    // Initializes the window and its dependencies (GLFW, GLAD, ImGui, etc.).
+    // Initializes the window and its dependencies (GLFW, GLAD, ImGui,
+    // etc.).
     bool init();
 
     // Enters the main rendering loop.
@@ -28,10 +27,7 @@ class Window {
     // rendering.
     virtual void BuildUI();
 
-    virtual void Render()
-    {
-        USTC_CG::logging("Empty render function for window.", Info);
-    }
+    virtual void Render();
 
    protected:
     // Initializes GLFW library.

@@ -1,15 +1,14 @@
-
-// #include "glad/glad.h"
-
 #include "GUI/window/window.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include <imgui_impl_vulkan.h>
 
 #include <format>
 #include <stdexcept>
 
+#include "GLFW/glfw3.h"
+#include "Logging/Logging.h"
 #include "imgui_internal.h"
 
 namespace USTC_CG {
@@ -37,7 +36,7 @@ Window::Window(const std::string& window_name) : name_(window_name)
 
 Window::~Window()
 {
-    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
@@ -71,6 +70,11 @@ void Window::BuildUI()
     ImGui::ShowDemoWindow();
 }
 
+void Window::Render()
+{
+    USTC_CG::logging("Empty render function for window.", Info);
+}
+
 bool Window::init_glfw()
 {
     glfwSetErrorCallback([](int error, const char* desc) {
@@ -82,9 +86,7 @@ bool Window::init_glfw()
     }
 
 #ifdef __APPLE__
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
 
     return true;
@@ -111,19 +113,30 @@ bool Window::init_gui()
     io.DisplayFramebufferScale.x = xscale;
     io.DisplayFramebufferScale.x = yscale;
 
-    ImGui_ImplGlfw_InitForOpenGL(window_, true);
-#ifdef __APPLE__
-    ImGui_ImplOpenGL3_Init("#version 410");
-#else
-    io.FontGlobalScale = xscale;
-    ImGui_ImplOpenGL3_Init("#version 130");
-#endif
+    ImGui_ImplGlfw_InitForVulkan(window_, true);
+
+    // Initialize Vulkan here and pass the Vulkan device, physical device, etc. to ImGui_ImplVulkan_Init
+    // Example:
+    // ImGui_ImplVulkan_InitInfo init_info = {};
+    // init_info.Instance = instance;
+    // init_info.PhysicalDevice = physical_device;
+    // init_info.Device = device;
+    // init_info.QueueFamily = queue_family;
+    // init_info.Queue = queue;
+    // init_info.PipelineCache = pipeline_cache;
+    // init_info.DescriptorPool = descriptor_pool;
+    // init_info.Allocator = allocator;
+    // init_info.MinImageCount = min_image_count;
+    // init_info.ImageCount = image_count;
+    // init_info.CheckVkResultFn = check_vk_result;
+    // ImGui_ImplVulkan_Init(&init_info, render_pass);
+
     return true;
 }
 
 void Window::render()
 {
-    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
@@ -158,12 +171,24 @@ void Window::render()
 
     ImGui::Render();
 
-    glfwGetFramebufferSize(window_, &width_, &height_);
-    glViewport(0, 0, width_, height_);
-    glClearColor(0.35f, 0.45f, 0.50f, 1.00f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    // Record Vulkan command buffer and submit it to the queue
+    // Example:
+    // VkCommandBuffer command_buffer = begin_command_buffer();
+    // VkClearValue clear_value = {};
+    // clear_value.color = {0.35f, 0.45f, 0.50f, 1.00f};
+    // VkRenderPassBeginInfo info = {};
+    // info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    // info.renderPass = render_pass;
+    // info.framebuffer = framebuffer;
+    // info.renderArea.extent.width = width_;
+    // info.renderArea.extent.height = height_;
+    // info.clearValueCount = 1;
+    // info.pClearValues = &clear_value;
+    // vkCmdBeginRenderPass(command_buffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+    // ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), command_buffer);
+    // vkCmdEndRenderPass(command_buffer);
+    // end_command_buffer(command_buffer);
+    // submit_command_buffer(command_buffer);
 
     glfwSwapBuffers(window_);
 }

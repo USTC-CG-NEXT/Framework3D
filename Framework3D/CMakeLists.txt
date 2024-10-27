@@ -112,6 +112,7 @@ find_package(NVAPI REQUIRED)
 add_subdirectory(external)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GUI)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/RHI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/nodes)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/logger)
 
