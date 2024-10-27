@@ -58,6 +58,8 @@ endif()
 
 message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}. Selecting SDK from ${SDK_FOLDER}") 
 
+include_directories(${PROJECT_SOURCE_DIR}/include/api)
+
 set(pxr_DIR SDK/${SDK_FOLDER}/OpenUSD)
 set(TBB_DIR SDK/${SDK_FOLDER}/tbb/lib/cmake/tbb)
 set(MaterialX_DIR SDK/${SDK_FOLDER}/MaterialX/lib/cmake/MaterialX)

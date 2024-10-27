@@ -27,15 +27,18 @@ function(Set_CUDA_Properties lib_name)
         CUDA::nvrtc
     )
 endfunction()
-
 function(USTC_CG_ADD_LIB LIB_NAME)
     set(options SHARED)
     set(oneValueArgs SRC_DIR)
-    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR)
+    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS)
     cmake_parse_arguments(USTC_CG_ADD_LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    set(folder ${USTC_CG_ADD_LIB_SRC_DIR})
     set(name ${LIB_NAME})
+
+    set(folder ${USTC_CG_ADD_LIB_SRC_DIR})
+    if(NOT USTC_CG_ADD_LIB_SRC_DIR)
+        set(folder ${CMAKE_CURRENT_SOURCE_DIR})
+    endif()
 
     file(GLOB_RECURSE ${name}_src_headers ${folder}/*.h)
     file(GLOB_RECURSE ${name}_cpp_sources ${folder}/*.cpp)
@@ -74,4 +77,11 @@ function(USTC_CG_ADD_LIB LIB_NAME)
             Set_CUDA_Properties(${name})
         endif()
     endif()
+
+    target_compile_options(${name} PRIVATE ${USTC_CG_ADD_LIB_COMPILE_OPTIONS})
+
+    target_link_libraries(${name} 
+        PUBLIC ${USTC_CG_ADD_LIB_PUBLIC_LIBS}
+        PRIVATE ${USTC_CG_ADD_LIB_PRIVATE_LIBS}
+    )
 endfunction()
