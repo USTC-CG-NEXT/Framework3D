@@ -71,27 +71,11 @@ class NodeWidget : public IWidget {
 
     bool draw_socket_controllers(NodeSocket* input);
 
-    nvrhi::TextureHandle LoadTexture(const unsigned char* data, size_t buffer_size)
-    {
-        int width = 0, height = 0, component = 0;
-        if (auto loaded_data = stbi_load_from_memory(
-                data, buffer_size, &width, &height, &component, 4)) {
-            nvrhi::TextureDesc desc;
-            desc.width = width;
-            desc.height = height;
-            desc.format = nvrhi::Format::RGBA8_UNORM;
-            desc.isRenderTarget = false;
-            desc.isUAV = false;
-            desc.initialState = nvrhi::ResourceStates::Common;
-            desc.keepInitialState = true;
+    static nvrhi::TextureHandle LoadTexture(
+        const unsigned char* data,
+        size_t buffer_size);
 
-            auto texture = rhi::load_texture(desc, data);
-            stbi_image_free(loaded_data);
-            return texture;
-        }
-        else
-            return nullptr;
-    }
+    static ImGuiWindowFlags GetWindowFlags();
 
     ImVector<nvrhi::TextureHandle> m_Textures;
 
@@ -190,12 +174,18 @@ bool NodeWidget::BuildUI()
     // }
     // frame++;
 
+    bool popen = true;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(3.0f, 3.0f));
+    ImGui::Begin(
+        ("Node editor" + widget_name).c_str(), &popen, GetWindowFlags());
+
     auto& io = ImGui::GetIO();
 
     ed::SetCurrentEditor(m_Editor);
     // Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
     // ShowLeftPane(leftPaneWidth - 4.0f);
-    ImGui::SameLine(0.0f, 12.0f);
+    // ImGui::SameLine(0.0f, 12.0f);
 
     ed::Begin(("Node editor" + widget_name).c_str());
     {
@@ -584,7 +574,8 @@ bool NodeWidget::BuildUI()
     ed::Resume();
 
     ed::End();
-
+    ImGui::End();
+    ImGui::PopStyleVar(1);
     // auto editorMin = ImGui::GetItemRectMin();
     // auto editorMax = ImGui::GetItemRectMax();
 
@@ -630,6 +621,35 @@ bool NodeWidget::draw_socket_controllers(NodeSocket* input)
     }
 
     return changed;
+}
+
+nvrhi::TextureHandle NodeWidget::LoadTexture(
+    const unsigned char* data,
+    size_t buffer_size)
+{
+    int width = 0, height = 0, component = 0;
+    if (auto loaded_data = stbi_load_from_memory(
+            data, buffer_size, &width, &height, &component, 4)) {
+        nvrhi::TextureDesc desc;
+        desc.width = width;
+        desc.height = height;
+        desc.format = nvrhi::Format::RGBA8_UNORM;
+        desc.isRenderTarget = false;
+        desc.isUAV = false;
+        desc.initialState = nvrhi::ResourceStates::ShaderResource;
+        desc.keepInitialState = true;
+
+        auto texture = rhi::load_texture(desc, data);
+        stbi_image_free(loaded_data);
+        return texture;
+    }
+    else
+        return nullptr;
+}
+
+ImGuiWindowFlags NodeWidget::GetWindowFlags()
+{
+    return ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse;
 }
 
 void NodeWidget::DrawPinIcon(const NodeSocket& pin, bool connected, int alpha)

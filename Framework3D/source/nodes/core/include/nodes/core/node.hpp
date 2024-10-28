@@ -434,7 +434,7 @@ struct NodeTypeInfo {
 
     void set_execution_function(const ExecFunction& exec_function);
 
-    float color[4];
+    float color[4] = { 0.3, 0.5, 0.7, 1.0 };
     ExecFunction node_execute;
 
     bool ALWAYS_REQUIRED = false;
