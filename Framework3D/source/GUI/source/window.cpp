@@ -60,9 +60,24 @@ void DockingImguiRenderer::buildUI()
         ImVec2(0.0f, 0.0f),
         ImGuiDockNodeFlags_PassthruCentralNode);
 
+    std::vector<IWidget*> widget_to_remove;
     for (auto& widget : widgets_) {
-        widget->BuildUI();
+        if (!widget->BuildUI()) {
+            widget_to_remove.push_back(widget.get());
+        }
     }
+
+    for (auto widget : widget_to_remove) {
+        widgets_.erase(
+            std::remove_if(
+                widgets_.begin(),
+                widgets_.end(),
+                [widget](const std::unique_ptr<IWidget>& w) {
+                    return w.get() == widget;
+                }),
+            widgets_.end());
+    }
+
     ImGui::End();
 }
 
@@ -98,6 +113,7 @@ void Window::run()
 
 void Window::register_widget(std::unique_ptr<IWidget> unique)
 {
+    unique->set_window(this);
     imguiRenderPass->register_widget(std::move(unique));
 }
 

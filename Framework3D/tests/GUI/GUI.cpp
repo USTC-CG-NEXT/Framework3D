@@ -12,16 +12,33 @@ TEST(CreateRHI, window)
 
 class Widget : public IWidget {
    public:
+    explicit Widget(const char* title) : title(title)
+    {
+    }
+
     void BuildUI() override
     {
-        ImGui::ShowDemoWindow();
+        ImGui::Begin(title.c_str());
+        ImGui::Text("Hello, world!");
+        ImGui::End();
+        //ImGui::ShowDemoWindow();
     }
+private:
+    std::string title;
 };
 
 TEST(CreateRHI, widget)
 {
     Window window;
-    std::unique_ptr<IWidget> widget = std::make_unique<Widget>();
+    std::unique_ptr<IWidget> widget = std::make_unique<Widget>("widget");
     window.register_widget(std::move(widget));
+    window.run();
+}
+
+TEST(CreateRHI, multiple_widgets)
+{
+    Window window;
+    window.register_widget(std::make_unique<Widget>("widget"));
+    window.register_widget(std::make_unique<Widget>("widget2"));
     window.run();
 }

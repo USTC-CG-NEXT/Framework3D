@@ -1,8 +1,5 @@
-file(GLOB_RECURSE
-  CPP_CORE_FILES
-  ${CMAKE_CURRENT_LIST_DIR}/*.cpp
+USTC_CG_ADD_LIB(
+	nodes_system
+	SHARED
+	PRIVATE_LIBS nodes_core Logger
 )
-
-add_library(nodes_system STATIC ${CPP_CORE_FILES})
-target_link_libraries(nodes_system PUBLIC nodes_core)
-

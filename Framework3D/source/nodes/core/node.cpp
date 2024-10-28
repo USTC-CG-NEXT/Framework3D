@@ -4,7 +4,7 @@
 
 #include "USTC_CG.h"
 #include "entt/meta/resolve.hpp"
-#include "node_link.hpp"
+#include "nodes/core/node_link.hpp"
 
 #include "nodes/core/node_tree.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE

@@ -39,8 +39,7 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
     const std::function<bool(const FROM&, TO&)>& conversion)
 {
     auto conversion_type_info = NodeTypeInfo(
-        conversion_node_name(
-            get_socket_type<FROM>(), get_socket_type<TO>())
+        conversion_node_name(get_socket_type<FROM>(), get_socket_type<TO>())
             .c_str());
 
     conversion_type_info.ui_name = "invisible";
@@ -88,6 +87,8 @@ class NodeTree {
     std::vector<Node*> toposort_left_to_right;
 
     void clear();
+
+    Node* find_node(NodeId id) const;
 
     NodeSocket* find_pin(SocketID id) const;
 

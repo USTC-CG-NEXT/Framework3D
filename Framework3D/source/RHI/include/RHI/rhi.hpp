@@ -14,6 +14,13 @@ USTC_CG_API int shutdown();
 
 USTC_CG_API nvrhi::IDevice* get_device();
 
+USTC_CG_API nvrhi::TextureHandle load_texture(
+    const nvrhi::TextureDesc& desc,
+    const void* data);
+
+USTC_CG_API void* create_texture_binding_set(
+    nvrhi::ITexture* texture);
+
 namespace internal {
     USTC_CG_API DeviceManager* get_device_manager();
 

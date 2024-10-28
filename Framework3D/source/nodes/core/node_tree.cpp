@@ -3,10 +3,9 @@
 #include <iostream>
 #include <stack>
 
+#include "node_link.hpp"
 #include "nodes/core/io/json.hpp"
 #include "nodes/core/node.hpp"
-#include "node_link.hpp"
-
 
 // Macro for Not implemented with file and line number
 #define NOT_IMPLEMENTED()                                               \
@@ -119,6 +118,19 @@ void NodeTree::clear()
     output_sockets.clear();
     toposort_right_to_left.clear();
     toposort_left_to_right.clear();
+}
+
+Node* NodeTree::find_node(NodeId id) const
+{
+    if (!id)
+        return nullptr;
+
+    for (auto& node : nodes) {
+        if (node->ID == id) {
+            return node.get();
+        }
+    }
+    return nullptr;
 }
 
 NodeSocket* NodeTree::find_pin(SocketID id) const

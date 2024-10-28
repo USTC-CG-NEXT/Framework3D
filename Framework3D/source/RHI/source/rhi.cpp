@@ -40,6 +40,28 @@ nvrhi::IDevice* get_device()
     return device_manager->GetDevice();
 }
 
+nvrhi::TextureHandle load_texture(
+    const nvrhi::TextureDesc& desc,
+    const void* data)
+{
+    nvrhi::IDevice* device = get_device();
+    auto texture = device->createTexture(desc);
+
+    
+}
+
+nvrhi::BindingSetHandle create_texture_binding_set(nvrhi::ITexture* texture)
+{
+    nvrhi::IDevice* device = get_device();
+    nvrhi::SamplerHandle sampler = device->createSampler(nvrhi::SamplerDesc());
+    nvrhi::BindingSetDesc desc;
+    desc.bindings = { nvrhi::BindingSetItem::Sampler() };
+
+
+    desc.bindings[0].resource = texture;
+    return device->createBindingSet(desc);
+}
+
 DeviceManager* internal::get_device_manager()
 {
     return device_manager.get();
