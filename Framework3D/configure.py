@@ -195,5 +195,25 @@ def download_and_extract_slang():
             copytree_common_to_binaries("slang/bin", target=target)
 
 
+def download_and_extract_dxc():
+    if os.name == "nt":
+        url = "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2407/dxc_2024_07_31.zip"
+        zip_path = "dxc_2024_07_31.zip"
+
+    extract_path = "./SDK/dxc"
+
+    print("Downloading DXC from {0}...".format(url))
+    urllib.request.urlretrieve(url, zip_path)
+    print("Extracting DXC to {0}...".format(extract_path))
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(extract_path)
+    os.remove(zip_path)
+    print("DXC downloaded and extracted successfully.")
+    if os.name == "nt":
+        for target in targets:
+            copytree_common_to_binaries("dxc/bin/x64", target=target)
+
+
 if __name__ == "__main__":
     download_and_extract_slang()
+    download_and_extract_dxc()

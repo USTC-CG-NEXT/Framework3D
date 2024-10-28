@@ -525,6 +525,8 @@ void ShaderFactory::SlangCompileHLSLToSPIRV(
     // Compile the request
     const SlangResult compileRes = slangRequest->compile();
 
+    auto warning = spGetDiagnosticOutput(slangRequest);
+
     // Handle compile errors
     if (SLANG_FAILED(compileRes)) {
         if (auto diagnostics = spGetDiagnosticOutput(slangRequest)) {

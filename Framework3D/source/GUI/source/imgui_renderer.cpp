@@ -90,7 +90,7 @@ bool ImGui_Renderer::Init(std::shared_ptr<ShaderFactory> shaderFactory)
     return imgui_nvrhi->init(GetDevice(), shaderFactory);
 }
 //
-//ImFont* ImGui_Renderer::LoadFont(
+// ImFont* ImGui_Renderer::LoadFont(
 //    IFileSystem& fs,
 //    const std::filesystem::path& fontFile,
 //    float fontSize)

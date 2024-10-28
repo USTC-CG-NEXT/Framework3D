@@ -53,21 +53,6 @@ SOFTWARE.
 #include "RHI/ShaderFactory/shader.hpp"
 #include "USTC_CG.h"
 
-#if DONUT_WITH_STATIC_SHADERS
-#if DONUT_WITH_DX11
-#include "compiled_shaders/imgui_pixel.dxbc.h"
-#include "compiled_shaders/imgui_vertex.dxbc.h"
-#endif
-#if DONUT_WITH_DX12
-#include "compiled_shaders/imgui_pixel.dxil.h"
-#include "compiled_shaders/imgui_vertex.dxil.h"
-#endif
-#if DONUT_WITH_VULKAN
-#include "compiled_shaders/imgui_pixel.spirv.h"
-#include "compiled_shaders/imgui_vertex.spirv.h"
-#endif
-#endif
-
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 struct VERTEX_CONSTANT_BUFFER {
@@ -140,15 +125,15 @@ bool ImGui_NVRHI::init(
         "imgui_shader/imgui_vertex.slang",
         binding_layout,
         error_string,
-        {});
+        { { "SPIRV", "1" } });
 
     pixelShader = shaderFactory->compile_shader(
         "main",
         nvrhi::ShaderType::Pixel,
-        "imgui_shader/imgui_vertex.slang",
+        "imgui_shader/imgui_pixel.slang",
         binding_layout,
         error_string,
-        {});
+        { { "SPIRV", "1" } });
 
     if (!vertexShader || !pixelShader) {
         logging("Failed to create an ImGUI shader");
@@ -379,6 +364,10 @@ bool ImGui_NVRHI::render(nvrhi::IFramebuffer* framebuffer)
 
     m_commandList->open();
     m_commandList->beginMarker("ImGUI");
+    m_commandList->clearTextureFloat(
+        framebuffer->getDesc().colorAttachments[0].texture,
+        {},
+        nvrhi::Color{ 0 });
 
     if (!updateGeometry(m_commandList)) {
         return false;
