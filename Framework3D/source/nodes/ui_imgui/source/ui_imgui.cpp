@@ -42,6 +42,45 @@ static ImRect ImRect_Expanded(const ImRect& rect, float x, float y)
     result.Max.y += y;
     return result;
 }
+
+static bool Splitter(
+    bool split_vertically,
+    float thickness,
+    float* size1,
+    float* size2,
+    float min_size1,
+    float min_size2,
+    float splitter_long_axis_size = -1.0f)
+{
+    using namespace ImGui;
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    ImGuiID id = window->GetID("##Splitter");
+    ImRect bb;
+    bb.Min = window->DC.CursorPos +
+             (split_vertically ? ImVec2(*size1, 0.0f) : ImVec2(0.0f, *size1));
+    bb.Max = bb.Min + CalcItemSize(
+                          split_vertically
+                              ? ImVec2(thickness, splitter_long_axis_size)
+                              : ImVec2(splitter_long_axis_size, thickness),
+                          0.0f,
+                          0.0f);
+    return SplitterBehavior(
+        bb,
+        id,
+        split_vertically ? ImGuiAxis_X : ImGuiAxis_Y,
+        size1,
+        size2,
+        min_size1,
+        min_size2,
+        0.0f);
+}
+struct NodeIdLess {
+    bool operator()(const NodeId& lhs, const NodeId& rhs) const
+    {
+        return lhs.AsPointer() < rhs.AsPointer();
+    }
+};
 class NodeWidget : public IWidget {
    public:
     explicit NodeWidget(NodeTree* tree);
@@ -51,6 +90,12 @@ class NodeWidget : public IWidget {
     bool BuildUI() override;
 
    private:
+    void ShowLeftPane(float paneWidth);
+
+    float GetTouchProgress(NodeId id);
+    const float m_TouchTime = 1.0f;
+    std::map<NodeId, float, NodeIdLess> m_NodeTouchTime;
+
     NodeTree* tree_;
     bool createNewNode = false;
     NodeSocket* newNodeLinkPin = nullptr;
@@ -68,6 +113,9 @@ class NodeWidget : public IWidget {
     std::string widget_name;
 
     ed::EditorContext* m_Editor = nullptr;
+
+    float leftPaneWidth = 400.0f;
+    float rightPaneWidth = 800.0f;
 
     bool draw_socket_controllers(NodeSocket* input);
 
@@ -183,16 +231,19 @@ bool NodeWidget::BuildUI()
     auto& io = ImGui::GetIO();
 
     ed::SetCurrentEditor(m_Editor);
-    // Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
-    // ShowLeftPane(leftPaneWidth - 4.0f);
-    // ImGui::SameLine(0.0f, 12.0f);
+
+    if (ed::GetSelectedObjectCount() > 0) {
+        Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+        ShowLeftPane(leftPaneWidth - 4.0f);
+        ImGui::SameLine(0.0f, 12.0f);
+    }
 
     ed::Begin(("Node editor" + widget_name).c_str());
     {
         auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
         util::BlueprintNodeBuilder builder(
-            m_HeaderBackground,
+            m_HeaderBackground.Get(),
             m_HeaderBackground->getDesc().width,
             m_HeaderBackground->getDesc().height);
 
@@ -211,7 +262,7 @@ bool NodeWidget::BuildUI()
                     color = ImColor(255, 206, 69, 255);
                 }
                 if (!node->REQUIRED) {
-                    color = ImColor(84, 57, 56, 255);
+                    color = ImColor(18, 15, 16, 255);
                 }
 
                 if (!node->execution_failed.empty()) {
@@ -291,62 +342,6 @@ bool NodeWidget::BuildUI()
             }
 
             builder.End();
-        }
-
-        for (auto&& node : tree_->nodes) {
-            const float commentAlpha = 0.75f;
-
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, commentAlpha);
-            ed::PushStyleColor(
-                ed::StyleColor_NodeBg, ImColor(255, 255, 255, 64));
-            ed::PushStyleColor(
-                ed::StyleColor_NodeBorder, ImColor(255, 255, 255, 64));
-            ed::BeginNode(node->ID);
-            ImGui::PushID(node->ID.AsPointer());
-            ImGui::BeginVertical("content");
-            ImGui::BeginHorizontal("horizontal");
-            ImGui::Spring(1);
-            ImGui::TextUnformatted(node->ui_name.c_str());
-            ImGui::Spring(1);
-            ImGui::EndHorizontal();
-            ImVec2 size;
-            memcpy(&size, node->Size, sizeof(ImVec2));
-            ed::Group(size);
-            ImGui::EndVertical();
-            ImGui::PopID();
-            ed::EndNode();
-            ed::PopStyleColor(2);
-            ImGui::PopStyleVar();
-
-            if (ed::BeginGroupHint(node->ID)) {
-                auto bgAlpha = static_cast<int>(ImGui::GetStyle().Alpha * 255);
-
-                auto min = ed::GetGroupMin();
-                ImGui::SetCursorScreenPos(
-                    min -
-                    ImVec2(-8, ImGui::GetTextLineHeightWithSpacing() + 4));
-                ImGui::BeginGroup();
-                ImGui::TextUnformatted(node->ui_name.c_str());
-                ImGui::EndGroup();
-
-                auto drawList = ed::GetHintBackgroundDrawList();
-
-                auto hintBounds = ImGui_GetItemRect();
-                auto hintFrameBounds = ImRect_Expanded(hintBounds, 8, 4);
-
-                drawList->AddRectFilled(
-                    hintFrameBounds.GetTL(),
-                    hintFrameBounds.GetBR(),
-                    IM_COL32(255, 255, 255, 64 * bgAlpha / 255),
-                    4.0f);
-
-                drawList->AddRect(
-                    hintFrameBounds.GetTL(),
-                    hintFrameBounds.GetBR(),
-                    IM_COL32(255, 255, 255, 128 * bgAlpha / 255),
-                    4.0f);
-            }
-            ed::EndGroupHint();
         }
 
         for (std::unique_ptr<NodeLink>& link : tree_->links) {
@@ -585,6 +580,144 @@ bool NodeWidget::BuildUI()
     return true;
 }
 
+void NodeWidget::ShowLeftPane(float paneWidth)
+{
+    auto& io = ImGui::GetIO();
+
+    std::vector<NodeId> selectedNodes;
+    std::vector<LinkId> selectedLinks;
+    selectedNodes.resize(ed::GetSelectedObjectCount());
+    selectedLinks.resize(ed::GetSelectedObjectCount());
+
+    int nodeCount = ed::GetSelectedNodes(
+        selectedNodes.data(), static_cast<int>(selectedNodes.size()));
+    int linkCount = ed::GetSelectedLinks(
+        selectedLinks.data(), static_cast<int>(selectedLinks.size()));
+
+    selectedNodes.resize(nodeCount);
+    selectedLinks.resize(linkCount);
+    ImGui::BeginChild("Selection", ImVec2(paneWidth, 0));
+
+    ImGui::Text(
+        "FPS: %.2f (%.2gms)",
+        io.Framerate,
+        io.Framerate ? 1000.0f / io.Framerate : 0.0f);
+
+    paneWidth = ImGui::GetContentRegionAvail().x;
+
+    ImGui::BeginHorizontal("Style Editor", ImVec2(paneWidth, 0));
+    ImGui::Spring(0.0f, 0.0f);
+    if (ImGui::Button("Zoom to Content"))
+        ed::NavigateToContent();
+    ImGui::Spring(0.0f);
+    if (ImGui::Button("Show Flow")) {
+        for (auto& link : tree_->links)
+            ed::Flow(link->ID);
+    }
+    ImGui::Spring();
+    ImGui::EndHorizontal();
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        ImGui::GetCursorScreenPos(),
+        ImGui::GetCursorScreenPos() +
+            ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+        ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
+        ImGui::GetTextLineHeight() * 0.25f);
+    ImGui::Spacing();
+    ImGui::SameLine();
+    ImGui::TextUnformatted("Nodes");
+    ImGui::Indent();
+    for (auto& node : tree_->nodes) {
+        ImGui::PushID(node->ID.AsPointer());
+        auto start = ImGui::GetCursorScreenPos();
+
+        if (const auto progress = GetTouchProgress(node->ID)) {
+            ImGui::GetWindowDrawList()->AddLine(
+                start + ImVec2(-8, 0),
+                start + ImVec2(-8, ImGui::GetTextLineHeight()),
+                IM_COL32(255, 0, 0, 255 - (int)(255 * progress)),
+                4.0f);
+        }
+
+        bool isSelected =
+            std::find(selectedNodes.begin(), selectedNodes.end(), node->ID) !=
+            selectedNodes.end();
+        ImGui::SetNextItemAllowOverlap();
+        if (ImGui::Selectable(
+                (node->ui_name + "##" +
+                 std::to_string(
+                     reinterpret_cast<uintptr_t>(node->ID.AsPointer())))
+                    .c_str(),
+                &isSelected)) {
+            if (io.KeyCtrl) {
+                if (isSelected)
+                    ed::SelectNode(node->ID, true);
+                else
+                    ed::DeselectNode(node->ID);
+            }
+            else
+                ed::SelectNode(node->ID, false);
+
+            ed::NavigateToSelection();
+        }
+        ImGui::PopID();
+    }
+    ImGui::Unindent();
+
+    static int changeCount = 0;
+
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        ImGui::GetCursorScreenPos(),
+        ImGui::GetCursorScreenPos() +
+            ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+        ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
+        ImGui::GetTextLineHeight() * 0.25f);
+    ImGui::Spacing();
+    ImGui::SameLine();
+    ImGui::TextUnformatted("Selection");
+
+    ImGui::Indent();
+    for (int i = 0; i < nodeCount; ++i) {
+        ImGui::Text("Node (%p)", selectedNodes[i].AsPointer());
+        auto node = tree_->find_node(selectedNodes[i]);
+        if (node->override_left_pane_info)
+            node->override_left_pane_info();
+    }
+
+    for (int i = 0; i < linkCount; ++i)
+        ImGui::Text("Link (%p)", selectedLinks[i].AsPointer());
+    ImGui::Unindent();
+
+    if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)))
+        for (auto& link : tree_->links)
+            ed::Flow(link->ID);
+
+    if (ed::HasSelectionChanged())
+        ++changeCount;
+
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        ImGui::GetCursorScreenPos(),
+        ImGui::GetCursorScreenPos() +
+            ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+        ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),
+        ImGui::GetTextLineHeight() * 0.25f);
+    ImGui::Spacing();
+    ImGui::SameLine();
+    ImGui::TextUnformatted("Node Tree Info");
+
+    // tree_->debug();
+
+    ImGui::EndChild();
+}
+
+float NodeWidget::GetTouchProgress(NodeId id)
+{
+    auto it = m_NodeTouchTime.find(id);
+    if (it != m_NodeTouchTime.end() && it->second > 0.0f)
+        return (m_TouchTime - it->second) / m_TouchTime;
+    else
+        return 0.0f;
+}
+
 bool NodeWidget::draw_socket_controllers(NodeSocket* input)
 {
     bool changed = false;
@@ -639,7 +772,7 @@ nvrhi::TextureHandle NodeWidget::LoadTexture(
         desc.initialState = nvrhi::ResourceStates::ShaderResource;
         desc.keepInitialState = true;
 
-        auto texture = rhi::load_texture(desc, data);
+        auto texture = rhi::load_texture(desc, loaded_data);
         stbi_image_free(loaded_data);
         return texture;
     }

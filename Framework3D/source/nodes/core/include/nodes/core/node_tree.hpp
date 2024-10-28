@@ -140,7 +140,7 @@ class USTC_CG_API NodeTree {
     // There is definitely better solution. However this is the most
     std::unordered_set<unsigned> used_ids;
 
-    unsigned current_id = 0;
+    unsigned current_id = 1;
 
    public:
     std::string serialize(int indentation = -1);
