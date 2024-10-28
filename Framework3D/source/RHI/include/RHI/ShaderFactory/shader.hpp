@@ -1,5 +1,4 @@
 #pragma once
-
 #include "RHI/ResourceManager/resource_allocator.hpp"
 #include "RHI/rhi.hpp"
 #include "USTC_CG.h"
@@ -8,11 +7,11 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 class ShaderFactory {
    public:
-    ShaderFactory() : device(get_device().Get())
+    ShaderFactory() : device(rhi::get_device())
     {
         shader_search_path =
             "C:\\Users\\pengfei\\WorkSpace\\USTC_CG_"
-            "24\\Framework3D\\source\\GUI\\window";
+            "24\\Framework3D\\source\\GUI\\source";
     }
 
     nvrhi::ShaderHandle USTC_CG_API compile_shader(

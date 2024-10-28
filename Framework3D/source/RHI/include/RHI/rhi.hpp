@@ -1,12 +1,23 @@
 #pragma once
 
-#include "USTC_CG.h"
 #include <nvrhi/nvrhi.h>
 
+#include "USTC_CG.h"
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
-int USTC_CG_API init(bool with_window = false, bool use_dx12 = false);
-int USTC_CG_API shutdown();
+class DeviceManager;
 
-nvrhi::IDevice* USTC_CG_API get_device();
+namespace rhi {
 
+USTC_CG_API int init(bool with_window = false, bool use_dx12 = false);
+USTC_CG_API int shutdown();
+
+USTC_CG_API nvrhi::IDevice* get_device();
+
+namespace internal {
+    USTC_CG_API DeviceManager* get_device_manager();
+
+}
+
+}  // namespace rhi
 USTC_CG_NAMESPACE_CLOSE_SCOPE

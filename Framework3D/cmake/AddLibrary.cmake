@@ -31,7 +31,7 @@ endfunction()
 function(USTC_CG_ADD_LIB LIB_NAME)
     set(options SHARED)
     set(oneValueArgs SRC_DIR)
-    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS COMPILE_DEFINITIONS)
+    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS COMPILE_DEFS)
     cmake_parse_arguments(USTC_CG_ADD_LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     if(NOT LIB_NAME)
@@ -84,7 +84,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     endif()
 
     target_compile_options(${name} PRIVATE ${USTC_CG_ADD_LIB_COMPILE_OPTIONS})
-    target_compile_definitions(${name} PRIVATE ${USTC_CG_ADD_LIB_COMPILE_DEFINITIONS})
+    target_compile_definitions(${name} PRIVATE ${USTC_CG_ADD_LIB_COMPILE_DEFS})
 
     target_link_libraries(${name} 
         PUBLIC ${USTC_CG_ADD_LIB_PUBLIC_LIBS}

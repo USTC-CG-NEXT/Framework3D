@@ -1,3 +1,4 @@
+
 #include <nvrhi/nvrhi.h>
 
 #include <RHI/rhi.hpp>
@@ -5,6 +6,7 @@
 #include "RHI/DeviceManager/DeviceManager.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+namespace rhi {
 
 std::unique_ptr<DeviceManager> device_manager;
 
@@ -34,9 +36,16 @@ nvrhi::IDevice* get_device()
     return device_manager->GetDevice();
 }
 
-int shutdown()
+DeviceManager* internal::get_device_manager()
 {
-    device_manager.reset();
+    return device_manager.get();
 }
 
+int shutdown()
+{
+    device_manager->Shutdown();
+    device_manager.reset();
+    return device_manager == nullptr;
+}
+}  // namespace rhi
 USTC_CG_NAMESPACE_CLOSE_SCOPE

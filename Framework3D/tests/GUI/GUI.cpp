@@ -1,21 +1,19 @@
-#include <stdexcept>
+#include <gtest/gtest.h>
 
-#include "GUI/window/window.h"
-
-int main()
+#include "GUI/window.h"
+using namespace USTC_CG;
+TEST(CreateRHI, window)
 {
-    try
-    {
-        USTC_CG::Window w("demo");
-        if (!w.init())
-            return 1;
+    Window window;
+    window.run();
+    //window.close();
+}
 
-        w.run();
-        return 0;
-    }
-    catch (const std::exception& e)
-    {
-        fprintf(stderr, "Error: %s\n", e.what());
-        return 1;
-    }
+TEST(CreateRHI, widget)
+{
+    //Window window;
+    //Widget widget;
+    //window.register_widget(&widget);
+    //window.show();
+    //window.close();
 }

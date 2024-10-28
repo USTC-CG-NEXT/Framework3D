@@ -48,6 +48,7 @@ freely, subject to the following restrictions:
 */
 
 #pragma once
+#include "USTC_CG.h"
 
 #if USTC_CG_WITH_DX11 || USTC_CG_WITH_DX12
 #include <DXGI.h>
@@ -78,8 +79,6 @@ freely, subject to the following restrictions:
 
 #include <functional>
 #include <list>
-
-#include "USTC_CG.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct DefaultMessageCallback : public nvrhi::IMessageCallback {
@@ -181,7 +180,7 @@ struct AdapterInfo {
     VkPhysicalDevice vkPhysicalDevice = nullptr;
 };
 
-class DeviceManager {
+class USTC_CG_API DeviceManager {
    public:
     static DeviceManager* Create(nvrhi::GraphicsAPI api);
 

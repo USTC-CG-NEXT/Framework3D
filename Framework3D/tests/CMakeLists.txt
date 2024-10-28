@@ -26,7 +26,7 @@ function(UCG_ADD_TEST)
 endfunction(UCG_ADD_TEST)
 
 # add_subdirectory(renderer)
-# add_subdirectory(GUI)
+add_subdirectory(GUI)
 add_subdirectory(nodes)
 add_subdirectory(geometry)
 add_subdirectory(RHI)
