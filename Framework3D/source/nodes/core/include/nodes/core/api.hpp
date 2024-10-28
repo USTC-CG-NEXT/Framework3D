@@ -31,7 +31,8 @@ template<typename TYPE>
 inline void register_cpp_type()
 {
     entt::meta<TYPE>().type(entt::type_hash<TYPE>());
-    assert(entt::hashed_string{ typeid(TYPE).name() }, entt::type_hash<TYPE>());
+    assert(
+        entt::hashed_string{ typeid(TYPE).name() } == entt::type_hash<TYPE>());
 }
 
 template<typename T>
