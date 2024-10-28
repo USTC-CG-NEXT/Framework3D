@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <unordered_set>
 
 #include "USTC_CG.h"
@@ -15,7 +14,7 @@ enum class PinKind { Output, Input, Storage };
 
 using SocketType = entt::meta_type;
 
-struct NodeSocket {
+struct USTC_CG_API NodeSocket {
     char identifier[64];
     char ui_name[64];
 

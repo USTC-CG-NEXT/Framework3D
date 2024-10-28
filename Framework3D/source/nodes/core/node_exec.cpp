@@ -1,8 +1,9 @@
 #include "nodes/core/node_exec.hpp"
 
-#include "nodes/core/node.hpp"
 #include "node_exec_eager.hpp"
-
+#include "nodes/core/node.hpp"
+#include "nodes/core/node_link.hpp"
+#include "nodes/core/socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 int ExeParams::get_input_index(const char* identifier) const

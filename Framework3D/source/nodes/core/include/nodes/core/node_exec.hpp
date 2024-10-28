@@ -129,7 +129,7 @@ T& force_get_output_to_execute(ExeParams& params, const char* identifier)
 }
 
 // This executes a tree. The execution strategy is left to its children.
-struct NodeTreeExecutor {
+struct USTC_CG_API NodeTreeExecutor {
    public:
     NodeTreeExecutor() : context(entt::locator<entt::meta_ctx>::value_or())
     {

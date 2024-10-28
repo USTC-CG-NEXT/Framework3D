@@ -64,9 +64,10 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
     return *this;
 }
 
-class NodeTree {
+class USTC_CG_API NodeTree {
    public:
     NodeTree(const NodeTreeDescriptor& descriptor);
+    NodeTree(const NodeTree&) = delete;
     ~NodeTree();
 
     std::vector<std::unique_ptr<NodeLink>> links;
@@ -125,9 +126,9 @@ class NodeTree {
 
     size_t socket_count() const;
 
-    [[nodiscard]] const NodeTreeDescriptor &get_descriptor() const;
+    [[nodiscard]] const NodeTreeDescriptor& get_descriptor() const;
 
-private:
+   private:
     // No one directly edits these sockets.
     std::vector<std::unique_ptr<NodeSocket>> sockets;
     const NodeTreeDescriptor descriptor_;

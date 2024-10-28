@@ -1,12 +1,10 @@
 #pragma once
-
 #include <memory>
 
 #include "GUI/widget.h"
 #include "USTC_CG.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
-
-struct NodeTree;
-USTC_CG_API std::unique_ptr<IWidget> create_node_imgui_widget(NodeTree* tree);
+class NodeTree;
+std::unique_ptr<IWidget> create_node_imgui_widget(NodeTree* tree);
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

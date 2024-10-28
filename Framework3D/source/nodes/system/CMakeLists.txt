@@ -2,4 +2,6 @@ USTC_CG_ADD_LIB(
 	nodes_system
 	SHARED
 	PRIVATE_LIBS nodes_core Logger
+	COMPILE_DEFS 
+		USTC_CG_BUILD_MODULE=1 
 )

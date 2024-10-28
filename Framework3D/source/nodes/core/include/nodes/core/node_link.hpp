@@ -5,7 +5,9 @@
 #include "nodes/core/io/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct NodeLink {
+struct Node;
+struct NodeSocket;
+struct USTC_CG_API NodeLink {
     LinkId ID;
 
     Node* from_node = nullptr;

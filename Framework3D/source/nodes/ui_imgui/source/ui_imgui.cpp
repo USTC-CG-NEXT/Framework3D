@@ -14,6 +14,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 
+#include <fstream>
+
 #include "RHI/rhi.hpp"
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/node_tree.hpp"
@@ -42,9 +44,7 @@ static ImRect ImRect_Expanded(const ImRect& rect, float x, float y)
 }
 class NodeWidget : public IWidget {
    public:
-    explicit NodeWidget(NodeTree* tree) : tree_(tree)
-    {
-    }
+    explicit NodeWidget(NodeTree* tree);
 
     ~NodeWidget() override;
     Node* create_node_menu();
@@ -71,7 +71,7 @@ class NodeWidget : public IWidget {
 
     bool draw_socket_controllers(NodeSocket* input);
 
-    ImTextureID LoadTexture(const unsigned char* data, size_t buffer_size)
+    nvrhi::TextureHandle LoadTexture(const unsigned char* data, size_t buffer_size)
     {
         int width = 0, height = 0, component = 0;
         if (auto loaded_data = stbi_load_from_memory(
@@ -99,6 +99,68 @@ class NodeWidget : public IWidget {
 
     static ImColor GetIconColor(SocketType type);
 };
+
+NodeWidget::NodeWidget(NodeTree* tree) : tree_(tree)
+{
+    ed::Config config;
+
+    config.UserPointer = this;
+
+    config.SaveSettings = [](const char* data,
+                             size_t size,
+                             NodeEditor::SaveReasonFlags reason,
+                             void* userPointer) -> bool {
+        auto ptr = static_cast<NodeWidget*>(userPointer);
+
+        std::ofstream file("test.json");
+        auto node_serialize = ptr->tree_->serialize();
+
+        node_serialize.erase(node_serialize.end() - 1);
+
+        auto ui_json = std::string(data + 1);
+        ui_json.erase(ui_json.end() - 1);
+
+        node_serialize += "," + ui_json + '}';
+
+        file << node_serialize;
+        return true;
+    };
+
+    config.LoadSettings = [](char* d, void* userPointer) -> size_t {
+        auto ptr = static_cast<NodeWidget*>(userPointer);
+        std::ifstream file("test.json");
+        if (!file) {
+            return 0;
+        }
+        if (!d) {
+            file.seekg(0, std::ios_base::end);
+            return file.tellg();
+        }
+
+        std::string data;
+        file.seekg(0, std::ios_base::end);
+        auto size = static_cast<size_t>(file.tellg());
+        file.seekg(0, std::ios_base::beg);
+
+        data.reserve(size);
+        data.assign(
+            std::istreambuf_iterator<char>(file),
+            std::istreambuf_iterator<char>());
+
+        if (data.size() > 0) {
+            ptr->tree_->Deserialize(data);
+        }
+
+        memcpy(d, data.data(), data.size());
+
+        return 0;
+    };
+
+    m_Editor = ed::CreateEditor(&config);
+
+    m_HeaderBackground =
+        LoadTexture(BlueprintBackground, sizeof(BlueprintBackground));
+}
 
 NodeWidget::~NodeWidget()
 {
@@ -506,7 +568,7 @@ bool NodeWidget::BuildUI()
                     if (tree_->can_create_link(startPin, pin)) {
                         auto endPin = pin;
 
-                        tree_->CreateLink(startPin->ID, endPin->ID);
+                        tree_->add_link(startPin->ID, endPin->ID);
 
                         break;
                     }

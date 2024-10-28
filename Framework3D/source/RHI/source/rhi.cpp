@@ -21,7 +21,8 @@ int init(bool with_window, bool use_dx12)
     DeviceCreationParameters params;
 
 #ifdef _DEBUG
-    params.enableNvrhiValidationLayer = true;
+    //params.enableNvrhiValidationLayer = true;
+    params.enableDebugRuntime = true;
 #endif
 
     if (with_window) {
@@ -58,7 +59,7 @@ nvrhi::TextureHandle load_texture(
         nvrhi::TextureDesc stagingDesc = desc;
         stagingDesc.isRenderTarget = false;
         stagingDesc.isUAV = false;
-        stagingDesc.initialState = nvrhi::ResourceStates::Common;
+        stagingDesc.initialState = nvrhi::ResourceStates::CopyDest;
         stagingDesc.keepInitialState = true;
         stagingDesc.debugName = "StagingTexture";
 

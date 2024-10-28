@@ -1,13 +1,11 @@
 #pragma once
 
-#include <string>
-
 #include "USTC_CG.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Window;
 
-class IWidget {
+class USTC_CG_API IWidget {
    public:
     IWidget()
     {

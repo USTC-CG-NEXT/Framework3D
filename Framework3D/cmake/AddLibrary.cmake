@@ -9,7 +9,7 @@ function(Set_CUDA_Properties lib_name)
     target_compile_features(${lib_name} PUBLIC cuda_std_20)
     target_compile_options(${lib_name}
         PUBLIC
-        "$<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr;--extended-lambda;--forward-unknown-to-host-compiler;-g;-lineinfo;-rdc=true;-c;>"
+        "$<<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr;--extended-lambda;--forward-unknown-to-host-compiler;-g;-lineinfo;-rdc=true;-c;>"
     )
 
     target_include_directories(

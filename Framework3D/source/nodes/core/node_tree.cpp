@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stack>
 
-#include "node_link.hpp"
+#include "nodes/core/node_link.hpp"
 #include "nodes/core/io/json.hpp"
 #include "nodes/core/node.hpp"
 

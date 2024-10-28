@@ -32,8 +32,3 @@
 #  endif
 #endif
 
-
-#ifdef __APPLE__
-#define strcpy strcpy
-#endif
-#include <string.h>
