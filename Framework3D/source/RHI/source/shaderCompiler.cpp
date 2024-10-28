@@ -24,7 +24,7 @@ std::filesystem::path SlangShaderCompiler::find_root(
             current = current.parent_path();
         }
         else {
-            logging("CUDA Prelude not found.", Error);
+            log::error("CUDA Prelude not found.");
             return "";
         }
     }

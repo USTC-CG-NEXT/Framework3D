@@ -2,7 +2,7 @@ USTC_CG_ADD_LIB(
 	RHI
 	SHARED
 	PUBLIC_LIBS nvrhi SLANG::slang
-	PRIVATE_LIBS Vulkan::Headers Logger DXC::dxc
+	PRIVATE_LIBS Vulkan::Headers Logger DXC::dxc glfw glm::glm
 	COMPILE_DEFINITIONS 
 		USTC_CG_BUILD_MODULE=1 
 		NOMINMAX 

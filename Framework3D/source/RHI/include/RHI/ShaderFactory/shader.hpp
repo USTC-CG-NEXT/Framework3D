@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RHI/resource_allocator.hpp"
+#include "RHI/ResourceManager/resource_allocator.hpp"
 #include "RHI/rhi.hpp"
 #include "USTC_CG.h"
 
@@ -11,8 +11,8 @@ class ShaderFactory {
     ShaderFactory() : device(get_device().Get())
     {
         shader_search_path =
-            "C:\\Users\\Jerry\\WorkSpace\\USTC_CG_"
-            "NEXT\\Framework3D\\source\\GUI\\window";
+            "C:\\Users\\pengfei\\WorkSpace\\USTC_CG_"
+            "24\\Framework3D\\source\\GUI\\window";
     }
 
     nvrhi::ShaderHandle USTC_CG_API compile_shader(

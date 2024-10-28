@@ -8,7 +8,7 @@
 #include "USTC_CG.h"
 //#include "entt/meta/meta.hpp"
 //#include "entt/meta/resolve.hpp"
-#include "internal/resources.hpp"
+#include "RHI/internal/resources.hpp"
 
 #ifdef USTC_CG_BACKEND_NVRHI
 #include <nvrhi/nvrhi.h>
