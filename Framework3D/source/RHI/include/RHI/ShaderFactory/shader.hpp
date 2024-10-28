@@ -21,30 +21,21 @@ class ShaderFactory {
         nvrhi::BindingLayoutDescVector& binding_layout_desc,
         std::string& error_string,
         const std::vector<ShaderMacro>& macro_defines,
-        bool nvapi_support = false,
+        const std::string& source_code,
         bool absolute = false);
 
    private:
-    void SlangCompileHLSLToDXIL(
-        const char* filename,
+    void SlangCompile(
+        const std::filesystem::path& path,
+        const std::string& sourceCode,
         const char* entryPoint,
         nvrhi::ShaderType shaderType,
         const char* profile,
-        const std::vector<ShaderMacro>& defines,  // List of macro defines
+        const std::vector<ShaderMacro>& defines,
         nvrhi::BindingLayoutDescVector& shader_reflection,
         Slang::ComPtr<ISlangBlob>& ppResultBlob,
         std::string& error_string,
-        bool nvapi_support);
-    void SlangCompileHLSLToSPIRV(
-        const char* filename,
-        const char* entryPoint,
-        nvrhi::ShaderType shaderType,
-        const char* profile,
-        const std::vector<ShaderMacro>& defines,  // List of macro defines
-        nvrhi::BindingLayoutDescVector& shader_reflection,
-        Slang::ComPtr<ISlangBlob>& ppResultBlob,
-        std::string& error_string,
-        bool nvapi_support);
+        SlangCompileTarget target) const;
 
     ProgramHandle createProgram(const ProgramDesc& desc);
 

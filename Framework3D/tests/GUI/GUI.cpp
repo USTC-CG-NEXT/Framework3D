@@ -16,12 +16,14 @@ class Widget : public IWidget {
     {
     }
 
-    void BuildUI() override
+    bool
+    BuildUI() override
     {
         ImGui::Begin(title.c_str());
         ImGui::Text("Hello, world!");
         ImGui::End();
         //ImGui::ShowDemoWindow();
+        return true;
     }
 private:
     std::string title;

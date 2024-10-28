@@ -131,6 +131,7 @@ struct ProgramDesc {
     std::string get_profile() const;
     friend class ShaderFactory;
     std::filesystem::path path;
+    std::string source_code;
     std::filesystem::file_time_type lastWriteTime;
     std::string entry_name;
 };

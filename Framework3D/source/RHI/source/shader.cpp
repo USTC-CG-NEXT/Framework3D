@@ -316,7 +316,6 @@ nvrhi::BindingLayoutDescVector mergeBindingLayoutDescVectors(
 
     return result;
 }
-
 nvrhi::ShaderHandle ShaderFactory::compile_shader(
     const std::string& entryName,
     nvrhi::ShaderType shader_type,
@@ -324,21 +323,24 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     nvrhi::BindingLayoutDescVector& binding_layout_desc,
     std::string& error_string,
     const std::vector<ShaderMacro>& macro_defines,
-    bool nvapi_support,
+
+    const std::string& source_code,
     bool absolute)
 {
     ProgramDesc shader_compile_desc;
 
-    if (!absolute) {
+    if (!absolute && shader_path != "") {
         shader_path = std::filesystem::path(shader_search_path) / shader_path;
     }
     shader_compile_desc.set_entry_name(entryName);
-    shader_compile_desc.set_path(shader_path);
-    for (auto&& macro_define : macro_defines) {
+    if (shader_path != "") {
+        shader_compile_desc.set_path(shader_path);
+    }
+    for (const auto& macro_define : macro_defines) {
         shader_compile_desc.define(macro_define.name, macro_define.definition);
     }
     shader_compile_desc.shaderType = shader_type;
-    shader_compile_desc.nvapi_support = nvapi_support;
+    shader_compile_desc.source_code = source_code;
     auto shader_compiled = createProgram(shader_compile_desc);
 
     if (!shader_compiled->get_error_string().empty()) {
@@ -364,8 +366,9 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     return compute_shader;
 }
 
-void ShaderFactory::SlangCompileHLSLToDXIL(
-    const char* filename,
+void ShaderFactory::SlangCompile(
+    const std::filesystem::path& path,
+    const std::string& sourceCode,
     const char* entryPoint,
     nvrhi::ShaderType shaderType,
     const char* profile,
@@ -373,19 +376,17 @@ void ShaderFactory::SlangCompileHLSLToDXIL(
     nvrhi::BindingLayoutDescVector& shader_reflection,
     Slang::ComPtr<ISlangBlob>& ppResultBlob,
     std::string& error_string,
-    bool nvapi_support)
+    SlangCompileTarget target) const
 {
     auto stage = ConvertShaderTypeToSlangStage(shaderType);
-    // Ensure global session is created
+
     if (!globalSession) {
         globalSession = createGlobal();
     }
 
     Slang::ComPtr<slang::ISession> pSlangSession;
-
     slang::SessionDesc sessionDesc;
-    std::vector<std::string> searchPaths = { shader_search_path +
-                                             std::string("/shaders/") };
+    std::vector<std::string> searchPaths = { shader_search_path + "/shaders/" };
     std::vector<const char*> slangSearchPaths;
     for (auto& path : searchPaths) {
         slangSearchPaths.push_back(path.data());
@@ -396,160 +397,69 @@ void ShaderFactory::SlangCompileHLSLToDXIL(
         globalSession->createSession(sessionDesc, pSlangSession.writeRef());
     assert(result == SLANG_OK);
 
-    // Create a compile request
     SlangCompileRequest* slangRequest = nullptr;
     result = pSlangSession->createCompileRequest(&slangRequest);
 
-    // Set the code generation target to DXIL
-    int targetIndex = slangRequest->addCodeGenTarget(SLANG_DXIL);
-    spSetTargetFlags(
-        slangRequest, targetIndex, SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM);
+    int targetIndex = slangRequest->addCodeGenTarget(target);
+    slangRequest->setTargetFlags(
+        targetIndex,
+        (target != SLANG_SPIRV) ? SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM
+                                : kDefaultTargetFlags);
 
-    if (nvapi_support) {
-        SlangShaderCompiler::addHLSLHeaderInclude(slangRequest);
-        SlangShaderCompiler::addHLSLSupportPreDefine(slangRequest);
-    }
-
-    // Add a translation unit to the compile request
-    int translationUnitIndex = spAddTranslationUnit(
-        slangRequest, SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
-
-    // Set the profile ID
+    int translationUnitIndex =
+        slangRequest->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
     auto profile_id = globalSession->findProfile(profile);
     slangRequest->setTargetProfile(targetIndex, profile_id);
 
-    // Add the source file to the translation unit
-    spAddTranslationUnitSourceFile(
-        slangRequest, translationUnitIndex, filename);
+    if (!sourceCode.empty()) {
+        slangRequest->addTranslationUnitSourceString(
+            translationUnitIndex, "shader", sourceCode.c_str());
+    }
+    else {
+        slangRequest->addTranslationUnitSourceFile(
+            translationUnitIndex, path.generic_string().c_str());
+    }
 
-    // Add macro defines to the compile request
     for (const auto& define : defines) {
-        spAddPreprocessorDefine(
-            slangRequest, define.name.c_str(), define.definition.c_str());
+        slangRequest->addPreprocessorDefine(
+            define.name.c_str(), define.definition.c_str());
     }
 
-    // If an entry point is provided, set it
+    int entryPointIndex = -1;
     if (entryPoint && *entryPoint) {
-        slangRequest->addEntryPoint(translationUnitIndex, entryPoint, stage);
+        entryPointIndex = slangRequest->addEntryPoint(
+            translationUnitIndex, entryPoint, stage);
     }
 
-    // Compile the request
     const SlangResult compileRes = slangRequest->compile();
 
-    // Handle compile errors
     if (SLANG_FAILED(compileRes)) {
-        if (auto diagnostics = spGetDiagnosticOutput(slangRequest)) {
+        if (auto diagnostics = slangRequest->getDiagnosticOutput()) {
             error_string = diagnostics;
         }
-        // Cleanup and return early if compilation failed
         spDestroyCompileRequest(slangRequest);
         return;
     }
 
     shader_reflection = shader_reflect(slangRequest, shaderType);
-
-    // Retrieve the compiled code blob
-    slangRequest->getTargetCodeBlob(targetIndex, ppResultBlob.writeRef());
-
-    // Destroy the compile request to clean up
-    spDestroyCompileRequest(slangRequest);
-}
-
-void ShaderFactory::SlangCompileHLSLToSPIRV(
-    const char* filename,
-    const char* entryPoint,
-    nvrhi::ShaderType shaderType,
-    const char* profile,
-    const std::vector<ShaderMacro>& defines,
-    nvrhi::BindingLayoutDescVector& shader_reflection,
-    Slang::ComPtr<ISlangBlob>& ppResultBlob,
-    std::string& error_string,
-    bool nvapi_support)
-{
-    auto stage = ConvertShaderTypeToSlangStage(shaderType);
-    // Ensure global session is created
-    if (!globalSession) {
-        globalSession = createGlobal();
-    }
-
-    Slang::ComPtr<slang::ISession> pSlangSession;
-
-    slang::SessionDesc sessionDesc;
-    std::vector<std::string> searchPaths = { shader_search_path +
-                                             std::string("/shaders/") };
-    std::vector<const char*> slangSearchPaths;
-    for (auto& path : searchPaths) {
-        slangSearchPaths.push_back(path.data());
-    }
-    sessionDesc.searchPaths = slangSearchPaths.data();
-    sessionDesc.searchPathCount = (SlangInt)slangSearchPaths.size();
-    auto result =
-        globalSession->createSession(sessionDesc, pSlangSession.writeRef());
+    result = slangRequest->getEntryPointCodeBlob(
+        entryPointIndex, targetIndex, ppResultBlob.writeRef());
     assert(result == SLANG_OK);
 
-    // Create a compile request
-    Slang::ComPtr<SlangCompileRequest> slangRequest;
-    result = pSlangSession->createCompileRequest(slangRequest.writeRef());
-
-    // Set the code generation target to SPIRV
-    int targetIndex = slangRequest->addCodeGenTarget(SLANG_SPIRV);
-    spSetTargetFlags(slangRequest, targetIndex, kDefaultTargetFlags);
-
-    if (nvapi_support) {
-        SlangShaderCompiler::addHLSLHeaderInclude(slangRequest);
-        SlangShaderCompiler::addHLSLSupportPreDefine(slangRequest);
-    }
-
-    // Add a translation unit to the compile request
-    int translationUnitIndex = spAddTranslationUnit(
-        slangRequest, SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
-
-    // Set the profile ID
-    auto profile_id = globalSession->findProfile(profile);
-    slangRequest->setTargetProfile(targetIndex, profile_id);
-
-    // Add the source file to the translation unit
-    spAddTranslationUnitSourceFile(
-        slangRequest, translationUnitIndex, filename);
-
-    // Add macro defines to the compile request
-    for (const auto& define : defines) {
-        spAddPreprocessorDefine(
-            slangRequest, define.name.c_str(), define.definition.c_str());
-    }
-
-    // If an entry point is provided, set it
-    auto entryPointIndex =
-        slangRequest->addEntryPoint(translationUnitIndex, entryPoint, stage);
-
-    // Compile the request
-    const SlangResult compileRes = slangRequest->compile();
-
-    auto warning = spGetDiagnosticOutput(slangRequest);
-
-    // Handle compile errors
-    if (SLANG_FAILED(compileRes)) {
-        if (auto diagnostics = spGetDiagnosticOutput(slangRequest)) {
-            error_string = diagnostics;
-        }
-        // Cleanup and return early if compilation failed
-        return;
-    }
-
-    shader_reflection = shader_reflect(slangRequest, shaderType);
-
-    // Retrieve the compiled code blob
-    slangRequest->getEntryPointCodeBlob(
-        entryPointIndex, targetIndex, ppResultBlob.writeRef());
+    spDestroyCompileRequest(slangRequest);
 }
 
 ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc)
 {
-    Slang::ComPtr<ISlangBlob> blob;
     ProgramHandle ret = ProgramHandle::Create(new Program);
 
-    SlangCompileHLSLToSPIRV(
-        desc.path.generic_string().c_str(),
+    SlangCompileTarget target =
+        (rhi::get_backend() == nvrhi::GraphicsAPI::VULKAN) ? SLANG_SPIRV
+                                                           : SLANG_DXIL;
+
+    SlangCompile(
+        desc.path,
+        desc.source_code,
         desc.entry_name.c_str(),
         desc.shaderType,
         desc.get_profile().c_str(),
@@ -557,7 +467,8 @@ ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc)
         ret->binding_layout_,
         ret->blob,
         ret->error_string,
-        desc.nvapi_support);
+        target);
+
     return ret;
 }
 

@@ -99,6 +99,11 @@ size_t NodeTree::socket_count() const
     return sockets.size();
 }
 
+const NodeTreeDescriptor& NodeTree::get_descriptor() const
+{
+    return descriptor_;
+}
+
 void NodeTree::SetDirty(bool dirty)
 {
     this->dirty_ = dirty;

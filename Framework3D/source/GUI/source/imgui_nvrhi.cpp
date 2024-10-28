@@ -53,6 +53,68 @@ SOFTWARE.
 #include "RHI/ShaderFactory/shader.hpp"
 #include "USTC_CG.h"
 
+const char* vertex_shader_source = R"(
+struct Constants {
+    float2 invDisplaySize;
+};
+
+#ifdef SPIRV
+
+[[vk::push_constant]] ConstantBuffer<Constants> g_Const;
+
+#else
+
+cbuffer g_Const : register(b0)
+{
+    Constants g_Const;
+}
+
+#endif
+
+struct VS_INPUT {
+    float2 pos : POSITION;
+    float2 uv : TEXCOORD0;
+    float4 col : COLOR0;
+};
+
+struct PS_INPUT {
+    float4 out_pos : SV_POSITION;
+    float4 out_col : COLOR0;
+    float2 out_uv : TEXCOORD0;
+};
+
+PS_INPUT main(VS_INPUT input)
+{
+    PS_INPUT output;
+    output.out_pos.xy =
+        input.pos.xy * g_Const.invDisplaySize * float2(2.0, -2.0) +
+        float2(-1.0, 1.0);
+    output.out_pos.zw = float2(0, 1);
+    output.out_col = input.col;
+    output.out_uv = input.uv;
+    return output;
+}
+)";
+
+const char* pixel_shader_source = R"(
+struct PS_INPUT
+{
+    float4 pos : SV_POSITION;
+    float4 col : COLOR0;
+    float2 uv  : TEXCOORD0;
+};
+
+SamplerState sampler0 : register(s0);
+Texture2D<float4> texture0 : register(t0);
+
+float4 main(PS_INPUT input) : SV_Target
+{
+    float4 sampledColor = texture0.Sample(sampler0, input.uv);
+    float4 out_col = input.col * sampledColor;
+    return out_col;
+}
+)";
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 struct VERTEX_CONSTANT_BUFFER {
@@ -125,7 +187,8 @@ bool ImGui_NVRHI::init(
         "imgui_shader/imgui_vertex.slang",
         binding_layout,
         error_string,
-        { { "SPIRV", "1" } });
+        { { "SPIRV", "1" } },
+        std::string(vertex_shader_source));
 
     pixelShader = shaderFactory->compile_shader(
         "main",
@@ -133,7 +196,8 @@ bool ImGui_NVRHI::init(
         "imgui_shader/imgui_pixel.slang",
         binding_layout,
         error_string,
-        { { "SPIRV", "1" } });
+        { { "SPIRV", "1" } },
+        std::string(pixel_shader_source));
 
     if (!vertexShader || !pixelShader) {
         logging("Failed to create an ImGUI shader");

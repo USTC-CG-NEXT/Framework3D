@@ -14,11 +14,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 
+#include "RHI/rhi.hpp"
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/core/socket.hpp"
 #include "stb_image.h"
-#include "RHI/rhi.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace ed = ax::NodeEditor;
@@ -47,6 +47,7 @@ class NodeWidget : public IWidget {
     }
 
     ~NodeWidget() override;
+    Node* create_node_menu();
     bool BuildUI() override;
 
    private:
@@ -59,9 +60,10 @@ class NodeWidget : public IWidget {
     LinkId contextLinkId = 0;
     SocketID contextPinId = 0;
 
-    ImTextureID m_HeaderBackground = nullptr;
+    nvrhi::TextureHandle m_HeaderBackground = nullptr;
     ImVec2 newNodePostion;
     bool location_remembered = false;
+    static const int m_PinIconSize = 20;
 
     std::string widget_name;
 
@@ -69,32 +71,21 @@ class NodeWidget : public IWidget {
 
     bool draw_socket_controllers(NodeSocket* input);
 
-    ImTextureID CreateTexture(const void* data, int width, int height)
-    {
-        m_Textures.resize(m_Textures.size() + 1);
-        ImTexture& texture = m_Textures.back();
-
-
-        texture.Width = width;
-        texture.Height = height;
-
-        nvrhi::IDevice* device = rhi::get_device();
-
-        nvrhi::TextureDesc desc;
-
-
-        nvrhi::TextureHandle t = rhi::load_texture(desc, data);
-
-        return reinterpret_cast<ImTextureID>(
-            static_cast<std::intptr_t>(texture.TextureID));
-    }
-
     ImTextureID LoadTexture(const unsigned char* data, size_t buffer_size)
     {
         int width = 0, height = 0, component = 0;
         if (auto loaded_data = stbi_load_from_memory(
                 data, buffer_size, &width, &height, &component, 4)) {
-            auto texture = CreateTexture(loaded_data, width, height);
+            nvrhi::TextureDesc desc;
+            desc.width = width;
+            desc.height = height;
+            desc.format = nvrhi::Format::RGBA8_UNORM;
+            desc.isRenderTarget = false;
+            desc.isUAV = false;
+            desc.initialState = nvrhi::ResourceStates::Common;
+            desc.keepInitialState = true;
+
+            auto texture = rhi::load_texture(desc, data);
             stbi_image_free(loaded_data);
             return texture;
         }
@@ -102,64 +93,30 @@ class NodeWidget : public IWidget {
             return nullptr;
     }
 
-    struct ImTexture {
-        GLuint TextureID = 0;
-        int Width = 0;
-        int Height = 0;
-    };
-
-    ImVector<ImTexture>::iterator FindTexture(ImTextureID texture)
-    {
-        auto textureID =
-            static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
-
-        return std::find_if(
-            m_Textures.begin(),
-            m_Textures.end(),
-            [textureID](ImTexture& texture) {
-                return texture.TextureID == textureID;
-            });
-    }
-
-    ImVector<ImTexture> m_Textures;
-
-    int GetTextureWidth(ImTextureID texture)
-    {
-        auto textureIt = FindTexture(texture);
-        if (textureIt != m_Textures.end())
-            return textureIt->Width;
-        return 0;
-    }
-
-    int GetTextureHeight(ImTextureID texture)
-    {
-        auto textureIt = FindTexture(texture);
-        if (textureIt != m_Textures.end())
-            return textureIt->Height;
-        return 0;
-    }
+    ImVector<nvrhi::TextureHandle> m_Textures;
 
     void DrawPinIcon(const NodeSocket& pin, bool connected, int alpha);
 
-    ImColor GetIconColor(SocketType type)
-    {
-        auto hashColorComponent = [](const std::string& prefix,
-                                     const std::string& typeName) {
-            return static_cast<int>(
-                entt::hashed_string{ (prefix + typeName).c_str() }.value());
-        };
-
-        const std::string typeName = std::string(type.info().name());
-        auto hashValue_r = hashColorComponent("r", typeName);
-        auto hashValue_g = hashColorComponent("g", typeName);
-        auto hashValue_b = hashColorComponent("b", typeName);
-
-        return ImColor(hashValue_r % 255, hashValue_g % 255, hashValue_b % 255);
-    }
+    static ImColor GetIconColor(SocketType type);
 };
 
 NodeWidget::~NodeWidget()
 {
+}
+
+Node* NodeWidget::create_node_menu()
+{
+    auto& node_registry = tree_->get_descriptor().node_registry;
+
+    Node* node = nullptr;
+
+    for (auto&& value : node_registry) {
+        auto name = value.second.ui_name;
+        if (ImGui::MenuItem(name.c_str()))
+            node = tree_->add_node(value.second.id_name.c_str());
+    }
+
+    return node;
 }
 
 bool NodeWidget::BuildUI()
@@ -184,8 +141,8 @@ bool NodeWidget::BuildUI()
 
         util::BlueprintNodeBuilder builder(
             m_HeaderBackground,
-            GetTextureWidth(m_HeaderBackground),
-            GetTextureHeight(m_HeaderBackground));
+            m_HeaderBackground->getDesc().width,
+            m_HeaderBackground->getDesc().height);
 
         for (auto&& node : tree_->nodes) {
             if (node->typeinfo->INVISIBLE) {
@@ -528,7 +485,7 @@ bool NodeWidget::BuildUI()
             location_remembered = true;
         }
 
-        Node* node = tree_->create_node_menu();
+        Node* node = create_node_menu();
         // ImGui::Separator();
         // if (ImGui::MenuItem("Comment"))
         //     node = SpawnComment();
@@ -636,6 +593,22 @@ void NodeWidget::DrawPinIcon(const NodeSocket& pin, bool connected, int alpha)
         connected,
         color,
         ImColor(32, 32, 32, alpha));
+}
+
+ImColor NodeWidget::GetIconColor(SocketType type)
+{
+    auto hashColorComponent = [](const std::string& prefix,
+                                 const std::string& typeName) {
+        return static_cast<int>(
+            entt::hashed_string{ (prefix + typeName).c_str() }.value());
+    };
+
+    const std::string typeName = std::string(type.info().name());
+    auto hashValue_r = hashColorComponent("r", typeName);
+    auto hashValue_g = hashColorComponent("g", typeName);
+    auto hashValue_b = hashColorComponent("b", typeName);
+
+    return ImColor(hashValue_r % 255, hashValue_g % 255, hashValue_b % 255);
 }
 
 std::unique_ptr<IWidget> create_node_imgui_widget(NodeTree* tree)

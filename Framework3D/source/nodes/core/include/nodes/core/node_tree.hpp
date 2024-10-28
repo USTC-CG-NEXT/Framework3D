@@ -29,6 +29,7 @@ class NodeTreeDescriptor {
     bool can_convert(SocketType from, SocketType to) const;
 
    private:
+    friend class NodeWidget;
     std::unordered_map<std::string, NodeTypeInfo> node_registry;
 
     std::unordered_set<std::string> conversion_node_registry;
@@ -124,7 +125,9 @@ class NodeTree {
 
     size_t socket_count() const;
 
-   private:
+    [[nodiscard]] const NodeTreeDescriptor &get_descriptor() const;
+
+private:
     // No one directly edits these sockets.
     std::vector<std::unique_ptr<NodeSocket>> sockets;
     const NodeTreeDescriptor descriptor_;
