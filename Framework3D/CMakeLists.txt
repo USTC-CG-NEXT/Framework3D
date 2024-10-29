@@ -115,6 +115,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/RHI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/nodes)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/logger)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/stage)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/usdview_widget)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
 

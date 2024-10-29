@@ -1,89 +1,34 @@
-// My resharper is not working well with the _MSC_VER_ macro.
-
-// #define __GNUC__
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-#include "GUI/usdview_engine.h"
+// #include "GUI/usdview_engine.h"
 
-#include "GUI/ui_event.h"
-#include "Nodes/GlobalUsdStage.h"
-#include "Utils/Logging/Logging.h"
-#include "free_camera.h"
+// #include "GUI/ui_event.h"
+// #include "Nodes/GlobalUsdStage.h"
+// #include "Utils/Logging/Logging.h"
+// #include "free_camera.h"
 #include "imgui.h"
+#include "widgets/usdview/usdview.hpp"
 #
+#include "Logging/Logging.h"
 #include "pxr/base/gf/camera.h"
 #include "pxr/imaging/glf/drawTarget.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usdImaging/usdImagingGL/engine.h"
+#include "pxr/usd/usdGeom/camera.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
 using namespace pxr;
 
-class UsdviewEngineImpl {
-   public:
-    enum class CamType { First, Third };
-    struct Status {
-        CamType cam_type =
-            CamType::First;  // 0 for 1st personal, 1 for 3rd personal
-        unsigned renderer_id = 1;
-    } engine_status;
-
-    float timecode = 0;
-    float frame_per_second;
-    const float time_code_max = 250;
-    bool playing = false;
-    bool is_editing = false;
-
-    UsdviewEngineImpl(pxr::UsdStageRefPtr stage)
-    {
-        GarchGLApiLoad();
-        glGenFramebuffers(1, &fbo);
-
-        renderer_ = std::make_unique<UsdImagingGLEngine>();
-        renderer_->SetEnablePresentation(true);
-        free_camera_ = std::make_unique<FirstPersonCamera>();
-
-        auto plugins = renderer_->GetRendererPlugins();
-        renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
-        free_camera_->SetProjection(GfCamera::Projection::Perspective);
-        free_camera_->SetClippingRange(pxr::GfRange1f{ 0.1f, 1000.f });
-    }
-
-    void DrawMenuBar();
-    void
-    OnFrame(float delta_time, NodeTree* node_tree, NodeTreeExecutor* executor);
-    void refresh_platform_texture();
-    void refresh_viewport(int x, int y);
-    void OnResize(int x, int y);
-    void time_controller(float delta_time);
-    void set_current_time_code(float time_code);
-    std::unique_ptr<USTC_CG::PickEvent> get_pick_event();
-
-    void set_edit_mode(bool editing)
-    {
-        is_editing = editing;
-    }
-
-   private:
-    std::unique_ptr<PickEvent> pick_event = nullptr;
-
-    unsigned fbo = 0;
-    unsigned tex = 0;
-    std::unique_ptr<FreeCamera> free_camera_;
-    bool is_hovered_ = false;
-    std::unique_ptr<UsdImagingGLEngine> renderer_;
-    UsdImagingGLRenderParams _renderParams;
-    GfVec2i renderBufferSize_;
-    bool is_active_;
-    bool CameraCallback(float delta_time);
+class FreeCamera : public pxr::UsdGeomCamera {
+    
 };
 
-void UsdviewEngineImpl::DrawMenuBar()
+void UsdviewEngine::DrawMenuBar()
 {
     ImGui::BeginMenuBar();
     if (ImGui::BeginMenu("Free Camera")) {
@@ -136,7 +81,7 @@ void UsdviewEngineImpl::DrawMenuBar()
     ImGui::EndMenuBar();
 }
 
-void UsdviewEngineImpl::OnFrame(
+void UsdviewEngine::OnFrame(
     float delta_time,
     NodeTree* node_tree,
     NodeTreeExecutor* executor)
@@ -218,43 +163,44 @@ void UsdviewEngineImpl::OnFrame(
         ImVec2 mousePosNDC =
             ImVec2(mousePosNorm.x * 2.0f - 1.0f, 1.0f - mousePosNorm.y * 2.0f);
 
-        GfVec3d point;
-        GfVec3d normal;
-        SdfPath path;
-        SdfPath instancer;
-        HdInstancerContext outInstancerContext;
-        int outHitInstanceIndex;
-        auto narrowed = frustum.ComputeNarrowedFrustum(
-            { mousePosNDC[0], mousePosNDC[1] },
-            { 1.0 / renderBufferSize_[0], 1.0 / renderBufferSize_[1] });
+        // GfVec3d point;
+        // GfVec3d normal;
+        // SdfPath path;
+        // SdfPath instancer;
+        // HdInstancerContext outInstancerContext;
+        // int outHitInstanceIndex;
+        // auto narrowed = frustum.ComputeNarrowedFrustum(
+        //     { mousePosNDC[0], mousePosNDC[1] },
+        //     { 1.0 / renderBufferSize_[0], 1.0 / renderBufferSize_[1] });
 
-        if (renderer_->TestIntersection(
-                narrowed.ComputeViewMatrix(),
-                narrowed.ComputeProjectionMatrix(),
-                root,
-                _renderParams,
-                &point,
-                &normal,
-                &path,
-                &instancer,
-                &outHitInstanceIndex,
-                &outInstancerContext)) {
-            pick_event = std::make_unique<PickEvent>(
-                point,
-                normal,
-                path,
-                instancer,
-                outInstancerContext,
-                outHitInstanceIndex,
-                narrowed.ComputePickRay({ mousePosNDC[0], mousePosNDC[1] }));
-            logging("Picked prim " + path.GetAsString(), Info);
-        }
+        // if (renderer_->TestIntersection(
+        //         narrowed.ComputeViewMatrix(),
+        //         narrowed.ComputeProjectionMatrix(),
+        //         root,
+        //         _renderParams,
+        //         &point,
+        //         &normal,
+        //         &path,
+        //         &instancer,
+        //         &outHitInstanceIndex,
+        //         &outInstancerContext)) {
+        //     pick_event = std::make_unique<PickEvent>(
+        //         point,
+        //         normal,
+        //         path,
+        //         instancer,
+        //         outInstancerContext,
+        //         outHitInstanceIndex,
+        //         narrowed.ComputePickRay({ mousePosNDC[0], mousePosNDC[1] }));
+
+        //    log::info("Picked prim " + path.GetAsString(), Info);
+        //}
     }
 
     ImGui::EndChild();
 }
 
-void UsdviewEngineImpl::refresh_platform_texture()
+void UsdviewEngine::refresh_platform_texture()
 {
     if (tex) {
         glDeleteTextures(1, &tex);
@@ -283,7 +229,7 @@ void UsdviewEngineImpl::refresh_platform_texture()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void UsdviewEngineImpl::refresh_viewport(int x, int y)
+void UsdviewEngine::refresh_viewport(int x, int y)
 {
     renderBufferSize_[0] = x;
     renderBufferSize_[1] = y;
@@ -296,41 +242,41 @@ void UsdviewEngineImpl::refresh_viewport(int x, int y)
     refresh_platform_texture();
 }
 
-void UsdviewEngineImpl::OnResize(int x, int y)
+void UsdviewEngine::OnResize(int x, int y)
 {
     if (renderBufferSize_[0] != x || renderBufferSize_[1] != y) {
         refresh_viewport(x, y);
     }
 }
+//
+// void UsdviewEngine::time_controller(float delta_time)
+//{
+//    if (is_active_ && ImGui::IsKeyPressed(ImGuiKey_Space)) {
+//        playing = !playing;
+//    }
+//    if (playing) {
+//        timecode += delta_time * GlobalUsdStage::timeCodesPerSecond;
+//        if (timecode > time_code_max) {
+//            timecode = 0;
+//        }
+//    }
+//
+//    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+//    if (ImGui::SliderFloat("Time##timecode", &timecode, 0, time_code_max)) {
+//    }
+//}
 
-void UsdviewEngineImpl::time_controller(float delta_time)
-{
-    if (is_active_ && ImGui::IsKeyPressed(ImGuiKey_Space)) {
-        playing = !playing;
-    }
-    if (playing) {
-        timecode += delta_time * GlobalUsdStage::timeCodesPerSecond;
-        if (timecode > time_code_max) {
-            timecode = 0;
-        }
-    }
-
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::SliderFloat("Time##timecode", &timecode, 0, time_code_max)) {
-    }
-}
-
-void UsdviewEngineImpl::set_current_time_code(float time_code)
+void UsdviewEngine::set_current_time_code(float time_code)
 {
     timecode = time_code;
 }
 
-std::unique_ptr<USTC_CG::PickEvent> UsdviewEngineImpl::get_pick_event()
-{
-    return std::move(pick_event);
-}
+// std::unique_ptr<USTC_CG::PickEvent> UsdviewEngine::get_pick_event()
+//{
+//     return std::move(pick_event);
+// }
 
-bool UsdviewEngineImpl::CameraCallback(float delta_time)
+bool UsdviewEngine::CameraCallback(float delta_time)
 {
     ImGuiIO& io = ImGui::GetIO();
     if (is_active_) {
@@ -362,16 +308,27 @@ bool UsdviewEngineImpl::CameraCallback(float delta_time)
 
 UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 {
-    impl_ = std::make_unique<UsdviewEngineImpl>(root_stage);
+    GarchGLApiLoad();
+    glGenFramebuffers(1, &fbo);
+
+    renderer_ = std::make_unique<UsdImagingGLEngine>();
+    renderer_->SetEnablePresentation(true);
+    free_camera_ = std::make_unique<FirstPersonCamera>();
+
+    auto plugins = renderer_->GetRendererPlugins();
+    renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
+    free_camera_->SetProjection(GfCamera::Projection::Perspective);
+    free_camera_->SetClippingRange(pxr::GfRange1f{ 0.1f, 1000.f });
 }
 
 UsdviewEngine::~UsdviewEngine()
 {
 }
 
-void UsdviewEngine::render(
-    NodeTree* render_node_tree,
-    NodeTreeExecutor* get_executor)
+bool UsdviewEngine::BuildUI(
+    // NodeTree* render_node_tree,
+    // NodeTreeExecutor* get_executor
+)
 {
     auto delta_time = ImGui::GetIO().DeltaTime;
 
@@ -388,36 +345,37 @@ void UsdviewEngine::render(
         size.y -= 28;
 
         if (size.x > 0 && size.y > 0) {
-            impl_->OnResize(size.x, size.y);
+            OnResize(size.x, size.y);
 
-            impl_->OnFrame(delta_time, render_node_tree, get_executor);
-            impl_->time_controller(delta_time);
+            OnFrame(delta_time, render_node_tree, get_executor);
+            // time_controller(delta_time);
         }
     }
     else {
         ImGui::PopStyleVar(1);
     }
     ImGui::End();
+    return true;
 }
 
 float UsdviewEngine::current_time_code()
 {
-    return impl_->timecode;
+    return timecode;
 }
 
 void UsdviewEngine::set_current_time_code(float time_code)
 {
-    impl_->set_current_time_code(time_code);
+    timecode = time_code;
 }
 
-std::unique_ptr<PickEvent> UsdviewEngine::get_pick_event()
-{
-    return impl_->get_pick_event();
-}
+// std::unique_ptr<PickEvent> UsdviewEngine::get_pick_event()
+//{
+//     return impl_->get_pick_event();
+// }
 
 void UsdviewEngine::set_edit_mode(bool editing)
 {
-    impl_->set_edit_mode(editing);
+    is_editing = editing;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
