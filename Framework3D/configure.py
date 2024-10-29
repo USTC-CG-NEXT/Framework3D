@@ -110,7 +110,7 @@ def process_usd(targets, dry_run=False, keep_original_files=True):
         use_debug_python = ""
 
     for target in targets:
-        build_command = f"python {build_script} --openvdb {use_debug_python}--ptex --openimageio --generator Ninja --opencolorio --no-examples --no-tutorials --build-variant {target.lower()} ./SDK/OpenUSD/{target}"
+        build_command = f"python {build_script} --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {target.lower()} ./SDK/OpenUSD/{target}"
         if dry_run:
             print(f"[DRY RUN] Would run: {build_command}")
         else:
