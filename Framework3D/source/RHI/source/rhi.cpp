@@ -21,8 +21,8 @@ int init(bool with_window, bool use_dx12)
     DeviceCreationParameters params;
 
 #ifdef _DEBUG
-    //params.enableNvrhiValidationLayer = true;
-    params.enableDebugRuntime = true;
+    params.enableNvrhiValidationLayer = true;
+    //params.enableDebugRuntime = true;
 #endif
 
     if (with_window) {
