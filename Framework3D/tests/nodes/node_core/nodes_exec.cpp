@@ -50,8 +50,8 @@ class NodeExecTest : public ::testing::Test {
 
 TEST_F(NodeExecTest, NodeExecSimple)
 {
-    ExecutorDesc desc;
-    desc.policy = ExecutorDesc::Policy::Eager;
+    NodeTreeExecutorDesc desc;
+    desc.policy = NodeTreeExecutorDesc::Policy::Eager;
     auto executor = create_node_tree_executor(desc);
 
     auto add_node = tree->add_node("add");
@@ -76,8 +76,8 @@ TEST_F(NodeExecTest, NodeExecSimple)
 
 TEST_F(NodeExecTest, NodeExecWithLink)
 {
-    ExecutorDesc desc;
-    desc.policy = ExecutorDesc::Policy::Eager;
+    NodeTreeExecutorDesc desc;
+    desc.policy = NodeTreeExecutorDesc::Policy::Eager;
     auto executor = create_node_tree_executor(desc);
 
     std::vector<Node*> add_nodes;

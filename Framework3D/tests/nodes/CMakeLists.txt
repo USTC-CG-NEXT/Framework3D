@@ -5,3 +5,4 @@
 
 add_subdirectory(node_core)
 add_subdirectory(node_ui)
+add_subdirectory(node_system)

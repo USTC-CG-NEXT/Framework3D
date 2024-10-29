@@ -52,7 +52,8 @@ SocketType get_socket_type<entt::meta_any>();
 std::unique_ptr<NodeTree> create_node_tree(
     const NodeTreeDescriptor& descriptor);
 
-std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(ExecutorDesc& desc);
+std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(
+    const NodeTreeExecutorDesc& desc);
 
 namespace io {
 std::string serialize_node_tree(NodeTree* tree);

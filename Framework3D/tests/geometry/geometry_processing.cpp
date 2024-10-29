@@ -37,8 +37,8 @@ int main()
 
     auto tree = create_node_tree(descriptor);
 
-    ExecutorDesc desc;
-    desc.policy = ExecutorDesc::Policy::Eager;
+    NodeTreeExecutorDesc desc;
+    desc.policy = NodeTreeExecutorDesc::Policy::Eager;
     auto executor = create_node_tree_executor(desc);
 
     auto node = tree->add_node("add");

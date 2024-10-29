@@ -167,7 +167,7 @@ struct USTC_CG_API NodeTreeExecutor {
     entt::meta_ctx& context;
 };
 
-struct ExecutorDesc {
+struct NodeTreeExecutorDesc {
     enum class Policy {
         Eager,
         Lazy,

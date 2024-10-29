@@ -5,7 +5,6 @@ import requests
 from tqdm import tqdm
 import argparse
 
-
 def copytree_common_to_binaries(folder, target="Debug", dst=None, dry_run=False):
     root_dir = os.getcwd()
     dst_path = os.path.join(root_dir, "Binaries", target, dst or "")
@@ -115,7 +114,16 @@ def process_usd(targets, dry_run=False, keep_original_files=True):
             print(f"[DRY RUN] Would run: {build_command}")
         else:
             os.system(build_command)
-
+    
+    # Copy the built binaries to the Binaries folder
+    for target in targets:
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "bin"), target=target, dry_run=dry_run)
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "lib"), target=target, dry_run=dry_run)
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "plugin"), target=target, dry_run=dry_run)
+        
+        # Copy libraries and resources wholly
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "libraries"), target=target, dst="libraries", dry_run=dry_run)
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "resources"), target=target, dst="resources", dry_run=dry_run)
 
 def main():
     parser = argparse.ArgumentParser(description="Download and configure libraries.")

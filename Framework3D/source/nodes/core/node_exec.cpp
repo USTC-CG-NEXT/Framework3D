@@ -16,12 +16,12 @@ int ExeParams::get_output_index(const char* identifier)
     return node_.find_socket_id(identifier, PinKind::Output);
 }
 
-std::unique_ptr<NodeTreeExecutor> create_executor(ExecutorDesc& exec)
+std::unique_ptr<NodeTreeExecutor> create_executor(NodeTreeExecutorDesc& exec)
 {
     switch (exec.policy) {
-        case ExecutorDesc::Policy::Eager:
+        case NodeTreeExecutorDesc::Policy::Eager:
             return std::make_unique<EagerNodeTreeExecutor>();
-        case ExecutorDesc::Policy::Lazy: return nullptr;
+        case NodeTreeExecutorDesc::Policy::Lazy: return nullptr;
     }
     return nullptr;
 }

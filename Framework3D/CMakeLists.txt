@@ -60,11 +60,10 @@ message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}. Selecting SDK from ${SDK_FOLDE
 
 include_directories(${PROJECT_SOURCE_DIR}/include/api)
 
-set(pxr_DIR SDK/${SDK_FOLDER}/OpenUSD)
-set(TBB_DIR SDK/${SDK_FOLDER}/tbb/lib/cmake/tbb)
-set(MaterialX_DIR SDK/${SDK_FOLDER}/MaterialX/lib/cmake/MaterialX)
-set(Imath_DIR SDK/${SDK_FOLDER}/Imath/lib/cmake/Imath)
-set(EMBREE_DIR SDK/common/embree/lib/cmake/embree-4.3.1) 
+# set(TBB_DIR SDK/${SDK_FOLDER}/tbb/lib/cmake/tbb)
+# set(MaterialX_DIR SDK/${SDK_FOLDER}/MaterialX/lib/cmake/MaterialX)
+# set(Imath_DIR SDK/${SDK_FOLDER}/Imath/lib/cmake/Imath)
+# set(EMBREE_DIR SDK/common/embree/lib/cmake/embree-4.3.1) 
 
 if(USTC_CG_WITH_TORCH)
 set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
@@ -86,14 +85,15 @@ endif()
 
 option(USTC_CG_WITH_OPENUSD OFF)
 if(USTC_CG_WITH_OPENUSD)
+
+set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})
+
 find_package(pxr REQUIRED)
-find_package(TBB REQUIRED)
-find_package(EMBREE REQUIRED)
-
-
-set(TBB_tbb_LIBRARY TBB::tbb TBB::tbbmalloc TBB::tbbmalloc_proxy)
+#find_package(TBB REQUIRED)
+#find_package(EMBREE REQUIRED)
+#set(TBB_tbb_LIBRARY TBB::tbb TBB::tbbmalloc TBB::tbbmalloc_proxy)
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-	set_target_properties(TBB::tbb PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1")
+	set_target_properties(usd PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1; BOOST_DEBUG_PYTHON")
 endif()
 
 endif()

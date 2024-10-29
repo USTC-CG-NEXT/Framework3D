@@ -19,12 +19,13 @@ std::unique_ptr<NodeTree> create_node_tree(const NodeTreeDescriptor& descriptor)
     return std::make_unique<NodeTree>(descriptor);
 }
 
-std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(ExecutorDesc& desc)
+std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(
+    const NodeTreeExecutorDesc& desc)
 {
     switch (desc.policy) {
-        case ExecutorDesc::Policy::Eager:
+        case NodeTreeExecutorDesc::Policy::Eager:
             return std::make_unique<EagerNodeTreeExecutor>();
-        case ExecutorDesc::Policy::Lazy: return nullptr;
+        case NodeTreeExecutorDesc::Policy::Lazy: return nullptr;
     }
     return nullptr;
 }
