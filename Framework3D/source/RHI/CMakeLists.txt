@@ -1,3 +1,6 @@
+set(SLANG_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/slang)
+find_package(Slang REQUIRED COMPONENTS slang slang-rt gfx)
+
 USTC_CG_ADD_LIB(
 	RHI
 	SHARED

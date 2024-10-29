@@ -1,5 +1,6 @@
+
 USTC_CG_ADD_LIB(
 	stage
 	SHARED
-	PRIVATE_LIBS Logger RHI
+	PRIVATE_LIBS Logger
 )
