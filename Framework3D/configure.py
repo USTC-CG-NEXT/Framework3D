@@ -97,11 +97,7 @@ def process_usd(targets, dry_run=False, keep_original_files=True):
     )
 
     # Check if the user has a debug python installed
-    try:
-        os.system("python_d --version")
-        has_python_d = True
-    except:
-        has_python_d = False
+    has_python_d = os.system("python_d --version >nul 2>&1") == 0
 
     if has_python_d:
         use_debug_python = "--debug-python "
