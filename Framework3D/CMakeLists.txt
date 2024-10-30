@@ -12,10 +12,10 @@ project(
 
 set(OUT_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Binaries/${CMAKE_BUILD_TYPE})
 message("Build binaries to ${OUT_BINARY_DIR}")
-set(OUTPUT_DIR 
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG          "${OUT_BINARY_DIR}"
+set(OUTPUT_DIR
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUT_BINARY_DIR}"
   RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OUT_BINARY_DIR}"
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE        "${OUT_BINARY_DIR}"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUT_BINARY_DIR}"
 )
 
 # For testing
@@ -28,19 +28,19 @@ include(cmake/AddLibrary.cmake)
 
 
 option(USTC_CG_WITH_CUDA OFF)
-option (USTC_CG_WITH_TORCH OFF)
+option(USTC_CG_WITH_TORCH OFF)
 
 
 if(USTC_CG_WITH_CUDA)
-# Set the cuda compiler to be nvcc 12.6
-set(CMAKE_CUDA_ARCHITECTURES 86)
-set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/bin/nvcc.exe")
-enable_language(CUDA)
-find_package(CUDAToolkit REQUIRED)
-add_compile_definitions(USTC_CG_WITH_CUDA=1)
-set(CMAKE_CUDA_STANDARD 20)
+  # Set the cuda compiler to be nvcc 12.6
+  set(CMAKE_CUDA_ARCHITECTURES 86)
+  set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/bin/nvcc.exe")
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
+  add_compile_definitions(USTC_CG_WITH_CUDA=1)
+  set(CMAKE_CUDA_STANDARD 20)
 else()
-add_compile_definitions(USTC_CG_WITH_CUDA=0)
+  add_compile_definitions(USTC_CG_WITH_CUDA=0)
 endif()
 
 add_compile_definitions(BOOST_PYTHON_NO_LIB=1)
@@ -64,7 +64,7 @@ else()
   set(SDK_FOLDER "Release")
 endif()
 
-message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}. Selecting SDK from ${SDK_FOLDER}") 
+message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}. Selecting SDK from ${SDK_FOLDER}")
 
 include_directories(${PROJECT_SOURCE_DIR}/include/api)
 
@@ -74,39 +74,33 @@ include_directories(${PROJECT_SOURCE_DIR}/include/api)
 # set(EMBREE_DIR SDK/common/embree/lib/cmake/embree-4.3.1) 
 
 if(USTC_CG_WITH_TORCH)
-set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
-find_package(Torch REQUIRED)
-add_compile_definitions(USTC_CG_WITH_TORCH=1)
+  set(Torch_DIR SDK/${SDK_FOLDER}/libtorch/share/cmake/Torch)
+  find_package(Torch REQUIRED)
+  add_compile_definitions(USTC_CG_WITH_TORCH=1)
 else()
-add_compile_definitions(USTC_CG_WITH_TORCH=0)
+  add_compile_definitions(USTC_CG_WITH_TORCH=0)
 endif()
 
 # The following packages optional
 
 option(USTC_CG_WITH_PYTHON OFF)
 if(USTC_CG_WITH_PYTHON)
-find_package(Python3 3.10 EXACT COMPONENTS Development Interpreter REQUIRED)
-set_target_properties(Python3::Python PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
-set_target_properties(Python3::Module PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
+  find_package(Python3 3.10 EXACT COMPONENTS Development Interpreter REQUIRED)
+  set_target_properties(Python3::Python PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
+  set_target_properties(Python3::Module PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
 endif()
 
-
-option(USTC_CG_WITH_OPENUSD OFF)
-if(USTC_CG_WITH_OPENUSD)
 
 set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})
-
-find_package(pxr REQUIRED)
-#find_package(TBB REQUIRED)
-#find_package(EMBREE REQUIRED)
-#set(TBB_tbb_LIBRARY TBB::tbb TBB::tbbmalloc TBB::tbbmalloc_proxy)
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-	set_target_properties(usd PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1; BOOST_DEBUG_PYTHON")
+find_package(pxr)
+if(pxr_FOUND)
+  set(USTC_CG_WITH_OPENUSD ON)
+  if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    set_target_properties(usd PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1; BOOST_DEBUG_PYTHON")
+  endif()
+else()
+  set(USTC_CG_WITH_OPENUSD OFF)
 endif()
-
-endif()
-
-
 
 # Include Slang
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)

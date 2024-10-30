@@ -1,21 +1,23 @@
 #pragma once
-#include <pxr/base/gf/matrix3f.h>
-#include <pxr/base/gf/matrix4f.h>
-#include <pxr/base/gf/vec2f.h>
-#include <pxr/base/gf/vec3f.h>
-#include <pxr/base/gf/vec4f.h>
+#include <pxr/base/gf/frustum.h>
+#include <pxr/base/gf/matrix3d.h>
+#include <pxr/base/gf/matrix4d.h>
+#include <pxr/base/gf/quatd.h>
+#include <pxr/base/gf/rotation.h>  // Include GfRotation
+#include <pxr/base/gf/vec2d.h>
+#include <pxr/base/gf/vec3d.h>
+#include <pxr/base/gf/vec4d.h>
 
-#include <array>
 #include <optional>
 #include <unordered_map>
 
 #include "GLFW/glfw3.h"
 #include "USTC_CG.h"
+#include "pxr/usd/usdGeom/camera.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-// A camera with position and orientation. Methods for moving it come from
-// derived classes.
-class BaseCamera {
+
+class BaseCamera : public pxr::UsdGeomCamera {
    public:
     virtual void KeyboardUpdate(int key, int scancode, int action, int mods)
     {
@@ -32,64 +34,61 @@ class BaseCamera {
     virtual void JoystickButtonUpdate(int button, bool pressed)
     {
     }
-    virtual void JoystickUpdate(int axis, float value)
+    virtual void JoystickUpdate(int axis, double value)
     {
     }
-    virtual void Animate(float deltaT)
+    virtual void Animate(double deltaT)
     {
     }
     virtual ~BaseCamera() = default;
 
-    void SetMoveSpeed(float value)
+    void SetMoveSpeed(double value)
     {
         m_MoveSpeed = value;
     }
-    void SetRotateSpeed(float value)
+    void SetRotateSpeed(double value)
     {
         m_RotateSpeed = value;
     }
 
-    [[nodiscard]] const pxr::GfMatrix4f& GetWorldToViewMatrix() const
+    [[nodiscard]] const pxr::GfMatrix4d& GetWorldToViewMatrix() const
     {
         return m_MatWorldToView;
     }
-    [[nodiscard]] const pxr::GfMatrix4f& GetTranslatedWorldToViewMatrix() const
+    [[nodiscard]] const pxr::GfMatrix4d& GetTranslatedWorldToViewMatrix() const
     {
         return m_MatTranslatedWorldToView;
     }
-    [[nodiscard]] const pxr::GfVec3f& GetPosition() const
+    [[nodiscard]] const pxr::GfVec3d& GetPosition() const
     {
         return m_CameraPos;
     }
-    [[nodiscard]] const pxr::GfVec3f& GetDir() const
+    [[nodiscard]] const pxr::GfVec3d& GetDir() const
     {
         return m_CameraDir;
     }
-    [[nodiscard]] const pxr::GfVec3f& GetUp() const
+    [[nodiscard]] const pxr::GfVec3d& GetUp() const
     {
         return m_CameraUp;
     }
 
    protected:
-    // This can be useful for derived classes while not necessarily public,
-    // i.e., in a third person camera class, public clients cannot direct the
-    // gaze point.
     void BaseLookAt(
-        pxr::GfVec3f cameraPos,
-        pxr::GfVec3f cameraTarget,
-        pxr::GfVec3f cameraUp = pxr::GfVec3f{ 0.f, 1.f, 0.f });
+        pxr::GfVec3d cameraPos,
+        pxr::GfVec3d cameraTarget,
+        pxr::GfVec3d cameraUp = pxr::GfVec3d{ 0.0, 1.0, 0.0 });
     void UpdateWorldToView();
 
-    pxr::GfMatrix4f m_MatWorldToView = pxr::GfMatrix4f(1.0f);
-    pxr::GfMatrix4f m_MatTranslatedWorldToView = pxr::GfMatrix4f(1.0f);
+    pxr::GfMatrix4d m_MatWorldToView = pxr::GfMatrix4d(1.0);
+    pxr::GfMatrix4d m_MatTranslatedWorldToView = pxr::GfMatrix4d(1.0);
 
-    pxr::GfVec3f m_CameraPos = pxr::GfVec3f(0.f);              // in worldspace
-    pxr::GfVec3f m_CameraDir = pxr::GfVec3f(1.f, 0.f, 0.f);    // normalized
-    pxr::GfVec3f m_CameraUp = pxr::GfVec3f(0.f, 1.f, 0.f);     // normalized
-    pxr::GfVec3f m_CameraRight = pxr::GfVec3f(0.f, 0.f, 1.f);  // normalized
+    pxr::GfVec3d m_CameraPos = pxr::GfVec3d(0.0);
+    pxr::GfVec3d m_CameraDir = pxr::GfVec3d(1.0, 0.0, 0.0);
+    pxr::GfVec3d m_CameraUp = pxr::GfVec3d(0.0, 1.0, 0.0);
+    pxr::GfVec3d m_CameraRight = pxr::GfVec3d(0.0, 0.0, 1.0);
 
-    float m_MoveSpeed = 1.f;      // movement speed in units/second
-    float m_RotateSpeed = .005f;  // mouse sensitivity in radians/pixel
+    double m_MoveSpeed = 1.0;
+    double m_RotateSpeed = .005;
 };
 
 class FirstPersonCamera : public BaseCamera {
@@ -97,30 +96,29 @@ class FirstPersonCamera : public BaseCamera {
     void KeyboardUpdate(int key, int scancode, int action, int mods) override;
     void MousePosUpdate(double xpos, double ypos) override;
     void MouseButtonUpdate(int button, int action, int mods) override;
-    void Animate(float deltaT) override;
-    void AnimateSmooth(float deltaT);
+    void Animate(double deltaT) override;
+    void AnimateSmooth(double deltaT);
 
     void LookAt(
-        pxr::GfVec3f cameraPos,
-        pxr::GfVec3f cameraTarget,
-        pxr::GfVec3f cameraUp = pxr::GfVec3f{ 0.f, 1.f, 0.f });
+        pxr::GfVec3d cameraPos,
+        pxr::GfVec3d cameraTarget,
+        pxr::GfVec3d cameraUp = pxr::GfVec3d{ 0.0, 1.0, 0.0 });
     void LookTo(
-        pxr::GfVec3f cameraPos,
-        pxr::GfVec3f cameraDir,
-        pxr::GfVec3f cameraUp = pxr::GfVec3f{ 0.f, 1.f, 0.f });
+        pxr::GfVec3d cameraPos,
+        pxr::GfVec3d cameraDir,
+        pxr::GfVec3d cameraUp = pxr::GfVec3d{ 0.0, 1.0, 0.0 });
 
    private:
-    std::pair<bool, pxr::GfMatrix3f> AnimateRoll(
-        pxr::GfMatrix3f initialRotation);
-    std::pair<bool, pxr::GfVec3f> AnimateTranslation(float deltaT);
+    std::pair<bool, pxr::GfRotation> AnimateRoll(
+        pxr::GfRotation initialRotation);
+    std::pair<bool, pxr::GfVec3d> AnimateTranslation(double deltaT);
     void UpdateCamera(
-        pxr::GfVec3f cameraMoveVec,
-        pxr::GfMatrix3f cameraRotation);
+        pxr::GfVec3d cameraMoveVec,
+        pxr::GfRotation cameraRotation);
 
-    pxr::GfVec2f mousePos;
-    pxr::GfVec2f mousePosPrev;
-    // fields used only for AnimateSmooth()
-    pxr::GfVec2f mousePosDamp;
+    pxr::GfVec2d mousePos;
+    pxr::GfVec2d mousePosPrev;
+    pxr::GfVec2d mousePosDamp;
     bool isMoving = false;
 
     typedef enum {
@@ -193,78 +191,82 @@ class ThirdPersonCamera : public BaseCamera {
     void MouseButtonUpdate(int button, int action, int mods) override;
     void MouseScrollUpdate(double xoffset, double yoffset) override;
     void JoystickButtonUpdate(int button, bool pressed) override;
-    void JoystickUpdate(int axis, float value) override;
-    void Animate(float deltaT) override;
+    void JoystickUpdate(int axis, double value) override;
+    void Animate(double deltaT) override;
 
-    pxr::GfVec3f GetTargetPosition() const
+    pxr::GfVec3d GetTargetPosition() const
     {
         return m_TargetPos;
     }
-    void SetTargetPosition(pxr::GfVec3f position)
+    void SetTargetPosition(pxr::GfVec3d position)
     {
         m_TargetPos = position;
     }
 
-    float GetDistance() const
+    double GetDistance() const
     {
         return m_Distance;
     }
-    void SetDistance(float distance)
+    void SetDistance(double distance)
     {
         m_Distance = distance;
     }
 
-    float GetRotationYaw() const
+    double GetRotationYaw() const
     {
         return m_Yaw;
     }
-    float GetRotationPitch() const
+    double GetRotationPitch() const
     {
         return m_Pitch;
     }
-    void SetRotation(float yaw, float pitch);
+    void SetRotation(double yaw, double pitch);
 
-    float GetMaxDistance() const
+    double GetMaxDistance() const
     {
         return m_MaxDistance;
     }
-    void SetMaxDistance(float value)
+    void SetMaxDistance(double value)
     {
         m_MaxDistance = value;
     }
 
     void SetView(const pxr::GfFrustum& view);
 
-    void LookAt(pxr::GfVec3f cameraPos, pxr::GfVec3f cameraTarget);
+    void LookAt(pxr::GfVec3d cameraPos, pxr::GfVec3d cameraTarget);
     void LookTo(
-        pxr::GfVec3f cameraPos,
-        pxr::GfVec3f cameraDir,
-        std::optional<float> targetDistance = std::optional<float>());
+        pxr::GfVec3d cameraPos,
+        pxr::GfVec3d cameraDir,
+        std::optional<double> targetDistance = std::optional<double>());
+    void CartesianToSpherical(
+        const pxr::GfVec3d& cartesian,
+        double& azimuth,
+        double& elevation,
+        double& length);
 
    private:
-    void AnimateOrbit(float deltaT);
-    void AnimateTranslation(const pxr::GfMatrix3f& viewMatrix);
+    void AnimateOrbit(double deltaT);
+    void AnimateTranslation(const pxr::GfMatrix3d& viewMatrix);
 
-    // View parameters to derive translation amounts
-    pxr::GfMatrix4f m_ProjectionMatrix = pxr::GfMatrix4f(1.0f);
-    pxr::GfMatrix4f m_InverseProjectionMatrix = pxr::GfMatrix4f(1.0f);
-    pxr::GfVec2f m_ViewportSize = pxr::GfVec2f(0.0f);
+    pxr::GfMatrix4d m_ProjectionMatrix = pxr::GfMatrix4d(1.0);
+    pxr::GfMatrix4d m_InverseProjectionMatrix = pxr::GfMatrix4d(1.0);
+    pxr::GfVec2d m_ViewportSize = pxr::GfVec2d(0.0);
 
-    pxr::GfVec2f m_MousePos = pxr::GfVec2f(0.0f);
-    pxr::GfVec2f m_MousePosPrev = pxr::GfVec2f(0.0f);
+    pxr::GfVec2d m_MousePos = pxr::GfVec2d(0.0);
+    pxr::GfVec2d m_MousePosPrev = pxr::GfVec2d(0.0);
 
-    pxr::GfVec3f m_TargetPos = pxr::GfVec3f(0.0f);
-    float m_Distance = 30.f;
+    pxr::GfVec3d m_TargetPos = pxr::GfVec3d(0.0);
+    double m_Distance = 30.0;
 
-    float m_MinDistance = 0.f;
-    float m_MaxDistance = std::numeric_limits<float>::max();
+    double m_MinDistance = 0.0;
+    double m_MaxDistance = std::numeric_limits<double>::max();
 
-    float m_Yaw = 0.f;
-    float m_Pitch = 0.f;
+    double m_Yaw = 0.0;
+    double m_Pitch = 0.0;
 
-    float m_DeltaYaw = 0.f;
-    float m_DeltaPitch = 0.f;
-    float m_DeltaDistance = 0.f;
+    double m_DeltaYaw = 0.0;
+    double m_DeltaPitch = 0.0;
+    double m_DeltaDistance = 0.0;
 
     typedef enum {
         HorizontalPan,

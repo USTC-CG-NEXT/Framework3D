@@ -1,4 +1,3 @@
-#define __GNUC__
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -13,6 +12,7 @@
 #
 #include "GLFW/glfw3.h"
 #include "Logging/Logging.h"
+#include "free_camera.hpp"
 #include "pxr/base/gf/camera.h"
 #include "pxr/base/gf/frustum.h"
 #include "pxr/base/gf/matrix4f.h"

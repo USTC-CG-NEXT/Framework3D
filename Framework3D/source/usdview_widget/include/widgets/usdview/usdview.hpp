@@ -7,8 +7,10 @@
 #include "GUI/widget.h"
 #include "USTC_CG.h"
 #include "pxr/usd/usd/stage.h"
+#include "pxr/usdImaging/usdImagingGL/engine.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class BaseCamera;
 class FreeCamera;
 class NodeTree;
 class UsdviewEngine : public IWidget {
@@ -40,7 +42,7 @@ class UsdviewEngine : public IWidget {
 
     unsigned fbo = 0;
     unsigned tex = 0;
-    std::unique_ptr<FreeCamera> free_camera_;
+    std::unique_ptr<BaseCamera> free_camera_;
     bool is_hovered_ = false;
     std::unique_ptr<pxr::UsdImagingGLEngine> renderer_;
     pxr::UsdImagingGLRenderParams _renderParams;
