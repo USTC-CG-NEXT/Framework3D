@@ -1,5 +1,5 @@
 #pragma once
-
+#define __GNUC__
 #include <complex.h>
 
 #include <memory>

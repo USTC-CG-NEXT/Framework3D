@@ -81,7 +81,7 @@ void UsdviewEngine::OnFrame(float delta_time)
     DrawMenuBar();
     // Update the camera when mouse is in the subwindow
     // CameraCallback(delta_time);
-
+    
     using namespace pxr;
     GfFrustum frustum = free_camera_->GetFrustum();
 
@@ -353,7 +353,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     GarchGLApiLoad();
     glGenFramebuffers(1, &fbo);
 
-    renderer_ = std::make_unique<UsdImagingGLEngine>();
+    renderer_ = std::make_unique<UsdImagingGLEngine>(params);
     renderer_->SetEnablePresentation(true);
     free_camera_ = std::make_unique<FirstPersonCamera>();
 

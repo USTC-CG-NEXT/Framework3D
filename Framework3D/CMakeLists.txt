@@ -91,6 +91,9 @@ if(USTC_CG_WITH_PYTHON)
 endif()
 
 
+find_package(Vulkan REQUIRED)
+find_package(OpenGL REQUIRED)
+
 set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})
 find_package(pxr)
 if(pxr_FOUND)
