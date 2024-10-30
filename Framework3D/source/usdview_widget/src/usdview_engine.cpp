@@ -1,4 +1,4 @@
-
+#define __GNUC__
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -11,22 +11,24 @@
 #include "imgui.h"
 #include "widgets/usdview/usdview.hpp"
 #
+#include "GLFW/glfw3.h"
 #include "Logging/Logging.h"
 #include "pxr/base/gf/camera.h"
+#include "pxr/base/gf/frustum.h"
+#include "pxr/base/gf/matrix4f.h"
+#include "pxr/base/gf/range1f.h"
 #include "pxr/imaging/glf/drawTarget.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/stage.h"
-#include "pxr/usdImaging/usdImagingGL/engine.h"
 #include "pxr/usd/usdGeom/camera.h"
+#include "pxr/usdImaging/usdImagingGL/engine.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
 using namespace pxr;
-
-class FreeCamera : public pxr::UsdGeomCamera {
-    
-};
+// A camera with position and orientation. Methods for moving it come from
+// derived classes.
 
 void UsdviewEngine::DrawMenuBar()
 {
@@ -81,26 +83,23 @@ void UsdviewEngine::DrawMenuBar()
     ImGui::EndMenuBar();
 }
 
-void UsdviewEngine::OnFrame(
-    float delta_time,
-    NodeTree* node_tree,
-    NodeTreeExecutor* executor)
+void UsdviewEngine::OnFrame(float delta_time)
 {
     DrawMenuBar();
     // Update the camera when mouse is in the subwindow
     CameraCallback(delta_time);
-
-    auto frustum = free_camera_->GetFrustum();
+    using namespace pxr;
+    GfFrustum frustum = free_camera_->GetFrustum();
 
     GfMatrix4d projectionMatrix = frustum.ComputeProjectionMatrix();
     GfMatrix4d viewMatrix = frustum.ComputeViewMatrix();
 
     renderer_->SetCameraState(viewMatrix, projectionMatrix);
     renderer_->SetRendererAov(HdAovTokens->color);
-    renderer_->SetRendererSetting(
-        TfToken("RenderNodeTree"), VtValue((void*)node_tree));
-    renderer_->SetRendererSetting(
-        TfToken("RenderNodeTreeExecutor"), VtValue((void*)executor));
+    // renderer_->SetRendererSetting(
+    //     TfToken("RenderNodeTree"), VtValue((void*)node_tree));
+    // renderer_->SetRendererSetting(
+    //     TfToken("RenderNodeTreeExecutor"), VtValue((void*)executor));
 
     _renderParams.enableLighting = true;
     _renderParams.enableSceneMaterials = true;
@@ -347,7 +346,7 @@ bool UsdviewEngine::BuildUI(
         if (size.x > 0 && size.y > 0) {
             OnResize(size.x, size.y);
 
-            OnFrame(delta_time, render_node_tree, get_executor);
+            OnFrame(delta_time);
             // time_controller(delta_time);
         }
     }

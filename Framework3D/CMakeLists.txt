@@ -10,6 +10,20 @@ project(
   LANGUAGES C CXX
 )
 
+set(OUT_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Binaries/${CMAKE_BUILD_TYPE})
+message("Build binaries to ${OUT_BINARY_DIR}")
+set(OUTPUT_DIR 
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG          "${OUT_BINARY_DIR}"
+  RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OUT_BINARY_DIR}"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE        "${OUT_BINARY_DIR}"
+)
+
+# For testing
+enable_testing()
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/googletest)
+set_target_properties(gtest PROPERTIES ${OUTPUT_DIR})
+set_target_properties(gtest_main PROPERTIES ${OUTPUT_DIR})
+
 include(cmake/AddLibrary.cmake)
 
 
@@ -42,13 +56,7 @@ endif()
 set(CMAKE_CUDA_STANDARD 20)
 
 
-set(OUT_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Binaries/${CMAKE_BUILD_TYPE})
-message("Build binaries to ${OUT_BINARY_DIR}")
-set(OUTPUT_DIR 
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG          "${OUT_BINARY_DIR}"
-  RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OUT_BINARY_DIR}"
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE        "${OUT_BINARY_DIR}"
-)
+
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
   set(SDK_FOLDER ${CMAKE_BUILD_TYPE})
@@ -99,9 +107,9 @@ endif()
 endif()
 
 
+
 # Include Slang
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
 
 set(DXC_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/dxc)
 find_package(DXC REQUIRED)
@@ -124,9 +132,5 @@ target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
 
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/renderer)
 
-# For testing
-enable_testing()
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/googletest)
-set_target_properties(gtest PROPERTIES ${OUTPUT_DIR})
-set_target_properties(gtest_main PROPERTIES ${OUTPUT_DIR})
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)

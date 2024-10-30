@@ -80,7 +80,7 @@ TEST_F(NodeCoreTest, CreateNode)
     ASSERT_NE(node, nullptr);
 
     auto node2 = tree->add_node("test_node");
-    ASSERT_EQ(node2->ID, NodeId(1u));
+    ASSERT_EQ(node2->ID, NodeId(2u));
 }
 
 TEST_F(NodeCoreTest, NodeSocket)

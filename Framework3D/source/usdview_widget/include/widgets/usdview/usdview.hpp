@@ -9,6 +9,7 @@
 #include "pxr/usd/usd/stage.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class FreeCamera;
 class NodeTree;
 class UsdviewEngine : public IWidget {
    public:
@@ -41,14 +42,13 @@ class UsdviewEngine : public IWidget {
     unsigned tex = 0;
     std::unique_ptr<FreeCamera> free_camera_;
     bool is_hovered_ = false;
-    std::unique_ptr<UsdImagingGLEngine> renderer_;
-    UsdImagingGLRenderParams _renderParams;
-    GfVec2i renderBufferSize_;
+    std::unique_ptr<pxr::UsdImagingGLEngine> renderer_;
+    pxr::UsdImagingGLRenderParams _renderParams;
+    pxr::GfVec2i renderBufferSize_;
     bool is_active_;
 
     void DrawMenuBar();
-    void
-    OnFrame(float delta_time, NodeTree* node_tree, NodeTreeExecutor* executor);
+    void OnFrame(float delta_time);
     void refresh_platform_texture();
     void refresh_viewport(int x, int y);
     void OnResize(int x, int y);

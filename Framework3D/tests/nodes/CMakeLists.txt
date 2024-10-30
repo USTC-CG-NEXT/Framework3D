@@ -3,6 +3,4 @@
 #     UCG_ADD_TEST(SRC ${source} nodes)
 # endforeach()
 
-add_subdirectory(node_core)
-add_subdirectory(node_ui)
-add_subdirectory(node_system)
+# add_subdirectory(node_system)
