@@ -304,6 +304,53 @@ bool UsdviewEngine::CameraCallback(float delta_time)
 
     return false;
 }
+bool UsdviewEngine::JoystickButtonUpdate(int button, bool pressed)
+{
+    free_camera_->JoystickButtonUpdate(button, pressed);
+    return true;
+}
+
+bool UsdviewEngine::JoystickAxisUpdate(int axis, float value)
+{
+    free_camera_->JoystickUpdate(axis, value);
+    return true;
+}
+
+bool UsdviewEngine::KeyboardUpdate(int key, int scancode, int action, int mods)
+{
+    free_camera_->KeyboardUpdate(key, scancode, action, mods);
+    return true;
+}
+
+bool UsdviewEngine::KeyboardCharInput(unsigned unicode, int mods)
+{
+    free_camera_->KeyboardUpdate(unicode, 0, 0, mods);
+    return true;
+}
+
+bool UsdviewEngine::MousePosUpdate(double xpos, double ypos)
+{
+    free_camera_->MousePosUpdate(xpos, ypos);
+    return true;
+}
+
+bool UsdviewEngine::MouseScrollUpdate(double xoffset, double yoffset)
+{
+    free_camera_->MouseScrollUpdate(xoffset, yoffset);
+    return true;
+}
+
+bool UsdviewEngine::MouseButtonUpdate(int button, int action, int mods)
+{
+    free_camera_->MouseButtonUpdate(button, action, mods);
+    return true;
+}
+
+void UsdviewEngine::Animate(float elapsed_time_seconds)
+{
+    free_camera_->Animate(elapsed_time_seconds);
+    IWidget::Animate(elapsed_time_seconds);
+}
 
 UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 {

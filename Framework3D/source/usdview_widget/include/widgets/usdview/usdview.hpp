@@ -13,7 +13,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 class BaseCamera;
 class FreeCamera;
 class NodeTree;
-class UsdviewEngine : public IWidget {
+class UsdviewEngine final : public IWidget {
    public:
     explicit UsdviewEngine(pxr::UsdStageRefPtr root_stage);
     ~UsdviewEngine() override;
@@ -56,5 +56,15 @@ class UsdviewEngine : public IWidget {
     void OnResize(int x, int y);
     // void time_controller(float delta_time);
     bool CameraCallback(float delta_time);
+
+protected:
+    bool JoystickButtonUpdate(int button, bool pressed) override;
+    bool JoystickAxisUpdate(int axis, float value) override;
+    bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
+    bool KeyboardCharInput(unsigned unicode, int mods) override;
+    bool MousePosUpdate(double xpos, double ypos) override;
+    bool MouseScrollUpdate(double xoffset, double yoffset) override;
+    bool MouseButtonUpdate(int button, int action, int mods) override;
+    void Animate(float elapsed_time_seconds) override;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE
