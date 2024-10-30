@@ -105,11 +105,19 @@ def process_usd(targets, dry_run=False, keep_original_files=True):
         use_debug_python = ""
 
     for target in targets:
-        build_command = f"python {build_script} --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {target.lower()} ./SDK/OpenUSD/{target}"
+        vulkan_support = ""
+        if "VULKAN_SDK" in os.environ:
+            vulkan_support = "-DPXR_ENABLE_VULKAN_SUPPORT=ON"
+        else:
+            print("Warning: VULKAN_SDK is not in the path. Highly recommend setting it for Vulkan support.")
+        
+        build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {target.lower()} ./SDK/OpenUSD/{target}"
+        
         if dry_run:
             print(f"[DRY RUN] Would run: {build_command}")
         else:
             os.system(build_command)
+
     
     # Copy the built binaries to the Binaries folder
     for target in targets:

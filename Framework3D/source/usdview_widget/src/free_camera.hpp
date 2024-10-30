@@ -56,10 +56,6 @@ class BaseCamera : public pxr::UsdGeomCamera {
     {
         return m_MatWorldToView;
     }
-    [[nodiscard]] const pxr::GfMatrix4d& GetTranslatedWorldToViewMatrix() const
-    {
-        return m_MatTranslatedWorldToView;
-    }
     [[nodiscard]] const pxr::GfVec3d& GetPosition() const
     {
         return m_CameraPos;
@@ -81,7 +77,6 @@ class BaseCamera : public pxr::UsdGeomCamera {
     void UpdateWorldToView();
 
     pxr::GfMatrix4d m_MatWorldToView = pxr::GfMatrix4d(1.0);
-    pxr::GfMatrix4d m_MatTranslatedWorldToView = pxr::GfMatrix4d(1.0);
 
     pxr::GfVec3d m_CameraPos = pxr::GfVec3d(0.0);
     pxr::GfVec3d m_CameraDir = pxr::GfVec3d(1.0, 0.0, 0.0);

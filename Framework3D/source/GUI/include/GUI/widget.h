@@ -14,6 +14,8 @@ class USTC_CG_API IWidget {
     virtual bool BuildUI() = 0;
 
    protected:
+    virtual void
+    BackBufferResized(unsigned width, unsigned height, unsigned sampleCount);
     virtual bool JoystickButtonUpdate(int button, bool pressed);
     virtual bool JoystickAxisUpdate(int axis, float value);
     virtual bool KeyboardUpdate(int key, int scancode, int action, int mods);

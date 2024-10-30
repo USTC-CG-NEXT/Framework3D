@@ -1,12 +1,7 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-// #include "GUI/usdview_engine.h"
 
-// #include "GUI/ui_event.h"
-// #include "Nodes/GlobalUsdStage.h"
-// #include "Utils/Logging/Logging.h"
-// #include "free_camera.h"
 #include "imgui.h"
 #include "widgets/usdview/usdview.hpp"
 #
@@ -27,8 +22,6 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
 using namespace pxr;
-// A camera with position and orientation. Methods for moving it come from
-// derived classes.
 
 void UsdviewEngine::DrawMenuBar()
 {
@@ -87,7 +80,8 @@ void UsdviewEngine::OnFrame(float delta_time)
 {
     DrawMenuBar();
     // Update the camera when mouse is in the subwindow
-    CameraCallback(delta_time);
+    // CameraCallback(delta_time);
+
     using namespace pxr;
     GfFrustum frustum = free_camera_->GetFrustum();
 
@@ -274,36 +268,37 @@ void UsdviewEngine::set_current_time_code(float time_code)
 //{
 //     return std::move(pick_event);
 // }
+//
+// bool UsdviewEngine::CameraCallback(float delta_time)
+//{
+//    ImGuiIO& io = ImGui::GetIO();
+//    if (is_active_) {
+//        free_camera_->KeyboardUpdate();
+//    }
+//
+//    if (is_hovered_) {
+//        for (int i = 0; i < 5; ++i) {
+//            if (io.MouseClicked[i]) {
+//                free_camera_->MouseButtonUpdate(i);
+//            }
+//        }
+//        float fovAdjustment = io.MouseWheel * 5.0f;
+//        if (fovAdjustment != 0) {
+//            free_camera_->MouseScrollUpdate(fovAdjustment);
+//        }
+//    }
+//    for (int i = 0; i < 5; ++i) {
+//        if (io.MouseReleased[i]) {
+//            free_camera_->MouseButtonUpdate(i);
+//        }
+//    }
+//    free_camera_->MousePosUpdate(io.MousePos.x, io.MousePos.y);
+//
+//    free_camera_->Animate(delta_time);
+//
+//    return false;
+//}
 
-bool UsdviewEngine::CameraCallback(float delta_time)
-{
-    ImGuiIO& io = ImGui::GetIO();
-    if (is_active_) {
-        free_camera_->KeyboardUpdate();
-    }
-
-    if (is_hovered_) {
-        for (int i = 0; i < 5; ++i) {
-            if (io.MouseClicked[i]) {
-                free_camera_->MouseButtonUpdate(i);
-            }
-        }
-        float fovAdjustment = io.MouseWheel * 5.0f;
-        if (fovAdjustment != 0) {
-            free_camera_->MouseScrollUpdate(fovAdjustment);
-        }
-    }
-    for (int i = 0; i < 5; ++i) {
-        if (io.MouseReleased[i]) {
-            free_camera_->MouseButtonUpdate(i);
-        }
-    }
-    free_camera_->MousePosUpdate(io.MousePos.x, io.MousePos.y);
-
-    free_camera_->Animate(delta_time);
-
-    return false;
-}
 bool UsdviewEngine::JoystickButtonUpdate(int button, bool pressed)
 {
     free_camera_->JoystickButtonUpdate(button, pressed);
@@ -353,6 +348,7 @@ void UsdviewEngine::Animate(float elapsed_time_seconds)
 }
 
 UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
+    : root_stage_(root_stage)
 {
     GarchGLApiLoad();
     glGenFramebuffers(1, &fbo);
@@ -408,11 +404,11 @@ float UsdviewEngine::current_time_code()
 {
     return timecode;
 }
-
-void UsdviewEngine::set_current_time_code(float time_code)
-{
-    timecode = time_code;
-}
+//
+// void UsdviewEngine::set_current_time_code(float time_code)
+//{
+//    timecode = time_code;
+//}
 
 // std::unique_ptr<PickEvent> UsdviewEngine::get_pick_event()
 //{

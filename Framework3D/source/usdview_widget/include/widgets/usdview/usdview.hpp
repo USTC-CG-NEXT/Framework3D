@@ -49,15 +49,16 @@ class UsdviewEngine final : public IWidget {
     pxr::GfVec2i renderBufferSize_;
     bool is_active_;
 
+    pxr::UsdStageRefPtr root_stage_;
+
     void DrawMenuBar();
     void OnFrame(float delta_time);
     void refresh_platform_texture();
     void refresh_viewport(int x, int y);
     void OnResize(int x, int y);
     // void time_controller(float delta_time);
-    bool CameraCallback(float delta_time);
 
-protected:
+   protected:
     bool JoystickButtonUpdate(int button, bool pressed) override;
     bool JoystickAxisUpdate(int axis, float value) override;
     bool KeyboardUpdate(int key, int scancode, int action, int mods) override;

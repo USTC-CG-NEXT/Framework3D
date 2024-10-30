@@ -12,7 +12,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 void BaseCamera::UpdateWorldToView()
 {
-    m_MatTranslatedWorldToView = pxr::GfMatrix4d(
+    auto m_MatTranslatedWorldToView = pxr::GfMatrix4d(
         m_CameraRight[0],
         m_CameraUp[0],
         m_CameraDir[0],
@@ -31,6 +31,13 @@ void BaseCamera::UpdateWorldToView()
         1.0);
     m_MatWorldToView = pxr::GfMatrix4d().SetTranslate(-m_CameraPos) *
                        m_MatTranslatedWorldToView;
+
+    auto xform_op = GetTransformOp();
+    if (!xform_op) {
+        xform_op = AddTransformOp();
+    }
+    // Set the transform op
+    xform_op.Set(m_MatWorldToView.GetInverse());
 }
 
 void BaseCamera::BaseLookAt(
