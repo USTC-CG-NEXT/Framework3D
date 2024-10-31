@@ -4,6 +4,7 @@
 
 #include "GUI/widget.h"
 #include "USTC_CG.h"
+#include "nvrhi/nvrhi.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usdImaging/usdImagingGL/engine.h"
 
@@ -38,8 +39,15 @@ class USTC_CG_API UsdviewEngine final : public IWidget {
     bool playing = false;
     bool is_editing = false;
 
+#if USDVIEW_WITH_VULKAN
+
+    nvrhi::TextureHandle tex;
+    nvrhi::FramebufferHandle fbo;
+
+#else
     unsigned fbo = 0;
     unsigned tex = 0;
+#endif
     std::unique_ptr<BaseCamera> free_camera_;
     bool is_hovered_ = false;
     std::unique_ptr<pxr::UsdImagingGLEngine> renderer_;
@@ -48,12 +56,14 @@ class USTC_CG_API UsdviewEngine final : public IWidget {
     bool is_active_;
 
     pxr::UsdStageRefPtr root_stage_;
+    pxr::HgiUniquePtr hgi;
+    nvrhi::TextureHandle nvrhi_texture;
 
     void DrawMenuBar();
     void OnFrame(float delta_time);
 
     static void CreateGLContext();
-    // void refresh_platform_texture();
+    void refresh_platform_texture();
     // void refresh_viewport(int x, int y);
     // void OnResize(int x, int y);
     //  void time_controller(float delta_time);

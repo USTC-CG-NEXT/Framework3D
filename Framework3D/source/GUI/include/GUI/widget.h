@@ -28,10 +28,22 @@ class USTC_CG_API IWidget {
     // Give a widget ability to create another widget.
     Window* window;
 
+    [[nodiscard]] unsigned get_width() const
+    {
+        return width;
+    }
+    [[nodiscard]] unsigned get_height() const
+    {
+        return height;
+    }
+
    private:
     friend class Window;
     friend class DockingImguiRenderer;
     void set_window(Window* window);
+
+    unsigned width;
+    unsigned height;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

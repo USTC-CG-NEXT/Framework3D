@@ -195,9 +195,9 @@ void DockingImguiRenderer::buildUI()
 
 Window::Window()
 {
-    rhi::init(true);
+    RHI::init(true);
 
-    auto manager = rhi::internal::get_device_manager();
+    auto manager = RHI::internal::get_device_manager();
     imguiRenderPass = std::make_unique<DockingImguiRenderer>(manager);
     imguiRenderPass->Init(std::make_shared<ShaderFactory>());
 
@@ -210,16 +210,16 @@ Window::Window()
 
 Window::~Window()
 {
-    auto manager = rhi::internal::get_device_manager();
+    auto manager = RHI::internal::get_device_manager();
 
     manager->RemoveRenderPass(imguiRenderPass.get());
     imguiRenderPass.reset();
-    rhi::shutdown();
+    RHI::shutdown();
 }
 
 void Window::run()
 {
-    auto manager = rhi::internal::get_device_manager();
+    auto manager = RHI::internal::get_device_manager();
     manager->RunMessageLoop();
 }
 

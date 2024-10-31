@@ -13,4 +13,9 @@ if(SLANG_FOUND)
 			VULKAN_HPP_STORAGE_SHARED 
 			VULKAN_HPP_STORAGE_SHARED_IMPORT
 	)
+
+	if(TARGET hgi)
+		target_link_libraries(RHI PUBLIC hgi)
+		target_compile_definitions(RHI PUBLIC RHI_WITH_OPENUSD_HGI=1)
+	endif()
 endif()

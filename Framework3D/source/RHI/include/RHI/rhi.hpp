@@ -7,7 +7,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class DeviceManager;
 
-namespace rhi {
+namespace RHI {
 
 USTC_CG_API int init(bool with_window = false, bool use_dx12 = false);
 USTC_CG_API int shutdown();
@@ -24,5 +24,5 @@ namespace internal {
 
 }
 
-}  // namespace rhi
+}  // namespace RHI
 USTC_CG_NAMESPACE_CLOSE_SCOPE

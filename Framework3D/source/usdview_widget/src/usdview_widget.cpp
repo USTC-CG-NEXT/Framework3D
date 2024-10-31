@@ -1,4 +1,3 @@
-
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -8,6 +7,8 @@
 #include <pxr/imaging/hd/driver.h>
 
 #include "Logging/Logging.h"
+#include "RHI/Hgi/format_conversion.hpp"
+#include "RHI/rhi.hpp"
 #include "free_camera.hpp"
 #include "imgui.h"
 #include "pxr/base/gf/camera.h"
@@ -17,12 +18,12 @@
 #include "pxr/imaging/garch/glPlatformContext.h"
 #include "pxr/imaging/glf/drawTarget.h"
 #include "pxr/imaging/hgi/tokens.h"
+#include "pxr/imaging/hgiVulkan/graphicsPipeline.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/camera.h"
 #include "pxr/usdImaging/usdImagingGL/engine.h"
-
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
 
@@ -136,21 +137,46 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     UsdPrim root = root_stage_->GetPseudoRoot();
 
-    renderer_->Render(root, _renderParams);
+    // #if USDVIEW_WITH_VULKAN
+    //     VkFramebuffer hgi_framebuffer =
+    //         fbo->getNativeObject(nvrhi::ObjectTypes::VK_Framebuffer);
+    //     renderer_->SetPresentationOutput(
+    //         pxr::TfToken("Vulkan"), pxr::VtValue((void*)(hgi_framebuffer)));
+    // #else
+    //     renderer_->SetPresentationOutput(pxr::TfToken("Vulkan"),
+    //     pxr::VtValue(fbo));
+    // #endif
 
-    renderer_->SetPresentationOutput(pxr::TfToken("OpenGL"), pxr::VtValue(fbo));
+    renderer_->Render(root, _renderParams);
+    auto color = renderer_->GetAovTexture(HdAovTokens->color);
+    VkImage img = reinterpret_cast<VkImage>(color->GetRawResource());
+
+#if USDVIEW_WITH_VULKAN
+    auto device = RHI::get_device();
+
+    nvrhi::TextureDesc tex_desc;
+    tex_desc.width = renderBufferSize_[0];
+    tex_desc.height = renderBufferSize_[1];
+    tex_desc.format = RHI::ConvertToNvrhiFormat(color->GetDescriptor().format);
+    tex_desc.isRenderTarget = true;
+    tex_desc.isShaderResource = true;
+    tex_desc.isUAV = false;
+    tex_desc.debugName = "UsdviewEngineTexture";
+
+    nvrhi_texture = device->createHandleForNativeTexture(
+        nvrhi::ObjectTypes::VK_Image, img, tex_desc);
+
+#endif
 
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    auto imgui_frame_size = ImVec2(renderBufferSize_[0], renderBufferSize_[1]);
 
-    // auto imgui_frame_size = ImVec2(renderBufferSize_[0],
-    // renderBufferSize_[1]);
-
-    // ImGui::BeginChild("ViewPort", imgui_frame_size, 0,
-    // ImGuiWindowFlags_NoMove); ImGui::Image(
-    //     ImTextureID(tex),
-    //     imgui_frame_size,
-    //     ImVec2(0.0f, 1.0f),
-    //     ImVec2(1.0f, 0.0f));
+    ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
+    ImGui::Image(
+        ImTextureID(nvrhi_texture),
+        imgui_frame_size,
+        ImVec2(0.0f, 1.0f),
+        ImVec2(1.0f, 0.0f));
     // is_active_ = ImGui::IsWindowFocused();
     // is_hovered_ = ImGui::IsItemHovered();
 
@@ -202,35 +228,54 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     ImGui::EndChild();
 }
-//
-// void UsdviewEngine::refresh_platform_texture()
-//{
-//    if (tex) {
-//        glDeleteTextures(1, &tex);
-//    }
-//    glGenTextures(1, &tex);
-//
-//    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-//    glBindTexture(GL_TEXTURE_2D, tex);
-//    glTexImage2D(
-//        GL_TEXTURE_2D,
-//        0,
-//        GL_RGBA8,
-//        renderBufferSize_[0],
-//        renderBufferSize_[1],
-//        0,
-//        GL_RGBA,
-//        GL_UNSIGNED_BYTE,
-//        NULL);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//    glFramebufferTexture2D(
-//        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-//    glBindTexture(GL_TEXTURE_2D, 0);
-//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//}
+
+void UsdviewEngine::refresh_platform_texture()
+{
+#if USDVIEW_WITH_VULKAN
+    auto device = RHI::get_device();
+
+    nvrhi::TextureDesc tex_desc;
+    tex_desc.width = renderBufferSize_[0];
+    tex_desc.height = renderBufferSize_[1];
+    tex_desc.format = nvrhi::Format::RGBA8_UNORM;
+    tex_desc.isRenderTarget = true;
+    tex_desc.isShaderResource = true;
+    tex_desc.isUAV = false;
+    tex_desc.debugName = "UsdviewEngineTexture";
+
+    tex = device->createTexture(tex_desc);
+
+    fbo = device->createFramebuffer(
+        nvrhi::FramebufferDesc().addColorAttachment(tex));
+
+#else
+    if (tex) {
+        glDeleteTextures(1, &tex);
+    }
+    glGenTextures(1, &tex);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA8,
+        renderBufferSize_[0],
+        renderBufferSize_[1],
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
+}
 //
 // void UsdviewEngine::refresh_viewport(int x, int y)
 //{
@@ -364,6 +409,13 @@ void UsdviewEngine::BackBufferResized(
     unsigned sampleCount)
 {
     IWidget::BackBufferResized(width, height, sampleCount);
+
+    renderBufferSize_[0] = width;
+    renderBufferSize_[1] = height;
+
+    renderer_->SetRenderBufferSize(renderBufferSize_);
+    renderer_->SetRenderViewport(pxr::GfVec4d{
+        0.0, 0.0, double(renderBufferSize_[0]), double(renderBufferSize_[1]) });
 }
 
 void UsdviewEngine::CreateGLContext()
@@ -420,7 +472,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     params.driver = pxr::HdDriver();
     // Initialize Vulkan driver
 
-    auto hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->Vulkan);
+    hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->Vulkan);
     pxr::HdDriver hdDriver;
     hdDriver.name = pxr::HgiTokens->renderDriver;
     hdDriver.driver =
@@ -439,6 +491,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
         log::info(plugin.GetText());
     }
     renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
+
     // free_camera_->SetProjection(GfCamera::Projection::Perspective);
     // free_camera_->SetClippingRange(pxr::GfRange1f{ 0.1f, 1000.f });
 }
@@ -464,12 +517,14 @@ bool UsdviewEngine::BuildUI(
         ImGui::PopStyleVar(1);
 
         auto size = ImGui::GetContentRegionAvail();
-        size.y -= 28;
+        // size.y -= 28;
+        BackBufferResized(size.x, size.y, 1);
+        refresh_platform_texture();
 
         // if (size.x > 0 && size.y > 0) {
         //     OnResize(size.x, size.y);
 
-        //    OnFrame(delta_time);
+        OnFrame(delta_time);
         //    // time_controller(delta_time);
         //}
     }

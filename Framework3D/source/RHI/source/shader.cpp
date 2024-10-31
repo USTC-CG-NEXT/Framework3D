@@ -454,7 +454,7 @@ ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc)
     ProgramHandle ret = ProgramHandle::Create(new Program);
 
     SlangCompileTarget target =
-        (rhi::get_backend() == nvrhi::GraphicsAPI::VULKAN) ? SLANG_SPIRV
+        (RHI::get_backend() == nvrhi::GraphicsAPI::VULKAN) ? SLANG_SPIRV
                                                            : SLANG_DXIL;
 
     SlangCompile(

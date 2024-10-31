@@ -772,7 +772,7 @@ nvrhi::TextureHandle NodeWidget::LoadTexture(
         desc.initialState = nvrhi::ResourceStates::ShaderResource;
         desc.keepInitialState = true;
 
-        auto texture = rhi::load_texture(desc, loaded_data);
+        auto texture = RHI::load_texture(desc, loaded_data);
         stbi_image_free(loaded_data);
         return texture;
     }

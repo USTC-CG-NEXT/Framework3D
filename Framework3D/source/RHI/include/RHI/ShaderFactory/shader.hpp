@@ -7,7 +7,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 class ShaderFactory {
    public:
-    ShaderFactory() : device(rhi::get_device())
+    ShaderFactory() : device(RHI::get_device())
     {
         shader_search_path =
             "C:\\Users\\pengfei\\WorkSpace\\USTC_CG_"
