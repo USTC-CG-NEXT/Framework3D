@@ -8,12 +8,11 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class UsdFileViewer : public IWidget {
    public:
-    explicit UsdFileViewer();
+    explicit UsdFileViewer(const pxr::UsdStageRefPtr& stage);
 
     ~UsdFileViewer() override;
 
     bool BuildUI() override;
-    void set_stage(pxr::UsdStageRefPtr root_stage);
 
    private:
     void ShowFileTree();

@@ -17,8 +17,7 @@ TEST(USDWIDGET, create_widget)
     auto sphere =
         pxr::UsdGeomSphere::Define(root_stage, pxr::SdfPath("/sphere"));
 
-    auto widget = std::make_unique<UsdFileViewer>();
-    widget->set_stage(root_stage);
+    auto widget = std::make_unique<UsdFileViewer>(root_stage);
 
     auto window = std::make_unique<Window>();
 

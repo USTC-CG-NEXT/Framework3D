@@ -17,15 +17,6 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-UsdFileViewer::UsdFileViewer()
-{
-}
-
-void UsdFileViewer::set_stage(pxr::UsdStageRefPtr root_stage)
-{
-    stage = root_stage;
-}
-
 void UsdFileViewer::ShowFileTree()
 {
     auto root = stage->GetPseudoRoot();
@@ -57,7 +48,7 @@ void UsdFileViewer::ShowPrimInfo()
         UsdPrim prim = stage->GetPrimAtPath(selected);
         if (prim) {
             auto properties = prim.GetAttributes();
-
+            
             for (auto&& attr : properties) {
                 ImGui::TableNextRow();
 
@@ -177,6 +168,10 @@ bool UsdFileViewer::BuildUI()
     ImGui::End();
 
     return true;
+}
+
+UsdFileViewer::UsdFileViewer(const pxr::UsdStageRefPtr& stage) : stage(stage)
+{
 }
 
 UsdFileViewer::~UsdFileViewer()

@@ -1,10 +1,12 @@
 
+#include "widgets/usdview/usdview_widget.hpp"
+
 #include <gtest/gtest.h>
 
 #include "GUI/window.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
-#include "widgets/usdview/usdview_widget.hpp"
+#include "widgets/usdtree/usd_fileviewer.h"
 using namespace USTC_CG;
 
 TEST(USDWIDGET, create_widget)
@@ -14,11 +16,13 @@ TEST(USDWIDGET, create_widget)
     auto sphere =
         pxr::UsdGeomSphere::Define(root_stage, pxr::SdfPath("/sphere"));
 
-    auto widget = std::make_unique<UsdviewEngine>(root_stage);
+    auto view_engine = std::make_unique<UsdviewEngine>(root_stage);
+    auto fileviewer = std::make_unique<UsdFileViewer>(root_stage);
 
     auto window = std::make_unique<Window>();
 
-    window->register_widget(std::move(widget));
+    window->register_widget(std::move(view_engine));
+    window->register_widget(std::move(fileviewer));
 
     window->run();
 
