@@ -4,7 +4,7 @@
 #include "GUI/window.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
-#include "widgets/usdview/usdview.hpp"
+#include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
 
 TEST(USDWIDGET, create_widget)

@@ -4,11 +4,10 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 void IWidget::BackBufferResized(
-    const unsigned width,
-    const unsigned height,
-    const unsigned sampleCount)
+    unsigned width,
+    unsigned height,
+    unsigned sampleCount)
 {
-    log::error("Not implemented");
 }
 
 bool IWidget::JoystickButtonUpdate(int button, bool pressed)

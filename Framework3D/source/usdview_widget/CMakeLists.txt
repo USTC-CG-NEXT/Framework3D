@@ -1,6 +1,6 @@
 if(USTC_CG_WITH_OPENUSD)
 
-set(PRIVATE_LIBS Logger GUI usd usdImaging hdSt)
+set(PRIVATE_LIBS Logger GUI usd usdImaging usdImagingGL hdSt glf garch)
 set(COMPILE_DEFS NOMINMAX=1 USTC_CG_BUILD_MODULE=1)
 
 if(TARGET Vulkan::Vulkan)
@@ -10,7 +10,6 @@ endif()
 
 USTC_CG_ADD_LIB(
 	usdview_widget
-	SHARED
 	PRIVATE_LIBS ${PRIVATE_LIBS}
 	COMPILE_DEFS ${COMPILE_DEFS}
 )

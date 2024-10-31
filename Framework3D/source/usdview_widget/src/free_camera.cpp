@@ -7,9 +7,10 @@
 #include <cmath>
 
 #include "USTC_CG.h"
+#define GLFW_INCLUDE_NONE
+#include "GLFW/glfw3.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-
 void BaseCamera::UpdateWorldToView()
 {
     auto m_MatTranslatedWorldToView = pxr::GfMatrix4d(

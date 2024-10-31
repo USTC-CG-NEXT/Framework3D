@@ -12,8 +12,9 @@
 #include <optional>
 #include <unordered_map>
 
-#include "GLFW/glfw3.h"
 #include "USTC_CG.h"
+#define GLFW_INCLUDE_NONE
+#include "GLFW/glfw3.h"
 #include "pxr/usd/usdGeom/camera.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

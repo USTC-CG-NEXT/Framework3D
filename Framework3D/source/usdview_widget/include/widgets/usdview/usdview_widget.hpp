@@ -1,6 +1,4 @@
 #pragma once
-#define __GNUC__
-#include <complex.h>
 
 #include <memory>
 
@@ -13,7 +11,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 class BaseCamera;
 class FreeCamera;
 class NodeTree;
-class UsdviewEngine final : public IWidget {
+class USTC_CG_API UsdviewEngine final : public IWidget {
    public:
     explicit UsdviewEngine(pxr::UsdStageRefPtr root_stage);
     ~UsdviewEngine() override;
@@ -31,7 +29,7 @@ class UsdviewEngine final : public IWidget {
     struct Status {
         CamType cam_type =
             CamType::First;  // 0 for 1st personal, 1 for 3rd personal
-        unsigned renderer_id = 1;
+        unsigned renderer_id = 0;
     } engine_status;
 
     float timecode = 0;
@@ -53,10 +51,12 @@ class UsdviewEngine final : public IWidget {
 
     void DrawMenuBar();
     void OnFrame(float delta_time);
-    void refresh_platform_texture();
-    void refresh_viewport(int x, int y);
-    void OnResize(int x, int y);
-    // void time_controller(float delta_time);
+
+    static void CreateGLContext();
+    // void refresh_platform_texture();
+    // void refresh_viewport(int x, int y);
+    // void OnResize(int x, int y);
+    //  void time_controller(float delta_time);
 
    protected:
     bool JoystickButtonUpdate(int button, bool pressed) override;
@@ -67,5 +67,9 @@ class UsdviewEngine final : public IWidget {
     bool MouseScrollUpdate(double xoffset, double yoffset) override;
     bool MouseButtonUpdate(int button, int action, int mods) override;
     void Animate(float elapsed_time_seconds) override;
+    void BackBufferResized(
+        unsigned width,
+        unsigned height,
+        unsigned sampleCount) override;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

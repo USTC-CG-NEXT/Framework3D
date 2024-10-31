@@ -1,18 +1,22 @@
+
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "imgui.h"
-#include "widgets/usdview/usdview.hpp"
-#
-#include "GLFW/glfw3.h"
+#include "widgets/usdview/usdview_widget.hpp"
+
+#include <pxr/imaging/hd/driver.h>
+
 #include "Logging/Logging.h"
 #include "free_camera.hpp"
+#include "imgui.h"
 #include "pxr/base/gf/camera.h"
 #include "pxr/base/gf/frustum.h"
 #include "pxr/base/gf/matrix4f.h"
-#include "pxr/base/gf/range1f.h"
+#include "pxr/imaging/garch/gl.h"
+#include "pxr/imaging/garch/glPlatformContext.h"
 #include "pxr/imaging/glf/drawTarget.h"
+#include "pxr/imaging/hgi/tokens.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/stage.h"
@@ -21,7 +25,6 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
-using namespace pxr;
 
 void UsdviewEngine::DrawMenuBar()
 {
@@ -62,8 +65,8 @@ void UsdviewEngine::DrawMenuBar()
                         renderer_->SetRendererPlugin(available_renderers[i]);
 
                         // Perform a fake resize event
-                        refresh_viewport(
-                            renderBufferSize_[0], renderBufferSize_[1]);
+                        // refresh_viewport(
+                        //    renderBufferSize_[0], renderBufferSize_[1]);
                         this->engine_status.renderer_id = i;
                     }
                 }
@@ -81,9 +84,10 @@ void UsdviewEngine::OnFrame(float delta_time)
     DrawMenuBar();
     // Update the camera when mouse is in the subwindow
     // CameraCallback(delta_time);
-    
+
     using namespace pxr;
-    GfFrustum frustum = free_camera_->GetFrustum();
+    GfFrustum frustum =
+        free_camera_->GetCamera(UsdTimeCode::Default()).GetFrustum();
 
     GfMatrix4d projectionMatrix = frustum.ComputeProjectionMatrix();
     GfMatrix4d viewMatrix = frustum.ComputeViewMatrix();
@@ -105,8 +109,13 @@ void UsdviewEngine::OnFrame(float delta_time)
     _renderParams.clearColor = GfVec4f(0.4f, 0.4f, 0.4f, 1.f);
     _renderParams.frame = UsdTimeCode(timecode);
 
-    for (int i = 0; i < free_camera_->GetClippingPlanes().size(); ++i) {
-        _renderParams.clipPlanes[i] = free_camera_->GetClippingPlanes()[i];
+    for (int i = 0; i < free_camera_->GetCamera(UsdTimeCode::Default())
+                            .GetClippingPlanes()
+                            .size();
+         ++i) {
+        _renderParams.clipPlanes[i] =
+            free_camera_->GetCamera(UsdTimeCode::Default())
+                .GetClippingPlanes()[i];
     }
 
     GlfSimpleLightVector lights(1);
@@ -125,122 +134,124 @@ void UsdviewEngine::OnFrame(float delta_time)
     GfVec4f sceneAmbient = { 0.01, 0.01, 0.01, 1.0 };
     renderer_->SetLightingState(lights, material, sceneAmbient);
 
-    UsdPrim root = GlobalUsdStage::global_usd_stage->GetPseudoRoot();
+    UsdPrim root = root_stage_->GetPseudoRoot();
 
     renderer_->Render(root, _renderParams);
 
     renderer_->SetPresentationOutput(pxr::TfToken("OpenGL"), pxr::VtValue(fbo));
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    auto imgui_frame_size = ImVec2(renderBufferSize_[0], renderBufferSize_[1]);
+    // auto imgui_frame_size = ImVec2(renderBufferSize_[0],
+    // renderBufferSize_[1]);
 
-    ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
-    ImGui::Image(
-        ImTextureID(tex),
-        imgui_frame_size,
-        ImVec2(0.0f, 1.0f),
-        ImVec2(1.0f, 0.0f));
-    is_active_ = ImGui::IsWindowFocused();
-    is_hovered_ = ImGui::IsItemHovered();
+    // ImGui::BeginChild("ViewPort", imgui_frame_size, 0,
+    // ImGuiWindowFlags_NoMove); ImGui::Image(
+    //     ImTextureID(tex),
+    //     imgui_frame_size,
+    //     ImVec2(0.0f, 1.0f),
+    //     ImVec2(1.0f, 0.0f));
+    // is_active_ = ImGui::IsWindowFocused();
+    // is_hovered_ = ImGui::IsItemHovered();
 
-    if (is_hovered_ && is_editing &&
-        ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-        auto mouse_pos_rel = ImGui::GetMousePos() - ImGui::GetItemRectMin();
-        // Normalize the mouse position to be in the range [0, 1]
-        ImVec2 mousePosNorm = ImVec2(
-            mouse_pos_rel.x / renderBufferSize_[0],
-            mouse_pos_rel.y / renderBufferSize_[1]);
+    // if (is_hovered_ && is_editing &&
+    //     ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    //     auto mouse_pos_rel = ImGui::GetMousePos() - ImGui::GetItemRectMin();
+    //     // Normalize the mouse position to be in the range [0, 1]
+    //     ImVec2 mousePosNorm = ImVec2(
+    //         mouse_pos_rel.x / renderBufferSize_[0],
+    //         mouse_pos_rel.y / renderBufferSize_[1]);
 
-        // Convert to NDC coordinates
-        ImVec2 mousePosNDC =
-            ImVec2(mousePosNorm.x * 2.0f - 1.0f, 1.0f - mousePosNorm.y * 2.0f);
+    //    // Convert to NDC coordinates
+    //    ImVec2 mousePosNDC =
+    //        ImVec2(mousePosNorm.x * 2.0f - 1.0f, 1.0f - mousePosNorm.y
+    //        * 2.0f);
 
-        // GfVec3d point;
-        // GfVec3d normal;
-        // SdfPath path;
-        // SdfPath instancer;
-        // HdInstancerContext outInstancerContext;
-        // int outHitInstanceIndex;
-        // auto narrowed = frustum.ComputeNarrowedFrustum(
-        //     { mousePosNDC[0], mousePosNDC[1] },
-        //     { 1.0 / renderBufferSize_[0], 1.0 / renderBufferSize_[1] });
+    // GfVec3d point;
+    // GfVec3d normal;
+    // SdfPath path;
+    // SdfPath instancer;
+    // HdInstancerContext outInstancerContext;
+    // int outHitInstanceIndex;
+    // auto narrowed = frustum.ComputeNarrowedFrustum(
+    //     { mousePosNDC[0], mousePosNDC[1] },
+    //     { 1.0 / renderBufferSize_[0], 1.0 / renderBufferSize_[1] });
 
-        // if (renderer_->TestIntersection(
-        //         narrowed.ComputeViewMatrix(),
-        //         narrowed.ComputeProjectionMatrix(),
-        //         root,
-        //         _renderParams,
-        //         &point,
-        //         &normal,
-        //         &path,
-        //         &instancer,
-        //         &outHitInstanceIndex,
-        //         &outInstancerContext)) {
-        //     pick_event = std::make_unique<PickEvent>(
-        //         point,
-        //         normal,
-        //         path,
-        //         instancer,
-        //         outInstancerContext,
-        //         outHitInstanceIndex,
-        //         narrowed.ComputePickRay({ mousePosNDC[0], mousePosNDC[1] }));
+    // if (renderer_->TestIntersection(
+    //         narrowed.ComputeViewMatrix(),
+    //         narrowed.ComputeProjectionMatrix(),
+    //         root,
+    //         _renderParams,
+    //         &point,
+    //         &normal,
+    //         &path,
+    //         &instancer,
+    //         &outHitInstanceIndex,
+    //         &outInstancerContext)) {
+    //     pick_event = std::make_unique<PickEvent>(
+    //         point,
+    //         normal,
+    //         path,
+    //         instancer,
+    //         outInstancerContext,
+    //         outHitInstanceIndex,
+    //         narrowed.ComputePickRay({ mousePosNDC[0], mousePosNDC[1] }));
 
-        //    log::info("Picked prim " + path.GetAsString(), Info);
-        //}
-    }
+    //    log::info("Picked prim " + path.GetAsString(), Info);
+    //}
 
     ImGui::EndChild();
 }
-
-void UsdviewEngine::refresh_platform_texture()
-{
-    if (tex) {
-        glDeleteTextures(1, &tex);
-    }
-    glGenTextures(1, &tex);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA8,
-        renderBufferSize_[0],
-        renderBufferSize_[1],
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void UsdviewEngine::refresh_viewport(int x, int y)
-{
-    renderBufferSize_[0] = x;
-    renderBufferSize_[1] = y;
-
-    renderer_->SetRenderBufferSize(renderBufferSize_);
-    renderer_->SetRenderViewport(GfVec4d{
-        0.0, 0.0, double(renderBufferSize_[0]), double(renderBufferSize_[1]) });
-    free_camera_->m_ViewportSize = renderBufferSize_;
-
-    refresh_platform_texture();
-}
-
-void UsdviewEngine::OnResize(int x, int y)
-{
-    if (renderBufferSize_[0] != x || renderBufferSize_[1] != y) {
-        refresh_viewport(x, y);
-    }
-}
+//
+// void UsdviewEngine::refresh_platform_texture()
+//{
+//    if (tex) {
+//        glDeleteTextures(1, &tex);
+//    }
+//    glGenTextures(1, &tex);
+//
+//    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+//    glBindTexture(GL_TEXTURE_2D, tex);
+//    glTexImage2D(
+//        GL_TEXTURE_2D,
+//        0,
+//        GL_RGBA8,
+//        renderBufferSize_[0],
+//        renderBufferSize_[1],
+//        0,
+//        GL_RGBA,
+//        GL_UNSIGNED_BYTE,
+//        NULL);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//    glFramebufferTexture2D(
+//        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//}
+//
+// void UsdviewEngine::refresh_viewport(int x, int y)
+//{
+//    renderBufferSize_[0] = x;
+//    renderBufferSize_[1] = y;
+//
+//    renderer_->SetRenderBufferSize(renderBufferSize_);
+//    renderer_->SetRenderViewport(GfVec4d{
+//        0.0, 0.0, double(renderBufferSize_[0]), double(renderBufferSize_[1])
+//        });
+//    free_camera_->m_ViewportSize = renderBufferSize_;
+//
+//    refresh_platform_texture();
+//}
+//
+// void UsdviewEngine::OnResize(int x, int y)
+//{
+//    if (renderBufferSize_[0] != x || renderBufferSize_[1] != y) {
+//        refresh_viewport(x, y);
+//    }
+//}
 //
 // void UsdviewEngine::time_controller(float delta_time)
 //{
@@ -347,20 +358,89 @@ void UsdviewEngine::Animate(float elapsed_time_seconds)
     IWidget::Animate(elapsed_time_seconds);
 }
 
+void UsdviewEngine::BackBufferResized(
+    unsigned width,
+    unsigned height,
+    unsigned sampleCount)
+{
+    IWidget::BackBufferResized(width, height, sampleCount);
+}
+
+void UsdviewEngine::CreateGLContext()
+{
+    HDC hdc = GetDC(GetConsoleWindow());
+    PIXELFORMATDESCRIPTOR pfd = { sizeof(PIXELFORMATDESCRIPTOR),
+                                  1,
+                                  PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
+                                      PFD_DOUBLEBUFFER,
+                                  PFD_TYPE_RGBA,
+                                  32,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  24,
+                                  8,
+                                  0,
+                                  PFD_MAIN_PLANE,
+                                  0,
+                                  0,
+                                  0,
+                                  0 };
+
+    int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+    SetPixelFormat(hdc, pixelFormat, &pfd);
+
+    HGLRC hglrc = wglCreateContext(hdc);
+    wglMakeCurrent(hdc, hglrc);
+}
+
 UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     : root_stage_(root_stage)
 {
-    GarchGLApiLoad();
-    glGenFramebuffers(1, &fbo);
+    // Initialize OpenGL context using WGL
+    CreateGLContext();
 
-    renderer_ = std::make_unique<UsdImagingGLEngine>(params);
-    renderer_->SetEnablePresentation(true);
+    // Initialize GLEW or any other OpenGL loader if necessary
+    // glewInit();
+    // Check OpenGL version
+    GarchGLApiLoad();
+
+    pxr::UsdImagingGLEngine::Parameters params;
+
+    params.driver = pxr::HdDriver();
+    // Initialize Vulkan driver
+
+    auto hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->Vulkan);
+    pxr::HdDriver hdDriver;
+    hdDriver.name = pxr::HgiTokens->renderDriver;
+    hdDriver.driver =
+        pxr::VtValue(hgi.get());  // Assuming Vulkan driver doesn't need
+                                  // additional parameters
+
+    params.driver = hdDriver;
+
+    renderer_ = std::make_unique<pxr::UsdImagingGLEngine>(params);
+
+    // renderer_->SetEnablePresentation(true);
     free_camera_ = std::make_unique<FirstPersonCamera>();
 
     auto plugins = renderer_->GetRendererPlugins();
+    for (const auto& plugin : plugins) {
+        log::info(plugin.GetText());
+    }
     renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
-    free_camera_->SetProjection(GfCamera::Projection::Perspective);
-    free_camera_->SetClippingRange(pxr::GfRange1f{ 0.1f, 1000.f });
+    // free_camera_->SetProjection(GfCamera::Projection::Perspective);
+    // free_camera_->SetClippingRange(pxr::GfRange1f{ 0.1f, 1000.f });
 }
 
 UsdviewEngine::~UsdviewEngine()
@@ -386,12 +466,12 @@ bool UsdviewEngine::BuildUI(
         auto size = ImGui::GetContentRegionAvail();
         size.y -= 28;
 
-        if (size.x > 0 && size.y > 0) {
-            OnResize(size.x, size.y);
+        // if (size.x > 0 && size.y > 0) {
+        //     OnResize(size.x, size.y);
 
-            OnFrame(delta_time);
-            // time_controller(delta_time);
-        }
+        //    OnFrame(delta_time);
+        //    // time_controller(delta_time);
+        //}
     }
     else {
         ImGui::PopStyleVar(1);

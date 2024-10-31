@@ -111,7 +111,13 @@ def process_usd(targets, dry_run=False, keep_original_files=True):
         else:
             print("Warning: VULKAN_SDK is not in the path. Highly recommend setting it for Vulkan support.")
         
-        build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {target.lower()} ./SDK/OpenUSD/{target}"
+        build_variant_map = {
+            "Debug": "debug",
+            "Release": "release",
+            "RelWithDebInfo": "relwithdebuginfo"
+        }
+        build_variant = build_variant_map.get(target, target.lower())
+        build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}"
         
         if dry_run:
             print(f"[DRY RUN] Would run: {build_command}")
