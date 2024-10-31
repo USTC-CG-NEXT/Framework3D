@@ -349,11 +349,6 @@ nvrhi::IGraphicsPipeline* ImGui_NVRHI::getPSO(nvrhi::IFramebuffer* fb)
 
 nvrhi::IBindingSet* ImGui_NVRHI::getBindingSet(nvrhi::ITexture* texture)
 {
-    auto iter = bindingsCache.find(texture);
-    if (iter != bindingsCache.end()) {
-        return iter->second;
-    }
-
     nvrhi::BindingSetDesc desc;
 
     desc.bindings = { nvrhi::BindingSetItem::PushConstants(
@@ -361,11 +356,9 @@ nvrhi::IBindingSet* ImGui_NVRHI::getBindingSet(nvrhi::ITexture* texture)
                       nvrhi::BindingSetItem::Texture_SRV(0, texture),
                       nvrhi::BindingSetItem::Sampler(0, fontSampler) };
 
-    nvrhi::BindingSetHandle binding;
     binding = renderer->createBindingSet(desc, bindingLayout);
     assert(binding);
 
-    bindingsCache[texture] = binding;
     return binding;
 }
 

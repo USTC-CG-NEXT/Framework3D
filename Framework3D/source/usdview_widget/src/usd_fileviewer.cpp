@@ -1,12 +1,9 @@
-// #define __GNUC__
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "GUI/usd_filetree.h"
+#include "widgets/usdtree/usd_fileviewer.h"
 
 #include <iostream>
 
-#include "Nodes/GlobalUsdStage.h"
-#include "Utils/Logging/Logging.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "pxr/base/gf/matrix4f.h"
@@ -19,23 +16,17 @@
 #include "pxr/usd/usd/property.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class UsdFileViewerImpl {
-   public:
-    void BuildUI();
-    void set_stage(const pxr::UsdStageRefPtr& ref);
-    void ShowPrimInfo();
-    pxr::SdfPath emit_editor_info_path();
 
-   private:
-    pxr::SdfPath selected;
-    pxr::SdfPath editor_info_path;
+UsdFileViewer::UsdFileViewer()
+{
+}
 
-    void show_right_click_menu();
-    void DrawChild(const pxr::UsdPrim& prim);
-    pxr::UsdStageRefPtr stage;
-};
+void UsdFileViewer::set_stage(pxr::UsdStageRefPtr root_stage)
+{
+    stage = root_stage;
+}
 
-void UsdFileViewerImpl::BuildUI()
+void UsdFileViewer::ShowFileTree()
 {
     auto root = stage->GetPseudoRoot();
     ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit |
@@ -50,12 +41,7 @@ void UsdFileViewerImpl::BuildUI()
     }
 }
 
-void UsdFileViewerImpl::set_stage(const pxr::UsdStageRefPtr& ref)
-{
-    stage = ref;
-}
-
-void UsdFileViewerImpl::ShowPrimInfo()
+void UsdFileViewer::ShowPrimInfo()
 {
     using namespace pxr;
     ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit |
@@ -94,42 +80,42 @@ void UsdFileViewerImpl::ShowPrimInfo()
     }
 }
 
-pxr::SdfPath UsdFileViewerImpl::emit_editor_info_path()
+pxr::SdfPath UsdFileViewer::emit_editor_info_path()
 {
     auto temp = editor_info_path;
     editor_info_path = pxr::SdfPath::EmptyPath();
     return temp;
 }
 
-void UsdFileViewerImpl::show_right_click_menu()
+void UsdFileViewer::show_right_click_menu()
 {
-    if (ImGui::BeginPopupContextWindow("Prim Operation")) {
-        if (ImGui::BeginMenu("Create")) {
-            if (ImGui::MenuItem("Mesh")) {
-                GlobalUsdStage::CreateObject(selected, ObjectType::Mesh);
-            }
-            if (ImGui::MenuItem("Cylinder")) {
-                GlobalUsdStage::CreateObject(selected, ObjectType::Cylinder);
-            }
-            if (ImGui::MenuItem("Sphere")) {
-                GlobalUsdStage::CreateObject(selected, ObjectType::Sphere);
-            }
+    // if (ImGui::BeginPopupContextWindow("Prim Operation")) {
+    //     if (ImGui::BeginMenu("Create")) {
+    //         if (ImGui::MenuItem("Mesh")) {
+    //             GlobalUsdStage::CreateObject(selected, ObjectType::Mesh);
+    //         }
+    //         if (ImGui::MenuItem("Cylinder")) {
+    //             GlobalUsdStage::CreateObject(selected, ObjectType::Cylinder);
+    //         }
+    //         if (ImGui::MenuItem("Sphere")) {
+    //             GlobalUsdStage::CreateObject(selected, ObjectType::Sphere);
+    //         }
 
-            ImGui::EndMenu();
-        }
+    //        ImGui::EndMenu();
+    //    }
 
-        if (ImGui::MenuItem("Edit")) {
-            editor_info_path = GlobalUsdStage::EditObject(selected);
-        }
+    //    if (ImGui::MenuItem("Edit")) {
+    //        editor_info_path = GlobalUsdStage::EditObject(selected);
+    //    }
 
-        if (ImGui::MenuItem("Delete")) {
-            GlobalUsdStage::DeleteObject(selected);
-        }
-        ImGui::EndPopup();
-    }
+    //    if (ImGui::MenuItem("Delete")) {
+    //        GlobalUsdStage::DeleteObject(selected);
+    //    }
+    //    ImGui::EndPopup();
+    //}
 }
 
-void UsdFileViewerImpl::DrawChild(const pxr::UsdPrim& prim)
+void UsdFileViewer::DrawChild(const pxr::UsdPrim& prim)
 {
     auto flags = ImGuiTreeNodeFlags_DefaultOpen |
                  ImGuiTreeNodeFlags_SpanAvailWidth |
@@ -180,37 +166,21 @@ void UsdFileViewerImpl::DrawChild(const pxr::UsdPrim& prim)
     }
 }
 
-UsdFileViewer::UsdFileViewer()
-{
-    impl_ = std::make_unique<UsdFileViewerImpl>();
-}
-
-void UsdFileViewer::set_stage(pxr::UsdStageRefPtr root_stage)
-{
-    impl_->set_stage(root_stage);
-}
-
-void UsdFileViewer::ShowFileTree()
+bool UsdFileViewer::BuildUI()
 {
     ImGui::Begin("Stage Viewer", nullptr, ImGuiWindowFlags_None);
-    impl_->BuildUI();
+    ShowFileTree();
     ImGui::End();
+
+    ImGui::Begin("Prim Info", nullptr, ImGuiWindowFlags_None);
+    ShowPrimInfo();
+    ImGui::End();
+
+    return true;
 }
 
 UsdFileViewer::~UsdFileViewer()
 {
-}
-
-pxr::SdfPath UsdFileViewer::emit_editor_info_path()
-{
-    return impl_->emit_editor_info_path();
-}
-
-void UsdFileViewer::ShowPrimInfo()
-{
-    ImGui::Begin("PrimInfo", nullptr, ImGuiWindowFlags_None);
-    impl_->ShowPrimInfo();
-    ImGui::End();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

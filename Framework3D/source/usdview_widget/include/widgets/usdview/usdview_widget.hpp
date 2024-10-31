@@ -57,7 +57,7 @@ class USTC_CG_API UsdviewEngine final : public IWidget {
 
     pxr::UsdStageRefPtr root_stage_;
     pxr::HgiUniquePtr hgi;
-    nvrhi::TextureHandle nvrhi_texture;
+    nvrhi::TextureHandle nvrhi_texture = nullptr;
 
     void DrawMenuBar();
     void OnFrame(float delta_time);

@@ -77,10 +77,10 @@ struct ImGui_NVRHI {
     nvrhi::GraphicsPipelineDesc basePSODesc;
 
     nvrhi::GraphicsPipelineHandle pso;
-    std::unordered_map<nvrhi::ITexture*, nvrhi::BindingSetHandle> bindingsCache;
 
     std::vector<ImDrawVert> vtxBuffer;
     std::vector<ImDrawIdx> idxBuffer;
+    nvrhi::BindingSetHandle binding;
 
     bool init(
         nvrhi::DeviceHandle renderer,

@@ -82,6 +82,7 @@ void UsdviewEngine::DrawMenuBar()
 
 void UsdviewEngine::OnFrame(float delta_time)
 {
+    nvrhi_texture = nullptr;
     DrawMenuBar();
     // Update the camera when mouse is in the subwindow
     // CameraCallback(delta_time);
@@ -107,7 +108,7 @@ void UsdviewEngine::OnFrame(float delta_time)
     _renderParams.drawMode = UsdImagingGLDrawMode::DRAW_WIREFRAME_ON_SURFACE;
     _renderParams.colorCorrectionMode = TfToken("sRGB");
 
-    _renderParams.clearColor = GfVec4f(0.4f, 0.4f, 0.4f, 1.f);
+    _renderParams.clearColor = GfVec4f(0.1f, 0.1f, 0.1f, 1.f);
     _renderParams.frame = UsdTimeCode(timecode);
 
     for (int i = 0; i < free_camera_->GetCamera(UsdTimeCode::Default())
@@ -134,6 +135,7 @@ void UsdviewEngine::OnFrame(float delta_time)
     material.SetShininess(shiness);
     GfVec4f sceneAmbient = { 0.01, 0.01, 0.01, 1.0 };
     renderer_->SetLightingState(lights, material, sceneAmbient);
+    renderer_->SetRendererAov(HdAovTokens->color);
 
     UsdPrim root = root_stage_->GetPseudoRoot();
 
@@ -165,7 +167,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     nvrhi_texture = device->createHandleForNativeTexture(
         nvrhi::ObjectTypes::VK_Image, img, tex_desc);
-
+    
 #endif
 
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -173,7 +175,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
     ImGui::Image(
-        ImTextureID(nvrhi_texture),
+        static_cast<ImTextureID>(nvrhi_texture.Get()),
         imgui_frame_size,
         ImVec2(0.0f, 1.0f),
         ImVec2(1.0f, 0.0f));
@@ -485,6 +487,9 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 
     // renderer_->SetEnablePresentation(true);
     free_camera_ = std::make_unique<FirstPersonCamera>();
+    static_cast<pxr::UsdGeomCamera&>(*free_camera_) =
+        pxr::UsdGeomCamera::Define(root_stage_, pxr::SdfPath("/FreeCamera"));
+
 
     auto plugins = renderer_->GetRendererPlugins();
     for (const auto& plugin : plugins) {
