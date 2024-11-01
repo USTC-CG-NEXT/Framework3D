@@ -4,7 +4,7 @@
 
 #include <filesystem>
 
-#include "USTC_CG.h"
+#include "rhi/api.h"
 #include "map.h"
 #include "nvrhi/nvrhi.h"
 #include "slang-com-ptr.h"

@@ -1,6 +1,6 @@
 #pragma once
 #include "USTC_CG.h"
-#include "Utils/Logging/Logging.h"
+#include "Utils/Logger/Logger.h"
 #include "Utils/Macro/map.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/material.h"

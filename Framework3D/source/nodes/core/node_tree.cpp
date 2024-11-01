@@ -69,7 +69,6 @@ NodeTree::NodeTree(const NodeTreeDescriptor& descriptor)
 NodeTree::~NodeTree()
 {
 }
-
 unsigned NodeTree::input_socket_id(NodeSocket* socket)
 {
     return std::distance(

@@ -46,7 +46,7 @@ SOFTWARE.
 
 #include "imgui_renderer.h"
 
-#include "USTC_CG.h"
+#include "GUI/api.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 ImGui_Renderer::ImGui_Renderer(DeviceManager* devManager)

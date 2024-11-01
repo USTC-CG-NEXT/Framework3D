@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 #include "entt/meta/factory.hpp"
 #include "node.hpp"
 #include "node_exec.hpp"

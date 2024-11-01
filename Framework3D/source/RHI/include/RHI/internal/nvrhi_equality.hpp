@@ -1,5 +1,5 @@
 #pragma once
-#include "USTC_CG.h"
+#include "rhi/api.h"
 #include "nvrhi/nvrhi.h"
 #include "Resources.hpp"
 

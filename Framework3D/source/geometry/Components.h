@@ -3,7 +3,7 @@
 #include "GOP.h"
 #include "Nodes/GlobalUsdStage.h"
 #include "USTC_CG.h"
-#include "Utils/Logging/Logging.h"
+#include "Utils/Logger/Logger.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct GeometryComponent {

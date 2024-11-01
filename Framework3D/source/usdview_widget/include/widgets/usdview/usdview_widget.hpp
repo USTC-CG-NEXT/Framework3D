@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "GUI/widget.h"
-#include "USTC_CG.h"
+#include "widgets/api.h"
 #include "nvrhi/nvrhi.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usdImaging/usdImagingGL/engine.h"
@@ -12,7 +12,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 class BaseCamera;
 class FreeCamera;
 class NodeTree;
-class USTC_CG_API UsdviewEngine final : public IWidget {
+class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
    public:
     explicit UsdviewEngine(pxr::UsdStageRefPtr root_stage);
     ~UsdviewEngine() override;
@@ -41,12 +41,9 @@ class USTC_CG_API UsdviewEngine final : public IWidget {
 
 #if USDVIEW_WITH_VULKAN
 
-    nvrhi::TextureHandle tex;
-    nvrhi::FramebufferHandle fbo;
-
 #else
-    unsigned fbo = 0;
-    unsigned tex = 0;
+    //unsigned fbo = 0;
+    //unsigned tex = 0;
 #endif
     std::unique_ptr<BaseCamera> free_camera_;
     bool is_hovered_ = false;
@@ -81,5 +78,6 @@ class USTC_CG_API UsdviewEngine final : public IWidget {
         unsigned width,
         unsigned height,
         unsigned sampleCount) override;
+    friend class UsdviewEngineTest;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

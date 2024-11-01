@@ -12,7 +12,7 @@
 #include <optional>
 #include <unordered_map>
 
-#include "USTC_CG.h"
+#include "widgets/api.h"
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "pxr/usd/usdGeom/camera.h"

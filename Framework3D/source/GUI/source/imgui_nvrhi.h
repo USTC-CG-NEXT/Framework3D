@@ -54,7 +54,7 @@ SOFTWARE.
 #include <unordered_map>
 #include <vector>
 
-#include "USTC_CG.h"
+#include "GUI/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class ShaderFactory;

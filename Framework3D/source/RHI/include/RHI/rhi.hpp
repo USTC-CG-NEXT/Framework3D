@@ -2,29 +2,29 @@
 
 #include <nvrhi/nvrhi.h>
 
-#include "USTC_CG.h"
+#include "rhi/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class DeviceManager;
 
 namespace RHI {
 
-USTC_CG_API int init(bool with_window = false, bool use_dx12 = false);
-USTC_CG_API int shutdown();
+RHI_API int init(bool with_window = false, bool use_dx12 = false);
+RHI_API int shutdown();
 
-USTC_CG_API nvrhi::IDevice* get_device();
-USTC_CG_API nvrhi::GraphicsAPI get_backend();
+RHI_API nvrhi::IDevice* get_device();
+RHI_API nvrhi::GraphicsAPI get_backend();
 
-USTC_CG_API nvrhi::TextureHandle load_texture(
+RHI_API nvrhi::TextureHandle load_texture(
     const nvrhi::TextureDesc& desc,
     const void* data);
 
-USTC_CG_API nvrhi::TextureHandle load_ogl_texture(
+RHI_API nvrhi::TextureHandle load_ogl_texture(
     const nvrhi::TextureDesc& desc,
     unsigned gl_texture );
 
 namespace internal {
-    USTC_CG_API DeviceManager* get_device_manager();
+    RHI_API DeviceManager* get_device_manager();
 
 }
 

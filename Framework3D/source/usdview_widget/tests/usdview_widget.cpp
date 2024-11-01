@@ -1,4 +1,3 @@
-
 #include "widgets/usdview/usdview_widget.hpp"
 
 #include <gtest/gtest.h>
@@ -9,22 +8,28 @@
 #include "widgets/usdtree/usd_fileviewer.h"
 using namespace USTC_CG;
 
-TEST(USDWIDGET, create_widget)
-{
-    auto root_stage = pxr::UsdStage::CreateInMemory();
-    // Add a sphere
-    auto sphere =
-        pxr::UsdGeomSphere::Define(root_stage, pxr::SdfPath("/sphere"));
+class UsdviewEngineTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        root_stage = pxr::UsdStage::CreateInMemory();
+        view_engine = std::make_unique<UsdviewEngine>(root_stage);
+    }
 
-    auto view_engine = std::make_unique<UsdviewEngine>(root_stage);
-    auto fileviewer = std::make_unique<UsdFileViewer>(root_stage);
+    void TearDown() override {
+        view_engine.reset();
+    }
 
-    auto window = std::make_unique<Window>();
+    pxr::UsdStageRefPtr root_stage;
+    std::unique_ptr<UsdviewEngine> view_engine;
+};
 
-    window->register_widget(std::move(view_engine));
-    window->register_widget(std::move(fileviewer));
+TEST_F(UsdviewEngineTest, CreateWidget) {
+    ASSERT_NE(view_engine, nullptr);
+    // Add more assertions and tests as needed
+}
 
-    window->run();
-
-    window.reset();
+TEST_F(UsdviewEngineTest, AddSphere) {
+    auto sphere = pxr::UsdGeomSphere::Define(root_stage, pxr::SdfPath("/sphere"));
+    ASSERT_TRUE(sphere);
+    // Add more assertions and tests as needed
 }

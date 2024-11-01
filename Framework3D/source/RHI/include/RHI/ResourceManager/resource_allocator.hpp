@@ -4,8 +4,8 @@
 #include <cassert>
 #include <iterator>
 
-#include "Logging/Logging.h"
-#include "USTC_CG.h"
+#include "Logger/Logger.h"
+#include "rhi/api.h"
 //#include "entt/meta/meta.hpp"
 //#include "entt/meta/resolve.hpp"
 #include "RHI/internal/resources.hpp"

@@ -7,7 +7,7 @@
 
 #include <pxr/imaging/hd/driver.h>
 
-#include "Logging/Logging.h"
+#include "Logger/Logger.h"
 #include "RHI/Hgi/format_conversion.hpp"
 #include "RHI/rhi.hpp"
 #include "free_camera.hpp"
@@ -234,21 +234,6 @@ void UsdviewEngine::OnFrame(float delta_time)
 void UsdviewEngine::refresh_platform_texture()
 {
 #if USDVIEW_WITH_VULKAN
-    auto device = RHI::get_device();
-
-    nvrhi::TextureDesc tex_desc;
-    tex_desc.width = renderBufferSize_[0];
-    tex_desc.height = renderBufferSize_[1];
-    tex_desc.format = nvrhi::Format::RGBA8_UNORM;
-    tex_desc.isRenderTarget = true;
-    tex_desc.isShaderResource = true;
-    tex_desc.isUAV = false;
-    tex_desc.debugName = "UsdviewEngineTexture";
-
-    tex = device->createTexture(tex_desc);
-
-    fbo = device->createFramebuffer(
-        nvrhi::FramebufferDesc().addColorAttachment(tex));
 
 #else
 

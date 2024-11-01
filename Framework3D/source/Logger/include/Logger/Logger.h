@@ -3,7 +3,7 @@
 #include <functional>
 #include <iostream>
 
-#include "USTC_CG.h"
+#include "Logger/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 enum class Severity { None = 0, Debug, Info, Warning, Error, Fatal };

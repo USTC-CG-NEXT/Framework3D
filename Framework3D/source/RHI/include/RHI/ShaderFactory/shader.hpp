@@ -1,7 +1,7 @@
 #pragma once
 #include "RHI/ResourceManager/resource_allocator.hpp"
 #include "RHI/rhi.hpp"
-#include "USTC_CG.h"
+#include "rhi/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
@@ -14,7 +14,7 @@ class ShaderFactory {
             "24\\Framework3D\\source\\GUI\\source";
     }
 
-    nvrhi::ShaderHandle USTC_CG_API compile_shader(
+    nvrhi::ShaderHandle RHI_API compile_shader(
         const std::string& entryName,
         nvrhi::ShaderType shader_type,
         std::filesystem::path shader_path,

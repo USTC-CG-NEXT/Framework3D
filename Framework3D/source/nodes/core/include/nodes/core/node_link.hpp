@@ -1,13 +1,13 @@
 #pragma once
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 #include "nodes/core/id.hpp"
 #include "nodes/core/io/json.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct Node;
 struct NodeSocket;
-struct USTC_CG_API NodeLink {
+struct NODES_CORE_API NodeLink {
     LinkId ID;
 
     Node* from_node = nullptr;

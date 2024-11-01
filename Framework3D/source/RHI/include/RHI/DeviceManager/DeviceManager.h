@@ -48,7 +48,7 @@ freely, subject to the following restrictions:
 */
 
 #pragma once
-#include "USTC_CG.h"
+#include "rhi/api.h"
 
 #if USTC_CG_WITH_DX11 || USTC_CG_WITH_DX12
 #include <DXGI.h>
@@ -74,7 +74,7 @@ freely, subject to the following restrictions:
 #define GLFW_EXPOSE_NATIVE_WIN32
 #endif  // _WIN32
 #include <GLFW/glfw3native.h>
-#include <Logging/Logging.h>
+#include <Logger/Logger.h>
 #include <nvrhi/nvrhi.h>
 
 #include <functional>
@@ -180,7 +180,7 @@ struct AdapterInfo {
     VkPhysicalDevice vkPhysicalDevice = nullptr;
 };
 
-class USTC_CG_API DeviceManager {
+class RHI_API DeviceManager {
    public:
     static DeviceManager* Create(nvrhi::GraphicsAPI api);
 

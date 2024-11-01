@@ -31,7 +31,7 @@
 #include "Nodes/node_exec.hpp"
 #include "Nodes/node_exec_eager.hpp"
 #include "Nodes/node_tree.hpp"
-#include "Utils/Logging/Logging.h"
+#include "Utils/Logger/Logger.h"
 #include "config.h"
 #include "geometries/mesh.h"
 #include "instancer.h"

@@ -2,7 +2,7 @@
 
 #include <unordered_set>
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 #include "id.hpp"
 #include "io/json.hpp"
 
@@ -14,7 +14,7 @@ enum class PinKind { Output, Input, Storage };
 
 using SocketType = entt::meta_type;
 
-struct USTC_CG_API NodeSocket {
+struct NODES_CORE_API NodeSocket {
     char identifier[64];
     char ui_name[64];
 

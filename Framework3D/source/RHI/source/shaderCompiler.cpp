@@ -1,6 +1,6 @@
 #include "shaderCompiler.h"
 
-#include "USTC_CG.h"
+#include "rhi/api.h"
 
 #ifdef _WIN32
 #include <codecvt>
@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "Logging/Logging.h"
+#include "Logger/Logger.h"
 #include "slang.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

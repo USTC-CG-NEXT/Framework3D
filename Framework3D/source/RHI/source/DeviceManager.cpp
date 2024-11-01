@@ -47,7 +47,7 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#include <Logging/Logging.h>
+#include <Logger/Logger.h>
 #include <RHI/DeviceManager/DeviceManager.h>
 #include <nvrhi/utils.h>
 

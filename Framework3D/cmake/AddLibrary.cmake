@@ -42,7 +42,6 @@ function(UCG_ADD_TEST)
     set_target_properties(${test_name}_test PROPERTIES ${OUTPUT_DIR})
 
     get_target_property(gtest_include GTest::gtest_main INTERFACE_INCLUDE_DIRECTORIES)
-    message("gtest_include: ${gtest_include}")
     # There should be googletest available
     target_link_libraries(${test_name}_test PUBLIC gtest gtest_main)
     target_link_libraries(${test_name}_test PUBLIC ${UCG_TEST_LIBS})
@@ -56,7 +55,6 @@ function(UCG_ADD_TEST)
         ${test_name}_test
     )
 endfunction(UCG_ADD_TEST)
-
 function(USTC_CG_ADD_LIB LIB_NAME)
     set(options SHARED)
     set(oneValueArgs SRC_DIR)
@@ -119,6 +117,8 @@ function(USTC_CG_ADD_LIB LIB_NAME)
 
     target_compile_options(${name} PRIVATE ${USTC_CG_ADD_LIB_COMPILE_OPTIONS})
     target_compile_definitions(${name} PRIVATE ${USTC_CG_ADD_LIB_COMPILE_DEFS})
+    string(TOUPPER ${LIB_NAME} LIB_NAME_UPPER)
+    target_compile_definitions(${name} PRIVATE BUILD_${LIB_NAME_UPPER}_MODULE=1)
 
     target_link_libraries(${name}
         PUBLIC ${USTC_CG_ADD_LIB_PUBLIC_LIBS}

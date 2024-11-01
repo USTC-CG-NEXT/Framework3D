@@ -294,6 +294,7 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
     ASSERT_EQ(tree->links.size(), 0);
     ASSERT_EQ(tree->has_available_link_cycle, false);
 }
+
 TEST_F(NodeCoreTest, SerializeDeserialize)
 {
     NodeTreeDescriptor descriptor;

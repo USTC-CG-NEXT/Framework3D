@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "GUI/widget.h"
-#include "USTC_CG.h"
+#include "widgets/api.h"
 #include "pxr/usd/usd/stage.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

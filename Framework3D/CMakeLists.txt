@@ -66,8 +66,6 @@ endif()
 
 message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}. Selecting SDK from ${SDK_FOLDER}")
 
-include_directories(${PROJECT_SOURCE_DIR}/include/api)
-
 # set(TBB_DIR SDK/${SDK_FOLDER}/tbb/lib/cmake/tbb)
 # set(MaterialX_DIR SDK/${SDK_FOLDER}/MaterialX/lib/cmake/MaterialX)
 # set(Imath_DIR SDK/${SDK_FOLDER}/Imath/lib/cmake/Imath)
@@ -90,8 +88,8 @@ if(USTC_CG_WITH_PYTHON)
   set_target_properties(Python3::Module PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
 endif()
 
+find_package(Vulkan)
 set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})
-
 find_package(pxr)
 if(pxr_FOUND)
   find_package(OpenGL REQUIRED)
@@ -120,7 +118,7 @@ add_subdirectory(external)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/GUI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/RHI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/nodes)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/logger)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/Logger)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/stage)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/usdview_widget)
 

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "USTC_CG.h"
 #include "nodes/core/node_tree.hpp"
+#include "nodes/system/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class USTC_CG_API NodeSystem {
+class NODES_SYSTEM_API NodeSystem {
    public:
     void init();
     virtual ~NodeSystem();

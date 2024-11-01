@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "USTC_CG.h"
+#include "widgets/api.h"
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 

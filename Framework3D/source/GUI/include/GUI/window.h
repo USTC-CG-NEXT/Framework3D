@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "USTC_CG.h"
+#include "GUI/api.h"
 #include "widget.h"
 struct GLFWwindow;
 

@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 #include "api.hpp"
 #include "node.hpp"
 #include "node_exec.hpp"
@@ -64,7 +64,7 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
     return *this;
 }
 
-class USTC_CG_API NodeTree {
+class NODES_CORE_API NodeTree {
    public:
     NodeTree(const NodeTreeDescriptor& descriptor);
     NodeTree(const NodeTree&) = delete;

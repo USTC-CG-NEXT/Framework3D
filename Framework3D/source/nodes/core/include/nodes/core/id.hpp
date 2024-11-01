@@ -3,7 +3,7 @@
 #include <algorithm>  // for std::move
 #include <type_traits>
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace detail {

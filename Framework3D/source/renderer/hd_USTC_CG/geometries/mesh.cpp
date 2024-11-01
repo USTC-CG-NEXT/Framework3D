@@ -29,7 +29,7 @@
 #include "../instancer.h"
 #include "../renderParam.h"
 #include "USTC_CG.h"
-#include "Utils/Logging/Logging.h"
+#include "Utils/Logger/Logger.h"
 #include "context.h"
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/vec2f.h"

@@ -5,7 +5,7 @@
 #include <optional>
 #include <vector>
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 #include "entt/meta/meta.hpp"
 #include "entt/meta/resolve.hpp"
 #include "node.hpp"
@@ -129,7 +129,7 @@ T& force_get_output_to_execute(ExeParams& params, const char* identifier)
 }
 
 // This executes a tree. The execution strategy is left to its children.
-struct USTC_CG_API NodeTreeExecutor {
+struct NODES_CORE_API NodeTreeExecutor {
    public:
     NodeTreeExecutor() : context(entt::locator<entt::meta_ctx>::value_or())
     {

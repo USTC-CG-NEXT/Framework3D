@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 #include "entt/core/type_info.hpp"
 #include "entt/meta/factory.hpp"
 #include "entt/meta/meta.hpp"

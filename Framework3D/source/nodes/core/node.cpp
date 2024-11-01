@@ -2,7 +2,7 @@
 
 #include "nodes/core/node.hpp"
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 #include "entt/meta/resolve.hpp"
 #include "nodes/core/node_link.hpp"
 

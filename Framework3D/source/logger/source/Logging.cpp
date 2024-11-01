@@ -1,4 +1,4 @@
-#include <Logging/Logging.h>
+#include <Logger/Logger.h>
 
 #include <cstdarg>
 #include <cstdio>

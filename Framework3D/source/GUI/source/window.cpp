@@ -11,7 +11,7 @@
 #include "imgui_renderer.h"
 #include "vulkan/vulkan.hpp"
 
-namespace USTC_CG {
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 class DockingImguiRenderer final : public ImGui_Renderer {
     friend class Window;

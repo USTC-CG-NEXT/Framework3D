@@ -4,7 +4,7 @@
 
 #include "../resources.hpp"
 #include "USTC_CG.h"
-#include "Utils/Logging/Logging.h"
+#include "Utils/Logger/Logger.h"
 #include "pxr/base/gf/vec2i.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/types.h"

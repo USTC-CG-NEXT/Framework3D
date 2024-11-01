@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "USTC_CG.h"
+#include "nodes/core/api.h"
 
 void register_nodes();
 
