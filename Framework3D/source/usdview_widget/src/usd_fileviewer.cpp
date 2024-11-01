@@ -48,7 +48,7 @@ void UsdFileViewer::ShowPrimInfo()
         UsdPrim prim = stage->GetPrimAtPath(selected);
         if (prim) {
             auto properties = prim.GetAttributes();
-            
+
             for (auto&& attr : properties) {
                 ImGui::TableNextRow();
 
@@ -60,7 +60,66 @@ void UsdFileViewer::ShowPrimInfo()
                 ImGui::TableSetColumnIndex(2);
                 VtValue v;
                 attr.Get(&v);
-                if (!v.IsArrayValued()) {
+                if (v.IsArrayValued()) {
+                    std::string displayString;
+                    auto formatArray = [&](auto array) {
+                        size_t arraySize = array.size();
+                        size_t displayCount = 3;
+                        for (size_t i = 0;
+                             i < std::min(displayCount, arraySize);
+                             ++i) {
+                            displayString += TfStringify(array[i]) + ", ";
+                        }
+                        if (arraySize > 2 * displayCount) {
+                            displayString += "... ";
+                        }
+                        for (size_t i = std::max(
+                                 displayCount, arraySize - displayCount);
+                             i < arraySize;
+                             ++i) {
+                            displayString += TfStringify(array[i]) + ", ";
+                        }
+                        if (!displayString.empty()) {
+                            displayString.pop_back();
+                            displayString.pop_back();
+                        }
+                    };
+                    if (v.IsHolding<VtArray<double>>()) {
+                        formatArray(v.Get<VtArray<double>>());
+                    }
+                    else if (v.IsHolding<VtArray<float>>()) {
+                        formatArray(v.Get<VtArray<float>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfMatrix4d>>()) {
+                        formatArray(v.Get<VtArray<GfMatrix4d>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfMatrix4f>>()) {
+                        formatArray(v.Get<VtArray<GfMatrix4f>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfVec2d>>()) {
+                        formatArray(v.Get<VtArray<GfVec2d>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfVec2f>>()) {
+                        formatArray(v.Get<VtArray<GfVec2f>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfVec3d>>()) {
+                        formatArray(v.Get<VtArray<GfVec3d>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfVec3f>>()) {
+                        formatArray(v.Get<VtArray<GfVec3f>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfVec4d>>()) {
+                        formatArray(v.Get<VtArray<GfVec4d>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfVec4f>>()) {
+                        formatArray(v.Get<VtArray<GfVec4f>>());
+                    }
+                    else {
+                        displayString = "Unsupported array type";
+                    }
+                    ImGui::TextUnformatted(displayString.c_str());
+                }
+                else {
                     auto s = VtVisitValue(
                         v, [](auto&& v) { return TfStringify(v); });
                     ImGui::TextUnformatted(s.c_str());
@@ -86,10 +145,12 @@ void UsdFileViewer::show_right_click_menu()
     //             GlobalUsdStage::CreateObject(selected, ObjectType::Mesh);
     //         }
     //         if (ImGui::MenuItem("Cylinder")) {
-    //             GlobalUsdStage::CreateObject(selected, ObjectType::Cylinder);
+    //             GlobalUsdStage::CreateObject(selected,
+    //             ObjectType::Cylinder);
     //         }
     //         if (ImGui::MenuItem("Sphere")) {
-    //             GlobalUsdStage::CreateObject(selected, ObjectType::Sphere);
+    //             GlobalUsdStage::CreateObject(selected,
+    //             ObjectType::Sphere);
     //         }
 
     //        ImGui::EndMenu();
