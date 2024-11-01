@@ -84,8 +84,8 @@ class BaseCamera : public pxr::UsdGeomCamera {
     pxr::GfVec3d m_CameraUp = pxr::GfVec3d(0.0, 1.0, 0.0);
     pxr::GfVec3d m_CameraRight = pxr::GfVec3d(0.0, 0.0, 1.0);
 
-    double m_MoveSpeed = 1.0;
-    double m_RotateSpeed = .005;
+    double m_MoveSpeed = 10;
+    double m_RotateSpeed = .05;
 };
 
 class FirstPersonCamera : public BaseCamera {

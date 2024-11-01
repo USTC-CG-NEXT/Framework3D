@@ -37,31 +37,24 @@ class DockingImguiRenderer final : public ImGui_Renderer {
 
     std::vector<std::unique_ptr<IWidget>> widgets_;
 };
-
 bool DockingImguiRenderer::JoystickButtonUpdate(int button, bool pressed)
 {
-    if (ImGui_Renderer::JoystickButtonUpdate(button, pressed)) {
-        return true;
-    }
     for (auto&& widget : widgets_) {
         if (widget->JoystickButtonUpdate(button, pressed)) {
             return true;
         }
     }
-    return false;
+    return ImGui_Renderer::JoystickButtonUpdate(button, pressed);
 }
 
 bool DockingImguiRenderer::JoystickAxisUpdate(int axis, float value)
 {
-    if (ImGui_Renderer::JoystickAxisUpdate(axis, value)) {
-        return true;
-    }
     for (auto&& widget : widgets_) {
         if (widget->JoystickAxisUpdate(axis, value)) {
             return true;
         }
     }
-    return false;
+    return ImGui_Renderer::JoystickAxisUpdate(axis, value);
 }
 
 bool DockingImguiRenderer::KeyboardUpdate(
@@ -70,75 +63,60 @@ bool DockingImguiRenderer::KeyboardUpdate(
     int action,
     int mods)
 {
-    if (ImGui_Renderer::KeyboardUpdate(key, scancode, action, mods)) {
-        return true;
-    }
     for (auto&& widget : widgets_) {
         if (widget->KeyboardUpdate(key, scancode, action, mods)) {
             return true;
         }
     }
-    return false;
+    return ImGui_Renderer::KeyboardUpdate(key, scancode, action, mods);
 }
 
 bool DockingImguiRenderer::KeyboardCharInput(unsigned unicode, int mods)
 {
-    if (ImGui_Renderer::KeyboardCharInput(unicode, mods)) {
-        return true;
-    }
     for (auto&& widget : widgets_) {
         if (widget->KeyboardCharInput(unicode, mods)) {
             return true;
         }
     }
-    return false;
+    return ImGui_Renderer::KeyboardCharInput(unicode, mods);
 }
 
 bool DockingImguiRenderer::MousePosUpdate(double xpos, double ypos)
 {
-    if (ImGui_Renderer::MousePosUpdate(xpos, ypos)) {
-        return true;
-    }
     for (auto&& widget : widgets_) {
         if (widget->MousePosUpdate(xpos, ypos)) {
             return true;
         }
     }
-    return false;
+    return ImGui_Renderer::MousePosUpdate(xpos, ypos);
 }
 
 bool DockingImguiRenderer::MouseScrollUpdate(double xoffset, double yoffset)
 {
-    if (ImGui_Renderer::MouseScrollUpdate(xoffset, yoffset)) {
-        return true;
-    }
     for (auto&& widget : widgets_) {
         if (widget->MouseScrollUpdate(xoffset, yoffset)) {
             return true;
         }
     }
-    return false;
+    return ImGui_Renderer::MouseScrollUpdate(xoffset, yoffset);
 }
 
 bool DockingImguiRenderer::MouseButtonUpdate(int button, int action, int mods)
 {
-    if (ImGui_Renderer::MouseButtonUpdate(button, action, mods)) {
-        return true;
-    }
     for (auto&& widget : widgets_) {
         if (widget->MouseButtonUpdate(button, action, mods)) {
             return true;
         }
     }
-    return false;
+    return ImGui_Renderer::MouseButtonUpdate(button, action, mods);
 }
 
 void DockingImguiRenderer::Animate(float elapsedTimeSeconds)
 {
-    ImGui_Renderer::Animate(elapsedTimeSeconds);
     for (auto&& widget : widgets_) {
         widget->Animate(elapsedTimeSeconds);
     }
+    ImGui_Renderer::Animate(elapsedTimeSeconds);
 }
 
 void DockingImguiRenderer::register_widget(std::unique_ptr<IWidget> widget)

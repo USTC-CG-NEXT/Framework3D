@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "GUI/window.h"
+#include "RHI/rhi.hpp"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
 #include "widgets/usdtree/usd_fileviewer.h"

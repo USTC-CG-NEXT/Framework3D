@@ -30,8 +30,10 @@ void BaseCamera::UpdateWorldToView()
         0.0,
         0.0,
         1.0);
-    m_MatWorldToView = pxr::GfMatrix4d().SetTranslate(-m_CameraPos) *
-                       m_MatTranslatedWorldToView;
+    m_MatWorldToView =
+        (pxr::GfMatrix4d().SetIdentity().SetTranslate(-m_CameraPos) *
+         m_MatTranslatedWorldToView)
+            ;
 
     auto xform_op = GetTransformOp();
     if (!xform_op) {
@@ -192,7 +194,7 @@ void FirstPersonCamera::Animate(double deltaT)
     mousePosPrev = mousePos;
 
     bool cameraDirty = false;
-    pxr::GfRotation cameraRotation = pxr::GfRotation();
+    pxr::GfRotation cameraRotation = pxr::GfRotation().SetIdentity();
 
     // handle mouse rotation first
     // this will affect the movement vectors in the world matrix, which we use

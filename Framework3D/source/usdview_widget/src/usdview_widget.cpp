@@ -2,10 +2,11 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-
 #include "widgets/usdview/usdview_widget.hpp"
 
 #include <pxr/imaging/hd/driver.h>
+
+#include <vulkan/vulkan.hpp>
 
 #include "Logger/Logger.h"
 #include "RHI/Hgi/desc_conversion.hpp"
@@ -23,6 +24,8 @@
 #include "pxr/imaging/hgi/blitCmds.h"
 #include "pxr/imaging/hgi/blitCmdsOps.h"
 #include "pxr/imaging/hgi/tokens.h"
+//#include "pxr/imaging/hgiVulkan/texture.h"
+//#include "pxr/imaging/hgiVulkan/vk_mem_alloc.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/stage.h"
@@ -31,6 +34,55 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
+
+UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
+    : root_stage_(root_stage)
+{
+    // Initialize OpenGL context using WGL
+    CreateGLContext();
+
+    // Initialize GLEW or any other OpenGL loader if necessary
+    // glewInit();
+    // Check OpenGL version
+    GarchGLApiLoad();
+
+    pxr::UsdImagingGLEngine::Parameters params;
+
+    // Initialize Vulkan driver
+#if USDVIEW_WITH_VULKAN
+    hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->Vulkan);
+    pxr::HdDriver hdDriver;
+    hdDriver.name = pxr::HgiTokens->renderDriver;
+    hdDriver.driver =
+        pxr::VtValue(hgi.get());  // Assuming Vulkan driver doesn't need
+                                  // additional parameters
+    params.driver = hdDriver;
+#endif
+
+    renderer_ = std::make_unique<pxr::UsdImagingGLEngine>(params);
+
+    renderer_->SetEnablePresentation(false);
+    free_camera_ = std::make_unique<FirstPersonCamera>();
+    static_cast<pxr::UsdGeomCamera&>(*free_camera_) =
+        pxr::UsdGeomCamera::Define(root_stage_, pxr::SdfPath("/FreeCamera"));
+
+    static_cast<FirstPersonCamera*>(free_camera_.get())
+        ->LookAt(
+            pxr::GfVec3d{ 0, -1, 0 },
+            pxr::GfVec3d{ 0, 0, 0 },
+            pxr::GfVec3d{ 0, 0, 1 });
+
+    auto plugins = renderer_->GetRendererPlugins();
+    for (const auto& plugin : plugins) {
+        log::info(plugin.GetText());
+    }
+    renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
+
+    // free_camera_->SetProjection(GfCamera::Projection::Perspective);
+    free_camera_->CreateFocusDistanceAttr().Set(5.0f);
+    free_camera_->CreateClippingRangeAttr(
+        pxr::VtValue(pxr::GfVec2f{ 0.1f, 1000.f }));
+}
 
 void UsdviewEngine::DrawMenuBar()
 {
@@ -112,7 +164,7 @@ void UsdviewEngine::OnFrame(float delta_time)
     _renderParams.drawMode = UsdImagingGLDrawMode::DRAW_WIREFRAME_ON_SURFACE;
     _renderParams.colorCorrectionMode = pxr::HdxColorCorrectionTokens->disabled;
 
-    _renderParams.clearColor = GfVec4f(1.0f, 0.0f, 0.5f, 1.f);
+    _renderParams.clearColor = GfVec4f(0.2f, 0.2f, 0.2f, 1.f);
     _renderParams.frame = UsdTimeCode(timecode);
 
     for (int i = 0; i < free_camera_->GetCamera(UsdTimeCode::Default())
@@ -128,12 +180,12 @@ void UsdviewEngine::OnFrame(float delta_time)
     auto cam_pos = frustum.GetPosition();
     lights[0].SetPosition(GfVec4f{
         float(cam_pos[0]), float(cam_pos[1]), float(cam_pos[2]), 1.0f });
-    lights[0].SetAmbient(GfVec4f(0, 0, 0, 0));
+    lights[0].SetAmbient(GfVec4f(1, 1, 1, 1));
     lights[0].SetDiffuse(GfVec4f(1.0f) * 1.9);
     GlfSimpleMaterial material;
-    float kA = 0.0f;
-    float kS = 0.0f;
-    float shiness = 0.f;
+    float kA = 1.0f;
+    float kS = 1.0f;
+    float shiness = 1.f;
     material.SetDiffuse(GfVec4f(kA, kA, kA, 1.0f));
     material.SetSpecular(GfVec4f(kS, kS, kS, 1.0f));
     material.SetShininess(shiness);
@@ -147,7 +199,6 @@ void UsdviewEngine::OnFrame(float delta_time)
     auto hgi_texture = renderer_->GetAovTexture(HdAovTokens->color);
     nvrhi::TextureDesc tex_desc =
         RHI::ConvertToNvrhiTextureDesc(hgi_texture->GetDescriptor());
-    auto size = hgi_texture->GetDescriptor().pixelsByteSize;
 
     // Since Hgi and nvrhi vulkan are on different Vulkan instances and we don't
     // want to modify Hgi's external information definition, we need to do a CPU
@@ -164,6 +215,12 @@ void UsdviewEngine::OnFrame(float delta_time)
 
 #if USDVIEW_WITH_VULKAN
     nvrhi_texture = RHI::load_texture(tex_desc, texture_data.data());
+
+    // auto img =
+    //     static_cast<pxr::HgiVulkanTexture*>((hgi_texture.Get()))->GetImage();
+
+    // nvrhi_texture = RHI::get_device()->createHandleForNativeTexture(
+    //     nvrhi::ObjectTypes::VK_Image, img, tex_desc);
 #else
     nvrhi_texture = RHI::load_ogl_texture(tex_desc, color->GetRawResource());
 #endif
@@ -171,6 +228,8 @@ void UsdviewEngine::OnFrame(float delta_time)
     auto imgui_frame_size = ImVec2(renderBufferSize_[0], renderBufferSize_[1]);
 
     ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
+
+    ImGui::GetIO().WantCaptureMouse = false;
     ImGui::Image(
         static_cast<ImTextureID>(nvrhi_texture.Get()),
         imgui_frame_size,
@@ -224,6 +283,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     //    log::info("Picked prim " + path.GetAsString(), Info);
     //}
+    ImGui::GetIO().WantCaptureMouse = true;
 
     ImGui::EndChild();
 }
@@ -305,43 +365,43 @@ void UsdviewEngine::set_current_time_code(float time_code)
 bool UsdviewEngine::JoystickButtonUpdate(int button, bool pressed)
 {
     free_camera_->JoystickButtonUpdate(button, pressed);
-    return true;
+    return false;
 }
 
 bool UsdviewEngine::JoystickAxisUpdate(int axis, float value)
 {
     free_camera_->JoystickUpdate(axis, value);
-    return true;
+    return false;
 }
 
 bool UsdviewEngine::KeyboardUpdate(int key, int scancode, int action, int mods)
 {
     free_camera_->KeyboardUpdate(key, scancode, action, mods);
-    return true;
+    return false;
 }
 
 bool UsdviewEngine::KeyboardCharInput(unsigned unicode, int mods)
 {
     free_camera_->KeyboardUpdate(unicode, 0, 0, mods);
-    return true;
+    return false;
 }
 
 bool UsdviewEngine::MousePosUpdate(double xpos, double ypos)
 {
     free_camera_->MousePosUpdate(xpos, ypos);
-    return true;
+    return false;
 }
 
 bool UsdviewEngine::MouseScrollUpdate(double xoffset, double yoffset)
 {
     free_camera_->MouseScrollUpdate(xoffset, yoffset);
-    return true;
+    return false;
 }
 
 bool UsdviewEngine::MouseButtonUpdate(int button, int action, int mods)
 {
     free_camera_->MouseButtonUpdate(button, action, mods);
-    return true;
+    return false;
 }
 
 void UsdviewEngine::Animate(float elapsed_time_seconds)
@@ -384,47 +444,6 @@ void UsdviewEngine::CreateGLContext()
 
     HGLRC hglrc = wglCreateContext(hdc);
     wglMakeCurrent(hdc, hglrc);
-}
-
-UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
-    : root_stage_(root_stage)
-{
-    // Initialize OpenGL context using WGL
-    CreateGLContext();
-
-    // Initialize GLEW or any other OpenGL loader if necessary
-    // glewInit();
-    // Check OpenGL version
-    GarchGLApiLoad();
-
-    pxr::UsdImagingGLEngine::Parameters params;
-
-    // Initialize Vulkan driver
-#if USDVIEW_WITH_VULKAN
-    hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->Vulkan);
-    pxr::HdDriver hdDriver;
-    hdDriver.name = pxr::HgiTokens->renderDriver;
-    hdDriver.driver =
-        pxr::VtValue(hgi.get());  // Assuming Vulkan driver doesn't need
-                                  // additional parameters
-    params.driver = hdDriver;
-#endif
-
-    renderer_ = std::make_unique<pxr::UsdImagingGLEngine>(params);
-
-    // renderer_->SetEnablePresentation(true);
-    free_camera_ = std::make_unique<FirstPersonCamera>();
-    static_cast<pxr::UsdGeomCamera&>(*free_camera_) =
-        pxr::UsdGeomCamera::Define(root_stage_, pxr::SdfPath("/FreeCamera"));
-
-    auto plugins = renderer_->GetRendererPlugins();
-    for (const auto& plugin : plugins) {
-        log::info(plugin.GetText());
-    }
-    renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
-
-    // free_camera_->SetProjection(GfCamera::Projection::Perspective);
-    // free_camera_->SetClippingRange(pxr::GfRange1f{ 0.1f, 1000.f });
 }
 
 UsdviewEngine::~UsdviewEngine()

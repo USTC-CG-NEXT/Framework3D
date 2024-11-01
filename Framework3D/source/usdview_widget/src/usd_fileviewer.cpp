@@ -68,18 +68,19 @@ void UsdFileViewer::ShowPrimInfo()
                         for (size_t i = 0;
                              i < std::min(displayCount, arraySize);
                              ++i) {
-                            displayString += TfStringify(array[i]) + ", ";
+                            displayString += TfStringify(array[i]) + ", \n";
                         }
                         if (arraySize > 2 * displayCount) {
-                            displayString += "... ";
+                            displayString += "... \n";
                         }
                         for (size_t i = std::max(
                                  displayCount, arraySize - displayCount);
                              i < arraySize;
                              ++i) {
-                            displayString += TfStringify(array[i]) + ", ";
+                            displayString += TfStringify(array[i]) + ", \n";
                         }
                         if (!displayString.empty()) {
+                            displayString.pop_back();
                             displayString.pop_back();
                             displayString.pop_back();
                         }
