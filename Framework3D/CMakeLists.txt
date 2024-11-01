@@ -90,13 +90,11 @@ if(USTC_CG_WITH_PYTHON)
   set_target_properties(Python3::Module PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
 endif()
 
-
-find_package(Vulkan REQUIRED)
-find_package(OpenGL REQUIRED)
-
 set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})
+
 find_package(pxr)
 if(pxr_FOUND)
+  find_package(OpenGL REQUIRED)
   set(USTC_CG_WITH_OPENUSD ON)
   if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     if(Python3_LIBRARY MATCHES "_d.lib$")

@@ -19,6 +19,10 @@ USTC_CG_API nvrhi::TextureHandle load_texture(
     const nvrhi::TextureDesc& desc,
     const void* data);
 
+USTC_CG_API nvrhi::TextureHandle load_ogl_texture(
+    const nvrhi::TextureDesc& desc,
+    unsigned gl_texture );
+
 namespace internal {
     USTC_CG_API DeviceManager* get_device_manager();
 

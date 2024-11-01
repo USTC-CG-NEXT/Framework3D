@@ -5,6 +5,9 @@
 
 #include "RHI/DeviceManager/DeviceManager.h"
 #include "nvrhi/utils.h"
+#include "pxr/imaging/garch/glApi.h"
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#include "vulkan/vulkan.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace RHI {
@@ -19,10 +22,20 @@ int init(bool with_window, bool use_dx12)
     device_manager = std::unique_ptr<DeviceManager>(DeviceManager::Create(api));
 
     DeviceCreationParameters params;
+    params.optionalVulkanInstanceExtensions = {
+        VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME
+    };
+    params.optionalVulkanDeviceExtensions = {
+        VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+        VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
+        VK_KHR_EXTERNAL_FENCE_EXTENSION_NAME,
+        VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+        VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
+    };
 
 #ifdef _DEBUG
     params.enableNvrhiValidationLayer = true;
-    //params.enableDebugRuntime = true;
+    params.enableDebugRuntime = true;
 #endif
 
     if (with_window) {
@@ -96,7 +109,98 @@ nvrhi::TextureHandle load_texture(
     return texture;
 }
 
-nvrhi::SamplerHandle sampler = nullptr;
+nvrhi::TextureHandle load_ogl_texture(
+    const nvrhi::TextureDesc& desc,
+    unsigned gl_texture)
+{
+    auto device = RHI::get_device();
+    vk::Device vk_device =
+        VkDevice(device->getNativeObject(nvrhi::ObjectTypes::VK_Device));
+    vk::PhysicalDevice vk_physical_device = VkPhysicalDevice(
+        device->getNativeObject(nvrhi::ObjectTypes::VK_PhysicalDevice));
+
+    // Get the OpenGL texture handle
+    GLuint64 glHandle = glGetTextureHandleARB(gl_texture);
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL error: " << gluErrorString(error) << std::endl;
+        return nullptr;
+    }
+
+    // Create Vulkan image with external memory
+    vk::ImageCreateInfo imageCreateInfo = {};
+    imageCreateInfo.imageType = vk::ImageType::e2D;
+    imageCreateInfo.format = vk::Format::eR8G8B8A8Unorm;
+    imageCreateInfo.extent.width = desc.width;
+    imageCreateInfo.extent.height = desc.height;
+    imageCreateInfo.extent.depth = 1;
+    imageCreateInfo.mipLevels = desc.mipLevels;
+    imageCreateInfo.arrayLayers = desc.arraySize;
+    imageCreateInfo.samples = vk::SampleCountFlagBits::e1;
+    imageCreateInfo.tiling = vk::ImageTiling::eOptimal;
+    imageCreateInfo.usage = vk::ImageUsageFlagBits::eSampled;
+    imageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+    imageCreateInfo.initialLayout = vk::ImageLayout::eUndefined;
+
+    // Specify external memory handle types
+    vk::ExternalMemoryImageCreateInfo externalMemoryInfo = {};
+    externalMemoryInfo.handleTypes =
+        vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
+
+    imageCreateInfo.pNext = &externalMemoryInfo;
+
+    // Create the Vulkan image
+    vk::Image vkImage = vk_device.createImage(imageCreateInfo);
+
+    // Get memory requirements
+    vk::MemoryRequirements memRequirements =
+        vk_device.getImageMemoryRequirements(vkImage);
+
+    // Set up memory allocation info with imported handle
+    vk::MemoryAllocateInfo memoryAllocateInfo = {};
+    memoryAllocateInfo.allocationSize = memRequirements.size;
+
+    uint32_t memoryTypeIndex = 0;
+    vk::PhysicalDeviceMemoryProperties memoryProperties =
+        vk_physical_device.getMemoryProperties();
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        if ((memRequirements.memoryTypeBits & (1 << i)) &&
+            (memoryProperties.memoryTypes[i].propertyFlags &
+             vk::MemoryPropertyFlagBits::eDeviceLocal)) {
+            memoryTypeIndex = i;
+            break;
+        }
+    }
+    memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+
+#if defined(_WIN32)
+    vk::ImportMemoryWin32HandleInfoKHR importMemoryInfo = {};
+    importMemoryInfo.handleType =
+        vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
+    importMemoryInfo.handle = reinterpret_cast<HANDLE>(gl_texture);
+
+    memoryAllocateInfo.pNext = &importMemoryInfo;
+#else
+    vk::ImportMemoryFdInfoKHR importMemoryInfo = {};
+    importMemoryInfo.handleType =
+        vk::ExternalMemoryHandleTypeFlagBits::eOpaqueFd;
+    importMemoryInfo.fd = static_cast<int>(gl_texture);
+
+    memoryAllocateInfo.pNext = &importMemoryInfo;
+#endif
+
+    // Allocate memory
+    vk::DeviceMemory vkMemory = vk_device.allocateMemory(memoryAllocateInfo);
+
+    // Bind memory to the image
+    vk_device.bindImageMemory(vkImage, vkMemory, 0);
+
+    // Create NVRHI texture handle
+    nvrhi::TextureHandle texture = device->createHandleForNativeTexture(
+        nvrhi::ObjectTypes::VK_Image, static_cast<VkImage>(vkImage), desc);
+
+    return texture;
+}
 
 DeviceManager* internal::get_device_manager()
 {
@@ -105,7 +209,6 @@ DeviceManager* internal::get_device_manager()
 
 int shutdown()
 {
-    sampler = nullptr;
     device_manager->Shutdown();
     device_manager.reset();
     return device_manager == nullptr;

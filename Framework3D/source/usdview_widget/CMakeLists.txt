@@ -1,6 +1,9 @@
 if(USTC_CG_WITH_OPENUSD)
 
-set(PRIVATE_LIBS Logger GUI usd usdImaging usdImagingGL hdSt glf garch hgi hgiVulkan RHI)
+find_package(Vulkan)
+
+
+set(PRIVATE_LIBS Logger GUI usd usdImaging usdImagingGL hdSt glf garch hgi RHI)
 set(COMPILE_DEFS NOMINMAX=1 USTC_CG_BUILD_MODULE=1)
 
 if(TARGET Vulkan::Vulkan)

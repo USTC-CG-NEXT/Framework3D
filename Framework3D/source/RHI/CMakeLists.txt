@@ -18,4 +18,8 @@ if(SLANG_FOUND)
 		target_link_libraries(RHI PUBLIC hgi)
 		target_compile_definitions(RHI PUBLIC RHI_WITH_OPENUSD_HGI=1)
 	endif()
+
+	if(TARGET garch)
+		target_link_libraries(RHI PUBLIC garch)
+	endif()
 endif()
