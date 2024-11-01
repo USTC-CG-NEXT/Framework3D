@@ -33,6 +33,8 @@ int init(bool with_window, bool use_dx12)
         VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
     };
 
+    params.swapChainFormat = nvrhi::Format::RGBA8_UNORM;
+
 #ifdef _DEBUG
     params.enableNvrhiValidationLayer = true;
     params.enableDebugRuntime = true;
@@ -58,6 +60,11 @@ nvrhi::IDevice* get_device()
 nvrhi::GraphicsAPI get_backend()
 {
     return get_device()->getGraphicsAPI();
+}
+size_t calculate_bytes_per_pixel(nvrhi::Format format)
+{
+    nvrhi::FormatInfo formatInfo = getFormatInfo(format);
+    return formatInfo.bytesPerBlock * formatInfo.blockSize;
 }
 
 nvrhi::TextureHandle load_texture(
@@ -88,9 +95,7 @@ nvrhi::TextureHandle load_texture(
             uint8_t* dstData = static_cast<uint8_t*>(mappedData);
 
             for (uint32_t y = 0; y < desc.height; ++y) {
-                nvrhi::FormatInfo formatInfo = getFormatInfo(desc.format);
-                auto bytesPerPixel =
-                    formatInfo.bytesPerBlock * formatInfo.blockSize;
+                auto bytesPerPixel = calculate_bytes_per_pixel(desc.format);
                 memcpy(dstData, srcData, desc.width * bytesPerPixel);
                 srcData += desc.width * bytesPerPixel;
                 dstData += rowPitch;
@@ -177,14 +182,14 @@ nvrhi::TextureHandle load_ogl_texture(
     vk::ImportMemoryWin32HandleInfoKHR importMemoryInfo = {};
     importMemoryInfo.handleType =
         vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
-    importMemoryInfo.handle = reinterpret_cast<HANDLE>(gl_texture);
+    importMemoryInfo.handle = reinterpret_cast<HANDLE>(glHandle);
 
     memoryAllocateInfo.pNext = &importMemoryInfo;
 #else
     vk::ImportMemoryFdInfoKHR importMemoryInfo = {};
     importMemoryInfo.handleType =
         vk::ExternalMemoryHandleTypeFlagBits::eOpaqueFd;
-    importMemoryInfo.fd = static_cast<int>(gl_texture);
+    importMemoryInfo.fd = static_cast<int>(glHandle);
 
     memoryAllocateInfo.pNext = &importMemoryInfo;
 #endif

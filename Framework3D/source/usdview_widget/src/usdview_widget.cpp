@@ -8,26 +8,26 @@
 #include <pxr/imaging/hd/driver.h>
 
 #include "Logger/Logger.h"
-#include "RHI/Hgi/format_conversion.hpp"
+#include "RHI/Hgi/desc_conversion.hpp"
 #include "RHI/rhi.hpp"
 #include "free_camera.hpp"
 #include "imgui.h"
+#include "nvrhi/utils.h"
 #include "pxr/base/gf/camera.h"
 #include "pxr/base/gf/frustum.h"
 #include "pxr/base/gf/matrix4f.h"
 #include "pxr/imaging/garch/gl.h"
 #include "pxr/imaging/garch/glPlatformContext.h"
 #include "pxr/imaging/glf/drawTarget.h"
+#include "pxr/imaging/hdx/tokens.h"
+#include "pxr/imaging/hgi/blitCmds.h"
+#include "pxr/imaging/hgi/blitCmdsOps.h"
 #include "pxr/imaging/hgi/tokens.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/camera.h"
 #include "pxr/usdImaging/usdImagingGL/engine.h"
-
-#if USDVIEW_WITH_VULKAN
-#include "pxr/imaging/hgiVulkan/graphicsPipeline.h"
-#endif
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
@@ -87,10 +87,9 @@ void UsdviewEngine::DrawMenuBar()
 
 void UsdviewEngine::OnFrame(float delta_time)
 {
-    nvrhi_texture = nullptr;
     DrawMenuBar();
-    // Update the camera when mouse is in the subwindow
-    // CameraCallback(delta_time);
+
+    auto previous = nvrhi_texture.Get();
 
     using namespace pxr;
     GfFrustum frustum =
@@ -111,9 +110,9 @@ void UsdviewEngine::OnFrame(float delta_time)
     _renderParams.showRender = true;
     _renderParams.frame = UsdTimeCode::Default();
     _renderParams.drawMode = UsdImagingGLDrawMode::DRAW_WIREFRAME_ON_SURFACE;
-    _renderParams.colorCorrectionMode = TfToken("sRGB");
+    _renderParams.colorCorrectionMode = pxr::HdxColorCorrectionTokens->disabled;
 
-    _renderParams.clearColor = GfVec4f(0.1f, 0.1f, 0.1f, 1.f);
+    _renderParams.clearColor = GfVec4f(1.0f, 0.0f, 0.5f, 1.f);
     _renderParams.frame = UsdTimeCode(timecode);
 
     for (int i = 0; i < free_camera_->GetCamera(UsdTimeCode::Default())
@@ -145,32 +144,30 @@ void UsdviewEngine::OnFrame(float delta_time)
     UsdPrim root = root_stage_->GetPseudoRoot();
 
     renderer_->Render(root, _renderParams);
-    auto color = renderer_->GetAovTexture(HdAovTokens->color);
-    nvrhi::TextureDesc tex_desc;
-    tex_desc.width = renderBufferSize_[0];
-    tex_desc.height = renderBufferSize_[1];
-    tex_desc.format = RHI::ConvertToNvrhiFormat(color->GetDescriptor().format);
-    tex_desc.isRenderTarget = true;
-    tex_desc.isShaderResource = true;
-    tex_desc.isUAV = false;
-    tex_desc.debugName = "UsdviewEngineTexture";
+    auto hgi_texture = renderer_->GetAovTexture(HdAovTokens->color);
+    nvrhi::TextureDesc tex_desc =
+        RHI::ConvertToNvrhiTextureDesc(hgi_texture->GetDescriptor());
+    auto size = hgi_texture->GetDescriptor().pixelsByteSize;
+
+    // Since Hgi and nvrhi vulkan are on different Vulkan instances and we don't
+    // want to modify Hgi's external information definition, we need to do a CPU
+    // read back to send the information to nvrhi.
+
+    HgiBlitCmdsUniquePtr blitCmds = hgi->CreateBlitCmds();
+    HgiTextureGpuToCpuOp copyOp;
+    copyOp.gpuSourceTexture = hgi_texture;
+    copyOp.cpuDestinationBuffer = texture_data.data();
+    copyOp.destinationBufferByteSize = texture_data.size();
+    blitCmds->CopyTextureGpuToCpu(copyOp);
+
+    hgi->SubmitCmds(blitCmds.get(), HgiSubmitWaitTypeWaitUntilCompleted);
 
 #if USDVIEW_WITH_VULKAN
-
-    VkImage img = reinterpret_cast<VkImage>(color->GetRawResource());
-
-    auto device = RHI::get_device();
-
-    nvrhi_texture = device->createHandleForNativeTexture(
-        nvrhi::ObjectTypes::VK_Image, img, tex_desc);
-
+    nvrhi_texture = RHI::load_texture(tex_desc, texture_data.data());
 #else
-    //tex_desc.isVirtual = true;
     nvrhi_texture = RHI::load_ogl_texture(tex_desc, color->GetRawResource());
-
 #endif
 
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
     auto imgui_frame_size = ImVec2(renderBufferSize_[0], renderBufferSize_[1]);
 
     ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
@@ -231,14 +228,6 @@ void UsdviewEngine::OnFrame(float delta_time)
     ImGui::EndChild();
 }
 
-void UsdviewEngine::refresh_platform_texture()
-{
-#if USDVIEW_WITH_VULKAN
-
-#else
-
-#endif
-}
 //
 // void UsdviewEngine::refresh_viewport(int x, int y)
 //{
@@ -254,12 +243,7 @@ void UsdviewEngine::refresh_platform_texture()
 //    refresh_platform_texture();
 //}
 //
-// void UsdviewEngine::OnResize(int x, int y)
-//{
-//    if (renderBufferSize_[0] != x || renderBufferSize_[1] != y) {
-//        refresh_viewport(x, y);
-//    }
-//}
+
 //
 // void UsdviewEngine::time_controller(float delta_time)
 //{
@@ -379,6 +363,9 @@ void UsdviewEngine::BackBufferResized(
     renderer_->SetRenderBufferSize(renderBufferSize_);
     renderer_->SetRenderViewport(pxr::GfVec4d{
         0.0, 0.0, double(renderBufferSize_[0]), double(renderBufferSize_[1]) });
+
+    texture_data.resize(
+        width * height * RHI::calculate_bytes_per_pixel(present_format));
 }
 
 void UsdviewEngine::CreateGLContext()
@@ -463,11 +450,8 @@ bool UsdviewEngine::BuildUI(
         auto size = ImGui::GetContentRegionAvail();
         // size.y -= 28;
         BackBufferResized(size.x, size.y, 1);
-        refresh_platform_texture();
 
         if (size.x > 0 && size.y > 0) {
-            //             OnResize(size.x, size.y);
-
             OnFrame(delta_time);
             // time_controller(delta_time);
         }
