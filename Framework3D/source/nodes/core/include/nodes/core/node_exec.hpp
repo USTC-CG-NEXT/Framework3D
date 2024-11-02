@@ -4,10 +4,10 @@
 #include <optional>
 #include <vector>
 
-#include "nodes/core/api.h"
 #include "entt/meta/meta.hpp"
 #include "entt/meta/resolve.hpp"
 #include "node.hpp"
+#include "nodes/core/api.h"
 // #include "Utils/Functions/GenericPointer.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -18,7 +18,9 @@ class NodeTree;
 struct NODES_CORE_API ExeParams {
     const Node& node_;
 
-    explicit ExeParams(const Node& node) : node_(node)
+    explicit ExeParams(const Node& node, entt::meta_any& g_param)
+        : node_(node),
+          global_param(g_param)
     {
     }
 
@@ -78,21 +80,10 @@ struct NODES_CORE_API ExeParams {
     }
 
     template<typename T>
-    T get_runtime_storage()
-    {
-        if (!node_.runtime_storage) {
-            node_.runtime_storage =
-                get_socket_type<std::decay_t<T>>().construct();
-        }
-
-        return node_.runtime_storage.cast<T>();
-    }
-
-    template<typename T>
     T get_global_params()
     {
         assert(global_param);
-        return entt::any_cast<std::decay_t<T>>(global_param);
+        return global_param.cast<T>();
     }
 
    private:
@@ -109,7 +100,7 @@ struct NODES_CORE_API ExeParams {
         const char* identifier);
 
    private:
-    entt::any global_param;
+    entt::meta_any& global_param;
     std::vector<entt::meta_any*> inputs_;
     std::vector<entt::meta_any*> outputs_;
 };
@@ -130,7 +121,7 @@ T& force_get_output_to_execute(ExeParams& params, const char* identifier)
 // This executes a tree. The execution strategy is left to its children.
 struct NODES_CORE_API NodeTreeExecutor {
    public:
-    NodeTreeExecutor() : context(entt::locator<entt::meta_ctx>::value_or())
+    NodeTreeExecutor()
     {
     }
 
@@ -156,14 +147,6 @@ struct NODES_CORE_API NodeTreeExecutor {
         prepare_tree(tree);
         execute_tree(tree);
     }
-
-    entt::meta_ctx& get_meta_ctx() const
-    {
-        return context;
-    }
-
-   protected:
-    entt::meta_ctx& context;
 };
 
 struct NodeTreeExecutorDesc {

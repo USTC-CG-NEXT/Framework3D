@@ -14,6 +14,8 @@ int main()
     log::SetMinSeverity(Severity::Debug);
     log::EnableOutputToConsole(true);
     auto root_stage = pxr::UsdStage::CreateInMemory();
+    root_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, 1.0);
+    root_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::TfToken("Z"));
     // Add a sphere
     auto sphere =
         pxr::UsdGeomSphere::Define(root_stage, pxr::SdfPath("/sphere"));

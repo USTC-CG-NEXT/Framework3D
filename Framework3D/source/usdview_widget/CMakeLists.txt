@@ -10,6 +10,7 @@ endif()
 
 USTC_CG_ADD_LIB(
 	usdview_widget
+	PUBLIC_LIBS stage
 	PRIVATE_LIBS ${PRIVATE_LIBS}
 	COMPILE_DEFS ${COMPILE_DEFS}
 )

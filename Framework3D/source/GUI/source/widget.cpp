@@ -16,7 +16,6 @@ void IWidget::End()
     ImGui::End();
 }
 
-
 bool IWidget::IsOpen()
 {
     return is_open;
@@ -91,9 +90,7 @@ const char* IWidget::GetWindowName()
 
 std::string IWidget::GetWindowUniqueName()
 {
-    return (GetWindowName() + std::string("##") +
-            std::to_string(reinterpret_cast<long long>(this)))
-        .c_str();
+    return GetWindowName();
 }
 
 ImGuiWindowFlags IWidget::GetWindowFlag()

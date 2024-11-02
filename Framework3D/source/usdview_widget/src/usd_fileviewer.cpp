@@ -14,9 +14,9 @@
 #include "pxr/usd/usd/prim.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/property.h"
+#include "stage/stage.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-
 void UsdFileViewer::ShowFileTree()
 {
     auto root = stage->GetPseudoRoot();
@@ -140,32 +140,30 @@ pxr::SdfPath UsdFileViewer::emit_editor_info_path()
 
 void UsdFileViewer::show_right_click_menu()
 {
-    // if (ImGui::BeginPopupContextWindow("Prim Operation")) {
-    //     if (ImGui::BeginMenu("Create")) {
-    //         if (ImGui::MenuItem("Mesh")) {
-    //             GlobalUsdStage::CreateObject(selected, ObjectType::Mesh);
-    //         }
-    //         if (ImGui::MenuItem("Cylinder")) {
-    //             GlobalUsdStage::CreateObject(selected,
-    //             ObjectType::Cylinder);
-    //         }
-    //         if (ImGui::MenuItem("Sphere")) {
-    //             GlobalUsdStage::CreateObject(selected,
-    //             ObjectType::Sphere);
-    //         }
+    if (ImGui::BeginPopupContextWindow("Prim Operation")) {
+        if (ImGui::BeginMenu("Create")) {
+            if (ImGui::MenuItem("Mesh")) {
+                stage->create_mesh(selected);
+            }
+            if (ImGui::MenuItem("Cylinder")) {
+                stage->create_cylinder(selected);
+            }
+            if (ImGui::MenuItem("Sphere")) {
+                stage->create_sphere(selected);
+            }
 
-    //        ImGui::EndMenu();
-    //    }
+            ImGui::EndMenu();
+        }
 
-    //    if (ImGui::MenuItem("Edit")) {
-    //        editor_info_path = GlobalUsdStage::EditObject(selected);
-    //    }
+        if (ImGui::MenuItem("Edit")) {
+            editor_info_path = selected;
+        }
 
-    //    if (ImGui::MenuItem("Delete")) {
-    //        GlobalUsdStage::DeleteObject(selected);
-    //    }
-    //    ImGui::EndPopup();
-    //}
+        if (ImGui::MenuItem("Delete")) {
+            stage->remove_prim(selected);
+        }
+        ImGui::EndPopup();
+    }
 }
 
 void UsdFileViewer::DrawChild(const pxr::UsdPrim& prim)
@@ -232,7 +230,7 @@ bool UsdFileViewer::BuildUI()
     return true;
 }
 
-UsdFileViewer::UsdFileViewer(const pxr::UsdStageRefPtr& stage) : stage(stage)
+UsdFileViewer::UsdFileViewer(Stage* stage) : stage(stage)
 {
 }
 

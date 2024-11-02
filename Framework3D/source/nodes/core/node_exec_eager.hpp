@@ -79,6 +79,7 @@ class EagerNodeTreeExecutor : public NodeTreeExecutor {
     ~EagerNodeTreeExecutor() override;
 
    protected:
+    entt::meta_any global_params;
     std::map<std::string, entt::meta_any> storage;
 };
 //

@@ -59,7 +59,6 @@ struct NODES_CORE_API Node {
 
     mutable nlohmann::json storage_info;
     mutable entt::meta_any storage;
-    mutable entt::meta_any runtime_storage;
 
     explicit Node(NodeTree* node_tree, int id, const char* idname);
 

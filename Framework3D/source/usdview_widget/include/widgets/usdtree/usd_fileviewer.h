@@ -6,9 +6,11 @@
 #include "widgets/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class Stage;
+
 class UsdFileViewer : public IWidget {
    public:
-    explicit UsdFileViewer(const pxr::UsdStageRefPtr& stage);
+    explicit UsdFileViewer(Stage* stage);
 
     ~UsdFileViewer() override;
 
@@ -35,6 +37,6 @@ class UsdFileViewer : public IWidget {
 
     pxr::SdfPath selected;
     pxr::SdfPath editor_info_path;
-    pxr::UsdStageRefPtr stage;
+    Stage* stage;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

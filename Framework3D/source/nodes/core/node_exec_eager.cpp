@@ -2,10 +2,9 @@
 
 #include <set>
 
-#include "nodes/core/api.h"
 #include "entt/core/any.hpp"
 #include "entt/meta/resolve.hpp"
-
+#include "nodes/core/api.h"
 #include "nodes/core/node_tree.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -14,7 +13,7 @@ ExeParams EagerNodeTreeExecutor::prepare_params(NodeTree* tree, Node* node)
 {
     node->MISSING_INPUT = false;
 
-    ExeParams params{ *node };
+    ExeParams params{ *node, global_params };
     for (auto&& input : node->get_inputs()) {
         entt::meta_any* input_ptr;
 
@@ -44,7 +43,6 @@ ExeParams EagerNodeTreeExecutor::prepare_params(NodeTree* tree, Node* node)
         entt::meta_any* output_ptr = &output_states[index_cache[output]].value;
         params.outputs_.push_back(output_ptr);
     }
-
     return params;
 }
 

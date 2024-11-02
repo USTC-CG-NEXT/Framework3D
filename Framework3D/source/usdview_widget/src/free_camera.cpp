@@ -16,15 +16,15 @@ void BaseCamera::UpdateWorldToView()
     auto m_MatTranslatedWorldToView = pxr::GfMatrix4d(
         m_CameraRight[0],
         m_CameraUp[0],
-        m_CameraDir[0],
+        -m_CameraDir[0],
         0.0,
         m_CameraRight[1],
         m_CameraUp[1],
-        m_CameraDir[1],
+        -m_CameraDir[1],
         0.0,
         m_CameraRight[2],
         m_CameraUp[2],
-        m_CameraDir[2],
+        -m_CameraDir[2],
         0.0,
         0.0,
         0.0,
@@ -32,8 +32,7 @@ void BaseCamera::UpdateWorldToView()
         1.0);
     m_MatWorldToView =
         (pxr::GfMatrix4d().SetIdentity().SetTranslate(-m_CameraPos) *
-         m_MatTranslatedWorldToView)
-            ;
+         m_MatTranslatedWorldToView);
 
     auto xform_op = GetTransformOp();
     if (!xform_op) {
@@ -205,9 +204,8 @@ void FirstPersonCamera::Animate(double deltaT)
         double pitch = m_RotateSpeed * mouseMove[1];
 
         cameraRotation =
-            pxr::GfRotation(pxr::GfVec3d(0.0, 1.0, 0.0), -yaw) * cameraRotation;
-        cameraRotation =
-            pxr::GfRotation(m_CameraRight, -pitch) * cameraRotation;
+            pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), -yaw) * cameraRotation;
+        cameraRotation = pxr::GfRotation(m_CameraRight, pitch) * cameraRotation;
 
         cameraDirty = true;
     }
@@ -283,6 +281,13 @@ void FirstPersonCamera::AnimateSmooth(double deltaT)
         UpdateCamera(cameraMoveVec, cameraRotation);
     }
 }
+
+void FirstPersonCamera::MouseScrollUpdate(double xoffset, double yoffset)
+{
+    m_MoveSpeed =
+        std::clamp(m_MoveSpeed * (yoffset > 0 ? 1.05 : 1.0 / 1.05), 0.1, 100.0);
+}
+
 void ThirdPersonCamera::KeyboardUpdate(
     int key,
     int scancode,

@@ -57,7 +57,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 
     static_cast<FirstPersonCamera*>(free_camera_.get())
         ->LookAt(
-            pxr::GfVec3d{ 0, -1, 0 },
+            pxr::GfVec3d{ -5, 0, 0 },
             pxr::GfVec3d{ 0, 0, 0 },
             pxr::GfVec3d{ 0, 0, 1 });
 
@@ -163,12 +163,12 @@ void UsdviewEngine::OnFrame(float delta_time)
     auto cam_pos = frustum.GetPosition();
     lights[0].SetPosition(GfVec4f{
         float(cam_pos[0]), float(cam_pos[1]), float(cam_pos[2]), 1.0f });
-    lights[0].SetAmbient(GfVec4f(1, 1, 1, 1));
-    lights[0].SetDiffuse(GfVec4f(1.0f) * 1.9);
+    lights[0].SetAmbient(GfVec4f(0.6, 0.6, 0.6, 1));
+    lights[0].SetDiffuse(GfVec4f(1.0f));
     GlfSimpleMaterial material;
-    float kA = 1.0f;
-    float kS = 1.0f;
-    float shiness = 1.f;
+    float kA = 0.4f;
+    float kS = 0.4f;
+    float shiness = 0.8f;
     material.SetDiffuse(GfVec4f(kA, kA, kA, 1.0f));
     material.SetSpecular(GfVec4f(kS, kS, kS, 1.0f));
     material.SetShininess(shiness);
@@ -339,14 +339,6 @@ bool UsdviewEngine::KeyboardUpdate(int key, int scancode, int action, int mods)
 {
     if (is_active) {
         free_camera_->KeyboardUpdate(key, scancode, action, mods);
-    }
-    return false;
-}
-
-bool UsdviewEngine::KeyboardCharInput(unsigned unicode, int mods)
-{
-    if (is_active) {
-        free_camera_->KeyboardUpdate(unicode, 0, 0, mods);
     }
     return false;
 }

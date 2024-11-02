@@ -59,70 +59,71 @@ def download_and_extract(url, extract_path, folder, targets, dry_run=False):
         print(f"Error extracting {zip_path}: {e}")
 
 
-def process_usd(targets, dry_run=False, keep_original_files=True):
-    # First download and extract the source files
-    url = (
-        "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v24.11.zip"
-    )
+def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=False):
+    if not copy_only:
+        # First download and extract the source files
+        url = (
+            "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v24.11.zip"
+        )
 
-    zip_path = os.path.join(
-        os.path.dirname(__file__), "SDK", "cache", url.split("/")[-1]
-    )
-    if os.path.exists(zip_path):
-        print(f"Using cached file {zip_path}")
-    else:
-        if not dry_run:
-            print(f"Downloading from {url}...")
-        download_with_progress(url, zip_path, dry_run)
-
-    # Extract the downloaded zip file
-    extract_path = os.path.join(os.path.dirname(__file__), "SDK", "OpenUSD", "source")
-    if keep_original_files and os.path.exists(extract_path):
-        print(f"Keeping original files in {extract_path}")
-    else:
-        if dry_run:
-            print(f"[DRY RUN] Would extract {zip_path} to {extract_path}")
+        zip_path = os.path.join(
+            os.path.dirname(__file__), "SDK", "cache", url.split("/")[-1]
+        )
+        if os.path.exists(zip_path):
+            print(f"Using cached file {zip_path}")
         else:
-            try:
-                with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                    zip_ref.extractall(extract_path)
-                print(f"Downloaded and extracted successfully.")
-            except Exception as e:
-                print(f"Error extracting {zip_path}: {e}")
-                return
+            if not dry_run:
+                print(f"Downloading from {url}...")
+            download_with_progress(url, zip_path, dry_run)
 
-    # Call the build script with the specified options
-    build_script = os.path.join(
-        extract_path, "OpenUSD-24.11", "build_scripts", "build_usd.py"
-    )
-
-    # Check if the user has a debug python installed
-    has_python_d = os.system("python_d --version >nul 2>&1") == 0
-
-    if has_python_d:
-        use_debug_python = "--debug-python "
-    else:
-        use_debug_python = ""
-
-    for target in targets:
-        vulkan_support = ""
-        if "VULKAN_SDK" in os.environ:
-            vulkan_support = "-DPXR_ENABLE_VULKAN_SUPPORT=ON"
+        # Extract the downloaded zip file
+        extract_path = os.path.join(os.path.dirname(__file__), "SDK", "OpenUSD", "source")
+        if keep_original_files and os.path.exists(extract_path):
+            print(f"Keeping original files in {extract_path}")
         else:
-            print("Warning: VULKAN_SDK is not in the path. Highly recommend setting it for Vulkan support.")
-        
-        build_variant_map = {
-            "Debug": "debug",
-            "Release": "release",
-            "RelWithDebInfo": "relwithdebuginfo"
-        }
-        build_variant = build_variant_map.get(target, target.lower())
-        build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}"
-        
-        if dry_run:
-            print(f"[DRY RUN] Would run: {build_command}")
+            if dry_run:
+                print(f"[DRY RUN] Would extract {zip_path} to {extract_path}")
+            else:
+                try:
+                    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                        zip_ref.extractall(extract_path)
+                    print(f"Downloaded and extracted successfully.")
+                except Exception as e:
+                    print(f"Error extracting {zip_path}: {e}")
+                    return
+
+        # Call the build script with the specified options
+        build_script = os.path.join(
+            extract_path, "OpenUSD-24.11", "build_scripts", "build_usd.py"
+        )
+
+        # Check if the user has a debug python installed
+        has_python_d = os.system("python_d --version >nul 2>&1") == 0
+
+        if has_python_d:
+            use_debug_python = "--debug-python "
         else:
-            os.system(build_command)
+            use_debug_python = ""
+
+        for target in targets:
+            vulkan_support = ""
+            if "VULKAN_SDK" in os.environ:
+                vulkan_support = "-DPXR_ENABLE_VULKAN_SUPPORT=ON"
+            else:
+                print("Warning: VULKAN_SDK is not in the path. Highly recommend setting it for Vulkan support.")
+            
+            build_variant_map = {
+                "Debug": "debug",
+                "Release": "release",
+                "RelWithDebInfo": "relwithdebuginfo"
+            }
+            build_variant = build_variant_map.get(target, target.lower())
+            build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}"
+            
+            if dry_run:
+                print(f"[DRY RUN] Would run: {build_command}")
+            else:
+                os.system(build_command)
 
     
     # Copy the built binaries to the Binaries folder
@@ -158,11 +159,17 @@ def main():
         default=True,
         help="Keep original files if the extract path exists.",
     )
+    parser.add_argument(
+        "--copy-only",
+        action="store_true",
+        help="Only copy files, skip downloading and building.",
+    )
     args = parser.parse_args()
 
     targets = args.build_variant
     dry_run = args.dry_run
     keep_original_files = args.keep_original_files
+    copy_only = args.copy_only
 
     if args.all:
         args.library = ["openusd", "slang", "dxc"]
@@ -185,11 +192,15 @@ def main():
 
     for lib in args.library:
         if lib == "openusd":
-            process_usd(targets, dry_run, keep_original_files)
+            process_usd(targets, dry_run, keep_original_files, copy_only)
         else:
-            download_and_extract(
-                urls[lib], f"./SDK/{lib}", folders[lib], targets, dry_run
-            )
+            if not copy_only:
+                download_and_extract(
+                    urls[lib], f"./SDK/{lib}", folders[lib], targets, dry_run
+                )
+            else:
+                for target in targets:
+                    copytree_common_to_binaries(folders[lib], target=target, dry_run=dry_run)
 
 
 if __name__ == "__main__":
