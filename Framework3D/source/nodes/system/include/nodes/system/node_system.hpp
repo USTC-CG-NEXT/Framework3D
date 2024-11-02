@@ -12,9 +12,9 @@ class NODES_SYSTEM_API NodeSystem {
     virtual ~NodeSystem();
 
     template<typename T1, typename... T>
-    void register_cpp_types();
+    static void register_cpp_types();
 
-    void execute() const;
+    virtual void execute() const;
 
     [[nodiscard]] NodeTree* get_node_tree() const;
     [[nodiscard]] NodeTreeExecutor* get_node_tree_executor() const;

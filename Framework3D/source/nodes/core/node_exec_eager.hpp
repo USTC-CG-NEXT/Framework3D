@@ -3,8 +3,8 @@
 #include <set>
 #include <vector>
 
-#include "nodes/core/api.h"
 #include "entt/meta/meta.hpp"
+#include "nodes/core/api.h"
 #include "nodes/core/node_exec.hpp"
 #include "nodes/core/node_tree.hpp"
 
@@ -79,22 +79,22 @@ class EagerNodeTreeExecutor : public NodeTreeExecutor {
     ~EagerNodeTreeExecutor() override;
 
    protected:
-    entt::meta_any global_params;
     std::map<std::string, entt::meta_any> storage;
 };
 //
-//struct RenderGlobalParams;
+// struct RenderGlobalParams;
 //
-//class EagerNodeTreeExecutorRender : public EagerNodeTreeExecutor {
+// class EagerNodeTreeExecutorRender : public EagerNodeTreeExecutor {
 //   protected:
 //    bool execute_node(NodeTree* tree, Node* node) override;
 //    RenderGlobalParams* global_param = nullptr;
 //    ExeParams prepare_params(NodeTree* tree, Node* node) override;
 //
 //    void try_storage() override;
-//    void remove_storage(const std::set<std::string>::value_type& key) override;
+//    void remove_storage(const std::set<std::string>::value_type& key)
+//    override;
 //
-//public:
+// public:
 //    void set_global_param(RenderGlobalParams* param);
 //    void finalize(NodeTree* tree) override;
 //    virtual void set_device(
@@ -107,7 +107,7 @@ class EagerNodeTreeExecutor : public NodeTreeExecutor {
 //    ~EagerNodeTreeExecutorRender() override;
 //};
 //
-//class EagerNodeTreeExecutorGeom : public EagerNodeTreeExecutor {
+// class EagerNodeTreeExecutorGeom : public EagerNodeTreeExecutor {
 //   protected:
 //    GeomNodeGlobalParams* global_param = nullptr;
 //    ExeParams prepare_params(NodeTree* tree, Node* node) override;
@@ -116,8 +116,8 @@ class EagerNodeTreeExecutor : public NodeTreeExecutor {
 //    void set_global_param(GeomNodeGlobalParams* param);
 //};
 //
-//std::unique_ptr<EagerNodeTreeExecutor> CreateEagerNodeTreeExecutorRender();
-//std::unique_ptr<EagerNodeTreeExecutor> CreateEagerNodeTreeExecutor();
-//std::unique_ptr<EagerNodeTreeExecutor> CreateEagerNodeTreeExecutorGeom();
+// std::unique_ptr<EagerNodeTreeExecutor> CreateEagerNodeTreeExecutorRender();
+// std::unique_ptr<EagerNodeTreeExecutor> CreateEagerNodeTreeExecutor();
+// std::unique_ptr<EagerNodeTreeExecutor> CreateEagerNodeTreeExecutorGeom();
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

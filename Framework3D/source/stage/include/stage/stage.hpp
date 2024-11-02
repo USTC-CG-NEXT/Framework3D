@@ -34,8 +34,14 @@ class STAGE_API Stage {
 
     [[nodiscard]] pxr::UsdStageRefPtr get_usd_stage() const;
 
+    void create_editor_at_path(const pxr::SdfPath& sdf_path);
+    bool consume_editor_creation(
+        pxr::SdfPath& json_path,
+        bool fully_consume = true);
+
    private:
     pxr::UsdStageRefPtr stage;
+    pxr::SdfPath create_editor_pending_path;
     template<typename T>
     T create_prim(const pxr::SdfPath& path, const std::string& baseName) const;
 };

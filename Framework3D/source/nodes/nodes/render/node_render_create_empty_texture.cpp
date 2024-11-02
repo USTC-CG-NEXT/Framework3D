@@ -16,7 +16,7 @@ static void node_declare(NodeDeclarationBuilder& b)
 static void node_exec(ExeParams params)
 {
     Hd_USTC_CG_Camera* free_camera =
-        params.get_global_params<RenderGlobalParams>().camera;
+        params.get_global_payload<RenderGlobalParams>().camera;
     auto size = free_camera->dataWindow.GetSize();
 
     // 0. Prepare the output texture

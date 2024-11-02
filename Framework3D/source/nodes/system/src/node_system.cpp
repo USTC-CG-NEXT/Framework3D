@@ -1,6 +1,5 @@
 #include "nodes/system/node_system.hpp"
-
-#include "node_system_dl.hpp"
+#include "nodes/system/node_system_dl.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 void NodeSystem::init()

@@ -80,7 +80,7 @@ struct NODES_CORE_API ExeParams {
     }
 
     template<typename T>
-    T get_global_params()
+    T get_global_payload()
     {
         assert(global_param);
         return global_param.cast<T>();
@@ -147,6 +147,18 @@ struct NODES_CORE_API NodeTreeExecutor {
         prepare_tree(tree);
         execute_tree(tree);
     }
+
+    template<typename T>
+    T get_global_payload()
+    {
+        if (!global_payload) {
+            global_payload = entt::resolve<T>().construct();
+        }
+        return global_payload.cast<T>();
+    }
+
+   protected:
+    entt::meta_any global_payload;
 };
 
 struct NodeTreeExecutorDesc {

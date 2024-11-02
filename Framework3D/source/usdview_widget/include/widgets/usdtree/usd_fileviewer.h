@@ -25,7 +25,6 @@ class UsdFileViewer : public IWidget {
     void End() override
     {
     }
-    pxr::SdfPath emit_editor_info_path();
 
 
    private:
@@ -36,7 +35,6 @@ class UsdFileViewer : public IWidget {
     void DrawChild(const pxr::UsdPrim& prim);
 
     pxr::SdfPath selected;
-    pxr::SdfPath editor_info_path;
     Stage* stage;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

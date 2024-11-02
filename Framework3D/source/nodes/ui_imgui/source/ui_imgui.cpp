@@ -85,6 +85,7 @@ struct NodeIdLess {
 };
 class NodeWidget : public IWidget {
    public:
+    virtual ed::Config ConfigSaveLoad();
     explicit NodeWidget(std::shared_ptr<NodeSystem> system);
 
     ~NodeWidget() override;
@@ -123,6 +124,8 @@ class NodeWidget : public IWidget {
     float leftPaneWidth = 400.0f;
     float rightPaneWidth = 800.0f;
 
+    bool first_draw = true;
+
     bool draw_socket_controllers(NodeSocket* input);
 
     static nvrhi::TextureHandle LoadTexture(
@@ -138,14 +141,10 @@ class NodeWidget : public IWidget {
     static ImColor GetIconColor(SocketType type);
 };
 
-NodeWidget::NodeWidget(std::shared_ptr<NodeSystem> system)
-    : system_(system),
-      tree_(system->get_node_tree())
+ed::Config NodeWidget::ConfigSaveLoad()
 {
     ed::Config config;
-
     config.UserPointer = this;
-
     config.SaveSettings = [](const char* data,
                              size_t size,
                              NodeEditor::SaveReasonFlags reason,
@@ -196,6 +195,15 @@ NodeWidget::NodeWidget(std::shared_ptr<NodeSystem> system)
         return 0;
     };
 
+    return config;
+}
+
+NodeWidget::NodeWidget(std::shared_ptr<NodeSystem> system)
+    : system_(system),
+      tree_(system->get_node_tree())
+{
+    ed::Config config;
+    config = ConfigSaveLoad();
     m_Editor = ed::CreateEditor(&config);
 
     m_HeaderBackground =
@@ -223,8 +231,10 @@ Node* NodeWidget::create_node_menu()
 
 bool NodeWidget::BuildUI()
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(3.0f, 3.0f));
-
+    if (first_draw) {
+        first_draw = false;
+        return true;
+    }
     auto& io = ImGui::GetIO();
 
     ed::SetCurrentEditor(m_Editor);
@@ -235,7 +245,8 @@ bool NodeWidget::BuildUI()
         ImGui::SameLine(0.0f, 12.0f);
     }
 
-    ed::Begin(("Node editor" + widget_name).c_str());
+    ed::Begin(
+        ("Node editor" + widget_name).c_str(), ImGui::GetContentRegionAvail());
     {
         auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
@@ -558,7 +569,6 @@ bool NodeWidget::BuildUI()
     ed::Resume();
 
     ed::End();
-    ImGui::PopStyleVar();
 
     if (tree_->GetDirty()) {
         system_->execute();

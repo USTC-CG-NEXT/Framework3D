@@ -131,13 +131,6 @@ void UsdFileViewer::ShowPrimInfo()
     }
 }
 
-pxr::SdfPath UsdFileViewer::emit_editor_info_path()
-{
-    auto temp = editor_info_path;
-    editor_info_path = pxr::SdfPath::EmptyPath();
-    return temp;
-}
-
 void UsdFileViewer::show_right_click_menu()
 {
     if (ImGui::BeginPopupContextWindow("Prim Operation")) {
@@ -156,7 +149,7 @@ void UsdFileViewer::show_right_click_menu()
         }
 
         if (ImGui::MenuItem("Edit")) {
-            editor_info_path = selected;
+            stage->create_editor_at_path(selected);
         }
 
         if (ImGui::MenuItem("Delete")) {

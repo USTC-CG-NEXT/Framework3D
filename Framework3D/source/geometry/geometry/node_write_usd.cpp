@@ -11,7 +11,7 @@
 #include "GCore/Components/MeshOperand.h"
 #include "GCore/Components/PointsComponent.h"
 #include "GCore/Components/XformComponent.h"
-#include "GCore/geom_node_global_params.h"
+#include "GCore/geom_node_global_payload.h"
 #include "Nodes/GlobalUsdStage.h"
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
@@ -42,7 +42,7 @@ bool legal(const std::string& string)
 
 static void node_exec(ExeParams params)
 {
-    auto global_params = params.get_global_params<GeomNodeGlobalParams>();
+    auto global_payload = params.get_global_payload<GeomNodeGlobalParams>();
 
     auto geometry = params.get_input<Geometry>("Geometry");
 
@@ -61,7 +61,7 @@ static void node_exec(ExeParams params)
     }
 
     auto& stage = GlobalUsdStage::global_usd_stage;
-    auto sdf_path = global_params.prim_path;
+    auto sdf_path = global_payload.prim_path;
 
     if (mesh) {
         pxr::UsdGeomMesh usdgeom = pxr::UsdGeomMesh::Define(stage, sdf_path);

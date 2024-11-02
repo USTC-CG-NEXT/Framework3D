@@ -17,8 +17,9 @@ class DockingImguiRenderer final : public ImGui_Renderer {
     friend class Window;
 
    public:
-    explicit DockingImguiRenderer(DeviceManager* devManager)
-        : ImGui_Renderer(devManager)
+    explicit DockingImguiRenderer(Window* window, DeviceManager* devManager)
+        : window_(window),
+          ImGui_Renderer(devManager)
     {
     }
 
@@ -30,12 +31,16 @@ class DockingImguiRenderer final : public ImGui_Renderer {
     bool MouseScrollUpdate(double xoffset, double yoffset) override;
     bool MouseButtonUpdate(int button, int action, int mods) override;
     void Animate(float elapsedTimeSeconds) override;
+    void register_function_perframe(
+        const std::function<void(Window*)>& callback);
 
    private:
     void register_widget(std::unique_ptr<IWidget> widget);
     void buildUI() override;
 
     std::vector<std::unique_ptr<IWidget>> widgets_;
+    Window* window_;
+    std::vector<std::function<void(Window*)>> callbacks_;
 };
 bool DockingImguiRenderer::JoystickButtonUpdate(int button, bool pressed)
 {
@@ -119,6 +124,12 @@ void DockingImguiRenderer::Animate(float elapsedTimeSeconds)
     ImGui_Renderer::Animate(elapsedTimeSeconds);
 }
 
+void DockingImguiRenderer::register_function_perframe(
+    const std::function<void(Window*)>& callback)
+{
+    callbacks_.push_back(callback);
+}
+
 void DockingImguiRenderer::register_widget(std::unique_ptr<IWidget> widget)
 {
     widgets_.push_back(std::move(widget));
@@ -186,6 +197,10 @@ void DockingImguiRenderer::buildUI()
     }
 
     ImGui::End();
+
+    for (auto&& callback : callbacks_) {
+        callback(window_);
+    }
 }
 
 Window::Window()
@@ -193,7 +208,7 @@ Window::Window()
     RHI::init(true);
 
     auto manager = RHI::internal::get_device_manager();
-    imguiRenderPass = std::make_unique<DockingImguiRenderer>(manager);
+    imguiRenderPass = std::make_unique<DockingImguiRenderer>(this, manager);
     imguiRenderPass->Init(std::make_shared<ShaderFactory>());
 
     ImGuiIO& io = ImGui::GetIO();
@@ -222,6 +237,12 @@ void Window::register_widget(std::unique_ptr<IWidget> unique)
 {
     unique->SetWindow(this);
     imguiRenderPass->register_widget(std::move(unique));
+}
+
+void Window::register_function_perframe(
+    const std::function<void(Window*)>& callback)
+{
+    imguiRenderPass->register_function_perframe(callback);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

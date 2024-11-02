@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -23,6 +24,8 @@ class Window {
     // Enters the main rendering loop.
     void run();
     void register_widget(std::unique_ptr<IWidget> unique);
+    void register_function_perframe(
+        const std::function<void(Window *)> &callback);
 
    protected:
     std::unique_ptr<DockingImguiRenderer> imguiRenderPass;

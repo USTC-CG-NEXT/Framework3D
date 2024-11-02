@@ -3,7 +3,7 @@
 #include "Nodes/node_exec_eager.hpp"
 #include "Nodes/node_tree.hpp"
 #include "camera.h"
-#include "node_global_params.h"
+#include "node_global_payload.h"
 #include "nvrhi/d3d12.h"
 #include "pxr/imaging/hd/renderBuffer.h"
 #include "pxr/imaging/hd/tokens.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "GCore/geom_node_global_params.h"
+// #include "GCore/geom_node_global_payload.h"
 #include "GUI/ui_event.h"
 #include "USTC_CG.h"
 #include "nodes/core/node.hpp"

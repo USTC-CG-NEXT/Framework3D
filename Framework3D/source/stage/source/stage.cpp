@@ -27,14 +27,13 @@ T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName)
     const
 {
     int id = 0;
-    while (stage->GetPrimAtPath(path.AppendPath(
-        pxr::SdfPath(baseName + "_" + std::to_string(id))))) {
+    while (stage->GetPrimAtPath(
+        path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))))) {
         id++;
     }
     return T::Define(
         stage,
-        path.AppendPath(
-            pxr::SdfPath(baseName + "_" + std::to_string(id))));
+        path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))));
 }
 
 pxr::UsdPrim Stage::add_prim(const pxr::SdfPath& path)
@@ -82,6 +81,24 @@ std::string Stage::stage_content() const
 pxr::UsdStageRefPtr Stage::get_usd_stage() const
 {
     return stage;
+}
+
+void Stage::create_editor_at_path(const pxr::SdfPath& sdf_path)
+{
+    create_editor_pending_path = sdf_path;
+}
+
+bool Stage::consume_editor_creation(pxr::SdfPath& json_path, bool fully_consume)
+{
+    if (create_editor_pending_path.IsEmpty()) {
+        return false;
+    }
+
+    json_path = create_editor_pending_path;
+    if (fully_consume) {
+        create_editor_pending_path = pxr::SdfPath::EmptyPath();
+    }
+    return true;
 }
 
 std::unique_ptr<Stage> create_global_stage()

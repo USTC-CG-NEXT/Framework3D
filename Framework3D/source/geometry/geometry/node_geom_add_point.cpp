@@ -1,5 +1,5 @@
 ﻿#include "GCore/Components/PointsComponent.h"
-#include "GCore/geom_node_global_params.h"
+#include "GCore/geom_node_global_payload.h"
 #include "GUI/ui_event.h"
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
@@ -40,7 +40,7 @@ static void node_exec(ExeParams params)
 {
     auto& storage = params.get_storage<AddedPoints&>();
 
-    auto pick = params.get_global_params<GeomNodeGlobalParams>().pick;
+    auto pick = params.get_global_payload<GeomNodeGlobalParams>().pick;
     if (pick) {
         storage.points.push_back(pxr::GfVec3f(pick->point));
     }

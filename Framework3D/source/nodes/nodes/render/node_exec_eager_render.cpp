@@ -2,7 +2,7 @@
 #include "Nodes/node_tree.hpp"
 #include "USTC_CG.h"
 #include "entt/meta/context.hpp"
-#include "node_global_params.h"
+#include "node_global_payload.h"
 #include "resource_allocator_instance.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

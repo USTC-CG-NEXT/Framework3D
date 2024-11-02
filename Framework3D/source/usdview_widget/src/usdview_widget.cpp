@@ -219,14 +219,6 @@ void UsdviewEngine::OnFrame(float delta_time)
     is_active = ImGui::IsWindowFocused();
     is_hovered = ImGui::IsItemHovered();
 
-    if (is_active) {
-        log::debug("%s is internally active", GetWindowName());
-    }
-
-    if (is_hovered) {
-        log::debug("%s is internally hovered", GetWindowName());
-    }
-
     // if (is_hovered_ && is_editing_ &&
     //     ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
     //     auto mouse_pos_rel = ImGui::GetMousePos() - ImGui::GetItemRectMin();

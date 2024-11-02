@@ -13,7 +13,7 @@ ExeParams EagerNodeTreeExecutor::prepare_params(NodeTree* tree, Node* node)
 {
     node->MISSING_INPUT = false;
 
-    ExeParams params{ *node, global_params };
+    ExeParams params{ *node, global_payload };
     for (auto&& input : node->get_inputs()) {
         entt::meta_any* input_ptr;
 

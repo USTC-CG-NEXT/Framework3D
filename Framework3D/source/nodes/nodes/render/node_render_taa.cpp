@@ -39,7 +39,7 @@ static void node_exec(ExeParams params)
 
     auto& cam_status = params.get_runtime_storage<CameraState&>();
 
-    auto cam = params.get_global_params<RenderGlobalParams>().camera;
+    auto cam = params.get_global_payload<RenderGlobalParams>().camera;
 
     //auto cam_mat = cam->projMatrix * cam->viewMatrix;
     //if (cam_status.camera_status != cam_mat) {
