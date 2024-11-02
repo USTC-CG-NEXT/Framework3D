@@ -1,5 +1,6 @@
 #include <Logger/Logger.h>
 
+#include <chrono>
 #include <cstdarg>
 #include <cstdio>
 #include <iterator>
@@ -24,21 +25,51 @@ static bool g_OutputToConsole = true;
 #endif
 
 static std::mutex g_LogMutex;
+static auto g_StartTime = std::chrono::steady_clock::now();
+
 namespace log {
 void DefaultCallback(Severity severity, const char* message)
 {
     const char* severityText = "";
+    const char* colorCode = "";
     switch (severity) {
-        case Severity::Debug: severityText = "DEBUG"; break;
-        case Severity::Info: severityText = "INFO"; break;
-        case Severity::Warning: severityText = "WARNING"; break;
-        case Severity::Error: severityText = "ERROR"; break;
-        case Severity::Fatal: severityText = "FATAL ERROR"; break;
+        case Severity::Debug:
+            severityText = "[DEBUG]";
+            colorCode = "\033[36m";  // Cyan
+            break;
+        case Severity::Info:
+            severityText = "[INFO]";
+            colorCode = "\033[32m";  // Green
+            break;
+        case Severity::Warning:
+            severityText = "[WARNING]";
+            colorCode = "\033[33m";  // Yellow
+            break;
+        case Severity::Error:
+            severityText = "[ERROR]";
+            colorCode = "\033[31m";  // Red
+            break;
+        case Severity::Fatal:
+            severityText = "[FATAL ERROR]";
+            colorCode = "\033[41m";  // Red background
+            break;
         default: break;
     }
 
+    auto now = std::chrono::steady_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - g_StartTime)
+            .count();
+
     char buf[g_MessageBufferSize];
-    snprintf(buf, std::size(buf), "%s: %s", severityText, message);
+    snprintf(
+        buf,
+        std::size(buf),
+        "%s[%lld ms] %s: %s\033[0m",
+        colorCode,
+        duration,
+        severityText,
+        message);
 
     {
         std::lock_guard<std::mutex> lockGuard(g_LogMutex);

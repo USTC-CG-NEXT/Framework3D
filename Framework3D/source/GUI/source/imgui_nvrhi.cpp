@@ -200,7 +200,7 @@ bool ImGui_NVRHI::init(
         std::string(pixel_shader_source));
 
     if (!vertexShader || !pixelShader) {
-        logging("Failed to create an ImGUI shader");
+        log::error("Failed to create an ImGUI shader");
         return false;
     }
 

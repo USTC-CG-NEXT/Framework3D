@@ -3,13 +3,16 @@
 #include <gtest/gtest.h>
 
 #include "GUI/window.h"
+#include "Logger/Logger.h"
 #include "RHI/rhi.hpp"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
 #include "widgets/usdtree/usd_fileviewer.h"
 using namespace USTC_CG;
-TEST(USDWIDGET, create_widget)
+int main()
 {
+    log::SetMinSeverity(Severity::Debug);
+    log::EnableOutputToConsole(true);
     auto root_stage = pxr::UsdStage::CreateInMemory();
     // Add a sphere
     auto sphere =

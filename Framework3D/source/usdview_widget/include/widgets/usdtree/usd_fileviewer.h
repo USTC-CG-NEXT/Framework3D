@@ -2,8 +2,8 @@
 #include <memory>
 
 #include "GUI/widget.h"
-#include "widgets/api.h"
 #include "pxr/usd/usd/stage.h"
+#include "widgets/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class UsdFileViewer : public IWidget {
@@ -13,6 +13,20 @@ class UsdFileViewer : public IWidget {
     ~UsdFileViewer() override;
 
     bool BuildUI() override;
+
+   protected:
+    bool Begin() override
+    {
+        return true;
+    }
+
+    void End() override
+    {
+    }
+
+    void AlwaysEnd() override
+    {
+    }
 
    private:
     void ShowFileTree();

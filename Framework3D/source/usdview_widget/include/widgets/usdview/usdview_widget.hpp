@@ -16,16 +16,16 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
    public:
     explicit UsdviewEngine(pxr::UsdStageRefPtr root_stage);
     ~UsdviewEngine() override;
-    bool BuildUI(
-        // NodeTree* render_node_tree = nullptr,
-        // NodeTreeExecutor* get_executor = nullptr
-        ) override;
-    float current_time_code();
-    void set_current_time_code(float time_code);
-    // std::unique_ptr<USTC_CG::PickEvent> get_pick_event();
-    void set_edit_mode(bool editing);
+    bool BuildUI() override;
+    void SetEditMode(bool editing);
 
-   private:
+   protected:
+    bool Begin() override;
+    const char* GetWindowName() override;
+
+private:
+    void RenderBackBufferResized(float x, float y);
+
     enum class CamType { First, Third };
     struct Status {
         CamType cam_type =
@@ -35,31 +35,24 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
 
     nvrhi::Format present_format = nvrhi::Format::RGBA16_UNORM;
 
-    float timecode = 0;
-    float frame_per_second;
-    const float time_code_max = 250;
-    bool playing = false;
-    bool is_editing = false;
+    bool is_editing_ = false;
+    bool is_active = false;
+    bool is_hovered = false;
 
     std::unique_ptr<BaseCamera> free_camera_;
-    bool is_hovered_ = false;
     std::unique_ptr<pxr::UsdImagingGLEngine> renderer_;
     pxr::UsdImagingGLRenderParams _renderParams;
-    pxr::GfVec2i renderBufferSize_;
-    bool is_active_;
+    pxr::GfVec2i render_buffer_size_;
 
     pxr::UsdStageRefPtr root_stage_;
     pxr::HgiUniquePtr hgi;
-    nvrhi::TextureHandle nvrhi_texture = nullptr;
-    std::vector<uint8_t> texture_data;
+    nvrhi::TextureHandle nvrhi_texture_ = nullptr;
+    std::vector<uint8_t> texture_data_;
 
     void DrawMenuBar();
     void OnFrame(float delta_time);
 
     static void CreateGLContext();
-    // void refresh_viewport(int x, int y);
-    // void OnResize(int x, int y);
-    //  void time_controller(float delta_time);
 
    protected:
     bool JoystickButtonUpdate(int button, bool pressed) override;
@@ -70,9 +63,5 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     bool MouseScrollUpdate(double xoffset, double yoffset) override;
     bool MouseButtonUpdate(int button, int action, int mods) override;
     void Animate(float elapsed_time_seconds) override;
-    void BackBufferResized(
-        unsigned width,
-        unsigned height,
-        unsigned sampleCount) override;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -152,7 +152,24 @@ void DockingImguiRenderer::buildUI()
 
     std::vector<IWidget*> widget_to_remove;
     for (auto& widget : widgets_) {
-        if (!widget->BuildUI()) {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        if (widget->Begin()) {
+            ImGui::PopStyleVar(1);
+            widget->SetStatus();
+
+            if (widget->SizeChanged()) {
+                widget->BackBufferResized(widget->Width(), widget->Height(), 1);
+            }
+
+            widget->BuildUI();
+
+            widget->End();
+        }
+        else {
+            ImGui::PopStyleVar(1);
+        }
+        widget->AlwaysEnd();
+        if (!widget->IsOpen()) {
             widget_to_remove.push_back(widget.get());
         }
     }
@@ -203,7 +220,7 @@ void Window::run()
 
 void Window::register_widget(std::unique_ptr<IWidget> unique)
 {
-    unique->set_window(this);
+    unique->SetWindow(this);
     imguiRenderPass->register_widget(std::move(unique));
 }
 

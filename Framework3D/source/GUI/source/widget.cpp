@@ -1,8 +1,30 @@
 #include "GUI/widget.h"
 
 #include "RHI/DeviceManager/DeviceManager.h"
+#include "imgui.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+bool IWidget::Begin()
+{
+    FirstUseEver();
+    return ImGui::Begin(
+        GetWindowUniqueName().c_str(), &is_open, GetWindowFlag());
+}
+
+void IWidget::End()
+{
+}
+
+void IWidget::AlwaysEnd()
+{
+    ImGui::End();
+}
+
+bool IWidget::IsOpen()
+{
+    return is_open;
+}
+
 void IWidget::BackBufferResized(
     unsigned width,
     unsigned height,
@@ -49,9 +71,58 @@ void IWidget::Animate(float elapsed_time_seconds)
 {
 }
 
-void IWidget::set_window(Window* window)
+unsigned IWidget::Width() const
+{
+    return width;
+}
+
+unsigned IWidget::Height() const
+{
+    return height;
+}
+
+void IWidget::FirstUseEver() const
+{
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_FirstUseEver);
+}
+
+const char* IWidget::GetWindowName()
+{
+    return "Widget";
+}
+
+std::string IWidget::GetWindowUniqueName()
+{
+    return (GetWindowName() + std::string("##") +
+            std::to_string(reinterpret_cast<long long>(this)))
+        .c_str();
+}
+
+ImGuiWindowFlags IWidget::GetWindowFlag()
+{
+    return ImGuiWindowFlags_None;
+}
+
+void IWidget::SetWindow(Window* window)
 {
     this->window = window;
+}
+
+void IWidget::SetStatus()
+{
+    size_changed = false;
+    if (width != ImGui::GetWindowWidth() ||
+        height != ImGui::GetWindowHeight()) {
+        size_changed = true;
+        width = ImGui::GetWindowWidth();
+        height = ImGui::GetWindowHeight();
+    }
+}
+
+bool IWidget::SizeChanged()
+{
+    return size_changed;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

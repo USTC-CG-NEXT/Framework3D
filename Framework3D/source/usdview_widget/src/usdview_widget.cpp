@@ -6,8 +6,6 @@
 
 #include <pxr/imaging/hd/driver.h>
 
-#include <vulkan/vulkan.hpp>
-
 #include "Logger/Logger.h"
 #include "RHI/Hgi/desc_conversion.hpp"
 #include "RHI/rhi.hpp"
@@ -24,8 +22,6 @@
 #include "pxr/imaging/hgi/blitCmds.h"
 #include "pxr/imaging/hgi/blitCmdsOps.h"
 #include "pxr/imaging/hgi/tokens.h"
-//#include "pxr/imaging/hgiVulkan/texture.h"
-//#include "pxr/imaging/hgiVulkan/vk_mem_alloc.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/primRange.h"
 #include "pxr/usd/usd/stage.h"
@@ -40,17 +36,12 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 {
     // Initialize OpenGL context using WGL
     CreateGLContext();
-
-    // Initialize GLEW or any other OpenGL loader if necessary
-    // glewInit();
-    // Check OpenGL version
     GarchGLApiLoad();
-
     pxr::UsdImagingGLEngine::Parameters params;
 
     // Initialize Vulkan driver
 #if USDVIEW_WITH_VULKAN
-    hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->Vulkan);
+    hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->OpenGL);
     pxr::HdDriver hdDriver;
     hdDriver.name = pxr::HgiTokens->renderDriver;
     hdDriver.driver =
@@ -78,7 +69,6 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     }
     renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
 
-    // free_camera_->SetProjection(GfCamera::Projection::Perspective);
     free_camera_->CreateFocusDistanceAttr().Set(5.0f);
     free_camera_->CreateClippingRangeAttr(
         pxr::VtValue(pxr::GfVec2f{ 0.1f, 1000.f }));
@@ -121,10 +111,6 @@ void UsdviewEngine::DrawMenuBar()
                         this->engine_status.renderer_id == i)) {
                     if (this->engine_status.renderer_id != i) {
                         renderer_->SetRendererPlugin(available_renderers[i]);
-
-                        // Perform a fake resize event
-                        // refresh_viewport(
-                        //    renderBufferSize_[0], renderBufferSize_[1]);
                         this->engine_status.renderer_id = i;
                     }
                 }
@@ -141,7 +127,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 {
     DrawMenuBar();
 
-    auto previous = nvrhi_texture.Get();
+    auto previous = nvrhi_texture_.Get();
 
     using namespace pxr;
     GfFrustum frustum =
@@ -165,7 +151,6 @@ void UsdviewEngine::OnFrame(float delta_time)
     _renderParams.colorCorrectionMode = pxr::HdxColorCorrectionTokens->disabled;
 
     _renderParams.clearColor = GfVec4f(0.2f, 0.2f, 0.2f, 1.f);
-    _renderParams.frame = UsdTimeCode(timecode);
 
     for (int i = 0; i < free_camera_->GetCamera(UsdTimeCode::Default())
                             .GetClippingPlanes()
@@ -207,44 +192,43 @@ void UsdviewEngine::OnFrame(float delta_time)
     HgiBlitCmdsUniquePtr blitCmds = hgi->CreateBlitCmds();
     HgiTextureGpuToCpuOp copyOp;
     copyOp.gpuSourceTexture = hgi_texture;
-    copyOp.cpuDestinationBuffer = texture_data.data();
-    copyOp.destinationBufferByteSize = texture_data.size();
+    copyOp.cpuDestinationBuffer = texture_data_.data();
+    copyOp.destinationBufferByteSize = texture_data_.size();
     blitCmds->CopyTextureGpuToCpu(copyOp);
 
     hgi->SubmitCmds(blitCmds.get(), HgiSubmitWaitTypeWaitUntilCompleted);
 
-#if USDVIEW_WITH_VULKAN
-    nvrhi_texture = RHI::load_texture(tex_desc, texture_data.data());
+    nvrhi_texture_ = RHI::load_texture(tex_desc, texture_data_.data());
 
-    // auto img =
-    //     static_cast<pxr::HgiVulkanTexture*>((hgi_texture.Get()))->GetImage();
-
-    // nvrhi_texture = RHI::get_device()->createHandleForNativeTexture(
-    //     nvrhi::ObjectTypes::VK_Image, img, tex_desc);
-#else
-    nvrhi_texture = RHI::load_ogl_texture(tex_desc, color->GetRawResource());
-#endif
-
-    auto imgui_frame_size = ImVec2(renderBufferSize_[0], renderBufferSize_[1]);
+    auto imgui_frame_size =
+        ImVec2(render_buffer_size_[0], render_buffer_size_[1]);
 
     ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
 
     ImGui::GetIO().WantCaptureMouse = false;
     ImGui::Image(
-        static_cast<ImTextureID>(nvrhi_texture.Get()),
+        static_cast<ImTextureID>(nvrhi_texture_.Get()),
         imgui_frame_size,
-        ImVec2(0.0f, 1.0f),
-        ImVec2(1.0f, 0.0f));
-    // is_active_ = ImGui::IsWindowFocused();
-    // is_hovered_ = ImGui::IsItemHovered();
+        ImVec2(0.0f, 0.0f),
+        ImVec2(1.0f, 1.0f));
+    is_active = ImGui::IsWindowFocused();
+    is_hovered = ImGui::IsItemHovered();
 
-    // if (is_hovered_ && is_editing &&
+    if (is_active) {
+        log::debug("%s is internally active", GetWindowName());
+    }
+
+    if (is_hovered) {
+        log::debug("%s is internally hovered", GetWindowName());
+    }
+
+    // if (is_hovered_ && is_editing_ &&
     //     ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
     //     auto mouse_pos_rel = ImGui::GetMousePos() - ImGui::GetItemRectMin();
     //     // Normalize the mouse position to be in the range [0, 1]
     //     ImVec2 mousePosNorm = ImVec2(
-    //         mouse_pos_rel.x / renderBufferSize_[0],
-    //         mouse_pos_rel.y / renderBufferSize_[1]);
+    //         mouse_pos_rel.x / render_buffer_size_[0],
+    //         mouse_pos_rel.y / render_buffer_size_[1]);
 
     //    // Convert to NDC coordinates
     //    ImVec2 mousePosNDC =
@@ -259,7 +243,7 @@ void UsdviewEngine::OnFrame(float delta_time)
     // int outHitInstanceIndex;
     // auto narrowed = frustum.ComputeNarrowedFrustum(
     //     { mousePosNDC[0], mousePosNDC[1] },
-    //     { 1.0 / renderBufferSize_[0], 1.0 / renderBufferSize_[1] });
+    //     { 1.0 / render_buffer_size_[0], 1.0 / render_buffer_size_[1] });
 
     // if (renderer_->TestIntersection(
     //         narrowed.ComputeViewMatrix(),
@@ -289,22 +273,6 @@ void UsdviewEngine::OnFrame(float delta_time)
 }
 
 //
-// void UsdviewEngine::refresh_viewport(int x, int y)
-//{
-//    renderBufferSize_[0] = x;
-//    renderBufferSize_[1] = y;
-//
-//    renderer_->SetRenderBufferSize(renderBufferSize_);
-//    renderer_->SetRenderViewport(GfVec4d{
-//        0.0, 0.0, double(renderBufferSize_[0]), double(renderBufferSize_[1])
-//        });
-//    free_camera_->m_ViewportSize = renderBufferSize_;
-//
-//    refresh_platform_texture();
-//}
-//
-
-//
 // void UsdviewEngine::time_controller(float delta_time)
 //{
 //    if (is_active_ && ImGui::IsKeyPressed(ImGuiKey_Space)) {
@@ -321,11 +289,6 @@ void UsdviewEngine::OnFrame(float delta_time)
 //    if (ImGui::SliderFloat("Time##timecode", &timecode, 0, time_code_max)) {
 //    }
 //}
-
-void UsdviewEngine::set_current_time_code(float time_code)
-{
-    timecode = time_code;
-}
 
 // std::unique_ptr<USTC_CG::PickEvent> UsdviewEngine::get_pick_event()
 //{
@@ -376,13 +339,17 @@ bool UsdviewEngine::JoystickAxisUpdate(int axis, float value)
 
 bool UsdviewEngine::KeyboardUpdate(int key, int scancode, int action, int mods)
 {
-    free_camera_->KeyboardUpdate(key, scancode, action, mods);
+    if (is_active) {
+        free_camera_->KeyboardUpdate(key, scancode, action, mods);
+    }
     return false;
 }
 
 bool UsdviewEngine::KeyboardCharInput(unsigned unicode, int mods)
 {
-    free_camera_->KeyboardUpdate(unicode, 0, 0, mods);
+    if (is_active) {
+        free_camera_->KeyboardUpdate(unicode, 0, 0, mods);
+    }
     return false;
 }
 
@@ -394,12 +361,20 @@ bool UsdviewEngine::MousePosUpdate(double xpos, double ypos)
 
 bool UsdviewEngine::MouseScrollUpdate(double xoffset, double yoffset)
 {
-    free_camera_->MouseScrollUpdate(xoffset, yoffset);
+    if (is_active && is_hovered) {
+        free_camera_->MouseScrollUpdate(xoffset, yoffset);
+    }
     return false;
 }
 
 bool UsdviewEngine::MouseButtonUpdate(int button, int action, int mods)
 {
+    if (action == GLFW_PRESS) {
+        if (is_hovered) {
+            free_camera_->MouseButtonUpdate(button, action, mods);
+        }
+        return false;
+    }
     free_camera_->MouseButtonUpdate(button, action, mods);
     return false;
 }
@@ -408,24 +383,6 @@ void UsdviewEngine::Animate(float elapsed_time_seconds)
 {
     free_camera_->Animate(elapsed_time_seconds);
     IWidget::Animate(elapsed_time_seconds);
-}
-
-void UsdviewEngine::BackBufferResized(
-    unsigned width,
-    unsigned height,
-    unsigned sampleCount)
-{
-    IWidget::BackBufferResized(width, height, sampleCount);
-
-    renderBufferSize_[0] = width;
-    renderBufferSize_[1] = height;
-
-    renderer_->SetRenderBufferSize(renderBufferSize_);
-    renderer_->SetRenderViewport(pxr::GfVec4d{
-        0.0, 0.0, double(renderBufferSize_[0]), double(renderBufferSize_[1]) });
-
-    texture_data.resize(
-        width * height * RHI::calculate_bytes_per_pixel(present_format));
 }
 
 void UsdviewEngine::CreateGLContext()
@@ -448,58 +405,61 @@ void UsdviewEngine::CreateGLContext()
 
 UsdviewEngine::~UsdviewEngine()
 {
+    renderer_.reset();
+    hgi.reset();
 }
 
-bool UsdviewEngine::BuildUI(
-    // NodeTree* render_node_tree,
-    // NodeTreeExecutor* get_executor
-)
+bool UsdviewEngine::BuildUI()
 {
     auto delta_time = ImGui::GetIO().DeltaTime;
 
-    // ImGui::SetNextWindowSize({ 800, 600 });
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-    if (ImGui::Begin(
-            "UsdView Engine",
-            nullptr,
-            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse)) {
-        ImGui::PopStyleVar(1);
-
+    if (size_changed) {
         auto size = ImGui::GetContentRegionAvail();
-        // size.y -= 28;
-        BackBufferResized(size.x, size.y, 1);
+        RenderBackBufferResized(size.x, size.y);
+    }
 
-        if (size.x > 0 && size.y > 0) {
-            OnFrame(delta_time);
-            // time_controller(delta_time);
-        }
+    if (render_buffer_size_[0] > 0 && render_buffer_size_[1] > 0) {
+        OnFrame(delta_time);
     }
-    else {
-        ImGui::PopStyleVar(1);
-    }
-    ImGui::End();
+
     return true;
 }
 
-float UsdviewEngine::current_time_code()
+void UsdviewEngine::SetEditMode(bool editing)
 {
-    return timecode;
+    is_editing_ = editing;
 }
-//
-// void UsdviewEngine::set_current_time_code(float time_code)
-//{
-//    timecode = time_code;
-//}
 
-// std::unique_ptr<PickEvent> UsdviewEngine::get_pick_event()
-//{
-//     return impl_->get_pick_event();
-// }
-
-void UsdviewEngine::set_edit_mode(bool editing)
+bool UsdviewEngine::Begin()
 {
-    is_editing = editing;
+    auto ret = ImGui::Begin(
+        "UsdView Engine",
+        &is_open,
+        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse);
+
+    return ret;
+}
+
+const char* UsdviewEngine::GetWindowName()
+{
+    return "UsdView Engine";
+}
+
+void UsdviewEngine::RenderBackBufferResized(float x, float y)
+{
+    render_buffer_size_[0] = x;
+    render_buffer_size_[1] = y;
+
+    renderer_->SetRenderBufferSize(render_buffer_size_);
+    renderer_->SetRenderViewport(
+        pxr::GfVec4d{ 0.0,
+                      0.0,
+                      double(render_buffer_size_[0]),
+                      double(render_buffer_size_[1]) });
+
+    texture_data_.resize(
+        render_buffer_size_[0] * render_buffer_size_[1] *
+        RHI::calculate_bytes_per_pixel(present_format));
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
