@@ -1,5 +1,4 @@
-#include "USTC_CG.h"
-#include "nodes/ui/imgui.hpp"
+
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
@@ -11,6 +10,8 @@
 #include "imgui/blueprint-utilities/images.inl"
 #include "imgui/blueprint-utilities/widgets.h"
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
+#include "nodes/ui/api.h"
+#include "nodes/ui/imgui.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -89,6 +90,10 @@ class NodeWidget : public IWidget {
     Node* create_node_menu();
     bool BuildUI() override;
 
+protected:
+    const char* GetWindowName() override;
+
+
    private:
     void ShowLeftPane(float paneWidth);
 
@@ -123,7 +128,7 @@ class NodeWidget : public IWidget {
         const unsigned char* data,
         size_t buffer_size);
 
-    static ImGuiWindowFlags GetWindowFlags();
+    ImGuiWindowFlags GetWindowFlag() override;
 
     ImVector<nvrhi::TextureHandle> m_Textures;
 
@@ -215,18 +220,7 @@ Node* NodeWidget::create_node_menu()
 
 bool NodeWidget::BuildUI()
 {
-    //// A very awkward workaround.
-    // if (frame == 0) {
-    //     frame++;
-    //     return;
-    // }
-    // frame++;
-
-    bool popen = true;
-
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(3.0f, 3.0f));
-    ImGui::Begin(
-        ("Node editor" + widget_name).c_str(), &popen, GetWindowFlags());
 
     auto& io = ImGui::GetIO();
 
@@ -569,15 +563,14 @@ bool NodeWidget::BuildUI()
     ed::Resume();
 
     ed::End();
-    ImGui::End();
-    ImGui::PopStyleVar(1);
-    // auto editorMin = ImGui::GetItemRectMin();
-    // auto editorMax = ImGui::GetItemRectMax();
+    ImGui::PopStyleVar();
 
-    // if (node_system_type != NodeSystemType::Render) {
-    //     tree_->try_execution();
-    // }
     return true;
+}
+
+const char* NodeWidget::GetWindowName()
+{
+    return "Node editor";
 }
 
 void NodeWidget::ShowLeftPane(float paneWidth)
@@ -780,7 +773,7 @@ nvrhi::TextureHandle NodeWidget::LoadTexture(
         return nullptr;
 }
 
-ImGuiWindowFlags NodeWidget::GetWindowFlags()
+ImGuiWindowFlags NodeWidget::GetWindowFlag()
 {
     return ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse;
 }

@@ -44,9 +44,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     hgi = pxr::Hgi::CreateNamedHgi(pxr::HgiTokens->OpenGL);
     pxr::HdDriver hdDriver;
     hdDriver.name = pxr::HgiTokens->renderDriver;
-    hdDriver.driver =
-        pxr::VtValue(hgi.get());  // Assuming Vulkan driver doesn't need
-                                  // additional parameters
+    hdDriver.driver = pxr::VtValue(hgi.get());
     params.driver = hdDriver;
 #endif
 
@@ -430,14 +428,9 @@ void UsdviewEngine::SetEditMode(bool editing)
     is_editing_ = editing;
 }
 
-bool UsdviewEngine::Begin()
+ImGuiWindowFlags UsdviewEngine::GetWindowFlag()
 {
-    auto ret = ImGui::Begin(
-        "UsdView Engine",
-        &is_open,
-        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse);
-
-    return ret;
+    return ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse;
 }
 
 const char* UsdviewEngine::GetWindowName()

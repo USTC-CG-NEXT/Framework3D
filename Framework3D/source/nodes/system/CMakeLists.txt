@@ -6,3 +6,4 @@ USTC_CG_ADD_LIB(
 	COMPILE_DEFS 
 		USTC_CG_BUILD_MODULE=1 
 )
+add_subdirectory(tests)

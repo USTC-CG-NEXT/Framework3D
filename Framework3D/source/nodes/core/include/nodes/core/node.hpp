@@ -3,12 +3,13 @@
 #include <memory>
 #include <string>
 
-#include "nodes/core/api.h"
+#include "api.hpp"
 #include "entt/core/type_info.hpp"
 #include "entt/meta/factory.hpp"
 #include "entt/meta/meta.hpp"
 #include "id.hpp"
 #include "io/json.hpp"
+#include "nodes/core/api.h"
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -24,6 +25,8 @@ struct ExeParams;
 class Operator;
 class NodeDeclarationBuilder;
 
+extern entt::meta_ctx g_entt_ctx;
+
 using ExecFunction = std::function<void(ExeParams params)>;
 using NodeDeclareFunction =
     std::function<void(NodeDeclarationBuilder& builder)>;
@@ -33,7 +36,7 @@ std ::unique_ptr<NodeTypeInfo> make_node_type_info();
 
 }  // namespace node
 
-struct Node {
+struct NODES_CORE_API Node {
     NodeId ID;
     std::string ui_name;
 
@@ -61,6 +64,7 @@ struct Node {
     explicit Node(NodeTree* node_tree, int id, const char* idname);
 
     Node(NodeTree* node_tree, const char* idname);
+    ~Node();
 
     void serialize(nlohmann::json& value);
     // During deserialization, we first deserialize all the sockets, then
@@ -190,7 +194,7 @@ class Decl : public SocketDeclaration {
     using value_type = T;
     Decl()
     {
-        type = entt::resolve(entt::type_hash<T>());
+        type = get_socket_type<T>();
         // If type doesn't exist, throw
 
         if (!type) {
@@ -344,13 +348,13 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_output(
 template<typename Data>
 void NodeDeclarationBuilder::add_storage()
 {
-    entt::meta<Data>().type(entt::type_hash<Data>());
+    register_cpp_type<Data>();
 }
 
 template<typename Data>
 void NodeDeclarationBuilder::add_runtime_storage()
 {
-    entt::meta<Data>().type(entt::type_hash<Data>());
+    register_cpp_type<Data>();
 }
 
 template<typename T>
@@ -423,7 +427,7 @@ inline NodeDeclarationBuilder::NodeDeclarationBuilder(
 {
 }
 
-struct NodeTypeInfo {
+struct NODES_CORE_API NodeTypeInfo {
     NodeTypeInfo() = default;
     explicit NodeTypeInfo(const char* id_name);
 

@@ -155,20 +155,20 @@ void DockingImguiRenderer::buildUI()
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         if (widget->Begin()) {
             ImGui::PopStyleVar(1);
-            widget->SetStatus();
 
             if (widget->SizeChanged()) {
                 widget->BackBufferResized(widget->Width(), widget->Height(), 1);
             }
 
             widget->BuildUI();
-
-            widget->End();
+            widget->SetStatus();
         }
         else {
             ImGui::PopStyleVar(1);
         }
-        widget->AlwaysEnd();
+
+        widget->End();
+
         if (!widget->IsOpen()) {
             widget_to_remove.push_back(widget.get());
         }

@@ -13,12 +13,9 @@ bool IWidget::Begin()
 
 void IWidget::End()
 {
-}
-
-void IWidget::AlwaysEnd()
-{
     ImGui::End();
 }
+
 
 bool IWidget::IsOpen()
 {

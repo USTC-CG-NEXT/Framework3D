@@ -12,25 +12,25 @@ class NodeCoreTest : public ::testing::Test {
    protected:
     void TearDown() override
     {
-        entt::meta_reset();
+        unregister_cpp_type();
     }
 };
 
 TEST_F(NodeCoreTest, TYPENAME)
 {
     register_cpp_type<int>();
-    auto type = entt::resolve(entt::hashed_string{ typeid(int).name() });
+    auto type = get_socket_type(entt::hashed_string{ typeid(int).name() });
 
     ASSERT_TRUE(type);
 
     // std::string
     register_cpp_type<std::string>();
     auto type2 =
-        entt::resolve(entt::hashed_string{ typeid(std::string).name() });
+        get_socket_type(entt::hashed_string{ typeid(std::string).name() });
     ASSERT_TRUE(type2);
 
     // false
-    auto type3 = entt::resolve(entt::hashed_string{ typeid(float).name() });
+    auto type3 = get_socket_type(entt::hashed_string{ typeid(float).name() });
     ASSERT_FALSE(type3);
 
     ASSERT_EQ(

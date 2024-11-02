@@ -24,9 +24,6 @@ class UsdFileViewer : public IWidget {
     {
     }
 
-    void AlwaysEnd() override
-    {
-    }
 
    private:
     void ShowFileTree();

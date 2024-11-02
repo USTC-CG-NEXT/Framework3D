@@ -8,10 +8,27 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
+entt::meta_ctx g_entt_ctx = entt::locator<entt::meta_ctx>::value_or();
+
+entt::meta_ctx& get_entt_ctx()
+{
+    return g_entt_ctx;
+}
+
+SocketType get_socket_type(const char* t)
+{
+    return entt::resolve(get_entt_ctx(), entt::hashed_string{ t });
+}
+
 template<>
 SocketType get_socket_type<entt::meta_any>()
 {
     return SocketType();
+}
+
+void unregister_cpp_type()
+{
+    entt::meta_reset(g_entt_ctx);
 }
 
 std::unique_ptr<NodeTree> create_node_tree(const NodeTreeDescriptor& descriptor)

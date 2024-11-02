@@ -20,18 +20,10 @@ class GUI_API IWidget {
     [[nodiscard]] unsigned Height() const;
 
    protected:
-    virtual bool Begin();
-
     /**
      * End() is only called if Begin() returns true.
      */
     virtual void End();
-
-    /**
-     * AlwaysEnd() called after End(), even if Begin() returned false.
-     */
-    virtual void AlwaysEnd();
-
 
     virtual bool IsOpen();
 
@@ -49,7 +41,6 @@ class GUI_API IWidget {
     // Give a widget ability to create another widget.
     Window* window;
 
-
     virtual void FirstUseEver() const;
 
     virtual const char* GetWindowName();
@@ -59,10 +50,12 @@ class GUI_API IWidget {
     unsigned width = 800;
     unsigned height = 600;
 
-    bool size_changed;
-    bool is_open;
+    bool size_changed = true;
+    virtual bool Begin();
 
    private:
+    bool is_open;
+
     friend class Window;
     friend class DockingImguiRenderer;
     void SetWindow(Window* window);

@@ -19,4 +19,6 @@ class NODES_SYSTEM_API NodeSystem {
     std::unique_ptr<NodeTreeExecutor> node_tree_executor;
 };
 
+std::unique_ptr<NodeSystem> NODES_SYSTEM_API create_dynamic_loading_system();
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

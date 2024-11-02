@@ -14,7 +14,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 // Multiple definitions of trees
-class NodeTreeDescriptor {
+class NODES_CORE_API NodeTreeDescriptor {
    public:
     ~NodeTreeDescriptor();
 

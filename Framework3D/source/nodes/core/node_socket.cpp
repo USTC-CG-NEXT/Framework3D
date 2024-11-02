@@ -31,7 +31,7 @@ void NodeSocket::Serialize(nlohmann::json& value)
             case entt::type_hash<std::string>().value():
                 socket["value"] = default_value_typed<std::string&>().c_str();
                 break;
-            default: logging("Unknown type in serialization"); break;
+            default: log::error("Unknown type in serialization"); break;
         }
     }
 }

@@ -20,7 +20,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     void SetEditMode(bool editing);
 
    protected:
-    bool Begin() override;
+    ImGuiWindowFlags GetWindowFlag() override;
     const char* GetWindowName() override;
 
 private:

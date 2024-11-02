@@ -73,6 +73,10 @@ Node::Node(NodeTree* node_tree, const char* idname)
     refresh_node();
 }
 
+Node::~Node()
+{
+}
+
 void Node::serialize(nlohmann::json& value)
 {
     if (!typeinfo->INVISIBLE) {

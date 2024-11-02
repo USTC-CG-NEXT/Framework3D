@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cassert>
-#include <iostream>
 #include <optional>
 #include <vector>
 
@@ -16,7 +15,7 @@ struct NodeSocket;
 struct Node;
 class NodeTree;
 
-struct ExeParams {
+struct NODES_CORE_API ExeParams {
     const Node& node_;
 
     explicit ExeParams(const Node& node) : node_(node)
@@ -62,7 +61,7 @@ struct ExeParams {
     T get_storage()
     {
         if (!node_.storage) {
-            node_.storage = entt::resolve<T>().construct();
+            node_.storage = get_socket_type<T>().construct();
             if (!node_.storage_info.empty()) {
                 node_.storage.cast<T&>().deserialize(node_.storage_info);
             }
@@ -83,7 +82,7 @@ struct ExeParams {
     {
         if (!node_.runtime_storage) {
             node_.runtime_storage =
-                entt::resolve<std::decay_t<T>>().construct();
+                get_socket_type<std::decay_t<T>>().construct();
         }
 
         return node_.runtime_storage.cast<T>();
