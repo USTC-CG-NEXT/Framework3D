@@ -19,7 +19,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 void UsdFileViewer::ShowFileTree()
 {
-    auto root = stage->GetPseudoRoot();
+    auto root = stage->get_usd_stage()->GetPseudoRoot();
     ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit |
                             ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders |
                             ImGuiTableFlags_Resizable;
@@ -45,7 +45,7 @@ void UsdFileViewer::ShowPrimInfo()
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
         ImGui::TableHeadersRow();
-        UsdPrim prim = stage->GetPrimAtPath(selected);
+        UsdPrim prim = stage->get_usd_stage()->GetPrimAtPath(selected);
         if (prim) {
             auto properties = prim.GetAttributes();
 

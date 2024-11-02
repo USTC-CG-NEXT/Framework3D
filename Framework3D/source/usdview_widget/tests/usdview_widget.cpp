@@ -7,21 +7,20 @@
 #include "RHI/rhi.hpp"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
+#include "stage/stage.hpp"
 #include "widgets/usdtree/usd_fileviewer.h"
 using namespace USTC_CG;
 int main()
 {
     log::SetMinSeverity(Severity::Debug);
     log::EnableOutputToConsole(true);
-    auto root_stage = pxr::UsdStage::CreateInMemory();
-    root_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, 1.0);
-    root_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::TfToken("Z"));
-    // Add a sphere
-    auto sphere =
-        pxr::UsdGeomSphere::Define(root_stage, pxr::SdfPath("/sphere"));
 
-    auto widget = std::make_unique<UsdFileViewer>(root_stage);
-    auto render = std::make_unique<UsdviewEngine>(root_stage);
+    auto stage = create_global_stage();
+    // Add a sphere
+    stage->create_sphere(pxr::SdfPath("/sphere"));
+
+    auto widget = std::make_unique<UsdFileViewer>(stage.get());
+    auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
 
     auto window = std::make_unique<Window>();
 

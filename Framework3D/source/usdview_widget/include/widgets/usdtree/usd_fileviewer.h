@@ -25,12 +25,12 @@ class UsdFileViewer : public IWidget {
     void End() override
     {
     }
+    pxr::SdfPath emit_editor_info_path();
 
 
    private:
     void ShowFileTree();
     void ShowPrimInfo();
-    pxr::SdfPath emit_editor_info_path();
 
     void show_right_click_menu();
     void DrawChild(const pxr::UsdPrim& prim);
