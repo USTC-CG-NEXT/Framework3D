@@ -5,6 +5,6 @@
 #include "nodes/ui/api.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeSystem;
-std::unique_ptr<IWidget> create_node_imgui_widget(NodeSystem* system);
+std::unique_ptr<IWidget> create_node_imgui_widget(std::shared_ptr<NodeSystem> system);
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

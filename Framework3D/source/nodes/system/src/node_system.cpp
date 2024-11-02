@@ -36,9 +36,9 @@ void NodeSystem::set_node_tree_executor_desc(NodeTreeExecutorDesc& desc)
     node_tree_executor_desc = desc;
 }
 
-std::unique_ptr<NodeSystem> create_dynamic_loading_system()
+std::shared_ptr<NodeSystem> create_dynamic_loading_system()
 {
-    return std::make_unique<NodeDynamicLoadingSystem>();
+    return std::make_shared<NodeDynamicLoadingSystem>();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

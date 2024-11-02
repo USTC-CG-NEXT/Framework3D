@@ -36,6 +36,6 @@ void NodeSystem::register_cpp_types()
     }
 }
 
-std::unique_ptr<NodeSystem> NODES_SYSTEM_API create_dynamic_loading_system();
+std::shared_ptr<NodeSystem> NODES_SYSTEM_API create_dynamic_loading_system();
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -2,8 +2,8 @@
 
 #include "GUI/window.h"
 #include "Logger/Logger.h"
-#include "RHI/rhi.hpp"
 #include "nodes/system/node_system.hpp"
+#include "nodes/ui/imgui.hpp"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
 #include "stage/stage.hpp"
@@ -28,17 +28,15 @@ int main()
     window->register_widget(std::move(render));
 
     auto system = create_dynamic_loading_system();
+    system->register_cpp_types<int>();
+    auto loaded = system->load_configuration("test_nodes.json");
+    system->init();
 
-    window->check_true_execute(
-        widget.get(),
-        [](IWidget* widget) {
-            return !dynamic_cast<UsdFileViewer*>(widget)
-                        ->emit_editor_info_path()
-                        .IsEmpty();
-        },
-        []() {
-            window->register_widget()
-        });
+
+    std::unique_ptr<IWidget> node_widget =
+        std::move(create_node_imgui_widget(system));
+
+    window->register_widget(std::move(node_widget));
 
     window->run();
 

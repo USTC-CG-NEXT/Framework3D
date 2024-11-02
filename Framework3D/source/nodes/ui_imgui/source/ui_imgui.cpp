@@ -85,7 +85,7 @@ struct NodeIdLess {
 };
 class NodeWidget : public IWidget {
    public:
-    explicit NodeWidget(NodeSystem* system);
+    explicit NodeWidget(std::shared_ptr<NodeSystem> system);
 
     ~NodeWidget() override;
     Node* create_node_menu();
@@ -113,7 +113,7 @@ class NodeWidget : public IWidget {
     nvrhi::TextureHandle m_HeaderBackground = nullptr;
     ImVec2 newNodePostion;
     bool location_remembered = false;
-    NodeSystem* system_;
+    std::shared_ptr<NodeSystem> system_;
     static const int m_PinIconSize = 20;
 
     std::string widget_name;
@@ -138,7 +138,7 @@ class NodeWidget : public IWidget {
     static ImColor GetIconColor(SocketType type);
 };
 
-NodeWidget::NodeWidget(NodeSystem* system)
+NodeWidget::NodeWidget(std::shared_ptr<NodeSystem> system)
     : system_(system),
       tree_(system->get_node_tree())
 {
@@ -817,7 +817,8 @@ ImColor NodeWidget::GetIconColor(SocketType type)
     return ImColor(hashValue_r % 255, hashValue_g % 255, hashValue_b % 255);
 }
 
-std::unique_ptr<IWidget> create_node_imgui_widget(NodeSystem* system)
+std::unique_ptr<IWidget> create_node_imgui_widget(
+    std::shared_ptr<NodeSystem> system)
 {
     return std::make_unique<NodeWidget>(system);
 }

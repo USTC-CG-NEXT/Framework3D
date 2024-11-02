@@ -11,6 +11,7 @@
 #include "RHI/rhi.hpp"
 #include "free_camera.hpp"
 #include "imgui.h"
+#include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/camera.h"
 #include "pxr/base/gf/frustum.h"
@@ -31,9 +32,15 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class NodeTree;
 
+struct UsdviewEnginePrivateData {
+    nvrhi::TextureHandle nvrhi_texture = nullptr;
+    nvrhi::Format present_format = nvrhi::Format::RGBA16_UNORM;
+};
+
 UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     : root_stage_(root_stage)
 {
+    data_ = std::make_unique<UsdviewEnginePrivateData>();
     // Initialize OpenGL context using WGL
     CreateGLContext();
     GarchGLApiLoad();
@@ -125,7 +132,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 {
     DrawMenuBar();
 
-    auto previous = nvrhi_texture_.Get();
+    auto previous = data_->nvrhi_texture.Get();
 
     using namespace pxr;
     GfFrustum frustum =
@@ -196,7 +203,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     hgi->SubmitCmds(blitCmds.get(), HgiSubmitWaitTypeWaitUntilCompleted);
 
-    nvrhi_texture_ = RHI::load_texture(tex_desc, texture_data_.data());
+    data_->nvrhi_texture = RHI::load_texture(tex_desc, texture_data_.data());
 
     auto imgui_frame_size =
         ImVec2(render_buffer_size_[0], render_buffer_size_[1]);
@@ -205,7 +212,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     ImGui::GetIO().WantCaptureMouse = false;
     ImGui::Image(
-        static_cast<ImTextureID>(nvrhi_texture_.Get()),
+        static_cast<ImTextureID>(data_->nvrhi_texture.Get()),
         imgui_frame_size,
         ImVec2(0.0f, 0.0f),
         ImVec2(1.0f, 1.0f));
@@ -422,7 +429,8 @@ void UsdviewEngine::SetEditMode(bool editing)
 
 ImGuiWindowFlags UsdviewEngine::GetWindowFlag()
 {
-    return ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse;
+    return ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse |
+           ImGuiWindowFlags_NoScrollbar;
 }
 
 const char* UsdviewEngine::GetWindowName()
@@ -444,7 +452,7 @@ void UsdviewEngine::RenderBackBufferResized(float x, float y)
 
     texture_data_.resize(
         render_buffer_size_[0] * render_buffer_size_[1] *
-        RHI::calculate_bytes_per_pixel(present_format));
+        RHI::calculate_bytes_per_pixel(data_->present_format));
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

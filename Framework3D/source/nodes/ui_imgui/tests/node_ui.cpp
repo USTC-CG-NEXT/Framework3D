@@ -1,8 +1,8 @@
 
 #include "GUI/window.h"
+#include "Logger/Logger.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
-#include "Logger/Logger.h"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
@@ -47,7 +47,7 @@ class CreateWindowTest : public ::testing::Test {
     {
         system_.reset();
     }
-    std::unique_ptr<NodeSystem> system_;
+    std::shared_ptr<NodeSystem> system_;
 };
 
 TEST_F(CreateWindowTest, create_window)
@@ -55,7 +55,7 @@ TEST_F(CreateWindowTest, create_window)
     USTC_CG::Window window;
 
     std::unique_ptr<IWidget> node_widget =
-        std::move(create_node_imgui_widget(system_.get()));
+        std::move(create_node_imgui_widget(system_));
 
     window.register_widget(std::move(node_widget));
     window.run();
