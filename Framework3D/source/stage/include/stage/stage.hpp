@@ -1,10 +1,10 @@
 #pragma once
 #include <pxr/usd/usd/stage.h>
 
-#include "USTC_CG.h"
+#include "stage/api.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-class USTC_CG_API Stage {
+class STAGE_API Stage {
    public:
     Stage();
 

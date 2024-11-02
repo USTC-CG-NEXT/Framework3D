@@ -7,6 +7,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 class NODES_SYSTEM_API NodeSystem {
    public:
     void init();
+    virtual bool load_configuration(const std::filesystem::path& config) = 0;
     virtual ~NodeSystem();
 
     [[nodiscard]] NodeTree* get_node_tree() const;

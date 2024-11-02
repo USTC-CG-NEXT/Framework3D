@@ -1,3 +1,4 @@
+#include <iostream>
 #include <Eigen/Eigen>
 
 #include "nodes/core/api.hpp"

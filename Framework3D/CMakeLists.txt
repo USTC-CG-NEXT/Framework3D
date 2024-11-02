@@ -122,9 +122,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/Logger)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/stage)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/usdview_widget)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
 
-target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
+# target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
 
 
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/renderer)

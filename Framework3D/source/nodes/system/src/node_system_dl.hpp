@@ -22,7 +22,7 @@ class NODES_SYSTEM_API DynamicLibraryLoader {
     ~DynamicLibraryLoader();
 
     template<typename Func>
-    Func getFunction(const std::string& functionName);
+    std::function<Func> getFunction(const std::string& functionName);
 
    private:
 #ifdef _WIN32
@@ -33,18 +33,19 @@ class NODES_SYSTEM_API DynamicLibraryLoader {
 };
 
 template<typename Func>
-Func DynamicLibraryLoader::getFunction(const std::string& functionName)
+std::function<Func> DynamicLibraryLoader::getFunction(
+    const std::string& functionName)
 {
 #ifdef _WIN32
     FARPROC funcPtr = GetProcAddress(handle, functionName.c_str());
     if (!funcPtr) {
-        throw std::runtime_error("Failed to load function: " + functionName);
+        return nullptr;
     }
-    return reinterpret_cast<Func>(funcPtr);
+    return reinterpret_cast<Func*>(funcPtr);
 #else
     void* funcPtr = dlsym(handle, functionName.c_str());
     if (!funcPtr) {
-        throw std::runtime_error("Failed to load function: " + functionName);
+        return nullptr;
     }
     return reinterpret_cast<Func>(funcPtr);
 #endif
@@ -56,9 +57,11 @@ class NODES_SYSTEM_API NodeDynamicLoadingSystem : public NodeSystem {
 
    public:
     ~NodeDynamicLoadingSystem() override;
+    bool load_configuration(const std::filesystem::path& config) override;
 
    private:
-    std::vector<std::unique_ptr<DynamicLibraryLoader>> libraries;
+    std::unordered_map<std::string, std::unique_ptr<DynamicLibraryLoader>>
+        libraries;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
