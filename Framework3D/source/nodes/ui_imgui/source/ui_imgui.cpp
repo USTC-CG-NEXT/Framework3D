@@ -560,6 +560,11 @@ bool NodeWidget::BuildUI()
     ed::End();
     ImGui::PopStyleVar();
 
+    if (tree_->GetDirty()) {
+        system_->execute();
+        tree_->SetDirty(false);
+    }
+
     return true;
 }
 
@@ -691,8 +696,6 @@ void NodeWidget::ShowLeftPane(float paneWidth)
     ImGui::Spacing();
     ImGui::SameLine();
     ImGui::TextUnformatted("Node Tree Info");
-
-    // tree_->debug();
 
     ImGui::EndChild();
 }

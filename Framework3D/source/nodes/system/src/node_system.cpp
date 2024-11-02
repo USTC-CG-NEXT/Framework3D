@@ -14,6 +14,13 @@ NodeSystem::~NodeSystem()
 {
 }
 
+void NodeSystem::execute() const
+{
+    if (node_tree_executor) {
+        return node_tree_executor->execute(node_tree.get());
+    }
+}
+
 NodeTree* NodeSystem::get_node_tree() const
 {
     return node_tree.get();

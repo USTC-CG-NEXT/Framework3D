@@ -2,6 +2,7 @@
 #include "GUI/window.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
+#include "Logger/Logger.h"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
@@ -30,6 +31,9 @@ class CreateWindowTest : public ::testing::Test {
    protected:
     void SetUp() override
     {
+        log::SetMinSeverity(Severity::Info);
+        log::EnableOutputToConsole(true);
+
         system_ = create_dynamic_loading_system();
         system_->register_cpp_types<int>();
 

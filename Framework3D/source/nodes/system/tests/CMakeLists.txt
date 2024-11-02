@@ -1,17 +1,19 @@
-add_library(node_add SHARED test_node/node_add.cpp)
-set_target_properties(node_add PROPERTIES ${OUTPUT_DIR})
-target_link_libraries(node_add PRIVATE nodes_core)
+file(GLOB TEST_NODE_SOURCES test_node/*.cpp)
 
-add_library(node_sub SHARED test_node/node_sub.cpp)
-set_target_properties(node_sub PROPERTIES ${OUTPUT_DIR})
-target_link_libraries(node_sub PRIVATE nodes_core)
+foreach(source ${TEST_NODE_SOURCES})
+    get_filename_component(target_name ${source} NAME_WE)
+    add_library(${target_name} SHARED ${source})
+    set_target_properties(${target_name} PROPERTIES ${OUTPUT_DIR})
+    target_link_libraries(${target_name} PRIVATE nodes_core)
+    list(APPEND all_nodes ${target_name})
+endforeach()
 
-set(all_nodes node_add node_sub)
-
-
-GEN_NODES_JSON(test_node_json_target NODES_DIRS test_node OUTPUT_JSON ${OUT_BINARY_DIR}/test_nodes.json)
+GEN_NODES_JSON(test_node_json_target 
+    NODES_DIRS test_node 
+    OUTPUT_JSON ${OUT_BINARY_DIR}/test_nodes.json
+)
 
 add_library(test_nodes INTERFACE)
-add_dependencies(test_nodes node_add node_sub test_node_json_target)
+add_dependencies(test_nodes ${all_nodes} test_node_json_target)
 
 add_dependencies(node_system_test test_nodes)

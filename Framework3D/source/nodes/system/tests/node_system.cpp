@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "Logger/Logger.h"
+
 using namespace USTC_CG;
 
 class MyNodeSystem : public NodeSystem {

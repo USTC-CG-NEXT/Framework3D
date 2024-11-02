@@ -14,6 +14,8 @@ class NODES_SYSTEM_API NodeSystem {
     template<typename T1, typename... T>
     void register_cpp_types();
 
+    void execute() const;
+
     [[nodiscard]] NodeTree* get_node_tree() const;
     [[nodiscard]] NodeTreeExecutor* get_node_tree_executor() const;
 
