@@ -54,7 +54,6 @@ std::function<Func> DynamicLibraryLoader::getFunction(
 class NODES_SYSTEM_API NodeDynamicLoadingSystem : public NodeSystem {
    protected:
     NodeTreeDescriptor node_tree_descriptor() override;
-    NodeTreeExecutorDesc node_tree_executor_desc() override;
 
    public:
     ~NodeDynamicLoadingSystem() override;

@@ -16,11 +16,6 @@ class MyNodeSystem : public NodeSystem {
     {
         return NodeTreeDescriptor();
     }
-
-    NodeTreeExecutorDesc node_tree_executor_desc() override
-    {
-        return NodeTreeExecutorDesc();
-    }
 };
 
 TEST(NodeSystem, CreateSystem)

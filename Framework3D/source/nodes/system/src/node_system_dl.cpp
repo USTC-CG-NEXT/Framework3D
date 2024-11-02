@@ -45,12 +45,6 @@ NodeTreeDescriptor NodeDynamicLoadingSystem::node_tree_descriptor()
     return descriptor;
 }
 
-NodeTreeExecutorDesc NodeDynamicLoadingSystem::node_tree_executor_desc()
-{
-    // Your implementation here
-    return {};
-}
-
 NodeDynamicLoadingSystem::~NodeDynamicLoadingSystem()
 {
     descriptor = {};

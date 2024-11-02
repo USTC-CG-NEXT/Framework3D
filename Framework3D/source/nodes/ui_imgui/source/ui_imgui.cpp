@@ -21,6 +21,7 @@
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/core/socket.hpp"
+#include "nodes/system/node_system.hpp"
 #include "stb_image.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -84,15 +85,14 @@ struct NodeIdLess {
 };
 class NodeWidget : public IWidget {
    public:
-    explicit NodeWidget(NodeTree* tree);
+    explicit NodeWidget(NodeSystem* system);
 
     ~NodeWidget() override;
     Node* create_node_menu();
     bool BuildUI() override;
 
-protected:
+   protected:
     const char* GetWindowName() override;
-
 
    private:
     void ShowLeftPane(float paneWidth);
@@ -113,6 +113,7 @@ protected:
     nvrhi::TextureHandle m_HeaderBackground = nullptr;
     ImVec2 newNodePostion;
     bool location_remembered = false;
+    NodeSystem* system_;
     static const int m_PinIconSize = 20;
 
     std::string widget_name;
@@ -137,7 +138,9 @@ protected:
     static ImColor GetIconColor(SocketType type);
 };
 
-NodeWidget::NodeWidget(NodeTree* tree) : tree_(tree)
+NodeWidget::NodeWidget(NodeSystem* system)
+    : system_(system),
+      tree_(system->get_node_tree())
 {
     ed::Config config;
 
@@ -304,14 +307,6 @@ bool NodeWidget::BuildUI()
 
                 ImGui::PopStyleVar();
                 builder.EndInput();
-            }
-
-            if (isSimple) {
-                builder.Middle();
-
-                ImGui::Spring(1, 0);
-                ImGui::TextUnformatted(node->ui_name.c_str());
-                ImGui::Spring(1, 0);
             }
 
             for (auto& output : node->get_outputs()) {
@@ -819,9 +814,9 @@ ImColor NodeWidget::GetIconColor(SocketType type)
     return ImColor(hashValue_r % 255, hashValue_g % 255, hashValue_b % 255);
 }
 
-std::unique_ptr<IWidget> create_node_imgui_widget(NodeTree* tree)
+std::unique_ptr<IWidget> create_node_imgui_widget(NodeSystem* system)
 {
-    return std::make_unique<NodeWidget>(tree);
+    return std::make_unique<NodeWidget>(system);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

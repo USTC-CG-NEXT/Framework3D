@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "imgui.h"
 #include "nodes/core/node_tree.hpp"
+#include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
 using namespace USTC_CG;
 
@@ -29,40 +30,20 @@ class CreateWindowTest : public ::testing::Test {
    protected:
     void SetUp() override
     {
-        register_cpp_type<int>();
-        register_cpp_type<float>();
-        register_cpp_type<std::string>();
+        system_ = create_dynamic_loading_system();
+        system_->register_cpp_types<int>();
 
-        NodeTreeDescriptor descriptor;
+        auto loaded = system_->load_configuration("test_nodes.json");
 
-        // register adding node
-
-        NodeTypeInfo add_node;
-        add_node.id_name = "add";
-        add_node.ui_name = "Add";
-        add_node.ALWAYS_REQUIRED = true;
-        add_node.set_declare_function([](NodeDeclarationBuilder& b) {
-            b.add_input<int>("a");
-            b.add_input<int>("b");
-            b.add_output<int>("result");
-        });
-
-        add_node.set_execution_function([](ExeParams params) {
-            auto a = params.get_input<int>("a");
-            auto b = params.get_input<int>("b");
-            params.set_output("result", a + b);
-        });
-
-        descriptor.register_node(add_node);
-
-        tree = create_node_tree(descriptor);
+        ASSERT_TRUE(loaded);
+        system_->init();
     }
 
     void TearDown() override
     {
-        entt::meta_reset();
+        system_.reset();
     }
-    std::unique_ptr<NodeTree> tree;
+    std::unique_ptr<NodeSystem> system_;
 };
 
 TEST_F(CreateWindowTest, create_window)
@@ -70,11 +51,8 @@ TEST_F(CreateWindowTest, create_window)
     USTC_CG::Window window;
 
     std::unique_ptr<IWidget> node_widget =
-        std::move(create_node_imgui_widget(tree.get()));
+        std::move(create_node_imgui_widget(system_.get()));
 
-    std::unique_ptr<IWidget> empty_widget = std::make_unique<Widget>("Empty");
-
-    window.register_widget(std::move(empty_widget));
     window.register_widget(std::move(node_widget));
     window.run();
 }

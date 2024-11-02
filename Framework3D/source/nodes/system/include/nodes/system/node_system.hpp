@@ -19,9 +19,10 @@ class NODES_SYSTEM_API NodeSystem {
 
    protected:
     virtual NodeTreeDescriptor node_tree_descriptor() = 0;
-    virtual NodeTreeExecutorDesc node_tree_executor_desc() = 0;
+    virtual void set_node_tree_executor_desc(NodeTreeExecutorDesc& desc);
     std::unique_ptr<NodeTree> node_tree;
     std::unique_ptr<NodeTreeExecutor> node_tree_executor;
+    NodeTreeExecutorDesc node_tree_executor_desc = {};
 };
 
 template<typename T1, typename... T>
