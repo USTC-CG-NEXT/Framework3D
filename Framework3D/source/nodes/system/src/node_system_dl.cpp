@@ -44,10 +44,9 @@ NodeTreeDescriptor NodeDynamicLoadingSystem::node_tree_descriptor()
 {
     register_cpp_type<int>();
 
-    NodeTreeDescriptor descriptor;
     // register adding node
 
-    for (auto&& library : libraries) {
+    for (auto&& library : node_libraries) {
         auto node_ui_name =
             library.second->getFunction<const char*()>("node_ui_name");
 
@@ -95,22 +94,25 @@ bool NodeDynamicLoadingSystem::load_configuration(
 
     // Process the JSON configuration as needed
 
-    for (auto it = j.begin(); it != j.end(); ++it) {
-        std::string key = it.key();
-        std::string libNameStr = it.value().get<std::string>();
+    auto load_libraries = [&](const nlohmann::json& json_section,
+                              auto& library_map,
+                              const std::string& extension) {
+        for (auto it = json_section.begin(); it != json_section.end(); ++it) {
+            std::string key = it.key();
+            std::string libNameStr = it.value().get<std::string>();
+            library_map[key] =
+                std::make_unique<DynamicLibraryLoader>(libNameStr + extension);
+        }
+    };
+
 #ifdef _WIN32
-        if (libNameStr.substr(libNameStr.find_last_of(".") + 1) != "dll") {
-            throw std::runtime_error(
-                "Unsupported library format: " + libNameStr);
-        }
+    std::string extension = ".dll";
 #else
-        if (libNameStr.substr(libNameStr.find_last_of(".") + 1) != "so") {
-            throw std::runtime_error(
-                "Unsupported library format: " + libNameStr);
-        }
+    std::string extension = ".so";
 #endif
-        libraries[key] = std::make_unique<DynamicLibraryLoader>(libNameStr);
-    }
+
+    load_libraries(j["nodes"], node_libraries, extension);
+    load_libraries(j["conversions"], conversion_libraries, extension);
 
     return true;
 }

@@ -2,21 +2,22 @@
 #include <nodes/core/def/node_def.hpp>
 #include <nodes/core/node_exec.hpp>
 
-extern "C" {
+NODE_DEF_OPEN_SCOPE
 __declspec(dllexport) const char* node_ui_name()
 {
     return "Add";
 }
 
-__declspec(dllexport) void node_declare(USTC_CG::NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(add)
 {
     b.add_input<int>("value").min(0).max(10).default_val(1);
     b.add_output<int>("value");
 }
 
-__declspec(dllexport) void node_execution(USTC_CG::ExeParams params)
+NODE_EXECUTION_FUNCTION(add)
 {
     auto val = params.get_input<int>("value");
     params.set_output("value", val);
 }
-}
+
+NODE_DEF_CLOSE_SCOPE

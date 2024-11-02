@@ -25,6 +25,8 @@ set_target_properties(gtest PROPERTIES ${OUTPUT_DIR})
 set_target_properties(gtest_main PROPERTIES ${OUTPUT_DIR})
 
 include(cmake/AddLibrary.cmake)
+include(cmake/GenNodesJson.cmake)
+
 
 
 option(USTC_CG_WITH_CUDA OFF)
@@ -81,12 +83,8 @@ endif()
 
 # The following packages optional
 
-option(USTC_CG_WITH_PYTHON OFF)
-if(USTC_CG_WITH_PYTHON)
-  find_package(Python3 3.10 EXACT COMPONENTS Development Interpreter REQUIRED)
-  set_target_properties(Python3::Python PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
-  set_target_properties(Python3::Module PROPERTIES MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
-endif()
+find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
+message("Python3_EXECUTABLE is ${Python3_EXECUTABLE}")
 
 find_package(Vulkan)
 set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})

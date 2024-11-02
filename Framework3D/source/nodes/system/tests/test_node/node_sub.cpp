@@ -1,16 +1,16 @@
 #include <iostream>
 #include <nodes/core/def/node_def.hpp>
-#include <nodes/core/node_exec.hpp>
-extern "C" {
-void __declspec(dllexport) node_declare(USTC_CG::NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+
+NODE_DECLARATION_FUNCTION(sub)
 {
     b.add_input<int>("value").min(0).max(10).default_val(1);
     b.add_output<int>("value");
 }
 
-__declspec(dllexport) void node_execution(USTC_CG::ExeParams params)
+NODE_EXECUTION_FUNCTION(sub)
 {
     auto val = params.get_input<int>("value");
     params.set_output("value", val);
 }
-}
+NODE_DEF_CLOSE_SCOPE

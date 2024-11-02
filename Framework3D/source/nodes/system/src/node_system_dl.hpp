@@ -61,7 +61,10 @@ class NODES_SYSTEM_API NodeDynamicLoadingSystem : public NodeSystem {
 
    private:
     std::unordered_map<std::string, std::unique_ptr<DynamicLibraryLoader>>
-        libraries;
+        node_libraries;
+    std::unordered_map<std::string, std::unique_ptr<DynamicLibraryLoader>>
+        conversion_libraries;
+    NodeTreeDescriptor descriptor;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
