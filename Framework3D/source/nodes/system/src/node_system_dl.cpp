@@ -42,30 +42,7 @@ DynamicLibraryLoader::~DynamicLibraryLoader()
 
 NodeTreeDescriptor NodeDynamicLoadingSystem::node_tree_descriptor()
 {
-    register_cpp_type<int>();
-
-    // register adding node
-
-    for (auto&& library : node_libraries) {
-        auto node_ui_name =
-            library.second->getFunction<const char*()>("node_ui_name");
-
-        auto node_declare =
-            library.second->getFunction<void(NodeDeclarationBuilder&)>(
-                "node_declare");
-        auto node_execution =
-            library.second->getFunction<void(ExeParams)>("node_execution");
-
-        NodeTypeInfo new_node;
-        new_node.id_name = library.first;
-        new_node.ui_name = node_ui_name ? node_ui_name() : library.first;
-        new_node.set_declare_function(node_declare);
-        new_node.set_execution_function(node_execution);
-
-        descriptor.register_node(new_node);
-    }
-
-    return {};
+    return descriptor;
 }
 
 NodeTreeExecutorDesc NodeDynamicLoadingSystem::node_tree_executor_desc()
@@ -76,6 +53,11 @@ NodeTreeExecutorDesc NodeDynamicLoadingSystem::node_tree_executor_desc()
 
 NodeDynamicLoadingSystem::~NodeDynamicLoadingSystem()
 {
+    descriptor = {};
+    this->node_tree.reset();
+    this->node_tree_executor.reset();
+
+    this->node_libraries.clear();
 }
 
 bool NodeDynamicLoadingSystem::load_configuration(
@@ -92,16 +74,39 @@ bool NodeDynamicLoadingSystem::load_configuration(
     config_file >> j;
     config_file.close();
 
-    // Process the JSON configuration as needed
-
     auto load_libraries = [&](const nlohmann::json& json_section,
                               auto& library_map,
                               const std::string& extension) {
         for (auto it = json_section.begin(); it != json_section.end(); ++it) {
             std::string key = it.key();
-            std::string libNameStr = it.value().get<std::string>();
+            auto func_names = it.value();
+
             library_map[key] =
-                std::make_unique<DynamicLibraryLoader>(libNameStr + extension);
+                std::make_unique<DynamicLibraryLoader>(key + extension);
+
+            for (auto&& func_name : func_names) {
+                auto func_name_str = func_name.get<std::string>();
+                auto node_ui_name =
+                    library_map[key]->template getFunction<const char*()>(
+                        "node_ui_name" + func_name_str);
+
+                auto node_declare =
+                    library_map[key]
+                        ->template getFunction<void(NodeDeclarationBuilder&)>(
+                            "node_declare_" + func_name_str);
+                auto node_execution =
+                    library_map[key]->template getFunction<void(ExeParams)>(
+                        "node_execution_" + func_name_str);
+
+                NodeTypeInfo new_node;
+                new_node.id_name = key + "_" + func_name_str;
+                new_node.ui_name =
+                    node_ui_name ? node_ui_name() : new_node.id_name;
+                new_node.set_declare_function(node_declare);
+                new_node.set_execution_function(node_execution);
+
+                descriptor.register_node(new_node);
+            }
         }
     };
 
