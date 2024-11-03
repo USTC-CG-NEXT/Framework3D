@@ -22,8 +22,6 @@ int main()
     init(stage.get());
     // Add a sphere
 
-    stage->create_sphere(pxr::SdfPath("/sphere"));
-
     auto widget = std::make_unique<UsdFileViewer>(stage.get());
     auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
 

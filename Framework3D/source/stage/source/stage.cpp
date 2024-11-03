@@ -13,7 +13,13 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 Stage::Stage()
 
 {
-    stage = pxr::UsdStage::CreateInMemory();
+    // if stage.usda exists, load it
+    stage = pxr::UsdStage::Open("stage.usda");
+    if (stage) {
+        return;
+    }
+
+    stage = pxr::UsdStage::CreateNew("stage.usda");
     stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, 1.0);
     stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::TfToken("Z"));
 }
@@ -31,9 +37,11 @@ T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName)
         path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))))) {
         id++;
     }
-    return T::Define(
+    auto a = T::Define(
         stage,
         path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))));
+    stage->Save();
+    return a;
 }
 
 pxr::UsdPrim Stage::add_prim(const pxr::SdfPath& path)
@@ -69,6 +77,7 @@ pxr::UsdGeomMesh Stage::create_mesh(const pxr::SdfPath& path) const
 void Stage::remove_prim(const pxr::SdfPath& path)
 {
     stage->RemovePrim(path);
+    stage->Save();
 }
 
 std::string Stage::stage_content() const
@@ -113,6 +122,7 @@ void Stage::save_string_to_usd(
     auto attr = prim.CreateAttribute(
         pxr::TfToken("node_json"), pxr::SdfValueTypeNames->String);
     attr.Set(data);
+    stage->Save();
 }
 
 std::string Stage::load_string_from_usd(const pxr::SdfPath& path)

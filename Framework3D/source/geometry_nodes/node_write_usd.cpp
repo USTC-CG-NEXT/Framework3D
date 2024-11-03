@@ -217,6 +217,14 @@ NODE_EXECUTION_FUNCTION(write_usd)
         }
         xform_op.Set(final_transform, time);
     }
+    else {
+        auto usdgeom = pxr::UsdGeomXformable ::Get(stage, sdf_path);
+        auto xform_op = usdgeom.GetTransformOp();
+        if (!xform_op) {
+            xform_op = usdgeom.AddTransformOp();
+        }
+        xform_op.Set(pxr::GfMatrix4d(1), time);
+    }
 
     pxr::UsdGeomImageable(stage->GetPrimAtPath(sdf_path)).MakeVisible();
 }

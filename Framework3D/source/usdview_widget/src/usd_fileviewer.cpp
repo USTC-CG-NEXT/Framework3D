@@ -91,6 +91,18 @@ void UsdFileViewer::ShowPrimInfo()
                     else if (v.IsHolding<VtArray<float>>()) {
                         formatArray(v.Get<VtArray<float>>());
                     }
+                    else if (v.IsHolding<VtArray<int>>()) {
+                        formatArray(v.Get<VtArray<int>>());
+                    }
+                    else if (v.IsHolding<VtArray<unsigned int>>()) {
+                        formatArray(v.Get<VtArray<unsigned int>>());
+                    }
+                    else if (v.IsHolding<VtArray<int64_t>>()) {
+                        formatArray(v.Get<VtArray<int64_t>>());
+                    }
+                    else if (v.IsHolding<VtArray<uint64_t>>()) {
+                        formatArray(v.Get<VtArray<uint64_t>>());
+                    }
                     else if (v.IsHolding<VtArray<GfMatrix4d>>()) {
                         formatArray(v.Get<VtArray<GfMatrix4d>>());
                     }
@@ -103,17 +115,26 @@ void UsdFileViewer::ShowPrimInfo()
                     else if (v.IsHolding<VtArray<GfVec2f>>()) {
                         formatArray(v.Get<VtArray<GfVec2f>>());
                     }
+                    else if (v.IsHolding<VtArray<GfVec2i>>()) {
+                        formatArray(v.Get<VtArray<GfVec2i>>());
+                    }
                     else if (v.IsHolding<VtArray<GfVec3d>>()) {
                         formatArray(v.Get<VtArray<GfVec3d>>());
                     }
                     else if (v.IsHolding<VtArray<GfVec3f>>()) {
                         formatArray(v.Get<VtArray<GfVec3f>>());
                     }
+                    else if (v.IsHolding<VtArray<GfVec3i>>()) {
+                        formatArray(v.Get<VtArray<GfVec3i>>());
+                    }
                     else if (v.IsHolding<VtArray<GfVec4d>>()) {
                         formatArray(v.Get<VtArray<GfVec4d>>());
                     }
                     else if (v.IsHolding<VtArray<GfVec4f>>()) {
                         formatArray(v.Get<VtArray<GfVec4f>>());
+                    }
+                    else if (v.IsHolding<VtArray<GfVec4i>>()) {
+                        formatArray(v.Get<VtArray<GfVec4i>>());
                     }
                     else {
                         displayString = "Unsupported array type";

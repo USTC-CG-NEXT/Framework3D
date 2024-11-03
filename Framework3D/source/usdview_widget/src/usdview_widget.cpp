@@ -64,7 +64,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 
     static_cast<FirstPersonCamera*>(free_camera_.get())
         ->LookAt(
-            pxr::GfVec3d{ -5, 0, 0 },
+            pxr::GfVec3d{ -10, 0, 0 },
             pxr::GfVec3d{ 0, 0, 0 },
             pxr::GfVec3d{ 0, 0, 1 });
 
@@ -74,7 +74,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     }
     renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
 
-    free_camera_->CreateFocusDistanceAttr().Set(5.0f);
+    free_camera_->CreateFocusDistanceAttr().Set(2.0f);
     free_camera_->CreateClippingRangeAttr(
         pxr::VtValue(pxr::GfVec2f{ 0.1f, 1000.f }));
 }
