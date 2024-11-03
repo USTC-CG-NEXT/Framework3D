@@ -39,6 +39,7 @@ int main()
 
             system->register_cpp_types<int>();
             auto loaded = system->load_configuration("geometry_nodes.json");
+            loaded = system->load_configuration("basic_nodes.json");
             system->init();
 
             GeomPayload geom_global_params;

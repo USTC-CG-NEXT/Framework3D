@@ -15,20 +15,17 @@ NODE_EXECUTION_FUNCTION(print_debug_info)
 {
     entt::meta_any storage = params.get_input<entt::meta_any>("Variable");
     using namespace pxr;
-#define PrintType(type)                                 \
-    if (storage.allow_cast<type>()) {                   \
-        std::cout << storage.cast<type>() << std::endl; \
+#define PrintType(type)               \
+    if (storage.allow_cast<type>()) { \
+        std::ostringstream out;       \
+        out << storage.cast<type>();  \
+        log::info(out.str().c_str()); \
     }
 
-    MACRO_MAP(PrintType, TypesToPrint)
-
-    auto stage = params.get_global_payload<GeomPayload>().stage;
-    std::string str;
-    stage->ExportToString(&str);
-
-    std::ofstream out("current_stage.usda");
-    out << str << std::endl;
+    MACRO_MAP(PrintType, TypesToPrint);
 }
+
+NODE_DECLARATION_REQUIRED(print_debug_info);
 
 NODE_DECLARATION_UI(print_debug_info);
 NODE_DEF_CLOSE_SCOPE

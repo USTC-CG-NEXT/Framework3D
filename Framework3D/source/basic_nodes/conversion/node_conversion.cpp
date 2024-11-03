@@ -14,4 +14,6 @@ CONVERSION_EXECUTION_FUNCTION(int, float)
     params.set_output<float>("float", static_cast<float>(input));
 }
 
+CONVERSION_FUNC_NAME(int, float);
+
 NODE_DEF_CLOSE_SCOPE

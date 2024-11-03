@@ -46,6 +46,7 @@ def process_cpp_file(file_path):
             line = line.replace('decl::Int', 'int')
             line = line.replace('decl::Float', 'float')
             line = line.replace('decl::Geometry', 'Geometry')
+            line = line.replace('decl::Bool', 'bool')
             line = line.replace('decl::String', 'std::string')
             line = line.replace('decl::Any', 'entt::meta_any')
             new_lines.append(line)

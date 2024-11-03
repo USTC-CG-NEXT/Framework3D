@@ -84,6 +84,10 @@ bool NodeDynamicLoadingSystem::load_configuration(
                     library_map[key]->template getFunction<const char*()>(
                         "node_ui_name_" + func_name_str);
 
+                auto node_id_name =
+                    library_map[key]->template getFunction<std::string()>(
+                        "node_id_name_" + func_name_str);
+
                 auto node_always_requred =
                     library_map[key]->template getFunction<bool()>(
                         "node_required_" + func_name_str);
@@ -97,7 +101,8 @@ bool NodeDynamicLoadingSystem::load_configuration(
                         "node_execution_" + func_name_str);
 
                 NodeTypeInfo new_node;
-                new_node.id_name = key + "_" + func_name_str;
+                new_node.id_name =
+                    node_id_name ? node_id_name() : key + "_" + func_name_str;
                 new_node.ui_name =
                     node_ui_name ? node_ui_name() : new_node.id_name;
 

@@ -204,8 +204,21 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         throw std::runtime_error("Socket already linked.");
     }
 
-    NodeLink* bare_ptr = nullptr;
-    if (descriptor_.can_convert(fromsock->type_info, tosock->type_info)) {
+    NodeLink* bare_ptr;
+
+    if (fromsock->type_info == tosock->type_info || !fromsock->type_info ||
+        !tosock->type_info) {
+        auto link =
+            std::make_unique<NodeLink>(UniqueID(), fromsock->ID, tosock->ID);
+
+        link->from_node = fromnode;
+        link->from_sock = fromsock;
+        link->to_node = tonode;
+        link->to_sock = tosock;
+        bare_ptr = link.get();
+        links.push_back(std::move(link));
+    }
+    else if (descriptor_.can_convert(fromsock->type_info, tosock->type_info)) {
         std::string conversion_node_name;
 
         conversion_node_name = descriptor_.conversion_node_name(
@@ -226,17 +239,6 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         firstLink->nextLink = nextLink;
         nextLink->fromLink = firstLink;
         bare_ptr = firstLink;
-    }
-    else if (fromsock->type_info == tosock->type_info) {
-        auto link =
-            std::make_unique<NodeLink>(UniqueID(), fromsock->ID, tosock->ID);
-
-        link->from_node = fromnode;
-        link->from_sock = fromsock;
-        link->to_node = tonode;
-        link->to_sock = tosock;
-        bare_ptr = link.get();
-        links.push_back(std::move(link));
     }
     else {
         throw std::runtime_error("Cannot convert between types.");
