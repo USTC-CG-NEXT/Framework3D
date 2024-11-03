@@ -299,5 +299,5 @@ static void node_register()
     nodeRegisterType(&ntype_add_distant_light);
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_comp_add_point_light

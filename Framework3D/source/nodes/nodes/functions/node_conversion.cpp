@@ -405,5 +405,5 @@ static void node_register()
     CONVERSION(Float, NumpyArray)
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_conversion

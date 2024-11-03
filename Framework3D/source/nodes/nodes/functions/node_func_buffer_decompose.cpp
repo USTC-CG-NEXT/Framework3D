@@ -81,5 +81,5 @@ static void node_register()
     NodeRegister(4, i);
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_buffer_decompose

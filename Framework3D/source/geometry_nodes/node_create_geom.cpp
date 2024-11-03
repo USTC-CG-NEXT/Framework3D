@@ -163,5 +163,5 @@ static void node_register()
     // CreateGeom(ico_sphere, Ico Sphere);
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_create_geom

@@ -54,5 +54,5 @@ static void node_register()
     nodeRegisterType(&time_code_ntype);
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_time_code

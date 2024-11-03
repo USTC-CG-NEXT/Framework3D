@@ -48,5 +48,5 @@ static void node_register()
     nodeRegisterType(&iteration_begin_ntype);
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_iteration

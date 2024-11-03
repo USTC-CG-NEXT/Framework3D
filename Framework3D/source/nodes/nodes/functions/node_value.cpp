@@ -68,5 +68,5 @@ static void node_register()
     nodeRegisterType(&ntype_value_bool);
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_value

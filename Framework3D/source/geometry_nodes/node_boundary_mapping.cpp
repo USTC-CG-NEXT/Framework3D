@@ -191,5 +191,5 @@ static void node_register()
     nodeRegisterType(&ntype_circle);
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_boundary_mapping

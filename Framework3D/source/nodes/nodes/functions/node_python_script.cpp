@@ -320,5 +320,5 @@ static void node_register()
     MACRO_MAP(REGISTER_RENDER_SCRIPT, RENDER_SCRIPT_LIST)
 }
 
-NOD_REGISTER_NODE(node_register)
+
 }  // namespace USTC_CG::node_python_script
