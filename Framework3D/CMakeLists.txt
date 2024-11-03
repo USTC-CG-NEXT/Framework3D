@@ -25,7 +25,7 @@ set_target_properties(gtest PROPERTIES ${OUTPUT_DIR})
 set_target_properties(gtest_main PROPERTIES ${OUTPUT_DIR})
 
 include(cmake/AddLibrary.cmake)
-include(cmake/GenNodesJson.cmake)
+include(cmake/AddNodes.cmake)
 
 
 

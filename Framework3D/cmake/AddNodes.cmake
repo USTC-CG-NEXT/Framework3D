@@ -53,3 +53,27 @@ function(GEN_NODES_JSON TARGET_NAME)
     )
 
 endfunction()
+
+function(add_nodes)
+    cmake_parse_arguments(ARG "" "SRC_DIR;TARGET_NAME" "SRC_FILES;DEP_LIBS" ${ARGN})
+
+    if(NOT ARG_SRC_FILES)
+        file(GLOB ARG_SRC_FILES ${ARG_SRC_DIR}/*.cpp)
+    endif()
+
+    foreach(source ${ARG_SRC_FILES})
+        get_filename_component(target_name ${source} NAME_WE)
+        add_library(${target_name} SHARED ${source})
+        set_target_properties(${target_name} PROPERTIES ${OUTPUT_DIR})
+        target_link_libraries(${target_name} PRIVATE nodes_core ${ARG_DEP_LIBS})
+        list(APPEND all_nodes ${target_name})
+    endforeach()
+
+    GEN_NODES_JSON(${ARG_TARGET_NAME}_json_target 
+        NODES_DIRS ${ARG_SRC_DIR} 
+        OUTPUT_JSON ${OUT_BINARY_DIR}/${ARG_TARGET_NAME}.json
+    )
+
+    add_library(${ARG_TARGET_NAME} INTERFACE)
+    add_dependencies(${ARG_TARGET_NAME} ${all_nodes} ${ARG_TARGET_NAME}_json_target)
+endfunction()

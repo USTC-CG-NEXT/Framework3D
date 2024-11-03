@@ -17,6 +17,7 @@ NODE_DECLARATION_FUNCTION(add)
 NODE_EXECUTION_FUNCTION(add)
 {
     auto val = params.get_input<int>("value");
+
     params.set_output("value", val);
 }
 

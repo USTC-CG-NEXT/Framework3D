@@ -12,6 +12,11 @@
 #include "widgets/usdtree/usd_fileviewer.h"
 #include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
+
+struct GeomGlobalParams {
+    pxr::UsdStageRefPtr usd_stage;
+};
+
 int main()
 {
     log::SetMinSeverity(Severity::Debug);
@@ -37,6 +42,12 @@ int main()
             system->register_cpp_types<int>();
             auto loaded = system->load_configuration("test_nodes.json");
             system->init();
+
+            GeomGlobalParams geom_global_params;
+            geom_global_params.usd_stage = stage->get_usd_stage();
+
+            system->register_global_params<GeomGlobalParams>(
+                geom_global_params);
 
             UsdBasedNodeWidgetSettings desc;
 

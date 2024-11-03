@@ -14,6 +14,9 @@ class NODES_SYSTEM_API NodeSystem {
     template<typename T1, typename... T>
     static void register_cpp_types();
 
+    template<typename T>
+    void register_global_params(T global_params);
+
     virtual void execute() const;
 
     [[nodiscard]] NodeTree* get_node_tree() const;
@@ -34,6 +37,13 @@ void NodeSystem::register_cpp_types()
     if constexpr (sizeof...(T) > 0) {
         register_cpp_types<T...>();
     }
+}
+
+template<typename T>
+void NodeSystem::register_global_params(T global_params)
+{
+    register_cpp_type<T>();
+    node_tree_executor->get_global_payload<T&>() = global_params;
 }
 
 std::shared_ptr<NodeSystem> NODES_SYSTEM_API create_dynamic_loading_system();
