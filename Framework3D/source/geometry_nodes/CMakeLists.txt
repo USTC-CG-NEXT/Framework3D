@@ -1,0 +1,1 @@
+add_nodes(TARGET_NAME geometry_nodes DEP_LIBS stage nodes_system usd)

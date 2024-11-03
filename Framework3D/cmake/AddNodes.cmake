@@ -57,6 +57,11 @@ endfunction()
 function(add_nodes)
     cmake_parse_arguments(ARG "" "SRC_DIR;TARGET_NAME" "SRC_FILES;DEP_LIBS" ${ARGN})
 
+    if(NOT ARG_SRC_DIR)
+        set(ARG_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+        message("SRC_DIR is not set. Using ${ARG_SRC_DIR}")
+    endif()
+
     if(NOT ARG_SRC_FILES)
         file(GLOB ARG_SRC_FILES ${ARG_SRC_DIR}/*.cpp)
     endif()

@@ -5,3 +5,4 @@ foreach(source ${test_sources})
         LIBS usdview_widget nodes_system GUI usd nodes_ui_imgui
 	)
 endforeach()
+add_dependencies(USTC_CG_test geometry_nodes)
