@@ -1,7 +1,4 @@
 #include "GCore/Components/MeshOperand.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "utils/util_openmesh_bind.h"
 
@@ -25,12 +22,12 @@
 ** within this template, especially in node_exec.
 */
 
-namespace USTC_CG::node_arap {
-static void node_arap_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(arap_declare)
 {
     // Input-1: Original 3D mesh with boundary
     // Maybe you need to add another input for initialization?
-    b.add_input<decl::Geometry>("Input");
+    b.add_input<Geometry>("Input");
 
     /*
     ** NOTE: You can add more inputs or outputs if necessary. For example, in
@@ -40,18 +37,18 @@ static void node_arap_declare(NodeDeclarationBuilder& b)
     ** Be sure that the input/outputs do not share the same name. You can add
     ** one geometry as
     **
-    **                b.add_input<decl::Geometry>("Input");
+    **                b.add_input<Geometry>("Input");
     **
     ** Or maybe you need a value buffer like:
     **
-    **                b.add_input<decl::Float1Buffer>("Weights");
+    **                b.add_input<float1Buffer>("Weights");
     */
 
     // Output-1: The UV coordinate of the mesh, provided by ARAP algorithm
-    b.add_output<decl::Float2Buffer>("OutputUV");
+    b.add_output<float2Buffer>("OutputUV");
 }
 
-static void node_arap_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(arap_exec)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -96,18 +93,7 @@ static void node_arap_exec(ExeParams params)
     params.set_output("OutputUV", uv_result);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "ARAP Parameterization");
-    strcpy(ntype.id_name, "geom_arap");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_arap_exec;
-    ntype.declare = node_arap_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_arap
+NODE_DECLARATION_UI(arap);
+NODE_DEF_CLOSE_SCOPE

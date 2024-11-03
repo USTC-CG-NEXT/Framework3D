@@ -1,21 +1,18 @@
 // #define __GNUC__
 #include "GCore/Components/CurveComponent.h"
 #include "GCore/Components/MeshOperand.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 
-namespace USTC_CG::node_create_geom {
+NODE_DEF_OPEN_SCOPE
 
 static void node_create_grid_declare(NodeDeclarationBuilder &b)
 {
-    b.add_input<decl::Int>("resolution").min(1).max(20).default_val(2);
-    b.add_input<decl::Float>("size").min(1).max(20);
-    b.add_output<decl::Geometry>("Geometry");
+    b.add_input<int>("resolution").min(1).max(20).default_val(2);
+    b.add_input<float>("size").min(1).max(20);
+    b.add_output<Geometry>("Geometry");
 }
 
-static void node_create_grid_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(create_grid_exec)
 {
     int resolution = params.get_input<int>("resolution") + 1;
     float size = params.get_input<float>("size");
@@ -61,9 +58,9 @@ static void node_create_grid_exec(ExeParams params)
 
 void node_create_circle_declare(NodeDeclarationBuilder &b)
 {
-    b.add_input<decl::Int>("resolution").min(1).max(100).default_val(10);
-    b.add_input<decl::Float>("radius").min(1).max(20);
-    b.add_output<decl::Geometry>("Circle");
+    b.add_input<int>("resolution").min(1).max(100).default_val(10);
+    b.add_input<float>("radius").min(1).max(20);
+    b.add_output<Geometry>("Circle");
 }
 
 void node_create_circle_exec(ExeParams params)
@@ -101,12 +98,12 @@ void node_create_circle_exec(ExeParams params)
 
 void node_create_spiral_declare(NodeDeclarationBuilder &b)
 {
-    b.add_input<decl::Int>("resolution").min(1).max(100).default_val(10);
-    b.add_input<decl::Float>("R1").min(0.1).max(10).default_val(1);
-    b.add_input<decl::Float>("R2").min(0.1).max(10).default_val(1);
-    b.add_input<decl::Float>("Circle Count").min(0.1).max(10).default_val(2);
-    b.add_input<decl::Float>("Height").min(0.1).max(10).default_val(1);
-    b.add_output<decl::Geometry>("Curve");
+    b.add_input<int>("resolution").min(1).max(100).default_val(10);
+    b.add_input<float>("R1").min(0.1).max(10).default_val(1);
+    b.add_input<float>("R2").min(0.1).max(10).default_val(1);
+    b.add_input<float>("Circle Count").min(0.1).max(10).default_val(2);
+    b.add_input<float>("Height").min(0.1).max(10).default_val(1);
+    b.add_output<Geometry>("Curve");
 }
 
 void node_create_spiral_exec(ExeParams params)
@@ -146,22 +143,7 @@ void node_create_spiral_exec(ExeParams params)
     params.set_output("Curve", std::move(geometry));
 }
 
-static void node_register()
-{
-#define CreateGeom(lower, Upper)                             \
-    static NodeTypeInfo lower##_ntype;                       \
-    strcpy(lower##_ntype.ui_name, "Create " #Upper);         \
-    strcpy(lower##_ntype.id_name, "geom_create_" #lower);    \
-    geo_node_type_base(&lower##_ntype);                      \
-    lower##_ntype.node_execute = node_create_##lower##_exec; \
-    lower##_ntype.declare = node_create_##lower##_declare;   \
-    nodeRegisterType(&lower##_ntype);
-
-    CreateGeom(grid, Grid);
-    CreateGeom(circle, Circle);
-    CreateGeom(spiral, Spiral);
-    // CreateGeom(ico_sphere, Ico Sphere);
-}
 
 
-}  // namespace USTC_CG::node_create_geom
+NODE_DECLARATION_UI(create_geom);
+NODE_DEF_CLOSE_SCOPE

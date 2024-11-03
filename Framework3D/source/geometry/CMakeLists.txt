@@ -20,4 +20,4 @@ target_link_libraries(geometry
 )
 target_compile_features(geometry PUBLIC cxx_std_20)
 
-add_subdirectory(usdFoam)
+# add_subdirectory(usdFoam)

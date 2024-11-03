@@ -1,22 +1,19 @@
 #include "GCore/Components/MeshOperand.h"
 #include "GCore/Components/PointsComponent.h"
 #include "GCore/GOP.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "pxr/base/gf/vec3f.h"
 #include "pxr/base/vt/array.h"
 
-namespace USTC_CG::node_set_vert_color {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Geometry>("Geometry");
-    b.add_input<decl::Float3Buffer>("Color");
-    b.add_output<decl::Geometry>("Geometry");
+    b.add_input<Geometry>("Geometry");
+    b.add_input<float3Buffer>("Color");
+    b.add_output<Geometry>("Geometry");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     // Left empty.
     auto color = params.get_input<pxr::VtArray<pxr::GfVec3f>>("Color");
@@ -37,18 +34,7 @@ static void node_exec(ExeParams params)
     params.set_output("Geometry", std::move(geometry));
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Set Vertex Color");
-    strcpy(ntype.id_name, "geom_set_vert_color");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_set_vert_color
+NODE_DECLARATION_UI(set_vert_color);
+NODE_DEF_CLOSE_SCOPE

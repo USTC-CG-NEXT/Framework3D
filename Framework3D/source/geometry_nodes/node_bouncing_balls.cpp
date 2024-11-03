@@ -1,22 +1,19 @@
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 
-namespace USTC_CG::node_single_spring {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Float>("p_z");
-    b.add_input<decl::Float>("v_z");
-    b.add_input<decl::Float>("k").default_val(1).min(0.2).max(20);
-    b.add_input<decl::Float>("h");
-    b.add_input<decl::Float>("time_code");
+    b.add_input<float>("p_z");
+    b.add_input<float>("v_z");
+    b.add_input<float>("k").default_val(1).min(0.2).max(20);
+    b.add_input<float>("h");
+    b.add_input<float>("time_code");
 
-    b.add_output<decl::Float>("p_z");
-    b.add_output<decl::Float>("v_z");
+    b.add_output<float>("p_z");
+    b.add_output<float>("v_z");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     auto time_code = params.get_input<float>("time_code");
     auto p_z = params.get_input<float>("p_z");
@@ -40,18 +37,7 @@ static void node_exec(ExeParams params)
     params.set_output("v_z", v_z);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Single Spring");
-    strcpy(ntype.id_name, "geom_single_spring");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_single_spring
+NODE_DECLARATION_UI(single_spring);
+NODE_DEF_CLOSE_SCOPE

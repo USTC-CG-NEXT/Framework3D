@@ -1,33 +1,30 @@
 #include <memory>
 
 #include "GCore/Components/XformComponent.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "pxr/base/gf/matrix4f.h"
 
-namespace USTC_CG::node_transform_geom {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Geometry>("Geometry");
+    b.add_input<Geometry>("Geometry");
 
-    b.add_input<decl::Float>("Translate X").min(-10).max(10).default_val(0);
-    b.add_input<decl::Float>("Translate Y").min(-10).max(10).default_val(0);
-    b.add_input<decl::Float>("Translate Z").min(-10).max(10).default_val(0);
+    b.add_input<float>("Translate X").min(-10).max(10).default_val(0);
+    b.add_input<float>("Translate Y").min(-10).max(10).default_val(0);
+    b.add_input<float>("Translate Z").min(-10).max(10).default_val(0);
 
-    b.add_input<decl::Float>("Rotate X").min(-180).max(180).default_val(0);
-    b.add_input<decl::Float>("Rotate Y").min(-180).max(180).default_val(0);
-    b.add_input<decl::Float>("Rotate Z").min(-180).max(180).default_val(0);
+    b.add_input<float>("Rotate X").min(-180).max(180).default_val(0);
+    b.add_input<float>("Rotate Y").min(-180).max(180).default_val(0);
+    b.add_input<float>("Rotate Z").min(-180).max(180).default_val(0);
 
-    b.add_input<decl::Float>("Scale X").min(0.1f).max(10).default_val(1);
-    b.add_input<decl::Float>("Scale Y").min(0.1f).max(10).default_val(1);
-    b.add_input<decl::Float>("Scale Z").min(0.1f).max(10).default_val(1);
+    b.add_input<float>("Scale X").min(0.1f).max(10).default_val(1);
+    b.add_input<float>("Scale Y").min(0.1f).max(10).default_val(1);
+    b.add_input<float>("Scale Z").min(0.1f).max(10).default_val(1);
 
-    b.add_output<decl::Geometry>("Geometry");
+    b.add_output<Geometry>("Geometry");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     auto geometry = params.get_input<Geometry>("Geometry");
 
@@ -57,18 +54,7 @@ static void node_exec(ExeParams params)
     params.set_output("Geometry", std::move(geometry));
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Transform Geometry");
-    strcpy(ntype.id_name, "geom_transform_geom");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_transform_geom
+NODE_DECLARATION_UI(transform_geom);
+NODE_DEF_CLOSE_SCOPE

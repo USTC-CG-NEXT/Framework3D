@@ -1,7 +1,4 @@
 #include "GCore/Components/MeshOperand.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "utils/util_openmesh_bind.h"
 
@@ -22,11 +19,11 @@
 ** within this template, especially in node_exec.
 */
 
-namespace USTC_CG::node_min_surf {
-static void node_min_surf_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(min_surf_declare)
 {
     // Input-1: Original 3D mesh with boundary
-    b.add_input<decl::Geometry>("Input");
+    b.add_input<Geometry>("Input");
 
     /*
     ** NOTE: You can add more inputs or outputs if necessary. For example, in some cases,
@@ -35,18 +32,18 @@ static void node_min_surf_declare(NodeDeclarationBuilder& b)
     **
     ** Be sure that the input/outputs do not share the same name. You can add one geometry as
     **
-    **                b.add_input<decl::Geometry>("Input");
+    **                b.add_input<Geometry>("Input");
     **
     ** Or maybe you need a value buffer like:
     **
-    **                b.add_input<decl::Float1Buffer>("Weights");
+    **                b.add_input<float1Buffer>("Weights");
     */
 
     // Output-1: Minimal surface with fixed boundary
-    b.add_output<decl::Geometry>("Output");
+    b.add_output<Geometry>("Output");
 }
 
-static void node_min_surf_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(min_surf_exec)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -114,18 +111,7 @@ static void node_min_surf_exec(ExeParams params)
     params.set_output("Output", std::move(*geometry));
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Minimal Surface");
-    strcpy(ntype.id_name, "geom_min_surf");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_min_surf_exec;
-    ntype.declare = node_min_surf_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_min_surf
+NODE_DECLARATION_UI(min_surf);
+NODE_DEF_CLOSE_SCOPE

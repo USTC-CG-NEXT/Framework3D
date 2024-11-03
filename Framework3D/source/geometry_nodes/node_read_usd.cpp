@@ -19,25 +19,22 @@
 #include "GCore/Components/MeshOperand.h"
 #include "GCore/Components/SkelComponent.h"
 #include "GCore/Components/XformComponent.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "pxr/usd/usdSkel/animation.h"
 #include "pxr/usd/usdSkel/bindingAPI.h"
 #include "pxr/usd/usdSkel/skeletonQuery.h"
 
-namespace USTC_CG::node_read_usd {
+NODE_DEF_OPEN_SCOPE
 
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::String>("File Name").default_val("Default");
-    b.add_input<decl::String>("Prim Path").default_val("geometry");
-    b.add_input<decl::Float>("Time Code").default_val(0).min(0).max(240);
-    b.add_output<decl::Geometry>("Geometry");
+    b.add_input<std::string>("File Name").default_val("Default");
+    b.add_input<std::string>("Prim Path").default_val("geometry");
+    b.add_input<float>("Time Code").default_val(0).min(0).max(240);
+    b.add_output<Geometry>("Geometry");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     auto file_name = params.get_input<std::string>("File Name");
     auto prim_path = params.get_input<std::string>("Prim Path");
@@ -135,18 +132,7 @@ static void node_exec(ExeParams params)
     params.set_output("Geometry", std::move(geometry));
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Read USD");
-    strcpy(ntype.id_name, "geom_read_usd");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_read_usd
+NODE_DECLARATION_UI(read_usd);
+NODE_DEF_CLOSE_SCOPE

@@ -1,23 +1,19 @@
 #include "GCore/Components/MeshOperand.h"
-#include "Nodes/GlobalUsdStage.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 
-namespace USTC_CG::node_mesh_compose {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Float3Buffer>("Vertices");
-    b.add_input<decl::Int1Buffer>("FaceVertexCounts");
-    b.add_input<decl::Int1Buffer>("FaceVertexIndices");
-    b.add_input<decl::Float3Buffer>("Normals");
-    b.add_input<decl::Float2Buffer>("Texcoords");
+    b.add_input<float3Buffer>("Vertices");
+    b.add_input<int1Buffer>("FaceVertexCounts");
+    b.add_input<int1Buffer>("FaceVertexIndices");
+    b.add_input<float3Buffer>("Normals");
+    b.add_input<float2Buffer>("Texcoords");
 
-    b.add_output<decl::Geometry>("Mesh");
+    b.add_output<Geometry>("Mesh");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     Geometry geometry;
     auto mesh_component = std::make_shared<MeshComponent>(&geometry);
@@ -47,18 +43,7 @@ static void node_exec(ExeParams params)
     params.set_output("Mesh", geometry);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Mesh Compose");
-    strcpy(ntype.id_name, "geom_mesh_compose");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_mesh_compose
+NODE_DECLARATION_UI(mesh_compose);
+NODE_DEF_CLOSE_SCOPE

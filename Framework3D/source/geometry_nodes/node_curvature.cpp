@@ -1,20 +1,17 @@
 #include "GCore/Components/MeshOperand.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "utils/util_openmesh_bind.h"
 
-namespace USTC_CG::node_curvature {
-static void node_curvature_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(curvature_declare)
 {
     // Input-1: Original 3D mesh with boundary
-    b.add_input<decl::Geometry>("Input");
+    b.add_input<Geometry>("Input");
     // Output-1: The curvature at each vertex (Gauss curvature)
-    b.add_output<decl::Float1Buffer>("Output");
+    b.add_output<float1Buffer>("Output");
 }
 
-static void node_curvature_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(curvature_exec)
 {
     // An example of halfedge mesh processing
     // In this function we would demonstrate:
@@ -90,18 +87,7 @@ static void node_curvature_exec(ExeParams params)
     params.set_output("Output", rst);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Curvature");
-    strcpy(ntype.id_name, "geom_curvature");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_curvature_exec;
-    ntype.declare = node_curvature_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_curvature
+NODE_DECLARATION_UI(curvature);
+NODE_DEF_CLOSE_SCOPE

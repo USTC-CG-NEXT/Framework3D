@@ -1,7 +1,4 @@
 #include "GCore/Components/MeshOperand.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "utils/util_openmesh_bind.h"
 
@@ -30,23 +27,23 @@
 *mesh boundaries.
 */
 
-namespace USTC_CG::node_boundary_mapping {
+NODE_DEF_OPEN_SCOPE
 
 /*
 ** HW4_TODO: Node to map the mesh boundary to a circle.
 */
 
-static void node_map_boundary_to_circle_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(map_boundary_to_circle_declare)
 {
     // Input-1: Original 3D mesh with boundary
-    b.add_input<decl::Geometry>("Input");
+    b.add_input<Geometry>("Input");
 
     // Output-1: Processed 3D mesh whose boundary is mapped to a square and the
     // interior vertices remains the same
-    b.add_output<decl::Geometry>("Output");
+    b.add_output<Geometry>("Output");
 }
 
-static void node_map_boundary_to_circle_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(map_boundary_to_circle_exec)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -115,17 +112,17 @@ static void node_map_boundary_to_circle_exec(ExeParams params)
 ** HW4_TODO: Node to map the mesh boundary to a square.
 */
 
-static void node_map_boundary_to_square_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(map_boundary_to_square_declare)
 {
     // Input-1: Original 3D mesh with boundary
-    b.add_input<decl::Geometry>("Input");
+    b.add_input<Geometry>("Input");
 
     // Output-1: Processed 3D mesh whose boundary is mapped to a square and the
     // interior vertices remains the same
-    b.add_output<decl::Geometry>("Output");
+    b.add_output<Geometry>("Output");
 }
 
-static void node_map_boundary_to_square_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(map_boundary_to_square_exec)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -170,26 +167,7 @@ static void node_map_boundary_to_square_exec(ExeParams params)
     params.set_output("Output", std::move(*geometry));
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype_square, ntype_circle;
-
-    strcpy(ntype_square.ui_name, "Map Boundary to Square");
-    strcpy(ntype_square.id_name, "geom_map_boundary_to_square");
-
-    geo_node_type_base(&ntype_square);
-    ntype_square.node_execute = node_map_boundary_to_square_exec;
-    ntype_square.declare = node_map_boundary_to_square_declare;
-    nodeRegisterType(&ntype_square);
-
-    strcpy(ntype_circle.ui_name, "Map Boundary to Circle");
-    strcpy(ntype_circle.id_name, "geom_map_boundary_to_circle");
-
-    geo_node_type_base(&ntype_circle);
-    ntype_circle.node_execute = node_map_boundary_to_circle_exec;
-    ntype_circle.declare = node_map_boundary_to_circle_declare;
-    nodeRegisterType(&ntype_circle);
-}
 
 
-}  // namespace USTC_CG::node_boundary_mapping
+NODE_DECLARATION_UI(boundary_mapping);
+NODE_DEF_CLOSE_SCOPE

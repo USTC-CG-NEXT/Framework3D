@@ -8,32 +8,54 @@ def process_cpp_file(file_path):
         lines = file.readlines()
 
     node_name = None
+    in_register_function = False
+    new_lines = []
+
     for i, line in enumerate(lines):
+        if in_register_function:
+            if line.strip() == '}':
+                in_register_function = False
+            continue
+
+        if re.match(r'static void node_register\(\)', line):
+            in_register_function = True
+            continue
+
         match = re.match(r'namespace USTC_CG::node_(\w+) {', line)
         if match:
             node_name = match.group(1)
-            lines[i] = 'NODE_DEF_OPEN_SCOPE\n'
+            new_lines.append('NODE_DEF_OPEN_SCOPE\n')
             print(f"Found node name: {node_name}")
-            break
+            continue
+
+        declare_match = re.match(r'static void node_(\w+)\(NodeDeclarationBuilder& b\)', line)
+        exec_match = re.match(r'static void node_(\w+)\(ExeParams params\)', line)
+        if declare_match:
+            func_name = declare_match.group(1)
+            new_lines.append(f'NODE_DECLARATION_FUNCTION({func_name})\n')
+            print(f"Replaced node_declare function for node: {func_name}")
+        elif exec_match:
+            func_name = exec_match.group(1)
+            new_lines.append(f'NODE_EXECUTION_FUNCTION({func_name})\n')
+            print(f"Replaced node_exec function for node: {func_name}")
+        elif re.match(r'#include "Nodes/.*"', line):
+            print(f"Removed include statement: {line.strip()}")
+            continue
+        else:
+            # Replace decl::Int with int, decl::Float with float, decl::Geometry with Geometry
+            line = line.replace('decl::Int', 'int')
+            line = line.replace('decl::Float', 'float')
+            line = line.replace('decl::Geometry', 'Geometry')
+            line = line.replace('decl::String', 'std::string')
+            line = line.replace('decl::Any', 'entt::meta_any')
+            new_lines.append(line)
 
     if node_name:
-        for i, line in enumerate(lines):
-            declare_match = re.match(r'static void node_(\w+)\(NodeDeclarationBuilder& b\)', line)
-            exec_match = re.match(r'static void node_(\w+)\(ExeParams params\)', line)
-            if declare_match:
-                func_name = declare_match.group(1)
-                lines[i] = f'NODE_DECLARATION_FUNCTION({func_name})\n'
-                print(f"Replaced node_declare function for node: {func_name}")
-            elif exec_match:
-                func_name = exec_match.group(1)
-                lines[i] = f'NODE_EXECUTION_FUNCTION({func_name})\n'
-                print(f"Replaced node_exec function for node: {func_name}")
-
-        lines[-1] = f'NODE_DECLARATION_UI({node_name})\nNODE_DEF_CLOSE_SCOPE\n'
+        new_lines[-1] = f'NODE_DECLARATION_UI({node_name});\nNODE_DEF_CLOSE_SCOPE\n'
         print(f"Added UI and close scope for node: {node_name}")
 
         with open(file_path, 'w') as file:
-            file.writelines(lines)
+            file.writelines(new_lines)
         print(f"Finished processing file: {file_path}")
 
 def scan_directory(directory):

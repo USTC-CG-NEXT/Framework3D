@@ -1,24 +1,21 @@
 ﻿#include "GCore/Components/CurveComponent.h"
 #include "GCore/Components/MeshOperand.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "RCore/Backend.hpp"
 #include "geom_node_base.h"
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/matrix3f.h"
 #include "pxr/base/gf/rotation.h"
 
-namespace USTC_CG::node_curve_to_mesh {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Geometry>("Curve");
-    b.add_input<decl::Geometry>("Profile Curve");
+    b.add_input<Geometry>("Curve");
+    b.add_input<Geometry>("Profile Curve");
 
-    b.add_output<decl::Geometry>("Mesh");
+    b.add_output<Geometry>("Mesh");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     Geometry mesh_geom = Geometry::CreateMesh();
 
@@ -119,18 +116,7 @@ static void node_exec(ExeParams params)
     mesh->set_texcoords_array(texcoords_array);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "curve_to_mesh");
-    strcpy(ntype.id_name, "node_curve_to_mesh");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_curve_to_mesh
+NODE_DECLARATION_UI(curve_to_mesh);
+NODE_DEF_CLOSE_SCOPE

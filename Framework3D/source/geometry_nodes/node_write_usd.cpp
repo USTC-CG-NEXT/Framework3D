@@ -12,19 +12,15 @@
 #include "GCore/Components/PointsComponent.h"
 #include "GCore/Components/XformComponent.h"
 #include "GCore/geom_node_global_payload.h"
-#include "Nodes/GlobalUsdStage.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 #include "pxr/base/gf/rotation.h"
 #include "pxr/usd/usd/payloads.h"
 
-namespace USTC_CG::node_write_usd {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Geometry>("Geometry");
-    b.add_input<decl::Float>("Time Code").default_val(0).min(0).max(240);
+    b.add_input<Geometry>("Geometry");
+    b.add_input<float>("Time Code").default_val(0).min(0).max(240);
 }
 
 bool legal(const std::string& string)
@@ -40,7 +36,7 @@ bool legal(const std::string& string)
     return false;
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     auto global_payload = params.get_global_payload<GeomNodeGlobalParams>();
 
@@ -225,19 +221,7 @@ static void node_exec(ExeParams params)
     pxr::UsdGeomImageable(stage->GetPrimAtPath(sdf_path)).MakeVisible();
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Write USD");
-    strcpy(ntype.id_name, "geom_write_usd");
-    ntype.ALWAYS_REQUIRED = true;
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_write_usd
+NODE_DECLARATION_UI(write_usd);
+NODE_DEF_CLOSE_SCOPE

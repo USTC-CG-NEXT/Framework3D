@@ -1,18 +1,15 @@
 #include "GCore/Components/MaterialComponent.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 
-namespace USTC_CG::node_set_texture {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Geometry>("Geometry");
-    b.add_input<decl::String>("Texture Name").default_val("");
-    b.add_output<decl::Geometry>("Geometry");
+    b.add_input<Geometry>("Geometry");
+    b.add_input<std::string>("Texture Name").default_val("");
+    b.add_output<Geometry>("Geometry");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     auto texture = params.get_input<std::string>("Texture Name");
 
@@ -28,18 +25,7 @@ static void node_exec(ExeParams params)
     params.set_output("Geometry", std::move(geometry));
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Mesh Add Texture");
-    strcpy(ntype.id_name, "geom_set_texture");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_set_texture
+NODE_DECLARATION_UI(set_texture);
+NODE_DEF_CLOSE_SCOPE

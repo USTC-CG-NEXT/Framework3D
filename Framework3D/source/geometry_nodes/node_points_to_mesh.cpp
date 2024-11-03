@@ -5,17 +5,14 @@
 
 #include "GCore/Components/MeshOperand.h"
 #include "GCore/Components/PointsComponent.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "geom_node_base.h"
 
-namespace USTC_CG::node_points_to_mesh {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(declare)
 {
-    b.add_input<decl::Geometry>("Points");
-    b.add_input<decl::Float>("Voxel Size").min(0.1).max(5).default_val(0.5f);
-    b.add_output<decl::Geometry>("Mesh");
+    b.add_input<Geometry>("Points");
+    b.add_input<float>("Voxel Size").min(0.1).max(5).default_val(0.5f);
+    b.add_output<Geometry>("Mesh");
 }
 using namespace openvdb;
 
@@ -62,7 +59,7 @@ struct WrappingParticleList {
     const pxr::VtArray<float>& points_widths;
 };
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(exec)
 {
     auto points_geometry = params.get_input<Geometry>("Points");
 
@@ -135,18 +132,7 @@ static void node_exec(ExeParams params)
     params.set_output("Mesh", std::move(mesh_geometry));
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Points To Mesh");
-    strcpy(ntype.id_name, "geom_points_to_mesh");
-
-    geo_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_points_to_mesh
+NODE_DECLARATION_UI(points_to_mesh);
+NODE_DEF_CLOSE_SCOPE
