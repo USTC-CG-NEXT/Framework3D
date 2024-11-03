@@ -59,7 +59,7 @@ class GUI_API IWidget {
     virtual bool Begin();
 
    private:
-    bool is_open;
+    bool is_open = true;
 
     friend class Window;
     friend class DockingImguiRenderer;

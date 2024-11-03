@@ -61,8 +61,8 @@ int main()
 
     window->run();
 
+    unregister_cpp_type();
+
     window.reset();
     stage.reset();
-
-    unregister_cpp_type();
 }

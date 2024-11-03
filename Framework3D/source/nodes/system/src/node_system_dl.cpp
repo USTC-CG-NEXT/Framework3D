@@ -70,7 +70,8 @@ bool NodeDynamicLoadingSystem::load_configuration(
 
     auto load_libraries = [&](const nlohmann::json& json_section,
                               auto& library_map,
-                              const std::string& extension) {
+                              const std::string& extension,
+                              bool is_conversion) {
         for (auto it = json_section.begin(); it != json_section.end(); ++it) {
             std::string key = it.key();
             auto func_names = it.value();
@@ -101,10 +102,21 @@ bool NodeDynamicLoadingSystem::load_configuration(
                         "node_execution_" + func_name_str);
 
                 NodeTypeInfo new_node;
-                new_node.id_name =
-                    node_id_name ? node_id_name() : key + "_" + func_name_str;
-                new_node.ui_name =
-                    node_ui_name ? node_ui_name() : new_node.id_name;
+
+                if (is_conversion) {
+                    new_node.id_name =
+                        node_id_name();  // For a conversion node, id name must
+                                         // exist.
+                    new_node.ui_name = "invisible";
+                    new_node.INVISIBLE = true;
+                    descriptor.register_conversion_name(node_id_name());
+                }
+                else {
+                    new_node.id_name = node_id_name ? node_id_name()
+                                                    : key + "_" + func_name_str;
+                    new_node.ui_name =
+                        node_ui_name ? node_ui_name() : new_node.id_name;
+                }
 
                 new_node.ALWAYS_REQUIRED =
                     node_always_requred ? node_always_requred() : false;
@@ -122,8 +134,8 @@ bool NodeDynamicLoadingSystem::load_configuration(
     std::string extension = ".so";
 #endif
 
-    load_libraries(j["nodes"], node_libraries, extension);
-    load_libraries(j["conversions"], conversion_libraries, extension);
+    load_libraries(j["nodes"], node_libraries, extension, false);
+    load_libraries(j["conversions"], conversion_libraries, extension, true);
 
     return true;
 }

@@ -22,6 +22,8 @@ class NODES_CORE_API NodeTreeDescriptor {
     template<typename FROM, typename TO>
     NodeTreeDescriptor& register_conversion(
         const std::function<bool(const FROM&, TO&)>& conversion);
+    NodeTreeDescriptor& register_conversion_name(
+        const std::string & conversion_name);
 
     const NodeTypeInfo* get_node_type(const std::string& name) const;
 
@@ -56,6 +58,7 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
         conversion(input, output);
         params.set_output("output", std::move(output));
     });
+    conversion_type_info.INVISIBLE = true;
 
     conversion_node_registry.insert(conversion_type_info.id_name);
     node_registry[conversion_type_info.id_name] =

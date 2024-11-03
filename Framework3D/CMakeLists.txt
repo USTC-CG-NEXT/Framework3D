@@ -62,6 +62,8 @@ set(CMAKE_CUDA_STANDARD 20)
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
   set(SDK_FOLDER ${CMAKE_BUILD_TYPE})
+elseif(${CMAKE_BUILD_TYPE} MATCHES "RelWithDebInfo")
+  set(SDK_FOLDER ${CMAKE_BUILD_TYPE})
 else()
   set(SDK_FOLDER "Release")
 endif()

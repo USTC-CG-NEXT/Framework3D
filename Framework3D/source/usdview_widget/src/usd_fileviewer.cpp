@@ -2,7 +2,9 @@
 
 #include "widgets/usdtree/usd_fileviewer.h"
 
+#include <future>
 #include <iostream>
+#include <vector>
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -48,104 +50,110 @@ void UsdFileViewer::ShowPrimInfo()
         UsdPrim prim = stage->get_usd_stage()->GetPrimAtPath(selected);
         if (prim) {
             auto properties = prim.GetAttributes();
+            std::vector<std::future<std::string>> futures;
 
             for (auto&& attr : properties) {
+                futures.push_back(std::async(std::launch::async, [&attr]() {
+                    VtValue v;
+                    attr.Get(&v);
+                    if (v.IsArrayValued()) {
+                        std::string displayString;
+                        auto formatArray = [&](auto array) {
+                            size_t arraySize = array.size();
+                            size_t displayCount = 3;
+                            for (size_t i = 0;
+                                 i < std::min(displayCount, arraySize);
+                                 ++i) {
+                                displayString += TfStringify(array[i]) + ", \n";
+                            }
+                            if (arraySize > 2 * displayCount) {
+                                displayString += "... \n";
+                            }
+                            for (size_t i = std::max(
+                                     displayCount, arraySize - displayCount);
+                                 i < arraySize;
+                                 ++i) {
+                                displayString += TfStringify(array[i]) + ", \n";
+                            }
+                            if (!displayString.empty()) {
+                                displayString.pop_back();
+                                displayString.pop_back();
+                                displayString.pop_back();
+                            }
+                        };
+                        if (v.IsHolding<VtArray<double>>()) {
+                            formatArray(v.Get<VtArray<double>>());
+                        }
+                        else if (v.IsHolding<VtArray<float>>()) {
+                            formatArray(v.Get<VtArray<float>>());
+                        }
+                        else if (v.IsHolding<VtArray<int>>()) {
+                            formatArray(v.Get<VtArray<int>>());
+                        }
+                        else if (v.IsHolding<VtArray<unsigned int>>()) {
+                            formatArray(v.Get<VtArray<unsigned int>>());
+                        }
+                        else if (v.IsHolding<VtArray<int64_t>>()) {
+                            formatArray(v.Get<VtArray<int64_t>>());
+                        }
+                        else if (v.IsHolding<VtArray<uint64_t>>()) {
+                            formatArray(v.Get<VtArray<uint64_t>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfMatrix4d>>()) {
+                            formatArray(v.Get<VtArray<GfMatrix4d>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfMatrix4f>>()) {
+                            formatArray(v.Get<VtArray<GfMatrix4f>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec2d>>()) {
+                            formatArray(v.Get<VtArray<GfVec2d>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec2f>>()) {
+                            formatArray(v.Get<VtArray<GfVec2f>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec2i>>()) {
+                            formatArray(v.Get<VtArray<GfVec2i>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec3d>>()) {
+                            formatArray(v.Get<VtArray<GfVec3d>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec3f>>()) {
+                            formatArray(v.Get<VtArray<GfVec3f>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec3i>>()) {
+                            formatArray(v.Get<VtArray<GfVec3i>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec4d>>()) {
+                            formatArray(v.Get<VtArray<GfVec4d>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec4f>>()) {
+                            formatArray(v.Get<VtArray<GfVec4f>>());
+                        }
+                        else if (v.IsHolding<VtArray<GfVec4i>>()) {
+                            formatArray(v.Get<VtArray<GfVec4i>>());
+                        }
+                        else {
+                            displayString = "Unsupported array type";
+                        }
+                        return displayString;
+                    }
+                    else {
+                        return VtVisitValue(
+                            v, [](auto&& v) { return TfStringify(v); });
+                    }
+                }));
+            }
+
+            for (size_t i = 0; i < properties.size(); ++i) {
                 ImGui::TableNextRow();
 
                 ImGui::TableSetColumnIndex(0);
                 ImGui::TextUnformatted("A");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::TextUnformatted(attr.GetName().GetText());
+                ImGui::TextUnformatted(properties[i].GetName().GetText());
 
                 ImGui::TableSetColumnIndex(2);
-                VtValue v;
-                attr.Get(&v);
-                if (v.IsArrayValued()) {
-                    std::string displayString;
-                    auto formatArray = [&](auto array) {
-                        size_t arraySize = array.size();
-                        size_t displayCount = 3;
-                        for (size_t i = 0;
-                             i < std::min(displayCount, arraySize);
-                             ++i) {
-                            displayString += TfStringify(array[i]) + ", \n";
-                        }
-                        if (arraySize > 2 * displayCount) {
-                            displayString += "... \n";
-                        }
-                        for (size_t i = std::max(
-                                 displayCount, arraySize - displayCount);
-                             i < arraySize;
-                             ++i) {
-                            displayString += TfStringify(array[i]) + ", \n";
-                        }
-                        if (!displayString.empty()) {
-                            displayString.pop_back();
-                            displayString.pop_back();
-                            displayString.pop_back();
-                        }
-                    };
-                    if (v.IsHolding<VtArray<double>>()) {
-                        formatArray(v.Get<VtArray<double>>());
-                    }
-                    else if (v.IsHolding<VtArray<float>>()) {
-                        formatArray(v.Get<VtArray<float>>());
-                    }
-                    else if (v.IsHolding<VtArray<int>>()) {
-                        formatArray(v.Get<VtArray<int>>());
-                    }
-                    else if (v.IsHolding<VtArray<unsigned int>>()) {
-                        formatArray(v.Get<VtArray<unsigned int>>());
-                    }
-                    else if (v.IsHolding<VtArray<int64_t>>()) {
-                        formatArray(v.Get<VtArray<int64_t>>());
-                    }
-                    else if (v.IsHolding<VtArray<uint64_t>>()) {
-                        formatArray(v.Get<VtArray<uint64_t>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfMatrix4d>>()) {
-                        formatArray(v.Get<VtArray<GfMatrix4d>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfMatrix4f>>()) {
-                        formatArray(v.Get<VtArray<GfMatrix4f>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec2d>>()) {
-                        formatArray(v.Get<VtArray<GfVec2d>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec2f>>()) {
-                        formatArray(v.Get<VtArray<GfVec2f>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec2i>>()) {
-                        formatArray(v.Get<VtArray<GfVec2i>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec3d>>()) {
-                        formatArray(v.Get<VtArray<GfVec3d>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec3f>>()) {
-                        formatArray(v.Get<VtArray<GfVec3f>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec3i>>()) {
-                        formatArray(v.Get<VtArray<GfVec3i>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec4d>>()) {
-                        formatArray(v.Get<VtArray<GfVec4d>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec4f>>()) {
-                        formatArray(v.Get<VtArray<GfVec4f>>());
-                    }
-                    else if (v.IsHolding<VtArray<GfVec4i>>()) {
-                        formatArray(v.Get<VtArray<GfVec4i>>());
-                    }
-                    else {
-                        displayString = "Unsupported array type";
-                    }
-                    ImGui::TextUnformatted(displayString.c_str());
-                }
-                else {
-                    auto s = VtVisitValue(
-                        v, [](auto&& v) { return TfStringify(v); });
-                    ImGui::TextUnformatted(s.c_str());
-                }
+                ImGui::TextUnformatted(futures[i].get().c_str());
             }
         }
         ImGui::EndTable();

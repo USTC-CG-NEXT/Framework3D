@@ -118,7 +118,12 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
                 "RelWithDebInfo": "relwithdebuginfo"
             }
             build_variant = build_variant_map.get(target, target.lower())
-            build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" --openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}"
+            if build_variant == "relwithdebuginfo":
+                openvdb_args = "OpenVDB,-DCMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO=\"RelWithDebInfo;Release;\" "
+            else:
+                openvdb_args = " "
+            
+            build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}"
             
             if dry_run:
                 print(f"[DRY RUN] Would run: {build_command}")

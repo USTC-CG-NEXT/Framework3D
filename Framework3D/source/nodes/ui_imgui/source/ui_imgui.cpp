@@ -93,6 +93,11 @@ NodeWidget::NodeWidget(const NodeWidgetSettings& desc)
                              size_t size,
                              ax::NodeEditor::SaveReasonFlags reason,
                              void* userPointer) -> bool {
+        if (static_cast<bool>(
+                reason & (NodeEditor::SaveReasonFlags::Navigation |
+                          NodeEditor::SaveReasonFlags::Selection))) {
+            return true;
+        }
         auto ptr = static_cast<NodeWidget*>(userPointer);
         auto storage = ptr->storage_.get();
 
@@ -127,6 +132,8 @@ NodeWidget::NodeWidget(const NodeWidgetSettings& desc)
 
 NodeWidget::~NodeWidget()
 {
+    ed::SetCurrentEditor(m_Editor);
+    ed::DestroyEditor(m_Editor);
 }
 
 Node* NodeWidget::create_node_menu()

@@ -27,6 +27,13 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_node(
     return *this;
 }
 
+NodeTreeDescriptor& NodeTreeDescriptor::register_conversion_name(
+    const std::string& conversion_name)
+{
+    conversion_node_registry.insert(conversion_name);
+    return *this;
+}
+
 const NodeTypeInfo* NodeTreeDescriptor::get_node_type(
     const std::string& name) const
 {
