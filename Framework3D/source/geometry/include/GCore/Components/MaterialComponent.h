@@ -6,7 +6,7 @@
 #include "GCore/GOP.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct USTC_CG_API MaterialComponent : public GeometryComponent {
+struct GEOMETRY_API MaterialComponent : public GeometryComponent {
     explicit MaterialComponent(Geometry* attached_operand) : GeometryComponent(attached_operand)
     {
     }

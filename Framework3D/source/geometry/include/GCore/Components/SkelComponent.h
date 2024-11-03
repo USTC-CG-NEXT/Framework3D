@@ -9,7 +9,7 @@
 #include "pxr/usd/usdSkel/skeleton.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct USTC_CG_API SkelComponent : public GeometryComponent {
+struct GEOMETRY_API SkelComponent : public GeometryComponent {
     explicit SkelComponent(Geometry* attached_operand) : GeometryComponent(attached_operand)
     {
     }

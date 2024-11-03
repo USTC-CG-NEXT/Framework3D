@@ -2,7 +2,7 @@
 
 #include "GOP.h"
 #include "Nodes/GlobalUsdStage.h"
-#include "USTC_CG.h"
+#include "GCore/api.h"
 #include "Utils/Logger/Logger.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -33,6 +33,6 @@ struct GeometryComponent {
     pxr::SdfPath scratch_buffer_path;
 };
 
-void USTC_CG_API copy_prim(const pxr::UsdPrim& from, const pxr::UsdPrim& to);
+void GEOMETRY_API copy_prim(const pxr::UsdPrim& from, const pxr::UsdPrim& to);
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -2,10 +2,10 @@
 
 #include "GCore/Components.h"
 #include "GCore/GOP.h"
-#include "USTC_CG.h"
+#include "GCore/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class USTC_CG_API VolumeComponet : public GeometryComponent {
+class GEOMETRY_API VolumeComponet : public GeometryComponent {
    public:
     explicit VolumeComponet(Geometry* attached_operand) : GeometryComponent(attached_operand)
     {

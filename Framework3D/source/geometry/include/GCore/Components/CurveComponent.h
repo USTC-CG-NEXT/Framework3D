@@ -8,7 +8,7 @@
 #include "pxr/usd/usdGeom/xform.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct USTC_CG_API CurveComponent : public GeometryComponent {
+struct GEOMETRY_API CurveComponent : public GeometryComponent {
     explicit CurveComponent(Geometry* attached_operand);
 
     std::string to_string() const override;

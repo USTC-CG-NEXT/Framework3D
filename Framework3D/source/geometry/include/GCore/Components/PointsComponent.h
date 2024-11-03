@@ -8,7 +8,7 @@
 #include "pxr/usd/usdGeom/xform.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct USTC_CG_API PointsComponent : public GeometryComponent {
+struct GEOMETRY_API PointsComponent : public GeometryComponent {
     explicit PointsComponent(Geometry* attached_operand)
         : GeometryComponent(attached_operand)
     {

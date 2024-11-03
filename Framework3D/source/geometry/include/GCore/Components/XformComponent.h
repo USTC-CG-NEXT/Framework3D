@@ -1,13 +1,13 @@
 #pragma once
 
 #include "GCore/Components.h"
-#include "USTC_CG.h"
+#include "GCore/api.h"
 #include "pxr/usd/usdGeom/xform.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 // Stores the chain of transformation
 
-class USTC_CG_API XformComponent : public GeometryComponent {
+class GEOMETRY_API XformComponent : public GeometryComponent {
    public:
     GeometryComponentHandle copy(Geometry* operand) const override;
     std::string to_string() const override;

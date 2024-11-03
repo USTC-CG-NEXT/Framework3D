@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-#include "USTC_CG.h"
+#include "GCore/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct GeometryComponent;
@@ -14,7 +14,7 @@ class Geometry;
 using GeometryHandle = std::shared_ptr<Geometry>;
 using GeometryComponentHandle = std::shared_ptr<GeometryComponent>;
 
-class USTC_CG_API Geometry {
+class GEOMETRY_API Geometry {
    public:
     Geometry();
 
