@@ -67,6 +67,19 @@ void IWidget::Animate(float elapsed_time_seconds)
 {
 }
 
+void IWidget::SetCallBack(
+    const std::function<void(Window*, IWidget*)>& call_back)
+{
+    this->call_back_ = call_back;
+}
+
+void IWidget::CallBack()
+{
+    if (call_back_) {
+        call_back_(window, this);
+    }
+}
+
 unsigned IWidget::Width() const
 {
     return width;
@@ -90,7 +103,8 @@ const char* IWidget::GetWindowName()
 
 std::string IWidget::GetWindowUniqueName()
 {
-    return GetWindowName();
+    return GetWindowName() + std::string("##") +
+           std::to_string(reinterpret_cast<uint64_t>(this));
 }
 
 ImGuiWindowFlags IWidget::GetWindowFlag()

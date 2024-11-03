@@ -7,16 +7,17 @@
 #include "GUI/window.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
+#include "stage/stage.hpp"
 #include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
 
 TEST(USDWIDGET, create_widget)
 {
-    auto root_stage = pxr::UsdStage::CreateInMemory();
-    auto sphere =
-        pxr::UsdGeomSphere::Define(root_stage, pxr::SdfPath("/sphere"));
+    auto stage = create_global_stage();
 
-    auto widget = std::make_unique<UsdFileViewer>(root_stage);
+    stage->create_sphere(pxr::SdfPath("/sphere"));
+
+    auto widget = std::make_unique<UsdFileViewer>(stage.get());
     auto window = std::make_unique<Window>();
     window->register_widget(std::move(widget));
     window->run();

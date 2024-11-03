@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 
 #include "GUI/api.h"
@@ -15,6 +16,9 @@ class GUI_API IWidget {
     }
     virtual ~IWidget() = default;
     virtual bool BuildUI() = 0;
+
+    virtual void SetCallBack(const std::function<void(Window*, IWidget*)>&);
+    void CallBack();
 
     [[nodiscard]] unsigned Width() const;
     [[nodiscard]] unsigned Height() const;
@@ -40,6 +44,7 @@ class GUI_API IWidget {
 
     // Give a widget ability to create another widget.
     Window* window;
+    std::function<void(Window*, IWidget*)> call_back_;
 
     virtual void FirstUseEver() const;
 

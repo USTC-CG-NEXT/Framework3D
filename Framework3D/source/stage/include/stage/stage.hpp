@@ -38,8 +38,10 @@ class STAGE_API Stage {
     bool consume_editor_creation(
         pxr::SdfPath& json_path,
         bool fully_consume = true);
+    void save_string_to_usd(const pxr::SdfPath& path, const std::string& data);
+    std::string load_string_from_usd(const pxr::SdfPath& path);
 
-   private:
+private:
     pxr::UsdStageRefPtr stage;
     pxr::SdfPath create_editor_pending_path;
     template<typename T>

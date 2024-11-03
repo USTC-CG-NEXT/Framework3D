@@ -8,6 +8,7 @@
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
 #include "stage/stage.hpp"
+#include "usd_nodejson.hpp"
 #include "widgets/usdtree/usd_fileviewer.h"
 #include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
@@ -37,8 +38,15 @@ int main()
             auto loaded = system->load_configuration("test_nodes.json");
             system->init();
 
+            UsdBasedNodeWidgetSettings desc;
+
+            desc.json_path = json_path;
+            desc.system = system;
+            desc.stage = stage.get();
+
             std::unique_ptr<IWidget> node_widget =
-                std::move(create_node_imgui_widget(system));
+                std::move(create_node_imgui_widget(desc));
+
             window->register_widget(std::move(node_widget));
         }
     });

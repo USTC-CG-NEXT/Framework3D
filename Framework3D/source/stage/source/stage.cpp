@@ -101,6 +101,37 @@ bool Stage::consume_editor_creation(pxr::SdfPath& json_path, bool fully_consume)
     return true;
 }
 
+void Stage::save_string_to_usd(
+    const pxr::SdfPath& path,
+    const std::string& data)
+{
+    auto prim = stage->GetPrimAtPath(path);
+    if (!prim) {
+        return;
+    }
+
+    auto attr = prim.CreateAttribute(
+        pxr::TfToken("node_json"), pxr::SdfValueTypeNames->String);
+    attr.Set(data);
+}
+
+std::string Stage::load_string_from_usd(const pxr::SdfPath& path)
+{
+    auto prim = stage->GetPrimAtPath(path);
+    if (!prim) {
+        return "";
+    }
+
+    auto attr = prim.GetAttribute(pxr::TfToken("node_json"));
+    if (!attr) {
+        return "";
+    }
+
+    std::string data;
+    attr.Get(&data);
+    return data;
+}
+
 std::unique_ptr<Stage> create_global_stage()
 {
     return std::make_unique<Stage>();

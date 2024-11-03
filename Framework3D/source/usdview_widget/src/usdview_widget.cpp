@@ -430,6 +430,11 @@ const char* UsdviewEngine::GetWindowName()
     return "UsdView Engine";
 }
 
+std::string UsdviewEngine::GetWindowUniqueName()
+{
+    return "Hydra Renderer";
+}
+
 void UsdviewEngine::RenderBackBufferResized(float x, float y)
 {
     render_buffer_size_[0] = x;

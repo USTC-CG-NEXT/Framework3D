@@ -17,6 +17,8 @@
 #include <imgui.h>
 
 #include <cstdint>  // std::uintXX_t
+#include <functional>
+#include <string>
 #include <utility>  // std::move
 
 #include "nodes/core/id.hpp"
@@ -79,12 +81,12 @@ namespace NodeEditor {
             static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs));
     }
 
-    using ConfigSaveSettings = bool (*)(
+    using ConfigSaveSettings = std::function<bool(
         const char* data,
         size_t size,
         SaveReasonFlags reason,
-        void* userPointer);
-    using ConfigLoadSettings = size_t (*)(char* data, void* userPointer);
+        void* userPointer)>;
+    using ConfigLoadSettings = std::function<std::string(void* userPointer)>;
 
     using ConfigSaveNodeSettings = bool (*)(
         NodeId nodeId,

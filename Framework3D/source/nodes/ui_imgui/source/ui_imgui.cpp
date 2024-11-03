@@ -1,6 +1,8 @@
 
 
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include "ui_imgui.hpp"
+
 #include <imgui_internal.h>
 
 #include <string>
@@ -10,7 +12,6 @@
 #include "imgui/blueprint-utilities/images.inl"
 #include "imgui/blueprint-utilities/widgets.h"
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
-#include "nodes/ui/api.h"
 #include "nodes/ui/imgui.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -77,133 +78,47 @@ static bool Splitter(
         min_size2,
         0.0f);
 }
-struct NodeIdLess {
-    bool operator()(const NodeId& lhs, const NodeId& rhs) const
-    {
-        return lhs.AsPointer() < rhs.AsPointer();
-    }
-};
-class NodeWidget : public IWidget {
-   public:
-    virtual ed::Config ConfigSaveLoad();
-    explicit NodeWidget(std::shared_ptr<NodeSystem> system);
 
-    ~NodeWidget() override;
-    Node* create_node_menu();
-    bool BuildUI() override;
-
-   protected:
-    const char* GetWindowName() override;
-
-   private:
-    void ShowLeftPane(float paneWidth);
-
-    float GetTouchProgress(NodeId id);
-    const float m_TouchTime = 1.0f;
-    std::map<NodeId, float, NodeIdLess> m_NodeTouchTime;
-
-    NodeTree* tree_;
-    bool createNewNode = false;
-    NodeSocket* newNodeLinkPin = nullptr;
-    NodeSocket* newLinkPin = nullptr;
-
-    NodeId contextNodeId = 0;
-    LinkId contextLinkId = 0;
-    SocketID contextPinId = 0;
-
-    nvrhi::TextureHandle m_HeaderBackground = nullptr;
-    ImVec2 newNodePostion;
-    bool location_remembered = false;
-    std::shared_ptr<NodeSystem> system_;
-    static const int m_PinIconSize = 20;
-
-    std::string widget_name;
-
-    ed::EditorContext* m_Editor = nullptr;
-
-    float leftPaneWidth = 400.0f;
-    float rightPaneWidth = 800.0f;
-
-    bool first_draw = true;
-
-    bool draw_socket_controllers(NodeSocket* input);
-
-    static nvrhi::TextureHandle LoadTexture(
-        const unsigned char* data,
-        size_t buffer_size);
-
-    ImGuiWindowFlags GetWindowFlag() override;
-
-    ImVector<nvrhi::TextureHandle> m_Textures;
-
-    void DrawPinIcon(const NodeSocket& pin, bool connected, int alpha);
-
-    static ImColor GetIconColor(SocketType type);
-};
-
-ed::Config NodeWidget::ConfigSaveLoad()
+NodeWidget::NodeWidget(const NodeWidgetSettings& desc)
+    : storage_(desc.create_storage()),
+      tree_(desc.system->get_node_tree()),
+      system_(desc.system),
+      widget_name(desc.WidgetName())
 {
     ed::Config config;
+
     config.UserPointer = this;
+
     config.SaveSettings = [](const char* data,
                              size_t size,
-                             NodeEditor::SaveReasonFlags reason,
+                             ax::NodeEditor::SaveReasonFlags reason,
                              void* userPointer) -> bool {
         auto ptr = static_cast<NodeWidget*>(userPointer);
+        auto storage = ptr->storage_.get();
 
-        std::ofstream file("test.json");
-        auto node_serialize = ptr->tree_->serialize();
-
+        std::string node_serialize = ptr->tree_->serialize();
         node_serialize.erase(node_serialize.end() - 1);
 
-        auto ui_json = std::string(data + 1);
-        ui_json.erase(ui_json.end() - 1);
+        auto ui_json = std::string(data + 1, size - 2);
 
         node_serialize += "," + ui_json + '}';
 
-        file << node_serialize;
+        storage->save(node_serialize);
         return true;
     };
 
-    config.LoadSettings = [](char* d, void* userPointer) -> size_t {
+    config.LoadSettings = [](void* userPointer) {
         auto ptr = static_cast<NodeWidget*>(userPointer);
-        std::ifstream file("test.json");
-        if (!file) {
-            return 0;
-        }
-        if (!d) {
-            file.seekg(0, std::ios_base::end);
-            return file.tellg();
-        }
+        auto storage = ptr->storage_.get();
 
-        std::string data;
-        file.seekg(0, std::ios_base::end);
-        auto size = static_cast<size_t>(file.tellg());
-        file.seekg(0, std::ios_base::beg);
-
-        data.reserve(size);
-        data.assign(
-            std::istreambuf_iterator<char>(file),
-            std::istreambuf_iterator<char>());
-
-        if (data.size() > 0) {
+        std::string data = storage->load();
+        if (!data.empty()) {
             ptr->tree_->Deserialize(data);
         }
 
-        memcpy(d, data.data(), data.size());
-
-        return 0;
+        return data;
     };
 
-    return config;
-}
-
-NodeWidget::NodeWidget(std::shared_ptr<NodeSystem> system)
-    : system_(system),
-      tree_(system->get_node_tree())
-{
-    ed::Config config;
-    config = ConfigSaveLoad();
     m_Editor = ed::CreateEditor(&config);
 
     m_HeaderBackground =
@@ -245,8 +160,7 @@ bool NodeWidget::BuildUI()
         ImGui::SameLine(0.0f, 12.0f);
     }
 
-    ed::Begin(
-        ("Node editor" + widget_name).c_str(), ImGui::GetContentRegionAvail());
+    ed::Begin(GetWindowUniqueName().c_str(), ImGui::GetContentRegionAvail());
     {
         auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
@@ -578,6 +492,14 @@ bool NodeWidget::BuildUI()
     return true;
 }
 
+std::string NodeWidget::GetWindowUniqueName()
+{
+    if (!widget_name.empty()) {
+        return widget_name;
+    }
+    return "NodeEditor##" + std::to_string(reinterpret_cast<uint64_t>(this));
+}
+
 const char* NodeWidget::GetWindowName()
 {
     return "Node editor";
@@ -826,11 +748,55 @@ ImColor NodeWidget::GetIconColor(SocketType type)
 
     return ImColor(hashValue_r % 255, hashValue_g % 255, hashValue_b % 255);
 }
+NodeWidgetSettings::NodeWidgetSettings()
+{
+}
+
+struct NodeSystemFileStorage : public NodeSystemStorage {
+    explicit NodeSystemFileStorage(const std::filesystem::path& json_path)
+        : json_path_(json_path)
+    {
+    }
+
+    void save(const std::string& data) override
+    {
+        std::ofstream file(json_path_);
+        file << data;
+    }
+
+    std::string load() override
+    {
+        std::ifstream file(json_path_);
+        if (!file) {
+            return std::string();
+        }
+
+        std::string data;
+        file.seekg(0, std::ios_base::end);
+        auto size = static_cast<size_t>(file.tellg());
+        file.seekg(0, std::ios_base::beg);
+
+        data.reserve(size);
+        data.assign(
+            std::istreambuf_iterator<char>(file),
+            std::istreambuf_iterator<char>());
+
+        return data;
+    }
+
+    std::filesystem::path json_path_;
+};
+
+std::unique_ptr<NodeSystemStorage> FileBasedNodeWidgetSettings::create_storage()
+    const
+{
+    return std::make_unique<NodeSystemFileStorage>(json_path);
+}
 
 std::unique_ptr<IWidget> create_node_imgui_widget(
-    std::shared_ptr<NodeSystem> system)
+    const NodeWidgetSettings& desc)
 {
-    return std::make_unique<NodeWidget>(system);
+    return std::make_unique<NodeWidget>(desc);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

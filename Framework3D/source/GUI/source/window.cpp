@@ -180,6 +180,8 @@ void DockingImguiRenderer::buildUI()
 
         widget->End();
 
+        widget->CallBack();
+
         if (!widget->IsOpen()) {
             widget_to_remove.push_back(widget.get());
         }

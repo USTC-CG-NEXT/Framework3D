@@ -54,8 +54,11 @@ TEST_F(CreateWindowTest, create_window)
 {
     USTC_CG::Window window;
 
+    FileBasedNodeWidgetSettings widget_desc;
+    widget_desc.system = system_;
+    widget_desc.json_path = "testtest.json";
     std::unique_ptr<IWidget> node_widget =
-        std::move(create_node_imgui_widget(system_));
+        std::move(create_node_imgui_widget(widget_desc));
 
     window.register_widget(std::move(node_widget));
     window.run();
