@@ -1,21 +1,22 @@
 #include "GCore/Components/MeshOperand.h"
+#include "GCore/util_openmesh_bind.h"
 #include "geom_node_base.h"
-#include "utils/util_openmesh_bind.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(curvature_declare)
+NODE_DECLARATION_FUNCTION(curvature)
 {
     // Input-1: Original 3D mesh with boundary
     b.add_input<Geometry>("Input");
     // Output-1: The curvature at each vertex (Gauss curvature)
-    b.add_output<float1Buffer>("Output");
+    b.add_output<pxr::VtArray<float>>("Output");
 }
 
-NODE_EXECUTION_FUNCTION(curvature_exec)
+NODE_EXECUTION_FUNCTION(curvature)
 {
     // An example of halfedge mesh processing
     // In this function we would demonstrate:
-    // 1. Get the number of items (vertex, face, halfedge, edge) in halfedge mesh (n_vertices()...)
+    // 1. Get the number of items (vertex, face, halfedge, edge) in halfedge
+    // mesh (n_vertices()...)
     // 2. Visit the items (vertices()...)
     // 3. Get the index of an item (handle.idx())
     // 4. 3D position of a vertex (point())
@@ -29,14 +30,16 @@ NODE_EXECUTION_FUNCTION(curvature_exec)
 
     // (TO BE UPDATED) Avoid processing the node when there is no input
     if (!input.get_component<MeshComponent>()) {
-        // throw std::runtime_error("CurvatureNode: Input doesn't contain a mesh.");
+        // throw std::runtime_error("CurvatureNode: Input doesn't contain a
+        // mesh.");
         throw std::runtime_error("Curvature: Need Geometry Input.");
     }
 
     // This is the halfedge mesh we get
     auto halfedge_mesh = operand_to_openmesh(&input);
     // Store the output
-    // One can use the function n_vertices(), n_faces(), n_halfedges() to get the numbers of items
+    // One can use the function n_vertices(), n_faces(), n_halfedges() to get
+    // the numbers of items
     pxr::VtArray<float> rst(halfedge_mesh->n_vertices());
 
     // For each vertex, we compute the Gauss curvature
@@ -59,7 +62,8 @@ NODE_EXECUTION_FUNCTION(curvature_exec)
         //   if the type of the handle is SmartVertexHandle, which records
         //   the mesh information in the handle.
         // - The same as the iteration:
-        //   for (const auto& face_handle : halfedge_mesh->vf_range(vertex_handle))
+        //   for (const auto& face_handle :
+        //   halfedge_mesh->vf_range(vertex_handle))
         // Here we visit the outgoing halfedges to compute the angles and areas
         for (const auto& halfedge_handle : vertex_handle.outgoing_halfedges()) {
             // vertex_handle, v1, v2 forms a face near v
@@ -86,8 +90,6 @@ NODE_EXECUTION_FUNCTION(curvature_exec)
     // Set the output of the nodes
     params.set_output("Output", rst);
 }
-
-
 
 NODE_DECLARATION_UI(curvature);
 NODE_DEF_CLOSE_SCOPE

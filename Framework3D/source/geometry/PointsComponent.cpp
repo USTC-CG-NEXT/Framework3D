@@ -2,9 +2,20 @@
 
 #include "GCore/Components/PointsComponent.h"
 
+#include "global_stage.hpp"
 #include "GCore/GOP.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+PointsComponent::PointsComponent(Geometry* attached_operand): GeometryComponent(attached_operand)
+{
+    scratch_buffer_path = pxr::SdfPath(
+        "/scratch_buffer/points_component_" +
+        std::to_string(reinterpret_cast<long long>(this)));
+    points = pxr::UsdGeomPoints::Define(
+        g_stage->get_usd_stage(), scratch_buffer_path);
+    pxr::UsdGeomImageable(points).MakeInvisible();
+}
+
 std::string PointsComponent::to_string() const
 {
     std::ostringstream out;

@@ -6,7 +6,7 @@
 #include "GUI/usd_filetree.h"
 #include "GUI/usdview_engine.h"
 #include "GUI/window/window.h"
-#include "Nodes/GlobalUsdStage.h"
+
 
 class NodeWindow final : public USTC_CG::Window {
    public:
@@ -20,10 +20,10 @@ class NodeWindow final : public USTC_CG::Window {
         composition_graph = std::make_shared<USTC_CG::NodeSystem>(
             USTC_CG::NodeSystemType::Composition, "CompositionGraph.json", "Composition");
         file_viewer = std::make_unique<USTC_CG::UsdFileViewer>();
-        file_viewer->set_stage(USTC_CG::GlobalUsdStage::global_usd_stage);
+        file_viewer->set_stage(USTC_CG::g_stage->get_usd_stage());
 
         renderer =
-            std::make_shared<USTC_CG::UsdviewEngine>(USTC_CG::GlobalUsdStage::global_usd_stage);
+            std::make_shared<USTC_CG::UsdviewEngine>(USTC_CG::g_stage->get_usd_stage());
     }
 
    protected:

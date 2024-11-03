@@ -1,7 +1,9 @@
 #include "GCore/GOP.h"
 
+#include "../Logger/include/Logger/Logger.h"
 #include "GCore/Components.h"
 #include "GCore/Components/MeshOperand.h"
+#include "global_stage.hpp"
 #include "pxr/usd/usdGeom/xform.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -62,10 +64,9 @@ std::string Geometry::to_string() const
 void Geometry::attach_component(const GeometryComponentHandle& component)
 {
     if (component->get_attached_operand() != this) {
-        logging(
+        log::warning(
             "A component should never be attached to two operands, unless you "
-            "know what you are doing",
-            Warning);
+            "know what you are doing");
     }
     components_.push_back(component);
 }
@@ -74,6 +75,12 @@ void Geometry::detach_component(const GeometryComponentHandle& component)
 {
     auto iter = std::find(components_.begin(), components_.end(), component);
     components_.erase(iter);
+}
+
+Stage* g_stage = nullptr;
+void init(Stage* stage)
+{
+    g_stage = stage;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

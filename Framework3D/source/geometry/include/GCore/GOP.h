@@ -7,6 +7,7 @@
 #include <string>
 
 #include "GCore/api.h"
+#include "stage/stage.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct GeometryComponent;
@@ -73,5 +74,9 @@ std::shared_ptr<OperandType> Geometry::get_component(size_t idx) const
     }
     return nullptr;
 }
+
+void GEOMETRY_API init(Stage* stage);
+
+void GEOMETRY_API copy_prim(const pxr::UsdPrim& from, const pxr::UsdPrim& to);
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -23,6 +23,8 @@ class DockingImguiRenderer final : public ImGui_Renderer {
     {
     }
 
+    ~DockingImguiRenderer() override;
+
     bool JoystickButtonUpdate(int button, bool pressed) override;
     bool JoystickAxisUpdate(int axis, float value) override;
     bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
@@ -42,6 +44,13 @@ class DockingImguiRenderer final : public ImGui_Renderer {
     Window* window_;
     std::vector<std::function<void(Window*)>> callbacks_;
 };
+
+DockingImguiRenderer::~DockingImguiRenderer()
+{
+    widgets_.clear();
+    callbacks_.clear();
+}
+
 bool DockingImguiRenderer::JoystickButtonUpdate(int button, bool pressed)
 {
     for (auto&& widget : widgets_) {

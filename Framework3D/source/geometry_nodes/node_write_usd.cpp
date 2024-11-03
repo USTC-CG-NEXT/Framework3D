@@ -11,13 +11,13 @@
 #include "GCore/Components/MeshOperand.h"
 #include "GCore/Components/PointsComponent.h"
 #include "GCore/Components/XformComponent.h"
-#include "GCore/geom_node_global_payload.h"
+#include "GCore/geom_payload.hpp"
 #include "geom_node_base.h"
 #include "pxr/base/gf/rotation.h"
 #include "pxr/usd/usd/payloads.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(write_usd)
 {
     b.add_input<Geometry>("Geometry");
     b.add_input<float>("Time Code").default_val(0).min(0).max(240);
@@ -36,9 +36,9 @@ bool legal(const std::string& string)
     return false;
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(write_usd)
 {
-    auto global_payload = params.get_global_payload<GeomNodeGlobalParams>();
+    auto global_payload = params.get_global_payload<GeomPayload>();
 
     auto geometry = params.get_input<Geometry>("Geometry");
 
@@ -56,7 +56,7 @@ NODE_EXECUTION_FUNCTION(exec)
         time = pxr::UsdTimeCode::Default();
     }
 
-    auto& stage = GlobalUsdStage::global_usd_stage;
+    auto stage = global_payload.stage;
     auto sdf_path = global_payload.prim_path;
 
     if (mesh) {
@@ -221,7 +221,7 @@ NODE_EXECUTION_FUNCTION(exec)
     pxr::UsdGeomImageable(stage->GetPrimAtPath(sdf_path)).MakeVisible();
 }
 
-
+NODE_DECLARATION_REQUIRED(write_usd);
 
 NODE_DECLARATION_UI(write_usd);
 NODE_DEF_CLOSE_SCOPE

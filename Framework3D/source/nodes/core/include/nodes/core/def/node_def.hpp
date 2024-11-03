@@ -19,6 +19,13 @@
 #define NODE_DECLARATION_UI(name) \
     __declspec(dllexport) const char* node_ui_name_##name()
 
+#define CONVERSION_DECLARATION_FUNCTION(from, to)             \
+    __declspec(dllexport) void conv_declare_##from##_to_##to( \
+        USTC_CG::NodeDeclarationBuilder& b)
+
+#define CONVERSION_EXECUTION_FUNCTION(from, to) \
+    __declspec(dllexport) void conv_execution_##name(ExeParams params)
+
 #define NODE_DECLARATION_REQUIRED(name)               \
     __declspec(dllexport) bool node_required_##name() \
     {                                                 \

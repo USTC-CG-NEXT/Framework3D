@@ -5,14 +5,14 @@
 
 NODE_DEF_OPEN_SCOPE
 
-static void node_create_grid_declare(NodeDeclarationBuilder &b)
+NODE_DECLARATION_FUNCTION(create_grid)
 {
     b.add_input<int>("resolution").min(1).max(20).default_val(2);
     b.add_input<float>("size").min(1).max(20);
     b.add_output<Geometry>("Geometry");
 }
 
-NODE_EXECUTION_FUNCTION(create_grid_exec)
+NODE_EXECUTION_FUNCTION(create_grid)
 {
     int resolution = params.get_input<int>("resolution") + 1;
     float size = params.get_input<float>("size");
@@ -56,14 +56,14 @@ NODE_EXECUTION_FUNCTION(create_grid_exec)
     params.set_output("Geometry", std::move(geometry));
 }
 
-void node_create_circle_declare(NodeDeclarationBuilder &b)
+NODE_DECLARATION_FUNCTION(create_circle)
 {
     b.add_input<int>("resolution").min(1).max(100).default_val(10);
     b.add_input<float>("radius").min(1).max(20);
     b.add_output<Geometry>("Circle");
 }
 
-void node_create_circle_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(create_circle)
 {
     int resolution = params.get_input<int>("resolution");
     float radius = params.get_input<float>("radius");
@@ -96,7 +96,7 @@ void node_create_circle_exec(ExeParams params)
     params.set_output("Circle", std::move(geometry));
 }
 
-void node_create_spiral_declare(NodeDeclarationBuilder &b)
+NODE_DECLARATION_FUNCTION(create_spiral)
 {
     b.add_input<int>("resolution").min(1).max(100).default_val(10);
     b.add_input<float>("R1").min(0.1).max(10).default_val(1);
@@ -106,7 +106,7 @@ void node_create_spiral_declare(NodeDeclarationBuilder &b)
     b.add_output<Geometry>("Curve");
 }
 
-void node_create_spiral_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(create_spiral)
 {
     int resolution = params.get_input<int>("resolution");
     float R1 = params.get_input<float>("R1");
@@ -142,8 +142,6 @@ void node_create_spiral_exec(ExeParams params)
 
     params.set_output("Curve", std::move(geometry));
 }
-
-
 
 NODE_DECLARATION_UI(create_geom);
 NODE_DEF_CLOSE_SCOPE

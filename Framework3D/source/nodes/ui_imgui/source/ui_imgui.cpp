@@ -741,7 +741,7 @@ ImColor NodeWidget::GetIconColor(SocketType type)
             entt::hashed_string{ (prefix + typeName).c_str() }.value());
     };
 
-    const std::string typeName = std::string(type.info().name());
+    const std::string typeName = get_type_name(type);
     auto hashValue_r = hashColorComponent("r", typeName);
     auto hashValue_g = hashColorComponent("g", typeName);
     auto hashValue_b = hashColorComponent("b", typeName);

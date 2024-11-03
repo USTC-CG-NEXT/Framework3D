@@ -4,7 +4,7 @@
 #include "geom_node_base.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(random_uv_points)
 {
     b.add_input<int>("Count").min(1).max(100).default_val(10);
     b.add_input<int>("Seed").min(-100).max(100).default_val(0);
@@ -12,7 +12,7 @@ NODE_DECLARATION_FUNCTION(declare)
     b.add_output<Geometry>("Points");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(random_uv_points)
 {
     using namespace pxr;
     auto count = params.get_input<int>("Count");
@@ -45,8 +45,6 @@ NODE_EXECUTION_FUNCTION(exec)
 
     params.set_output("Points", geometry);
 }
-
-
 
 NODE_DECLARATION_UI(random_uv_points);
 NODE_DEF_CLOSE_SCOPE

@@ -7,16 +7,16 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace decl {
 
-class Int1BufferBuilder;
-class Int1Buffer : public SocketDeclaration {
+class pxr::VtArray<int>Builder;
+class pxr::VtArray<int> : public SocketDeclaration {
    public:
-    Int1Buffer()
+    pxr::VtArray<int>()
     {
     }
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
-    using Builder = Int1BufferBuilder;
+    using Builder = pxr::VtArray<int>Builder;
 };
-class Int1BufferBuilder : public SocketDeclarationBuilder<Int1Buffer> { };
+class pxr::VtArray<int>Builder : public SocketDeclarationBuilder<pxr::VtArray<int>> { };
 class Int2BufferBuilder;
 class Int2Buffer : public SocketDeclaration {
    public:
@@ -57,26 +57,26 @@ class Float1Buffer : public SocketDeclaration {
     using Builder = Float1BufferBuilder;
 };
 class Float1BufferBuilder : public SocketDeclarationBuilder<Float1Buffer> { };
-class Float2BufferBuilder;
-class Float2Buffer : public SocketDeclaration {
+class pxr::GfVec2fBuilder;
+class pxr::GfVec2f : public SocketDeclaration {
    public:
-    Float2Buffer()
+    pxr::GfVec2f()
     {
     }
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
-    using Builder = Float2BufferBuilder;
+    using Builder = pxr::GfVec2fBuilder;
 };
-class Float2BufferBuilder : public SocketDeclarationBuilder<Float2Buffer> { };
-class Float3BufferBuilder;
-class Float3Buffer : public SocketDeclaration {
+class pxr::GfVec2fBuilder : public SocketDeclarationBuilder<pxr::GfVec2f> { };
+class pxr::VtVec3fArrayBuilder;
+class pxr::VtVec3fArray : public SocketDeclaration {
    public:
-    Float3Buffer()
+    pxr::VtVec3fArray()
     {
     }
     NodeSocket* build(NodeTree* ntree, Node* node) const override;
-    using Builder = Float3BufferBuilder;
+    using Builder = pxr::VtVec3fArrayBuilder;
 };
-class Float3BufferBuilder : public SocketDeclarationBuilder<Float3Buffer> { };
+class pxr::VtVec3fArrayBuilder : public SocketDeclarationBuilder<pxr::VtVec3fArray> { };
 class Float4BufferBuilder;
 class Float4Buffer : public SocketDeclaration {
    public:

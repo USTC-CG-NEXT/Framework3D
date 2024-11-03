@@ -3,22 +3,12 @@
 
 #include "GCore/Components.h"
 #include "GCore/GOP.h"
-#include "Nodes/GlobalUsdStage.h"
 #include "pxr/usd/usdGeom/points.h"
 #include "pxr/usd/usdGeom/xform.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct GEOMETRY_API PointsComponent : public GeometryComponent {
-    explicit PointsComponent(Geometry* attached_operand)
-        : GeometryComponent(attached_operand)
-    {
-        scratch_buffer_path = pxr::SdfPath(
-            "/scratch_buffer/points_component_" +
-            std::to_string(reinterpret_cast<long long>(this)));
-        points = pxr::UsdGeomPoints::Define(
-            GlobalUsdStage::global_usd_stage, scratch_buffer_path);
-        pxr::UsdGeomImageable(points).MakeInvisible();
-    }
+    explicit PointsComponent(Geometry* attached_operand);
 
     std::string to_string() const override;
 

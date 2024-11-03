@@ -1,4 +1,4 @@
-#include "util_openmesh_bind.h"
+#include "GCore/util_openmesh_bind.h"
 
 #include "GCore/Components/MeshOperand.h"
 

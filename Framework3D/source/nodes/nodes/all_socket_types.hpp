@@ -17,8 +17,8 @@
     Lights, Camera, Texture, Meshes, Materials, AccelStruct, Buffer
 
 #define BUFFER_TYPES                                                        \
-    Int1Buffer, Int2Buffer, Int3Buffer, Int4Buffer, Float1Buffer,           \
-        Float2Buffer, Float3Buffer, Float4Buffer, Int2, Int3, Int4, Float2, \
+    pxr::VtArray<int>, Int2Buffer, Int3Buffer, Int4Buffer, Float1Buffer,           \
+        pxr::GfVec2f, pxr::VtVec3fArray, Float4Buffer, Int2, Int3, Int4, Float2, \
         Float3, Float4
 
 #define GEO_SOCKET_TYPES \

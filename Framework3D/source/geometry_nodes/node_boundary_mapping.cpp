@@ -1,6 +1,6 @@
 #include "GCore/Components/MeshOperand.h"
 #include "geom_node_base.h"
-#include "utils/util_openmesh_bind.h"
+#include "GCore/util_openmesh_bind.h"
 
 /*
 ** @brief HW4_TutteParameterization
@@ -33,7 +33,7 @@ NODE_DEF_OPEN_SCOPE
 ** HW4_TODO: Node to map the mesh boundary to a circle.
 */
 
-NODE_DECLARATION_FUNCTION(map_boundary_to_circle_declare)
+NODE_DECLARATION_FUNCTION(circle_boundary_mapping)
 {
     // Input-1: Original 3D mesh with boundary
     b.add_input<Geometry>("Input");
@@ -43,7 +43,7 @@ NODE_DECLARATION_FUNCTION(map_boundary_to_circle_declare)
     b.add_output<Geometry>("Output");
 }
 
-NODE_EXECUTION_FUNCTION(map_boundary_to_circle_exec)
+NODE_EXECUTION_FUNCTION(circle_boundary_mapping)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -112,7 +112,7 @@ NODE_EXECUTION_FUNCTION(map_boundary_to_circle_exec)
 ** HW4_TODO: Node to map the mesh boundary to a square.
 */
 
-NODE_DECLARATION_FUNCTION(map_boundary_to_square_declare)
+NODE_DECLARATION_FUNCTION(square_boundary_mapping)
 {
     // Input-1: Original 3D mesh with boundary
     b.add_input<Geometry>("Input");
@@ -122,7 +122,7 @@ NODE_DECLARATION_FUNCTION(map_boundary_to_square_declare)
     b.add_output<Geometry>("Output");
 }
 
-NODE_EXECUTION_FUNCTION(map_boundary_to_square_exec)
+NODE_EXECUTION_FUNCTION(square_boundary_mapping)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");

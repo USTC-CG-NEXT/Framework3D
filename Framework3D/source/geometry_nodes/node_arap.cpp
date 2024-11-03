@@ -1,6 +1,6 @@
 #include "GCore/Components/MeshOperand.h"
+#include "GCore/util_openmesh_bind.h"
 #include "geom_node_base.h"
-#include "utils/util_openmesh_bind.h"
 
 /*
 ** @brief HW5_ARAP_Parameterization
@@ -23,7 +23,7 @@
 */
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(arap_declare)
+NODE_DECLARATION_FUNCTION(arap)
 {
     // Input-1: Original 3D mesh with boundary
     // Maybe you need to add another input for initialization?
@@ -31,7 +31,7 @@ NODE_DECLARATION_FUNCTION(arap_declare)
 
     /*
     ** NOTE: You can add more inputs or outputs if necessary. For example, in
-    ** some cases, additional information (e.g. other mesh geometry, other 
+    ** some cases, additional information (e.g. other mesh geometry, other
     ** parameters) is required to perform the computation.
     **
     ** Be sure that the input/outputs do not share the same name. You can add
@@ -45,10 +45,10 @@ NODE_DECLARATION_FUNCTION(arap_declare)
     */
 
     // Output-1: The UV coordinate of the mesh, provided by ARAP algorithm
-    b.add_output<float2Buffer>("OutputUV");
+    b.add_output<pxr::GfVec2f>("OutputUV");
 }
 
-NODE_EXECUTION_FUNCTION(arap_exec)
+NODE_EXECUTION_FUNCTION(arap)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -67,33 +67,32 @@ NODE_EXECUTION_FUNCTION(arap_exec)
     */
     auto halfedge_mesh = operand_to_openmesh(&input);
 
-   /* ------------- [HW5_TODO] ARAP Parameterization Implementation -----------
-   ** Implement ARAP mesh parameterization to minimize local distortion.
-   **
-   ** Steps:
-   ** 1. Initial Setup: Use a HW4 parameterization result as initial setup.
-   **
-   ** 2. Local Phase: For each triangle, compute local orthogonal approximation
-   **    (Lt) by computing SVD of Jacobian(Jt) with fixed u.
-   **
-   ** 3. Global Phase: With Lt fixed, update parameter coordinates(u) by solving
-   **    a pre-factored global sparse linear system.
-   **
-   ** 4. Iteration: Repeat Steps 2 and 3 to refine parameterization.
-   **
-   ** Note:
-   **  - Fixed points' selection is crucial for ARAP and ASAP.
-   **  - Encapsulate algorithms into classes for modularity.
-   */
+    /* ------------- [HW5_TODO] ARAP Parameterization Implementation -----------
+    ** Implement ARAP mesh parameterization to minimize local distortion.
+    **
+    ** Steps:
+    ** 1. Initial Setup: Use a HW4 parameterization result as initial setup.
+    **
+    ** 2. Local Phase: For each triangle, compute local orthogonal approximation
+    **    (Lt) by computing SVD of Jacobian(Jt) with fixed u.
+    **
+    ** 3. Global Phase: With Lt fixed, update parameter coordinates(u) by
+    *solving
+    **    a pre-factored global sparse linear system.
+    **
+    ** 4. Iteration: Repeat Steps 2 and 3 to refine parameterization.
+    **
+    ** Note:
+    **  - Fixed points' selection is crucial for ARAP and ASAP.
+    **  - Encapsulate algorithms into classes for modularity.
+    */
 
-    // The result UV coordinates 
+    // The result UV coordinates
     pxr::VtArray<pxr::GfVec2f> uv_result;
 
     // Set the output of the node
     params.set_output("OutputUV", uv_result);
 }
-
-
 
 NODE_DECLARATION_UI(arap);
 NODE_DEF_CLOSE_SCOPE

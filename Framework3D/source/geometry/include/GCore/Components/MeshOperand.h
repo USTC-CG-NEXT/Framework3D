@@ -5,22 +5,12 @@
 
 #include "GCore/Components.h"
 #include "GCore/GOP.h"
-#include "Nodes/GlobalUsdStage.h"
 #include "pxr/usd/usdGeom/primvarsAPI.h"
 #include "pxr/usd/usdGeom/xform.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct USTC_CG_API MeshComponent : public GeometryComponent {
-    explicit MeshComponent(Geometry* attached_operand)
-        : GeometryComponent(attached_operand)
-    {
-        scratch_buffer_path = pxr::SdfPath(
-            "/scratch_buffer/mesh_component_" +
-            std::to_string(reinterpret_cast<long long>(this)));
-        mesh = pxr::UsdGeomMesh::Define(
-            GlobalUsdStage::global_usd_stage, scratch_buffer_path);
-        pxr::UsdGeomImageable(mesh).MakeInvisible();
-    }
+struct GEOMETRY_API MeshComponent : public GeometryComponent {
+    explicit MeshComponent(Geometry* attached_operand);
 
     ~MeshComponent() override;
 

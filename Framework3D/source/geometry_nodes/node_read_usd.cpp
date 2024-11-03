@@ -26,7 +26,7 @@
 
 NODE_DEF_OPEN_SCOPE
 
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(read_usd)
 {
     b.add_input<std::string>("File Name").default_val("Default");
     b.add_input<std::string>("Prim Path").default_val("geometry");
@@ -34,7 +34,7 @@ NODE_DECLARATION_FUNCTION(declare)
     b.add_output<Geometry>("Geometry");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(read_usd)
 {
     auto file_name = params.get_input<std::string>("File Name");
     auto prim_path = params.get_input<std::string>("Prim Path");
@@ -59,7 +59,7 @@ NODE_EXECUTION_FUNCTION(exec)
         pxr::UsdGeomMesh usdgeom(prim);
 
         if (usdgeom) {
-            mesh->set_mesh_geom(usdgeom); 
+            mesh->set_mesh_geom(usdgeom);
 
             pxr::GfMatrix4d final_transform =
                 usdgeom.ComputeLocalToWorldTransform(time);
@@ -131,8 +131,6 @@ NODE_EXECUTION_FUNCTION(exec)
     }
     params.set_output("Geometry", std::move(geometry));
 }
-
-
 
 NODE_DECLARATION_UI(read_usd);
 NODE_DEF_CLOSE_SCOPE

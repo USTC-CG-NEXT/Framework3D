@@ -1,6 +1,6 @@
 #include "GCore/Components/MeshOperand.h"
+#include "GCore/util_openmesh_bind.h"
 #include "geom_node_base.h"
-#include "utils/util_openmesh_bind.h"
 
 /*
 ** @brief HW4_TutteParameterization
@@ -20,17 +20,20 @@
 */
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(min_surf_declare)
+NODE_DECLARATION_FUNCTION(min_surf)
 {
     // Input-1: Original 3D mesh with boundary
     b.add_input<Geometry>("Input");
 
     /*
-    ** NOTE: You can add more inputs or outputs if necessary. For example, in some cases,
-    ** additional information (e.g. other mesh geometry, other parameters) is required to perform
+    ** NOTE: You can add more inputs or outputs if necessary. For example, in
+    *some cases,
+    ** additional information (e.g. other mesh geometry, other parameters) is
+    *required to perform
     ** the computation.
     **
-    ** Be sure that the input/outputs do not share the same name. You can add one geometry as
+    ** Be sure that the input/outputs do not share the same name. You can add
+    *one geometry as
     **
     **                b.add_input<Geometry>("Input");
     **
@@ -43,7 +46,7 @@ NODE_DECLARATION_FUNCTION(min_surf_declare)
     b.add_output<Geometry>("Output");
 }
 
-NODE_EXECUTION_FUNCTION(min_surf_exec)
+NODE_EXECUTION_FUNCTION(min_surf)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -110,8 +113,6 @@ NODE_EXECUTION_FUNCTION(min_surf_exec)
     // Set the output of the nodes
     params.set_output("Output", std::move(*geometry));
 }
-
-
 
 NODE_DECLARATION_UI(min_surf);
 NODE_DEF_CLOSE_SCOPE

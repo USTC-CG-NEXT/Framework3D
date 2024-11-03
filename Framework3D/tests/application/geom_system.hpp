@@ -1,6 +1,6 @@
 #pragma once
 
-#include "geom_payload.hpp"
+#include "GCore/geom_payload.hpp"
 #include "nodes/system/node_system_dl.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

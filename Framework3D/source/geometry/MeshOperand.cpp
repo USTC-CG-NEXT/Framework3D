@@ -1,11 +1,20 @@
-// #undef _MSC_VER
-//#define __GNUC__
-
 #include "GCore/Components/MeshOperand.h"
 
 #include "GCore/GOP.h"
+#include "global_stage.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+MeshComponent::MeshComponent(Geometry* attached_operand)
+    : GeometryComponent(attached_operand)
+{
+    scratch_buffer_path = pxr::SdfPath(
+        "/scratch_buffer/mesh_component_" +
+        std::to_string(reinterpret_cast<long long>(this)));
+    mesh =
+        pxr::UsdGeomMesh::Define(g_stage->get_usd_stage(), scratch_buffer_path);
+    pxr::UsdGeomImageable(mesh).MakeInvisible();
+}
+
 MeshComponent::~MeshComponent()
 {
 }

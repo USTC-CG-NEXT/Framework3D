@@ -1,7 +1,7 @@
 #include "geom_node_base.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(bouncing)
 {
     b.add_input<float>("p_z");
     b.add_input<float>("v_z");
@@ -13,7 +13,7 @@ NODE_DECLARATION_FUNCTION(declare)
     b.add_output<float>("v_z");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(bouncing)
 {
     auto time_code = params.get_input<float>("time_code");
     auto p_z = params.get_input<float>("p_z");
@@ -39,5 +39,5 @@ NODE_EXECUTION_FUNCTION(exec)
 
 
 
-NODE_DECLARATION_UI(single_spring);
+NODE_DECLARATION_UI(bouncing);
 NODE_DEF_CLOSE_SCOPE

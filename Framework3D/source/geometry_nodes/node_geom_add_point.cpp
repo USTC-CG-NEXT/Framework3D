@@ -1,9 +1,6 @@
 ﻿#include "GCore/Components/PointsComponent.h"
-#include "GCore/geom_node_global_payload.h"
-#include "GUI/ui_event.h"
-#include "RCore/Backend.hpp"
+#include "GCore/geom_payload.hpp"
 #include "geom_node_base.h"
-#include "nvrhi/utils.h"
 #include "pxr/base/tf/ostreamMethods.h"
 #include "pxr/base/vt/typeHeaders.h"
 NODE_DEF_OPEN_SCOPE
@@ -24,7 +21,7 @@ struct AddedPoints {
     }
 };
 
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(geom_add_point)
 {
     b.add_storage<AddedPoints>();
 
@@ -33,29 +30,29 @@ NODE_DECLARATION_FUNCTION(declare)
     b.add_output<Geometry>("Points");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(geom_add_point)
 {
-    auto& storage = params.get_storage<AddedPoints&>();
+    //auto& storage = params.get_storage<AddedPoints&>();
 
-    auto pick = params.get_global_payload<GeomNodeGlobalParams>().pick;
-    if (pick) {
-        storage.points.push_back(pxr::GfVec3f(pick->point));
-    }
+    //auto pick = params.get_global_payload<GeomNodeGlobalParams>().pick;
+    //if (pick) {
+    //    storage.points.push_back(pxr::GfVec3f(pick->point));
+    //}
 
-    params.set_storage(storage);
+    //params.set_storage(storage);
 
-    auto width = params.get_input<float>("Width");
+    //auto width = params.get_input<float>("Width");
 
-    auto geometry = Geometry();
-    auto points_component = std::make_shared<PointsComponent>(&geometry);
-    geometry.attach_component(points_component);
+    //auto geometry = Geometry();
+    //auto points_component = std::make_shared<PointsComponent>(&geometry);
+    //geometry.attach_component(points_component);
 
-    pxr::VtArray widths(storage.points.size(), width);
+    //pxr::VtArray widths(storage.points.size(), width);
 
-    points_component->set_vertices(storage.points);
-    points_component->set_width(widths);
+    //points_component->set_vertices(storage.points);
+    //points_component->set_width(widths);
 
-    params.set_output("Points", geometry);
+    //params.set_output("Points", geometry);
 }
 
 

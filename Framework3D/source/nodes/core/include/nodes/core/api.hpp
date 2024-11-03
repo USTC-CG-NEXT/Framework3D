@@ -8,6 +8,7 @@
 #include "node.hpp"
 #include "nodes/core/api.h"
 #include "socket.hpp"
+#include "Logger/Logger.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct NodeTreeExecutorDesc;
@@ -40,10 +41,18 @@ inline void register_cpp_type()
 template<typename T>
 SocketType get_socket_type()
 {
-    return entt::resolve(get_entt_ctx(), entt::type_hash<T>());
+    auto type = entt::resolve(get_entt_ctx(), entt::type_hash<T>());
+    if (!type) {
+        register_cpp_type<T>();
+        log::info("register type: %s", typeid(T).name());
+        type = entt::resolve(get_entt_ctx(), entt::type_hash<T>());
+        assert(type);
+    }
+    return type;
 }
 
 NODES_CORE_API inline SocketType get_socket_type(const char* t);
+NODES_CORE_API std::string get_type_name(SocketType);
 
 template<>
 NODES_CORE_API SocketType get_socket_type<entt::meta_any>();

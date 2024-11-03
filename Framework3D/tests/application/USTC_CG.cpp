@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "GCore/GOP.h"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
 #include "geom_system.hpp"
@@ -13,15 +14,12 @@
 #include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
 
-struct GeomGlobalParams {
-    pxr::UsdStageRefPtr usd_stage;
-};
-
 int main()
 {
     log::SetMinSeverity(Severity::Debug);
     log::EnableOutputToConsole(true);
     auto stage = create_global_stage();
+    init(stage.get());
     // Add a sphere
 
     stage->create_sphere(pxr::SdfPath("/sphere"));
@@ -40,14 +38,14 @@ int main()
             auto system = create_dynamic_loading_system();
 
             system->register_cpp_types<int>();
-            auto loaded = system->load_configuration("test_nodes.json");
+            auto loaded = system->load_configuration("geometry_nodes.json");
             system->init();
 
-            GeomGlobalParams geom_global_params;
-            geom_global_params.usd_stage = stage->get_usd_stage();
+            GeomPayload geom_global_params;
+            geom_global_params.stage = stage->get_usd_stage();
+            geom_global_params.prim_path = json_path;
 
-            system->register_global_params<GeomGlobalParams>(
-                geom_global_params);
+            system->register_global_params<GeomPayload>(geom_global_params);
 
             UsdBasedNodeWidgetSettings desc;
 
@@ -65,4 +63,7 @@ int main()
     window->run();
 
     window.reset();
+    stage.reset();
+
+    unregister_cpp_type();
 }

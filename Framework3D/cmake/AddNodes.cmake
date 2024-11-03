@@ -55,7 +55,7 @@ function(GEN_NODES_JSON TARGET_NAME)
 endfunction()
 
 function(add_nodes)
-    cmake_parse_arguments(ARG "" "SRC_DIR;TARGET_NAME" "SRC_FILES;DEP_LIBS" ${ARGN})
+    cmake_parse_arguments(ARG "" "SRC_DIR;TARGET_NAME;CONVERSION_DIR" "SRC_FILES;CONVERSION_FILES;DEP_LIBS;COMPILE_DEFS;COMPILE_OPTIONS" ${ARGN})
 
     if(NOT ARG_SRC_DIR)
         set(ARG_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -66,19 +66,61 @@ function(add_nodes)
         file(GLOB ARG_SRC_FILES ${ARG_SRC_DIR}/*.cpp)
     endif()
 
+    if(NOT ARG_CONVERSION_DIR)
+        message("CONVERSION_DIR is not set.")
+    endif()
+
+    if(NOT ARG_CONVERSION_FILES)
+        file(GLOB ARG_CONVERSION_FILES ${ARG_CONVERSION_DIR}/*.cpp)
+    endif()
+
+    set(SRC_DIRS ${ARG_SRC_DIR})
+    set(CONVERSION_DIRS ${ARG_CONVERSION_DIR})
+
     foreach(source ${ARG_SRC_FILES})
+        get_filename_component(source_dir ${source} DIRECTORY)
+        list(FIND SRC_DIRS ${source_dir} src_dir_index)
+        if(src_dir_index EQUAL -1)
+            list(APPEND SRC_DIRS ${source_dir})
+        endif()
         get_filename_component(target_name ${source} NAME_WE)
         add_library(${target_name} SHARED ${source})
         set_target_properties(${target_name} PROPERTIES ${OUTPUT_DIR})
-        target_link_libraries(${target_name} PRIVATE nodes_core ${ARG_DEP_LIBS})
+        target_link_libraries(${target_name} PUBLIC nodes_core ${ARG_DEP_LIBS})
+        if(ARG_COMPILE_DEFS)
+            target_compile_definitions(${target_name} PRIVATE ${ARG_COMPILE_DEFS})
+        endif()
+        if(ARG_COMPILE_OPTIONS)
+            target_compile_options(${target_name} PRIVATE ${ARG_COMPILE_OPTIONS})
+        endif()
         list(APPEND all_nodes ${target_name})
     endforeach()
 
+    foreach(source ${ARG_CONVERSION_FILES})
+        get_filename_component(source_dir ${source} DIRECTORY)
+        list(FIND CONVERSION_DIRS ${source_dir} conversion_dir_index)
+        if(conversion_dir_index EQUAL -1)
+            list(APPEND CONVERSION_DIRS ${source_dir})
+        endif()
+        get_filename_component(target_name ${source} NAME_WE)
+        add_library(${target_name} SHARED ${source})
+        set_target_properties(${target_name} PROPERTIES ${OUTPUT_DIR})
+        target_link_libraries(${target_name} PUBLIC nodes_core ${ARG_DEP_LIBS})
+        if(ARG_COMPILE_DEFS)
+            target_compile_definitions(${target_name} PRIVATE ${ARG_COMPILE_DEFS})
+        endif()
+        if(ARG_COMPILE_OPTIONS)
+            target_compile_options(${target_name} PRIVATE ${ARG_COMPILE_OPTIONS})
+        endif()
+        list(APPEND all_conversions ${target_name})
+    endforeach()
+
     GEN_NODES_JSON(${ARG_TARGET_NAME}_json_target 
-        NODES_DIRS ${ARG_SRC_DIR} 
+        NODES_DIRS ${SRC_DIRS} 
+        CONVERSIONS_DIRS ${CONVERSION_DIRS}
         OUTPUT_JSON ${OUT_BINARY_DIR}/${ARG_TARGET_NAME}.json
     )
 
     add_library(${ARG_TARGET_NAME} INTERFACE)
-    add_dependencies(${ARG_TARGET_NAME} ${all_nodes} ${ARG_TARGET_NAME}_json_target)
+    add_dependencies(${ARG_TARGET_NAME} ${all_nodes} ${all_conversions} ${ARG_TARGET_NAME}_json_target)
 endfunction()

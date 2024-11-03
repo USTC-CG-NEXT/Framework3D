@@ -1,7 +1,8 @@
 #include "GCore/Components/CurveComponent.h"
 
-USTC_CG_NAMESPACE_OPEN_SCOPE
+#include "global_stage.hpp"
 
+USTC_CG_NAMESPACE_OPEN_SCOPE
 std::string CurveComponent::to_string() const
 {
     std::ostringstream out;
@@ -28,7 +29,7 @@ CurveComponent::CurveComponent(Geometry* attached_operand)
         "/scratch_buffer/curves_component_" +
         std::to_string(reinterpret_cast<long long>(this)));
     curves = pxr::UsdGeomBasisCurves::Define(
-        GlobalUsdStage::global_usd_stage, scratch_buffer_path);
+        g_stage->get_usd_stage(), scratch_buffer_path);
     pxr::UsdGeomImageable(curves).MakeInvisible();
 }
 

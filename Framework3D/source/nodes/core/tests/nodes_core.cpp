@@ -10,6 +10,11 @@ using namespace USTC_CG;
 
 class NodeCoreTest : public ::testing::Test {
    protected:
+    void SetUp() override
+    {
+        log::SetMinSeverity(Severity::Info);
+        log::EnableOutputToConsole(true);
+    }
     void TearDown() override
     {
         unregister_cpp_type();
@@ -18,8 +23,10 @@ class NodeCoreTest : public ::testing::Test {
 
 TEST_F(NodeCoreTest, TYPENAME)
 {
-    register_cpp_type<int>();
-    auto type = get_socket_type(entt::hashed_string{ typeid(int).name() });
+    auto type = get_socket_type<int>();
+    ASSERT_TRUE(type);
+
+    type = get_socket_type(entt::hashed_string{ typeid(int).name() });
 
     ASSERT_TRUE(type);
 
@@ -39,19 +46,7 @@ TEST_F(NodeCoreTest, TYPENAME)
 
 TEST_F(NodeCoreTest, RegisterCppType)
 {
-    register_cpp_type<int>();
     entt::meta_reset();
-}
-
-TEST_F(NodeCoreTest, GetSocketType)
-{
-    SocketType socket_type = get_socket_type<int>();
-    ASSERT_FALSE(socket_type);
-
-    register_cpp_type<int>();
-
-    socket_type = get_socket_type<int>();
-    ASSERT_TRUE(socket_type);
 }
 
 TEST_F(NodeCoreTest, CreateNodeTree)
@@ -88,14 +83,13 @@ TEST_F(NodeCoreTest, NodeSocket)
     NodeTreeDescriptor descriptor;
 
     NodeTypeInfo node_type_info("test_node");
-    register_cpp_type<int>();
+
     node_type_info.set_declare_function(
         [](NodeDeclarationBuilder& b) { b.add_input<int>("test_socket"); });
 
     // Don't allow unregistered types
-    ASSERT_THROW(node_type_info.set_declare_function(
+    node_type_info.set_declare_function(
         [](NodeDeclarationBuilder& b) { b.add_input<float>("test_socket2"); });
-                 , std::runtime_error);
 
     descriptor.register_node(std::move(node_type_info));
 
@@ -109,7 +103,7 @@ TEST_F(NodeCoreTest, NodeSocketWithSameName)
     NodeTreeDescriptor descriptor;
 
     NodeTypeInfo node_type_info("test_node");
-    register_cpp_type<int>();
+
     ASSERT_THROW(
         node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
             b.add_input<int>("test_socket");
@@ -126,8 +120,6 @@ TEST_F(NodeCoreTest, NodeLink)
 {
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
-
-    register_cpp_type<int>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<int>("test_input");
@@ -171,7 +163,6 @@ TEST_F(NodeCoreTest, NodeLinkConversion)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    register_cpp_type<int>();
     register_cpp_type<float>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
@@ -215,8 +206,6 @@ TEST_F(NodeCoreTest, NodeRemove)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    register_cpp_type<int>();
-
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
         b.add_input<int>("test_input");
         b.add_output<int>("test_output");
@@ -244,7 +233,6 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    register_cpp_type<int>();
     register_cpp_type<float>();
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
@@ -300,7 +288,6 @@ TEST_F(NodeCoreTest, SerializeDeserialize)
     NodeTreeDescriptor descriptor;
     NodeTypeInfo node_type_info("test_node");
 
-    register_cpp_type<int>();
     register_cpp_type<float>();
     register_cpp_type<std::string>();
 

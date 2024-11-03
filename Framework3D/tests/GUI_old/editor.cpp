@@ -8,7 +8,7 @@
 #include "GUI/usd_filetree.h"
 #include "GUI/usdview_engine.h"
 #include "GUI/window/window.h"
-#include "Nodes/GlobalUsdStage.h"
+
 #include "imgui.h"
 
 class NodeWindow final : public USTC_CG::Window {
@@ -16,9 +16,9 @@ class NodeWindow final : public USTC_CG::Window {
     explicit NodeWindow(const std::string& window_name) : Window(window_name)
     {
         if (std::filesystem::exists("stage.usda")) {
-            USTC_CG::GlobalUsdStage::global_usd_stage =
+            USTC_CG::g_stage->get_usd_stage() =
                 pxr::UsdStage::Open("stage.usda");
-            USTC_CG::GlobalUsdStage::global_usd_stage->RemovePrim(
+            USTC_CG::g_stage->get_usd_stage()->RemovePrim(
                 pxr::SdfPath("/scratch_buffer"));
         }
         render_graph_system = std::make_shared<USTC_CG::NodeSystem>(
@@ -31,15 +31,15 @@ class NodeWindow final : public USTC_CG::Window {
             "CompositionGraph.json",
             "Composition");
         file_viewer = std::make_unique<USTC_CG::UsdFileViewer>();
-        file_viewer->set_stage(USTC_CG::GlobalUsdStage::global_usd_stage);
+        file_viewer->set_stage(USTC_CG::g_stage->get_usd_stage());
 
         renderer = std::make_shared<USTC_CG::UsdviewEngine>(
-            USTC_CG::GlobalUsdStage::global_usd_stage);
+            USTC_CG::g_stage->get_usd_stage());
     }
 
     ~NodeWindow()
     {
-        USTC_CG::GlobalUsdStage::global_usd_stage->GetRootLayer()->Export(
+        USTC_CG::g_stage->get_usd_stage()->GetRootLayer()->Export(
             "stage.usda");
     }
 
@@ -105,7 +105,7 @@ void NodeWindow::BuildUI()
     ImGui::BeginMenuBar();
     if (ImGui::BeginMenu("File")) {
         if (ImGui::MenuItem("Save", "Ctrl+S")) {
-            USTC_CG::GlobalUsdStage::global_usd_stage->GetRootLayer()->Export(
+            USTC_CG::g_stage->get_usd_stage()->GetRootLayer()->Export(
                 "stage.usda");
         }
         ImGui::EndMenu();

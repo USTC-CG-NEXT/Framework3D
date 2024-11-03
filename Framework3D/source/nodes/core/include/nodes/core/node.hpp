@@ -195,9 +195,10 @@ class Decl : public SocketDeclaration {
     {
         type = get_socket_type<T>();
         // If type doesn't exist, throw
-
-        if (!type) {
-            throw std::runtime_error("Type not found");
+        if constexpr (!std::is_same_v<T, entt::meta_any>) {
+            if (!type) {
+                throw std::runtime_error("Type not found");
+            }
         }
     }
 

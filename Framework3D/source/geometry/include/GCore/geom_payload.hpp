@@ -4,4 +4,5 @@
 
 struct GeomPayload {
     pxr::UsdStageRefPtr stage;
+    pxr::SdfPath prim_path;
 };

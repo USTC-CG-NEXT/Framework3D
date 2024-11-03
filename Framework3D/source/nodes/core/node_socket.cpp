@@ -14,7 +14,7 @@ void NodeSocket::Serialize(nlohmann::json& value)
     auto& socket = value[std::to_string(ID.Get())];
     // Repeated storage. Simpler code for iteration.
     socket["ID"] = ID.Get();
-    socket["id_name"] = type_info.info().name();
+    socket["id_name"] = get_type_name(type_info);
     socket["identifier"] = identifier;
     socket["ui_name"] = ui_name;
     socket["in_out"] = in_out;
@@ -40,8 +40,8 @@ void NodeSocket::DeserializeInfo(nlohmann::json& socket_json)
 {
     ID = socket_json["ID"].get<unsigned>();
 
-    type_info = get_socket_type(
-        socket_json["id_name"].get<std::string>().c_str());
+    type_info =
+        get_socket_type(socket_json["id_name"].get<std::string>().c_str());
     // socketTypeFind(socket_json["id_name"].get<std::string>().c_str());
     in_out = socket_json["in_out"].get<PinKind>();
     strcpy(ui_name, socket_json["ui_name"].get<std::string>().c_str());

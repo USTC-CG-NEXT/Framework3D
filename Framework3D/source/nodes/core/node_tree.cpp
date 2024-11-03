@@ -3,9 +3,9 @@
 #include <iostream>
 #include <stack>
 
-#include "nodes/core/node_link.hpp"
 #include "nodes/core/io/json.hpp"
 #include "nodes/core/node.hpp"
+#include "nodes/core/node_link.hpp"
 
 // Macro for Not implemented with file and line number
 #define NOT_IMPLEMENTED()                                               \
@@ -41,14 +41,16 @@ std::string NodeTreeDescriptor::conversion_node_name(
     SocketType from,
     SocketType to)
 {
-    return std::string("conv_") + std::string(from.info().name()) + "_to_" +
-           std::string(to.info().name());
+    return std::string("conv_") + get_type_name(from) + "_to_" +
+           get_type_name(to);
 }
 
 bool NodeTreeDescriptor::can_convert(SocketType from, SocketType to) const
 {
+    if (!from || !to) {
+        return true;
+    }
     auto node_name = conversion_node_name(from, to);
-
     return conversion_node_registry.find(node_name) !=
            conversion_node_registry.end();
 }

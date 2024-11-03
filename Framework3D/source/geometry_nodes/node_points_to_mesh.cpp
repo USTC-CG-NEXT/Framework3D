@@ -8,7 +8,7 @@
 #include "geom_node_base.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(points_to_mesh)
 {
     b.add_input<Geometry>("Points");
     b.add_input<float>("Voxel Size").min(0.1).max(5).default_val(0.5f);
@@ -59,7 +59,7 @@ struct WrappingParticleList {
     const pxr::VtArray<float>& points_widths;
 };
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(points_to_mesh)
 {
     auto points_geometry = params.get_input<Geometry>("Points");
 
@@ -131,8 +131,6 @@ NODE_EXECUTION_FUNCTION(exec)
 
     params.set_output("Mesh", std::move(mesh_geometry));
 }
-
-
 
 NODE_DECLARATION_UI(points_to_mesh);
 NODE_DEF_CLOSE_SCOPE

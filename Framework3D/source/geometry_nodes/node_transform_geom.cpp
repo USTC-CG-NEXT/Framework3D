@@ -5,7 +5,7 @@
 #include "pxr/base/gf/matrix4f.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(transform_geom)
 {
     b.add_input<Geometry>("Geometry");
 
@@ -24,7 +24,7 @@ NODE_DECLARATION_FUNCTION(declare)
     b.add_output<Geometry>("Geometry");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(transform_geom)
 {
     auto geometry = params.get_input<Geometry>("Geometry");
 
@@ -53,8 +53,6 @@ NODE_EXECUTION_FUNCTION(exec)
 
     params.set_output("Geometry", std::move(geometry));
 }
-
-
 
 NODE_DECLARATION_UI(transform_geom);
 NODE_DEF_CLOSE_SCOPE

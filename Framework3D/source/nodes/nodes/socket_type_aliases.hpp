@@ -20,10 +20,10 @@ class Animator;
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace socket_aliases {
 using Float1Buffer = pxr::VtArray<float>;
-using Float2Buffer = pxr::VtArray<pxr::GfVec2f>;
-using Float3Buffer = pxr::VtArray<pxr::GfVec3f>;
+using pxr::GfVec2f = pxr::VtArray<pxr::GfVec2f>;
+using pxr::VtVec3fArray = pxr::VtArray<pxr::GfVec3f>;
 using Float4Buffer = pxr::VtArray<pxr::GfVec4f>;
-using Int1Buffer = pxr::VtArray<int>;
+using pxr::VtArray<int> = pxr::VtArray<int>;
 using Int2Buffer = pxr::VtArray<pxr::GfVec2i>;
 using Int3Buffer = pxr::VtArray<pxr::GfVec3i>;
 using Int4Buffer = pxr::VtArray<pxr::GfVec4i>;

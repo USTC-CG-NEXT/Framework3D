@@ -8,10 +8,6 @@
 #include "nodes/core/node_exec.hpp"
 #include "nodes/core/node_tree.hpp"
 
-namespace USTC_CG {
-struct GeomNodeGlobalParams;
-}
-
 namespace nvrhi {
 class IDevice;
 }

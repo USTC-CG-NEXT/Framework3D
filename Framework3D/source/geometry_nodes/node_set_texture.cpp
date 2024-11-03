@@ -2,14 +2,14 @@
 #include "geom_node_base.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(set_texture)
 {
     b.add_input<Geometry>("Geometry");
     b.add_input<std::string>("Texture Name").default_val("");
     b.add_output<Geometry>("Geometry");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(set_texture)
 {
     auto texture = params.get_input<std::string>("Texture Name");
 
@@ -24,8 +24,6 @@ NODE_EXECUTION_FUNCTION(exec)
 
     params.set_output("Geometry", std::move(geometry));
 }
-
-
 
 NODE_DECLARATION_UI(set_texture);
 NODE_DEF_CLOSE_SCOPE

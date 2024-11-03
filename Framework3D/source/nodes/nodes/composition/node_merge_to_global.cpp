@@ -1,4 +1,4 @@
-#include "Nodes/GlobalUsdStage.h"
+
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
 #include "Nodes/node_register.h"
@@ -25,7 +25,7 @@ static void node_exec(ExeParams params)
     auto path = params.get_input<std::string>("Path");
     auto sdf_path = SdfPath(path.c_str());
 
-    auto global_stage = GlobalUsdStage::global_usd_stage;
+    auto global_stage = g_stage->get_usd_stage();
 
     UsdPrim assemblyRoot =
         global_stage->DefinePrim(SdfPath("/Reference").AppendPath(sdf_path));

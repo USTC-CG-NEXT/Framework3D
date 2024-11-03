@@ -6,7 +6,7 @@
 #include <pxr/usd/usdLux/rectLight.h>
 #include <pxr/usd/usdLux/sphereLight.h>
 
-#include "Nodes/GlobalUsdStage.h"
+
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
 #include "Nodes/node_register.h"
@@ -42,7 +42,7 @@ static void node_exec_add_sphere_light(ExeParams params)
     auto path = params.get_input<std::string>("Path");
     auto sdf_path = SdfPath(path.c_str());
 
-    auto global_stage = GlobalUsdStage::global_usd_stage;
+    auto global_stage = g_stage->get_usd_stage();
 
     auto xformPath = SdfPath("/Reference").AppendPath(SdfPath("XForm" + sdf_path.GetString()));
     auto lightPath = xformPath.AppendPath(sdf_path);
@@ -94,7 +94,7 @@ static void node_exec_add_dome_light(ExeParams params)
     auto path = params.get_input<std::string>("Path");
     auto sdf_path = SdfPath(path.c_str());
 
-    auto global_stage = GlobalUsdStage::global_usd_stage;
+    auto global_stage = g_stage->get_usd_stage();
 
     auto xformPath = SdfPath("/Reference").AppendPath(SdfPath("XForm" + sdf_path.GetString()));
     auto lightPath = xformPath.AppendPath(sdf_path);
@@ -163,7 +163,7 @@ static void node_exec_add_rect_light(ExeParams params)
     auto path = params.get_input<std::string>("Path");
     auto sdf_path = SdfPath(path.c_str());
 
-    auto global_stage = GlobalUsdStage::global_usd_stage;
+    auto global_stage = g_stage->get_usd_stage();
 
     auto xformPath = SdfPath("/Reference").AppendPath(SdfPath("XForm" + sdf_path.GetString()));
     auto lightPath = xformPath.AppendPath(sdf_path);
@@ -222,7 +222,7 @@ static void node_exec_add_distant_light(ExeParams params)
     auto path = params.get_input<std::string>("Path");
     auto sdf_path = SdfPath(path.c_str());
 
-    auto global_stage = GlobalUsdStage::global_usd_stage;
+    auto global_stage = g_stage->get_usd_stage();
 
     auto xformPath = SdfPath("/Reference").AppendPath(SdfPath("XForm" + sdf_path.GetString()));
     auto lightPath = xformPath.AppendPath(sdf_path);

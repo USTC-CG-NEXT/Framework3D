@@ -30,7 +30,7 @@ class NODES_CORE_API NodeTreeDescriptor {
 
    private:
     friend class NodeWidget;
-    std::unordered_map<std::string, NodeTypeInfo> node_registry;
+    std::map<std::string, NodeTypeInfo> node_registry;
 
     std::unordered_set<std::string> conversion_node_registry;
 };

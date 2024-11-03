@@ -17,7 +17,18 @@ entt::meta_ctx& get_entt_ctx()
 
 SocketType get_socket_type(const char* t)
 {
+    if (std::string(t).empty()) {
+        return SocketType();
+    }
     return entt::resolve(get_entt_ctx(), entt::hashed_string{ t });
+}
+
+std::string get_type_name(SocketType type)
+{
+    if (!type) {
+        return "";
+    }
+    return std::string(type.info().name());
 }
 
 template<>

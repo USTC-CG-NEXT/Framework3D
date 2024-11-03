@@ -2,18 +2,18 @@
 #include "geom_node_base.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(mesh_compose)
 {
-    b.add_input<float3Buffer>("Vertices");
-    b.add_input<int1Buffer>("FaceVertexCounts");
-    b.add_input<int1Buffer>("FaceVertexIndices");
-    b.add_input<float3Buffer>("Normals");
-    b.add_input<float2Buffer>("Texcoords");
+    b.add_input<pxr::VtVec3fArray>("Vertices");
+    b.add_input<pxr::VtArray<int>>("FaceVertexCounts");
+    b.add_input<pxr::VtArray<int>>("FaceVertexIndices");
+    b.add_input<pxr::VtArray<pxr::GfVec3f>>("Normals");
+    b.add_input<pxr::GfVec2f>("Texcoords");
 
     b.add_output<Geometry>("Mesh");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(mesh_compose)
 {
     Geometry geometry;
     auto mesh_component = std::make_shared<MeshComponent>(&geometry);
@@ -42,8 +42,6 @@ NODE_EXECUTION_FUNCTION(exec)
 
     params.set_output("Mesh", geometry);
 }
-
-
 
 NODE_DECLARATION_UI(mesh_compose);
 NODE_DEF_CLOSE_SCOPE

@@ -1,13 +1,11 @@
 ﻿#include "GCore/Components/CurveComponent.h"
 #include "GCore/Components/MeshOperand.h"
-#include "RCore/Backend.hpp"
 #include "geom_node_base.h"
-#include "nvrhi/utils.h"
 #include "pxr/base/gf/matrix3f.h"
 #include "pxr/base/gf/rotation.h"
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(declare)
+NODE_DECLARATION_FUNCTION(curve_to_mesh)
 {
     b.add_input<Geometry>("Curve");
     b.add_input<Geometry>("Profile Curve");
@@ -15,7 +13,7 @@ NODE_DECLARATION_FUNCTION(declare)
     b.add_output<Geometry>("Mesh");
 }
 
-NODE_EXECUTION_FUNCTION(exec)
+NODE_EXECUTION_FUNCTION(curve_to_mesh)
 {
     Geometry mesh_geom = Geometry::CreateMesh();
 
@@ -101,7 +99,6 @@ NODE_EXECUTION_FUNCTION(exec)
             auto new_pos = tbn * profile_curve_verts[j] + guide_curve_verts[i];
         }
 
-
         if (!last_of_nonperiodic) {
             face_vertex_counts.push_back(4);
         }
@@ -115,8 +112,6 @@ NODE_EXECUTION_FUNCTION(exec)
 
     mesh->set_texcoords_array(texcoords_array);
 }
-
-
 
 NODE_DECLARATION_UI(curve_to_mesh);
 NODE_DEF_CLOSE_SCOPE

@@ -1,38 +1,22 @@
 #pragma once
 
-#include "GOP.h"
-#include "Nodes/GlobalUsdStage.h"
 #include "GCore/api.h"
-#include "Utils/Logger/Logger.h"
+#include "GOP.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-struct GeometryComponent {
-    virtual ~GeometryComponent()
-    {
-        GlobalUsdStage::global_usd_stage->RemovePrim(scratch_buffer_path);
-    }
+struct GEOMETRY_API GeometryComponent {
+    virtual ~GeometryComponent();
 
-    explicit GeometryComponent(Geometry* attached_operand)
-        : attached_operand(attached_operand)
-    {
-        scratch_buffer_path = pxr::SdfPath(
-            "/scratch_buffer/component_" +
-            std::to_string(reinterpret_cast<long long>(this)));
-    }
+    explicit GeometryComponent(Geometry* attached_operand);
 
     virtual GeometryComponentHandle copy(Geometry* operand) const = 0;
     virtual std::string to_string() const = 0;
 
-    [[nodiscard]] Geometry* get_attached_operand() const
-    {
-        return attached_operand;
-    }
+    [[nodiscard]] Geometry* get_attached_operand() const;
 
-   protected:
+protected:
     Geometry* attached_operand;
     pxr::SdfPath scratch_buffer_path;
 };
-
-void GEOMETRY_API copy_prim(const pxr::UsdPrim& from, const pxr::UsdPrim& to);
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
