@@ -5,6 +5,7 @@ import requests
 from tqdm import tqdm
 import argparse
 
+
 def copytree_common_to_binaries(folder, target="Debug", dst=None, dry_run=False):
     root_dir = os.getcwd()
     dst_path = os.path.join(root_dir, "Binaries", target, dst or "")
@@ -62,9 +63,7 @@ def download_and_extract(url, extract_path, folder, targets, dry_run=False):
 def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=False):
     if not copy_only:
         # First download and extract the source files
-        url = (
-            "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v24.11.zip"
-        )
+        url = "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v24.11.zip"
 
         zip_path = os.path.join(
             os.path.dirname(__file__), "SDK", "cache", url.split("/")[-1]
@@ -77,7 +76,9 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             download_with_progress(url, zip_path, dry_run)
 
         # Extract the downloaded zip file
-        extract_path = os.path.join(os.path.dirname(__file__), "SDK", "OpenUSD", "source")
+        extract_path = os.path.join(
+            os.path.dirname(__file__), "SDK", "OpenUSD", "source"
+        )
         if keep_original_files and os.path.exists(extract_path):
             print(f"Keeping original files in {extract_path}")
         else:
@@ -110,36 +111,105 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             if "VULKAN_SDK" in os.environ:
                 vulkan_support = "-DPXR_ENABLE_VULKAN_SUPPORT=ON"
             else:
-                print("Warning: VULKAN_SDK is not in the path. Highly recommend setting it for Vulkan support.")
-            
+                print(
+                    "Warning: VULKAN_SDK is not in the path. Highly recommend setting it for Vulkan support."
+                )
+
             build_variant_map = {
                 "Debug": "debug",
                 "Release": "release",
-                "RelWithDebInfo": "relwithdebuginfo"
+                "RelWithDebInfo": "relwithdebuginfo",
             }
             build_variant = build_variant_map.get(target, target.lower())
             if build_variant == "relwithdebuginfo":
-                openvdb_args = "OpenVDB,-DCMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO=\"RelWithDebInfo;Release;\" "
+                openvdb_args = 'OpenVDB,-DCMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO="RelWithDebInfo;Release;" '
             else:
                 openvdb_args = " "
-            
-            build_command = f"python {build_script} --build-args USD,\"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}\" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}"
-            
+
+            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
+
             if dry_run:
                 print(f"[DRY RUN] Would run: {build_command}")
             else:
                 os.system(build_command)
 
-    
     # Copy the built binaries to the Binaries folder
     for target in targets:
-        copytree_common_to_binaries(os.path.join("OpenUSD", target, "bin"), target=target, dry_run=dry_run)
-        copytree_common_to_binaries(os.path.join("OpenUSD", target, "lib"), target=target, dry_run=dry_run)
-        copytree_common_to_binaries(os.path.join("OpenUSD", target, "plugin"), target=target, dry_run=dry_run)
-        
+        copytree_common_to_binaries(
+            os.path.join("OpenUSD", target, "bin"), target=target, dry_run=dry_run
+        )
+        copytree_common_to_binaries(
+            os.path.join("OpenUSD", target, "lib"), target=target, dry_run=dry_run
+        )
+        copytree_common_to_binaries(
+            os.path.join("OpenUSD", target, "plugin"), target=target, dry_run=dry_run
+        )
+
         # Copy libraries and resources wholly
-        copytree_common_to_binaries(os.path.join("OpenUSD", target, "libraries"), target=target, dst="libraries", dry_run=dry_run)
-        copytree_common_to_binaries(os.path.join("OpenUSD", target, "resources"), target=target, dst="resources", dry_run=dry_run)
+        copytree_common_to_binaries(
+            os.path.join("OpenUSD", target, "libraries"),
+            target=target,
+            dst="libraries",
+            dry_run=dry_run,
+        )
+        copytree_common_to_binaries(
+            os.path.join("OpenUSD", target, "resources"),
+            target=target,
+            dst="resources",
+            dry_run=dry_run,
+        )
+
+import concurrent.futures
+
+def pack_sdk(dry_run=False):
+    src_dir = os.path.join(os.getcwd(), "SDK")
+    dst_dir = os.path.join(os.getcwd(), "SDK_temp")
+
+    def copy_file(src_file, dst_file):
+        if dry_run:
+            print(f"[DRY RUN] Would copy {src_file} to {dst_file}")
+        else:
+            shutil.copy2(src_file, dst_file)
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for root, dirs, files in os.walk(src_dir):
+            # Skip build, cache directories and anything under */src/
+            if any(skip_dir in root for skip_dir in ["\\build", "\\cache", "\\src", "\\source"]):
+                continue
+
+            # Create corresponding directory in destination
+            relative_path = os.path.relpath(root, src_dir)
+            dst_path = os.path.join(dst_dir, relative_path)
+            if not dry_run:
+                os.makedirs(dst_path, exist_ok=True)
+
+            for file in files:
+                if file.endswith(".pdb") or file == "libopenvdb.lib":
+                    print(f"Skipping {os.path.join(root, file)}")
+                    continue
+
+                src_file = os.path.join(root, file)
+                dst_file = os.path.join(dst_path, file)
+                futures.append(executor.submit(copy_file, src_file, dst_file))
+
+        # Wait for all threads to complete
+        concurrent.futures.wait(futures)
+
+        # Pack the SDK_temp directory into SDK.zip
+        if dry_run:
+            print(f"[DRY RUN] Would pack {dst_dir} into SDK.zip")
+        else:
+            shutil.make_archive("SDK", "zip", dst_dir)
+            print(f"Packed {dst_dir} into SDK.zip")
+
+        # Delete the SDK_temp directory
+        if dry_run:
+            print(f"[DRY RUN] Would delete {dst_dir}")
+        else:
+            shutil.rmtree(dst_dir)
+            print(f"Deleted {dst_dir}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Download and configure libraries.")
@@ -169,12 +239,21 @@ def main():
         action="store_true",
         help="Only copy files, skip downloading and building.",
     )
+    parser.add_argument(
+        "--pack",
+        action="store_true",
+        help="Pack SDK files to SDK_temp, skipping pdb files and build/cache directories.",
+    )
     args = parser.parse_args()
 
     targets = args.build_variant
     dry_run = args.dry_run
     keep_original_files = args.keep_original_files
     copy_only = args.copy_only
+
+    if args.pack:
+        pack_sdk(dry_run)
+        return
 
     if args.all:
         args.library = ["openusd", "slang", "dxc"]
@@ -205,7 +284,9 @@ def main():
                 )
             else:
                 for target in targets:
-                    copytree_common_to_binaries(folders[lib], target=target, dry_run=dry_run)
+                    copytree_common_to_binaries(
+                        folders[lib], target=target, dry_run=dry_run
+                    )
 
 
 if __name__ == "__main__":
