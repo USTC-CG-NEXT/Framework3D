@@ -21,7 +21,7 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-#include "USTC_CG.h"
+#include "api.h"
 
 #include "sampler.h"
 

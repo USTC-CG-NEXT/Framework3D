@@ -1,6 +1,5 @@
 #include "renderer.h"
 
-#include "Nodes/node_exec_eager.hpp"
 #include "Nodes/node_tree.hpp"
 #include "camera.h"
 #include "node_global_payload.h"

@@ -25,7 +25,7 @@
 #define EXTRAS_IMAGING_EXAMPLES_HD_TINY_MESH_H
 
 #include "RCore/Backend.hpp"
-#include "USTC_CG.h"
+#include "api.h"
 #include "pxr/base/gf/matrix4f.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/mesh.h"

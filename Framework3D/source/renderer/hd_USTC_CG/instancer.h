@@ -23,7 +23,7 @@
 //
 #ifndef PXR_IMAGING_PLUGIN_HD_EMBREE_INSTANCER_H
 #define PXR_IMAGING_PLUGIN_HD_EMBREE_INSTANCER_H
-#include "USTC_CG.h"
+#include "api.h"
 
 #include "pxr/pxr.h"
 

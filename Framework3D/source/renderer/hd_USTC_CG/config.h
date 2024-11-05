@@ -24,7 +24,7 @@
 #ifndef PXR_IMAGING_PLUGIN_HD_EMBREE_CONFIG_H
 #define PXR_IMAGING_PLUGIN_HD_EMBREE_CONFIG_H
 
-#include "USTC_CG.h"
+#include "api.h"
 #include "pxr/pxr.h"
 #include "pxr/base/tf/singleton.h"
 

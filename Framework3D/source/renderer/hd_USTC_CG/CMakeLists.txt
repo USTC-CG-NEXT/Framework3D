@@ -32,14 +32,9 @@ pxr_plugin(${PXR_PACKAGE}
         hf
         hd
         hdx
-        ${TBB_tbb_LIBRARY}
         usdLux
-        nodes
-        RCore
         usdImaging
-        d3d12
-        dxgi 
-        DXC::dxc
+        RHI
 
     INCLUDE_DIRS
         ${TBB_INCLUDE_DIRS}
@@ -57,7 +52,6 @@ pxr_plugin(${PXR_PACKAGE}
         camera
         light
         material
-
         geometries/mesh
 
     RESOURCE_FILES

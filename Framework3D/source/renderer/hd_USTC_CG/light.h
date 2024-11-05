@@ -1,5 +1,5 @@
 #pragma once
-#include "USTC_CG.h"
+#include "api.h"
 #include "pxr/base/gf/vec3f.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/light.h"
@@ -14,7 +14,7 @@ class Shader;
 #endif
 
 using namespace pxr;
-class USTC_CG_API Hd_USTC_CG_Light : public HdLight {
+class HD_USTC_CG_API Hd_USTC_CG_Light : public HdLight {
    public:
     explicit Hd_USTC_CG_Light(const SdfPath& id, const TfToken& lightType)
         : HdLight(id),
@@ -40,9 +40,9 @@ class USTC_CG_API Hd_USTC_CG_Light : public HdLight {
     TfHashMap<TfToken, VtValue, TfToken::HashFunctor> _params;
 };
 
-class USTC_CG_API Hd_USTC_CG_Dome_Light : public Hd_USTC_CG_Light {
+class HD_USTC_CG_API Hd_USTC_CG_Dome_Light : public Hd_USTC_CG_Light {
    public:
-    struct USTC_CG_API InputDescriptor {
+    struct HD_USTC_CG_API InputDescriptor {
         HioImageSharedPtr image = nullptr;
 
         TfToken wrapS;

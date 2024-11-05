@@ -24,7 +24,7 @@
 #pragma once
 
 #include "Nodes/node_exec.hpp"
-#include "USTC_CG.h"
+#include "api.h"
 #include "nvrhi/d3d12.h"
 #include "pxr/imaging/hd/renderDelegate.h"
 #include "pxr/imaging/hd/renderThread.h"

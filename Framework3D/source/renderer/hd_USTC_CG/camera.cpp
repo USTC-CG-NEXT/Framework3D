@@ -1,6 +1,8 @@
 #include "camera.h"
+#include "pxr/imaging/hd/camera.h"
 
 #include "config.h"
+#include "renderDelegate.h"
 #include "pxr/base/gf/matrix4f.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
