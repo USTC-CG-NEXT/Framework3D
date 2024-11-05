@@ -61,9 +61,6 @@ class HD_USTC_CG_API Hd_USTC_CG_Dome_Light : public Hd_USTC_CG_Light {
     {
     }
 
-    GLuint createTextureFromHioImage(const InputDescriptor& descriptor);
-    void RefreshGLBuffer();
-    void BindTextures(Shader& shader, unsigned& id);
 
     void _PrepareDomeLight(SdfPath const& id, HdSceneDelegate* scene_delegate);
     void Sync(HdSceneDelegate* sceneDelegate, HdRenderParam* renderParam, HdDirtyBits* dirtyBits)

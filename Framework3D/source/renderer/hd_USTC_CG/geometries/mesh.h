@@ -24,8 +24,8 @@
 #ifndef EXTRAS_IMAGING_EXAMPLES_HD_TINY_MESH_H
 #define EXTRAS_IMAGING_EXAMPLES_HD_TINY_MESH_H
 
-
 #include "api.h"
+#include "nvrhi/nvrhi.h"
 #include "pxr/base/gf/matrix4f.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/mesh.h"
@@ -62,8 +62,8 @@ class Hd_USTC_CG_Mesh final : public HdMesh {
     static constexpr GLuint texcoordLocation = 2;
 
     nvrhi::rt::AccelStructHandle BLAS;
-    BufferHandle vertexBuffer;
-    BufferHandle indexBuffer;
+    nvrhi::BufferHandle vertexBuffer;
+    nvrhi::BufferHandle indexBuffer;
 
 #ifdef USTC_CG_BACKEND_OPENGL
 

@@ -28,9 +28,8 @@
 
 #include "../instancer.h"
 #include "../renderParam.h"
+#include "Logger/Logger.h"
 #include "api.h"
-#include "Utils/Logger/Logger.h"
-#include "context.h"
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/imaging/hd/extComputationUtils.h"
@@ -134,7 +133,7 @@ void Hd_USTC_CG_Mesh::_UpdatePrimvarSources(
         for (const HdPrimvarDescriptor& pv : primvars) {
             if (HdChangeTracker::IsPrimvarDirty(dirtyBits, id, pv.name) &&
                 pv.name != HdTokens->points) {
-                logging("Primvar source " + pv.name.GetString(), Info);
+                log::info(("Primvar source " + pv.name.GetString()).c_str());
                 _primvarSourceMap[pv.name] = {
                     GetPrimvar(sceneDelegate, pv.name), interp
                 };
@@ -147,7 +146,7 @@ void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
 {
     auto device = render_param->nvrhi_device;
 
-    BufferDesc buffer_desc;
+    nvrhi::BufferDesc buffer_desc;
 
     buffer_desc.byteSize = points.size() * 3 * sizeof(float);
     buffer_desc.format = nvrhi::Format::RGB32_FLOAT;
@@ -211,7 +210,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         HdRenderIndex& renderIndex = sceneDelegate->GetRenderIndex();
         HdInstancer* instancer = renderIndex.GetInstancer(GetInstancerId());
         transforms = static_cast<Hd_USTC_CG_GL_Instancer*>(instancer)
-            ->ComputeInstanceTransforms(GetId());
+                         ->ComputeInstanceTransforms(GetId());
     }
     else {
         // If there's no instancer, add a single instance with transform

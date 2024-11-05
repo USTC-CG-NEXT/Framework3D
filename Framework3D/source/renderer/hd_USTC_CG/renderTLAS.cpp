@@ -5,7 +5,7 @@ USTC_CG::Hd_USTC_CG_GL_RenderTLAS::Hd_USTC_CG_GL_RenderTLAS(
     : nvrhi_device(nvrhi_device)
 {
     m_command_list = nvrhi_device->createCommandList();
-    AccelStructDesc tlasDesc;
+    nvrhi::rt::AccelStructDesc tlasDesc;
     tlasDesc.isTopLevel = true;
     tlasDesc.topLevelMaxInstances = 114514;
     TLAS = nvrhi_device->createAccelStruct(tlasDesc);

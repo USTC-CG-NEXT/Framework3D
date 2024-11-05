@@ -1078,9 +1078,6 @@ const char *DeviceManager::GetWindowTitle()
 DeviceManager *DeviceManager::Create(nvrhi::GraphicsAPI api)
 {
     switch (api) {
-#if USTC_CG_WITH_DX11
-        case nvrhi::GraphicsAPI::D3D11: return CreateD3D11();
-#endif
 #if USTC_CG_WITH_DX12
         case nvrhi::GraphicsAPI::D3D12: return CreateD3D12();
 #endif

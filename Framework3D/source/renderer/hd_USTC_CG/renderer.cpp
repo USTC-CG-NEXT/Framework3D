@@ -1,8 +1,6 @@
 #include "renderer.h"
 
-#include "Nodes/node_tree.hpp"
 #include "camera.h"
-#include "node_global_payload.h"
 #include "nvrhi/d3d12.h"
 #include "pxr/imaging/hd/renderBuffer.h"
 #include "pxr/imaging/hd/tokens.h"
@@ -20,9 +18,9 @@ Hd_USTC_CG_Renderer::Hd_USTC_CG_Renderer(Hd_USTC_CG_RenderParam* render_param)
 
 Hd_USTC_CG_Renderer::~Hd_USTC_CG_Renderer()
 {
-    auto executor =
-        dynamic_cast<EagerNodeTreeExecutorRender*>(render_param->executor);
-    executor->reset_allocator();
+    // auto executor =
+    //     dynamic_cast<EagerNodeTreeExecutorRender*>(render_param->executor);
+    // executor->reset_allocator();
 }
 
 void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
@@ -44,80 +42,81 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
         return;
     }
 
-    // Fill the nodes that requires value from the scene.
-    auto executor =
-        dynamic_cast<EagerNodeTreeExecutorRender*>(render_param->executor);
-    auto& node_tree = render_param->node_tree;
+    //// Fill the nodes that requires value from the scene.
+    // auto executor =
+    //     dynamic_cast<EagerNodeTreeExecutorRender*>(render_param->executor);
+    // auto& node_tree = render_param->node_tree;
 
-    executor->prepare_tree(node_tree);
+    // executor->prepare_tree(node_tree);
 
-    executor->set_device(render_param->nvrhi_device);
+    // executor->set_device(render_param->nvrhi_device);
 
-    for (auto&& node : node_tree->nodes) {
-        auto try_fill_info = [&node, &executor, this]<typename T>(
-                                 const char* id_name, const T& obj) {
-            if (std::string(node->typeinfo->id_name) == id_name) {
-                assert(node->get_outputs().size() == 1);
-                auto output_socket = node->get_outputs()[0];
-                entt::meta_any data(*(render_param->context), obj);
-                executor->sync_node_from_external_storage(output_socket, data);
-            }
-        };
-        try_fill_info("render_scene_lights", *render_param->lights);
-        try_fill_info("render_scene_camera", *render_param->cameras);
-        try_fill_info("render_scene_meshes", *render_param->meshes);
-        try_fill_info("render_scene_materials", *render_param->materials);
-        try_fill_info("node_accel_struct", render_param->TLAS->get_tlas());
-    }
-    RenderGlobalParams params;
-    Hd_USTC_CG_Camera* free_camera = nullptr;
-    for (Hd_USTC_CG_Camera* camera : *render_param->cameras) {
-        if (camera->GetId() != SdfPath::EmptyPath()) {
-            free_camera = camera;
-            break;
-        }
-    }
-    assert(free_camera);
-    params.camera = free_camera;
-    executor->set_global_param(&params);
-    executor->execute_tree(node_tree);
+    // for (auto&& node : node_tree->nodes) {
+    //     auto try_fill_info = [&node, &executor, this]<typename T>(
+    //                              const char* id_name, const T& obj) {
+    //         if (std::string(node->typeinfo->id_name) == id_name) {
+    //             assert(node->get_outputs().size() == 1);
+    //             auto output_socket = node->get_outputs()[0];
+    //             entt::meta_any data(*(render_param->context), obj);
+    //             executor->sync_node_from_external_storage(output_socket,
+    //             data);
+    //         }
+    //     };
+    //     try_fill_info("render_scene_lights", *render_param->lights);
+    //     try_fill_info("render_scene_camera", *render_param->cameras);
+    //     try_fill_info("render_scene_meshes", *render_param->meshes);
+    //     try_fill_info("render_scene_materials", *render_param->materials);
+    //     try_fill_info("node_accel_struct", render_param->TLAS->get_tlas());
+    // }
+    // RenderGlobalParams params;
+    // Hd_USTC_CG_Camera* free_camera = nullptr;
+    // for (Hd_USTC_CG_Camera* camera : *render_param->cameras) {
+    //     if (camera->GetId() != SdfPath::EmptyPath()) {
+    //         free_camera = camera;
+    //         break;
+    //     }
+    // }
+    // assert(free_camera);
+    // params.camera = free_camera;
+    // executor->set_global_param(&params);
+    // executor->execute_tree(node_tree);
 
-    for (size_t i = 0; i < _aovBindings.size(); ++i) {
-        std::string present_name = "render_present";
-        TextureHandle texture = nullptr;
+    // for (size_t i = 0; i < _aovBindings.size(); ++i) {
+    //     std::string present_name = "render_present";
+    //     TextureHandle texture = nullptr;
 
-        if (_aovBindings[i].aovName == HdAovTokens->depth) {
-            present_name = "render_present_depth";
-        }
+    //    if (_aovBindings[i].aovName == HdAovTokens->depth) {
+    //        present_name = "render_present_depth";
+    //    }
 
-        for (auto&& node : node_tree->nodes) {
-            auto try_fetch_info = [&node, &executor]<typename T>(
-                                      const char* id_name, T& obj) {
-                if (std::string(node->typeinfo->id_name) == id_name) {
-                    assert(node->get_inputs().size() == 1);
-                    auto output_socket = node->get_inputs()[0];
-                    entt::meta_any data;
-                    executor->sync_node_to_external_storage(
-                        output_socket, data);
-                    obj = data.cast<T>();
-                }
-            };
-            try_fetch_info(present_name.c_str(), texture);
-            if (texture) {
-                break;
-            }
-        }
-        if (texture) {
-            auto rb = static_cast<Hd_USTC_CG_RenderBufferGL*>(
-                _aovBindings[i].renderBuffer);
-            rb->Present(texture);
-            rb->SetConverged(true);
-        }
-    }
+    //    for (auto&& node : node_tree->nodes) {
+    //        auto try_fetch_info = [&node, &executor]<typename T>(
+    //                                  const char* id_name, T& obj) {
+    //            if (std::string(node->typeinfo->id_name) == id_name) {
+    //                assert(node->get_inputs().size() == 1);
+    //                auto output_socket = node->get_inputs()[0];
+    //                entt::meta_any data;
+    //                executor->sync_node_to_external_storage(
+    //                    output_socket, data);
+    //                obj = data.cast<T>();
+    //            }
+    //        };
+    //        try_fetch_info(present_name.c_str(), texture);
+    //        if (texture) {
+    //            break;
+    //        }
+    //    }
+    //    if (texture) {
+    //        auto rb = static_cast<Hd_USTC_CG_RenderBufferGL*>(
+    //            _aovBindings[i].renderBuffer);
+    //        rb->Present(texture);
+    //        rb->SetConverged(true);
+    //    }
+    //}
 
     render_param->nvrhi_device->runGarbageCollection();
 
-    executor->finalize(node_tree);
+    // executor->finalize(node_tree);
 }
 
 void Hd_USTC_CG_Renderer::Clear()
@@ -234,14 +233,17 @@ void Hd_USTC_CG_Renderer::renderTimeUpdateCamera(
 
 bool Hd_USTC_CG_Renderer::nodetree_modified()
 {
-    return render_param->node_tree->GetDirty();
+    //    return render_param->node_tree->GetDirty();
+    return false;
 }
 
 bool Hd_USTC_CG_Renderer::nodetree_modified(bool new_status)
 {
-    auto old_status = render_param->node_tree->GetDirty();
-    render_param->node_tree->SetDirty(new_status);
-    return old_status;
+    // auto old_status = render_param->node_tree->GetDirty();
+    // render_param->node_tree->SetDirty(new_status);
+    // return old_status;
+
+    return false;
 }
 
 bool Hd_USTC_CG_Renderer::_ValidateAovBindings()

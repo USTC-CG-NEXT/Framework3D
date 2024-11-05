@@ -56,3 +56,5 @@ pxr_plugin(${PXR_PACKAGE}
 )
 
 target_include_directories(${PXR_PACKAGE} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+
+target_compile_definitions(${PXR_PACKAGE} PRIVATE BUILD_HD_USTC_CG_MODULE=1)

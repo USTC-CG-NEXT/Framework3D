@@ -188,7 +188,7 @@ void DeviceManager_DX12::ReportLiveObjects()
                                    DXGI_DEBUG_RLO_DETAIL);
         HRESULT hr = pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, flags);
         if (FAILED(hr)) {
-            error("ReportLiveObjects failed, HRESULT = 0x%08x", hr);
+            log::error("ReportLiveObjects failed, HRESULT = 0x%08x", hr);
         }
     }
 }
@@ -219,7 +219,7 @@ bool DeviceManager_DX12::CreateInstanceInternal()
             m_DeviceParams.enableDebugRuntime ? DXGI_CREATE_FACTORY_DEBUG : 0,
             IID_PPV_ARGS(&m_DxgiFactory2));
         if (hres != S_OK) {
-            error(
+            log::error(
                 "ERROR in CreateDXGIFactory2.\n"
                 "For more info, get log from debug D3D runtime: (1) Install DX "
                 "SDK, and enable Debug D3D from DX Control Panel Utility. (2) "
@@ -281,9 +281,9 @@ bool DeviceManager_DX12::CreateDevice()
 
     if (FAILED(m_DxgiFactory2->EnumAdapters(adapterIndex, &m_DxgiAdapter))) {
         if (adapterIndex == 0)
-            error("Cannot find any DXGI adapters in the system.");
+            log::error("Cannot find any DXGI adapters in the system.");
         else
-            error(
+            log::error(
                 "The specified DXGI adapter %d does not exist.", adapterIndex);
         return false;
     }
@@ -575,12 +575,12 @@ void DeviceManager_DX12::ResizeSwapChain()
         m_SwapChainDesc.Flags);
 
     if (FAILED(hr)) {
-        fatal("ResizeBuffers failed");
+        log::fatal("ResizeBuffers failed");
     }
 
     bool ret = CreateRenderTargets();
     if (!ret) {
-        fatal("CreateRenderTarget failed");
+        log::fatal("CreateRenderTarget failed");
     }
 }
 

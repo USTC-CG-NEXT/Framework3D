@@ -23,16 +23,12 @@
 //
 #ifndef EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDERER_PLUGIN_H
 #define EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDERER_PLUGIN_H
-#include "USTC_CG.h"
-
-#include "pxr/pxr.h"
 #include "api.h"
 #include "pxr/imaging/hd/rendererPlugin.h"
+#include "pxr/pxr.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
-
-void HD_USTC_CG_GL_API foo();
 
 ///
 /// \class Hd_USTC_CG_GL_RendererPlugin
@@ -45,9 +41,9 @@ void HD_USTC_CG_GL_API foo();
 /// prims (which translate scene data into drawable representations) and Hydra
 /// renderpasses (which draw the scene to the framebuffer).
 ///
-class HD_USTC_CG_GL_API Hd_USTC_CG_GL_RendererPlugin final : public HdRendererPlugin
-{
-public:
+class HD_USTC_CG_API Hd_USTC_CG_GL_RendererPlugin final
+    : public HdRendererPlugin {
+   public:
     Hd_USTC_CG_GL_RendererPlugin() = default;
     virtual ~Hd_USTC_CG_GL_RendererPlugin() = default;
 
@@ -56,7 +52,7 @@ public:
 
     /// Construct a new render delegate of type Hd_USTC_CG_RenderDelegate.
     virtual HdRenderDelegate *CreateRenderDelegate(
-        HdRenderSettingsMap const& settingsMap) override;
+        HdRenderSettingsMap const &settingsMap) override;
 
     /// Destroy a render delegate created by this class's CreateRenderDelegate.
     ///   \param renderDelegate The render delegate to delete.
@@ -66,12 +62,13 @@ public:
     /// Checks to see if the plugin is supported on the running system.
     virtual bool IsSupported(bool gpuEnabled = true) const override;
 
-private:
+   private:
     // This class does not support copying.
-    Hd_USTC_CG_GL_RendererPlugin(const Hd_USTC_CG_GL_RendererPlugin&) = delete;
-    Hd_USTC_CG_GL_RendererPlugin &operator =(const Hd_USTC_CG_GL_RendererPlugin&) = delete;
+    Hd_USTC_CG_GL_RendererPlugin(const Hd_USTC_CG_GL_RendererPlugin &) = delete;
+    Hd_USTC_CG_GL_RendererPlugin &operator=(
+        const Hd_USTC_CG_GL_RendererPlugin &) = delete;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE
 
-#endif // EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDERER_PLUGIN_H
+#endif  // EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDERER_PLUGIN_H

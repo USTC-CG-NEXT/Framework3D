@@ -159,34 +159,8 @@ bool Hd_USTC_CG_RenderBufferGL::Allocate(
     _width = dimensions[0];
     _height = dimensions[1];
     _format = format;
-#ifdef USTC_CG_BACKEND_OPENGL
-    glGenFramebuffers(1, &fbo);
-    glGenTextures(1, &tex);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        _GetGLFormat(_format),
-        _width,
-        _height,
-        0,
-        _GetGLFormat(_format),
-        _GetGLType(_format),
-        NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#endif
-
-    TextureDesc d;
+    nvrhi::TextureDesc d;
     d.width = _width;
     d.height = _height;
     d.format = nvrhi::Format::RGBA32_FLOAT;  // TODO
@@ -252,38 +226,8 @@ void Hd_USTC_CG_RenderBufferGL::Clear(const int *value)
 #endif
 }
 
-void Hd_USTC_CG_RenderBufferGL::Present(TextureHandle handle)
+void Hd_USTC_CG_RenderBufferGL::Present(nvrhi::TextureHandle handle)
 {
-#ifdef USTC_CG_BACKEND_OPENGL
-    auto texture = handle->texture_id;
-    GLuint temp;
-    glCreateFramebuffers(1, &temp);
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, temp);
-    glFramebufferTexture2D(
-        GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, temp);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-    glFramebufferTexture2D(
-        GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-
-    glBlitFramebuffer(
-        0,
-        0,
-        _width,
-        _height,
-        0,
-        0,
-        _width,
-        _height,
-        GL_COLOR_BUFFER_BIT,
-        GL_NEAREST);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDeleteFramebuffers(1, &temp);
-#elif defined(USTC_CG_BACKEND_NVRHI)
-
     if (!m_CommandList) {
         m_CommandList = nvrhi_device->createCommandList();
     }
@@ -307,8 +251,6 @@ void Hd_USTC_CG_RenderBufferGL::Present(TextureHandle handle)
     }
 
     nvrhi_device->unmapStagingTexture(staging);
-
-#endif
 
     assert(glGetError() == GL_NO_ERROR);
 }

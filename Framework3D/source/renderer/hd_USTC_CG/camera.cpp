@@ -4,6 +4,9 @@
 #include "config.h"
 #include "renderDelegate.h"
 #include "pxr/base/gf/matrix4f.h"
+#include "pxr/base/gf/rect2i.h"
+#include "pxr/imaging/cameraUtil/framing.h"
+#include "pxr/imaging/hd/renderPassState.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
 void Hd_USTC_CG_Camera::Sync(

@@ -1,6 +1,6 @@
 #pragma once
 #include "api.h"
-#include "Utils/Logger/Logger.h"
+#include "Logger/Logger.h"
 #include "Utils/Macro/map.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/material.h"
@@ -16,7 +16,7 @@ class Shader;
 using namespace pxr;
 
 class Hio_StbImage;
-class Hd_USTC_CG_Material : public HdMaterial {
+class HD_USTC_CG_API Hd_USTC_CG_Material : public HdMaterial {
    public:
     struct InputDescriptor {
         HioImageSharedPtr image = nullptr;
@@ -37,8 +37,6 @@ class Hd_USTC_CG_Material : public HdMaterial {
     void Sync(HdSceneDelegate* sceneDelegate, HdRenderParam* renderParam, HdDirtyBits* dirtyBits)
         override;
 
-    void RefreshGLBuffer();
-    void BindTextures(Shader& shader);
     HdDirtyBits GetInitialDirtyBitsMask() const override;
 
     TfToken requireTexcoordName();
@@ -62,9 +60,6 @@ class Hd_USTC_CG_Material : public HdMaterial {
    private:
     HdMaterialNetwork2 surfaceNetwork;
 
-    // Function to create an OpenGL texture from a HioImage object
-    GLuint createTextureFromHioImage(const InputDescriptor& descriptor);
-
     void TryLoadTexture(
         const char* str,
         InputDescriptor& descriptor,
@@ -81,5 +76,7 @@ class Hd_USTC_CG_Material : public HdMaterial {
         std::map<TfToken, std::vector<HdMaterialConnection2>>::value_type& input_connection);
     void DestroyTexture(InputDescriptor& input_descriptor);
 };
+
+
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

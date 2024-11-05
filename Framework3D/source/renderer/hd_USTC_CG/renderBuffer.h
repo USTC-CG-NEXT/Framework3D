@@ -37,12 +37,15 @@ class Hd_USTC_CG_RenderBufferGL : public HdRenderBuffer {
     Hd_USTC_CG_RenderBufferGL(const SdfPath& id);
     ~Hd_USTC_CG_RenderBufferGL() override;
 
-    void Sync(HdSceneDelegate* sceneDelegate, HdRenderParam* renderParam, HdDirtyBits* dirtyBits)
-        override;
+    void Sync(
+        HdSceneDelegate* sceneDelegate,
+        HdRenderParam* renderParam,
+        HdDirtyBits* dirtyBits) override;
 
     void Finalize(HdRenderParam* renderParam) override;
 
-    bool Allocate(const GfVec3i& dimensions, HdFormat format, bool multiSampled) override;
+    bool Allocate(const GfVec3i& dimensions, HdFormat format, bool multiSampled)
+        override;
 
     unsigned int GetWidth() const override
     {
@@ -95,7 +98,7 @@ class Hd_USTC_CG_RenderBufferGL : public HdRenderBuffer {
     // The feed memory size must match the type
     void Clear(const float* value);
     void Clear(const int* value);
-    void Present(TextureHandle texture);
+    void Present(nvrhi::TextureHandle texture);
 
 #ifdef USTC_CG_BACKEND_OPENGL
     GLuint fbo = 0;
@@ -105,7 +108,7 @@ class Hd_USTC_CG_RenderBufferGL : public HdRenderBuffer {
    private:
     nvrhi::IDevice* nvrhi_device;
     nvrhi::StagingTextureHandle staging;
-    CommandListHandle m_CommandList;
+    nvrhi::CommandListHandle m_CommandList;
 
     static GLenum _GetGLFormat(HdFormat hd_format);
 

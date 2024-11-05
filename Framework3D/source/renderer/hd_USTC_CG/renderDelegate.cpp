@@ -24,20 +24,15 @@
 
 #include "renderDelegate.h"
 
-#include <dxgi1_5.h>
-
 #include <iostream>
 
-#include "Nodes/node_exec.hpp"
-#include "Nodes/node_exec_eager.hpp"
-#include "Nodes/node_tree.hpp"
-#include "Utils/Logger/Logger.h"
+#include "Logger/Logger.h"
 #include "config.h"
 #include "geometries/mesh.h"
 #include "instancer.h"
 #include "light.h"
 #include "material.h"
-#include "nvrhi/d3d12.h"
+#include "nvrhi/nvrhi.h"
 #include "nvrhi/validation.h"
 #include "pxr/imaging/hd/camera.h"
 #include "pxr/imaging/hd/extComputation.h"
@@ -54,65 +49,6 @@ using namespace pxr;
 TF_DEFINE_PUBLIC_TOKENS(
     HdEmbreeRenderSettingsTokens,
     HDEMBREE_RENDER_SETTINGS_TOKENS);
-
-struct MessageCallBack : public nvrhi::IMessageCallback {
-    void message(nvrhi::MessageSeverity severity, const char* messageText)
-        override
-    {
-        logging(messageText, Error);
-    }
-
-    static MessageCallBack callback;
-};
-MessageCallBack MessageCallBack::callback;
-
-// Find an adapter whose name contains the given string.
-static RefCountPtr<IDXGIAdapter> FindAdapter(const std::wstring& targetName)
-{
-    RefCountPtr<IDXGIAdapter> targetAdapter;
-    RefCountPtr<IDXGIFactory1> DXGIFactory;
-    HRESULT hres = CreateDXGIFactory1(IID_PPV_ARGS(&DXGIFactory));
-    if (hres != S_OK) {
-        logging(
-            "ERROR in CreateDXGIFactory.\n"
-            "For more info, get log from debug D3D runtime: (1) Install DX "
-            "SDK, and enable Debug "
-            "D3D from DX Control Panel Utility. (2) Install and start DbgView. "
-            "(3) Try running the "
-            "program again.\n");
-        return targetAdapter;
-    }
-
-    unsigned int adapterNo = 0;
-    while (SUCCEEDED(hres)) {
-        RefCountPtr<IDXGIAdapter> pAdapter;
-        hres = DXGIFactory->EnumAdapters(adapterNo, &pAdapter);
-
-        if (SUCCEEDED(hres)) {
-            DXGI_ADAPTER_DESC aDesc;
-            pAdapter->GetDesc(&aDesc);
-
-            // If no name is specified, return the first adapater.  This is the
-            // same behaviour as the default specified for D3D11CreateDevice
-            // when no adapter is specified.
-            if (targetName.length() == 0) {
-                targetAdapter = pAdapter;
-                break;
-            }
-
-            std::wstring aName = aDesc.Description;
-
-            if (aName.find(targetName) != std::string::npos) {
-                targetAdapter = pAdapter;
-                break;
-            }
-        }
-
-        adapterNo++;
-    }
-
-    return targetAdapter;
-}
 
 const TfTokenVector Hd_USTC_CG_RenderDelegate::SUPPORTED_RPRIM_TYPES = {
     HdPrimTypeTokens->mesh,
@@ -184,8 +120,6 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
                                VtValue(0) };
     _PopulateDefaultSettings(_settingDescriptors);
 
-    CreateD3DDevice();
-
     _renderParam = std::make_shared<Hd_USTC_CG_RenderParam>(
         &_renderThread,
         &_sceneVersion,
@@ -215,7 +149,7 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
 HdAovDescriptor Hd_USTC_CG_RenderDelegate::GetDefaultAovDescriptor(
     const TfToken& name) const
 {
-    logging("Attempting to acquire aov " + name.GetString());
+    log::info(("Attempting to acquire aov " + name.GetString()).c_str());
 
     if (name == HdAovTokens->color) {
         return HdAovDescriptor(
@@ -243,10 +177,10 @@ HdAovDescriptor Hd_USTC_CG_RenderDelegate::GetDefaultAovDescriptor(
 
 Hd_USTC_CG_RenderDelegate::~Hd_USTC_CG_RenderDelegate()
 {
-    _renderParam->executor->prepare_tree(_renderParam->node_tree);
-    for (auto&& node : _renderParam->node_tree->nodes) {
-        node->runtime_storage.reset();
-    }
+    //_renderParam->executor->prepare_tree(_renderParam->node_tree);
+    // for (auto&& node : _renderParam->node_tree->nodes) {
+    //    node->runtime_storage.reset();
+    //}
     _resourceRegistry.reset();
     _renderer.reset();
     std::cout << "Destroying Tiny RenderDelegate" << std::endl;
@@ -307,8 +241,7 @@ HdRprim* Hd_USTC_CG_RenderDelegate::CreateRprim(
 
 void Hd_USTC_CG_RenderDelegate::DestroyRprim(HdRprim* rPrim)
 {
-    logging(
-        "Destroy Tiny Rprim id=" + rPrim->GetId().GetString(), USTC_CG::Info);
+    log::info(("Destroy Tiny Rprim id=" + rPrim->GetId().GetString()).c_str());
     meshes.erase(
         std::remove(meshes.begin(), meshes.end(), rPrim), meshes.end());
     delete rPrim;
@@ -388,7 +321,7 @@ HdSprim* Hd_USTC_CG_RenderDelegate::CreateFallbackSprim(const TfToken& typeId)
 
 void Hd_USTC_CG_RenderDelegate::DestroySprim(HdSprim* sPrim)
 {
-    logging(sPrim->GetId().GetAsString() + " destroyed", USTC_CG::Info);
+    log::info((sPrim->GetId().GetAsString() + " destroyed").c_str());
     lights.erase(
         std::remove(lights.begin(), lights.end(), sPrim), lights.end());
     cameras.erase(
@@ -402,10 +335,9 @@ HdBprim* Hd_USTC_CG_RenderDelegate::CreateBprim(
     const SdfPath& bprimId)
 {
     if (typeId == HdPrimTypeTokens->renderBuffer) {
-        logging(
-            "Create bprim: type id=" + typeId.GetString() +
-                ",prim id = " + bprimId.GetString(),
-            USTC_CG::Info);
+        log::info(("Create bprim: type id=" + typeId.GetString() +
+                   ",prim id = " + bprimId.GetString())
+                      .c_str());
 
         return new Hd_USTC_CG_RenderBufferGL(bprimId);
     }
@@ -429,7 +361,7 @@ void Hd_USTC_CG_RenderDelegate::DestroyBprim(HdBprim* bPrim)
     if (!bprim_name.empty()) {
         sentence += " id=" + bprim_name;
     }
-    logging(sentence, USTC_CG::Info);
+    log::info(sentence.c_str());
     delete bPrim;
 }
 
@@ -455,15 +387,15 @@ void Hd_USTC_CG_RenderDelegate::SetRenderSetting(
     const VtValue& value)
 {
     HdRenderDelegate::SetRenderSetting(key, value);
-    if (key == TfToken("RenderNodeTree")) {
-        _renderParam->node_tree = static_cast<NodeTree*>(value.Get<void*>());
-    }
-    if (key == TfToken("RenderNodeTreeExecutor")) {
-        _renderParam->executor =
-            static_cast<NodeTreeExecutor*>(value.Get<void*>());
-        auto&& context = entt::locator<entt::meta_ctx>::value_or();
-        _renderParam->context = &_renderParam->executor->get_meta_ctx();
-    }
+    //if (key == TfToken("RenderNodeTree")) {
+    //    _renderParam->node_tree = static_cast<NodeTree*>(value.Get<void*>());
+    //}
+    //if (key == TfToken("RenderNodeTreeExecutor")) {
+    //    _renderParam->executor =
+    //        static_cast<NodeTreeExecutor*>(value.Get<void*>());
+    //    auto&& context = entt::locator<entt::meta_ctx>::value_or();
+    //    _renderParam->context = &_renderParam->executor->get_meta_ctx();
+    //}
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

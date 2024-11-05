@@ -19,6 +19,11 @@ if(SLANG_FOUND)
 		target_compile_definitions(RHI PUBLIC RHI_WITH_OPENUSD_HGI=1)
 	endif()
 
+	if(WIN32)
+		target_compile_definitions(RHI PUBLIC USTC_CG_WITH_DX12=1)
+		target_link_libraries(RHI PUBLIC d3d12 dxgi)
+	endif()
+
 	if(TARGET garch)
 		target_link_libraries(RHI PUBLIC garch)
 	endif()
