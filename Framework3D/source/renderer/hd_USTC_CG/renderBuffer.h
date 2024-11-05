@@ -23,7 +23,7 @@
 //
 #ifndef PXR_IMAGING_PLUGIN_HD_EMBREE_RENDER_BUFFER_H
 #define PXR_IMAGING_PLUGIN_HD_EMBREE_RENDER_BUFFER_H
-#include "RCore/Backend.hpp"
+
 #include "api.h"
 #include "nvrhi/d3d12.h"
 #include "pxr/imaging/garch/glApi.h"

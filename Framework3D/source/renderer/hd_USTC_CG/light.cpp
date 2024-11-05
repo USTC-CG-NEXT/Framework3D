@@ -1,7 +1,6 @@
 #include "light.h"
 
-#include "RCore/internal/gl/GLResources.hpp"
-#include "Utils/Logger/Logger.h"
+#include "Logger/Logger.h"
 #include "pxr/imaging/glf/simpleLight.h"
 #include "pxr/imaging/hd/changeTracker.h"
 #include "pxr/imaging/hd/rprimCollection.h"

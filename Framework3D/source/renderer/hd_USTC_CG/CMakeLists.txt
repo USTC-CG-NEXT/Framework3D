@@ -24,17 +24,11 @@ get_relative_paths(nvapi nvapiHeaders)
 
 pxr_plugin(${PXR_PACKAGE}
    LIBRARIES
-        plug
-        tf
-        vt
-        gf
-        work
-        hf
-        hd
         hdx
         usdLux
         usdImaging
         RHI
+        Logger
 
     INCLUDE_DIRS
         ${TBB_INCLUDE_DIRS}
