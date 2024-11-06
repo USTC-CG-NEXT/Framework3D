@@ -1,6 +1,6 @@
 #include "renderTLAS.h"
 
-USTC_CG::Hd_USTC_CG_GL_RenderTLAS::Hd_USTC_CG_GL_RenderTLAS(
+USTC_CG::Hd_USTC_CG_RenderTLAS::Hd_USTC_CG_RenderTLAS(
     nvrhi::IDevice* nvrhi_device)
     : nvrhi_device(nvrhi_device)
 {
@@ -11,7 +11,7 @@ USTC_CG::Hd_USTC_CG_GL_RenderTLAS::Hd_USTC_CG_GL_RenderTLAS(
     TLAS = nvrhi_device->createAccelStruct(tlasDesc);
 }
 
-nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_GL_RenderTLAS::get_tlas()
+nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_RenderTLAS::get_tlas()
 {
     if (require_rebuild_tlas) {
         rebuild_tlas();
@@ -21,7 +21,7 @@ nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_GL_RenderTLAS::get_tlas()
     return TLAS;
 }
 
-void USTC_CG::Hd_USTC_CG_GL_RenderTLAS::removeInstance(HdRprim* rPrim)
+void USTC_CG::Hd_USTC_CG_RenderTLAS::removeInstance(HdRprim* rPrim)
 {
     std::lock_guard lock(edit_instances_mutex);
     instances.erase(rPrim);
@@ -29,13 +29,13 @@ void USTC_CG::Hd_USTC_CG_GL_RenderTLAS::removeInstance(HdRprim* rPrim)
 }
 
 std::vector<nvrhi::rt::InstanceDesc>&
-USTC_CG::Hd_USTC_CG_GL_RenderTLAS::acquire_instances_to_edit(HdRprim* mesh)
+USTC_CG::Hd_USTC_CG_RenderTLAS::acquire_instances_to_edit(HdRprim* mesh)
 {
     require_rebuild_tlas = true;
     return instances[mesh];
 }
 
-void USTC_CG::Hd_USTC_CG_GL_RenderTLAS::rebuild_tlas()
+void USTC_CG::Hd_USTC_CG_RenderTLAS::rebuild_tlas()
 {
     std::vector<nvrhi::rt::InstanceDesc> instances_vec;
 

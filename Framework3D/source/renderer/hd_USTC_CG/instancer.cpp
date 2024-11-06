@@ -35,14 +35,14 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
-Hd_USTC_CG_GL_Instancer::Hd_USTC_CG_GL_Instancer(
+Hd_USTC_CG_Instancer::Hd_USTC_CG_Instancer(
     HdSceneDelegate* delegate,
     const SdfPath& id)
     : HdInstancer(delegate, id)
 {
 }
 
-Hd_USTC_CG_GL_Instancer::~Hd_USTC_CG_GL_Instancer()
+Hd_USTC_CG_Instancer::~Hd_USTC_CG_Instancer()
 {
     TF_FOR_ALL(it, _primvarMap)
     {
@@ -51,7 +51,7 @@ Hd_USTC_CG_GL_Instancer::~Hd_USTC_CG_GL_Instancer()
     _primvarMap.clear();
 }
 
-void Hd_USTC_CG_GL_Instancer::Sync(
+void Hd_USTC_CG_Instancer::Sync(
     HdSceneDelegate* delegate,
     HdRenderParam* renderParam,
     HdDirtyBits* dirtyBits)
@@ -63,7 +63,7 @@ void Hd_USTC_CG_GL_Instancer::Sync(
     }
 }
 
-void Hd_USTC_CG_GL_Instancer::_SyncPrimvars(
+void Hd_USTC_CG_Instancer::_SyncPrimvars(
     HdSceneDelegate* delegate,
     HdDirtyBits dirtyBits)
 {
@@ -88,7 +88,7 @@ void Hd_USTC_CG_GL_Instancer::_SyncPrimvars(
     }
 }
 
-VtMatrix4dArray Hd_USTC_CG_GL_Instancer::ComputeInstanceTransforms(
+VtMatrix4dArray Hd_USTC_CG_Instancer::ComputeInstanceTransforms(
     const SdfPath& prototypeId)
 {
     HD_TRACE_FUNCTION();
@@ -130,7 +130,7 @@ VtMatrix4dArray Hd_USTC_CG_GL_Instancer::ComputeInstanceTransforms(
     //     parentXf * xf
     // }
     VtMatrix4dArray parentTransforms =
-        static_cast<Hd_USTC_CG_GL_Instancer*>(parentInstancer)
+        static_cast<Hd_USTC_CG_Instancer*>(parentInstancer)
             ->ComputeInstanceTransforms(GetId());
 
     VtMatrix4dArray final(parentTransforms.size() * transforms.size());

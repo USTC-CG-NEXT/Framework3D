@@ -61,7 +61,7 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
           meshes(meshes),
           materials(materials),
           nvrhi_device(device),
-          TLAS(new Hd_USTC_CG_GL_RenderTLAS(device))
+          TLAS(new Hd_USTC_CG_RenderTLAS(device))
     {
         m_command_list = nvrhi_device->createCommandList();
     }
@@ -78,7 +78,7 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
 
     std::mutex command_list_mutex;
 
-    std::unique_ptr<Hd_USTC_CG_GL_RenderTLAS> TLAS;
+    std::unique_ptr<Hd_USTC_CG_RenderTLAS> TLAS;
 
    private:
     /// A handle to the global render thread.

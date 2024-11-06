@@ -8,9 +8,9 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-class Hd_USTC_CG_GL_RenderTLAS {
+class Hd_USTC_CG_RenderTLAS {
    public:
-    explicit Hd_USTC_CG_GL_RenderTLAS(nvrhi::IDevice *nvrhi_device);
+    explicit Hd_USTC_CG_RenderTLAS(nvrhi::IDevice *nvrhi_device);
 
     nvrhi::rt::AccelStructHandle get_tlas();
 

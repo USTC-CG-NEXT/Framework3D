@@ -36,7 +36,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
 
-/// \class Hd_USTC_CG_GL_Instancer
+/// \class Hd_USTC_CG_Instancer
 ///
 /// HdEmbree implements instancing by adding prototype geometry to the BVH
 /// multiple times within HdEmbreeMesh::Sync(). The only instance-varying
@@ -49,16 +49,16 @@ using namespace pxr;
 /// cartesian product of the transform arrays at each nesting level, to
 /// create a flattened transform array.
 ///
-class Hd_USTC_CG_GL_Instancer : public HdInstancer
+class Hd_USTC_CG_Instancer : public HdInstancer
 {
 public:
     /// Constructor.
     ///   \param delegate The scene delegate backing this instancer's data.
     ///   \param id The unique id of this instancer.
-    Hd_USTC_CG_GL_Instancer(HdSceneDelegate* delegate, SdfPath const& id);
+    Hd_USTC_CG_Instancer(HdSceneDelegate* delegate, SdfPath const& id);
 
     /// Destructor.
-    ~Hd_USTC_CG_GL_Instancer();
+    ~Hd_USTC_CG_Instancer();
 
     /// Computes all instance transforms for the provided prototype id,
     /// taking into account the scene delegate's instancerTransform and the

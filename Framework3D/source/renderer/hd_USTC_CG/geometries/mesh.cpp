@@ -209,7 +209,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         // Retrieve instance transforms from the instancer.
         HdRenderIndex& renderIndex = sceneDelegate->GetRenderIndex();
         HdInstancer* instancer = renderIndex.GetInstancer(GetInstancerId());
-        transforms = static_cast<Hd_USTC_CG_GL_Instancer*>(instancer)
+        transforms = static_cast<Hd_USTC_CG_Instancer*>(instancer)
                          ->ComputeInstanceTransforms(GetId());
     }
     else {

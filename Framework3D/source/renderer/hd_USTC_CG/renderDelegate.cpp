@@ -369,7 +369,7 @@ HdInstancer* Hd_USTC_CG_RenderDelegate::CreateInstancer(
     HdSceneDelegate* delegate,
     const SdfPath& id)
 {
-    return new Hd_USTC_CG_GL_Instancer(delegate, id);
+    return new Hd_USTC_CG_Instancer(delegate, id);
 }
 
 void Hd_USTC_CG_RenderDelegate::DestroyInstancer(HdInstancer* instancer)
