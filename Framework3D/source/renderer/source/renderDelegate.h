@@ -109,7 +109,7 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
     pxr::VtArray<Hd_USTC_CG_Camera*> cameras;
     pxr::TfHashMap<SdfPath, Hd_USTC_CG_Material*, TfHash> materials;
     pxr::VtArray<Hd_USTC_CG_Mesh*> meshes;
-    nvrhi::DeviceHandle nvrhi_device;
+    nvrhi::IDevice* nvrhi_device;
 
     static std::mutex _mutexResourceRegistry;
     static std::atomic_int _counterResourceRegistry;

@@ -1,0 +1,22 @@
+{
+  "Plugins": [
+    {
+      "Info": {
+        "Types": {
+          "Hd_USTC_CG_RendererPlugin": {
+            "bases": [
+              "HdRendererPlugin"
+            ],
+            "displayName": "USTC_CG Renderer",
+            "priority": 1
+          }
+        }
+      },
+      "LibraryPath": "../../hd_USTC_CG.dll",
+      "Name": "USTC_CG Renderer",
+      "ResourcePath": "resources",
+      "Root": "..",
+      "Type": "library"
+    }
+  ]
+}

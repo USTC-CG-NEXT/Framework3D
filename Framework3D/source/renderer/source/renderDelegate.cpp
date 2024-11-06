@@ -39,6 +39,8 @@
 #include "renderBuffer.h"
 #include "renderPass.h"
 #include "renderer.h"
+#include "RHI/rhi.hpp"
+#include "RHI/Hgi/desc_conversion.hpp"
 
 #define HR_RETURN(hr) \
     if (FAILED(hr))   \
@@ -120,6 +122,8 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
                                VtValue(0) };
     _PopulateDefaultSettings(_settingDescriptors);
 
+    nvrhi_device = RHI::get_device();
+
     _renderParam = std::make_shared<Hd_USTC_CG_RenderParam>(
         &_renderThread,
         &_sceneVersion,
@@ -127,7 +131,7 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
         &cameras,
         &meshes,
         &materials,
-        nvrhi_device.Get());
+        nvrhi_device);
 
     _renderer = std::make_shared<Hd_USTC_CG_Renderer>(_renderParam.get());
 
@@ -387,15 +391,15 @@ void Hd_USTC_CG_RenderDelegate::SetRenderSetting(
     const VtValue& value)
 {
     HdRenderDelegate::SetRenderSetting(key, value);
-    //if (key == TfToken("RenderNodeTree")) {
-    //    _renderParam->node_tree = static_cast<NodeTree*>(value.Get<void*>());
-    //}
-    //if (key == TfToken("RenderNodeTreeExecutor")) {
-    //    _renderParam->executor =
-    //        static_cast<NodeTreeExecutor*>(value.Get<void*>());
-    //    auto&& context = entt::locator<entt::meta_ctx>::value_or();
-    //    _renderParam->context = &_renderParam->executor->get_meta_ctx();
-    //}
+    // if (key == TfToken("RenderNodeTree")) {
+    //     _renderParam->node_tree = static_cast<NodeTree*>(value.Get<void*>());
+    // }
+    // if (key == TfToken("RenderNodeTreeExecutor")) {
+    //     _renderParam->executor =
+    //         static_cast<NodeTreeExecutor*>(value.Get<void*>());
+    //     auto&& context = entt::locator<entt::meta_ctx>::value_or();
+    //     _renderParam->context = &_renderParam->executor->get_meta_ctx();
+    // }
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
