@@ -29,7 +29,7 @@
 #include "../instancer.h"
 #include "../renderParam.h"
 #include "Logger/Logger.h"
-#include "api.h"
+#include "../api.h"
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/imaging/hd/extComputationUtils.h"

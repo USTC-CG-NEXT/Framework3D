@@ -55,6 +55,7 @@ function(UCG_ADD_TEST)
         ${test_name}_test
     )
 endfunction(UCG_ADD_TEST)
+
 function(USTC_CG_ADD_LIB LIB_NAME)
     set(options SHARED)
     set(oneValueArgs SRC_DIR)

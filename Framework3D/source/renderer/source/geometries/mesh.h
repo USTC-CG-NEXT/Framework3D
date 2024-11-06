@@ -24,7 +24,7 @@
 #ifndef Hd_USTC_CG_MESH_H
 #define Hd_USTC_CG_MESH_H
 
-#include "api.h"
+#include "../api.h"
 #include "nvrhi/nvrhi.h"
 #include "pxr/base/gf/matrix4f.h"
 #include "pxr/imaging/garch/glApi.h"

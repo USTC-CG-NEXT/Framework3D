@@ -1,7 +1,7 @@
 #pragma once
 #include "api.h"
 #include "Logger/Logger.h"
-#include "Utils/Macro/map.h"
+#include "map.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/material.h"
 #include "pxr/imaging/hio/image.h"

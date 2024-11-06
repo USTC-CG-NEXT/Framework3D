@@ -9,9 +9,6 @@
 #include "pxr/usd/sdf/assetPath.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class Shader;
-#if USTC_CG_BUILD_MODULE
-#endif
 
 using namespace pxr;
 class HD_USTC_CG_API Hd_USTC_CG_Light : public HdLight {
