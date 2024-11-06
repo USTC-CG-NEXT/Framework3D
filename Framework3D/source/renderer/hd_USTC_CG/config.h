@@ -30,73 +30,73 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
-/// \class HdEmbreeConfig
+/// \class Hd_USTC_CG_Config
 ///
-/// This class is a singleton, holding configuration parameters for HdEmbree.
+/// This class is a singleton, holding configuration parameters for Hd_USTC_CG.
 /// Everything is provided with a default, but can be overridden using
 /// environment variables before launching a hydra process.
 ///
 /// Many of the parameters can be used to control quality/performance
-/// tradeoffs, or to alter how HdEmbree takes advantage of parallelism.
+/// tradeoffs, or to alter how Hd_USTC_CG takes advantage of parallelism.
 ///
 /// At startup, this class will print config parameters if
-/// *HDEMBREE_PRINT_CONFIGURATION* is true. Integer values greater than zero
+/// *Hd_USTC_CG_PRINT_CONFIGURATION* is true. Integer values greater than zero
 /// are considered "true".
 ///
-class HdEmbreeConfig
+class Hd_USTC_CG_Config
 {
 public:
     /// \brief Return the configuration singleton.
-    static const HdEmbreeConfig& GetInstance();
+    static const Hd_USTC_CG_Config& GetInstance();
 
     /// How many samples do we need before a pixel is considered
     /// converged?
     ///
-    /// Override with *HDEMBREE_SAMPLES_TO_CONVERGENCE*.
+    /// Override with *Hd_USTC_CG_SAMPLES_TO_CONVERGENCE*.
     unsigned int samplesToConvergence;
 
     /// How many pixels are in an atomic unit of parallel work?
     /// A work item is a square of size [tileSize x tileSize] pixels.
     ///
-    /// Override with *HDEMBREE_TILE_SIZE*.
+    /// Override with *Hd_USTC_CG_TILE_SIZE*.
     unsigned int tileSize;
 
     /// How many ambient occlusion rays should we generate per
     /// camera ray?
     ///
-    /// Override with *HDEMBREE_AMBIENT_OCCLUSION_SAMPLES*.
+    /// Override with *Hd_USTC_CG_AMBIENT_OCCLUSION_SAMPLES*.
     unsigned int ambientOcclusionSamples;
 
     /// Should the renderpass jitter camera rays for antialiasing?
     ///
-    /// Override with *HDEMBREE_JITTER_CAMERA*. Integer values greater than
+    /// Override with *Hd_USTC_CG_JITTER_CAMERA*. Integer values greater than
     /// zero are considered "true".
     bool jitterCamera;
 
     /// Should the renderpass use the color primvar, or flat white colors?
     /// (Flat white shows off ambient occlusion better).
     ///
-    /// Override with *HDEMBREE_USE_FACE_COLORS*. Integer values greater than
+    /// Override with *Hd_USTC_CG_USE_FACE_COLORS*. Integer values greater than
     /// zero are considered "true".
     bool useFaceColors;
 
     /// What should the intensity of the camera light be, specified as a
     /// percent of <1, 1, 1>.  For example, 300 would be <3, 3, 3>.
     ///
-    /// Override with *HDEMBREE_CAMERA_LIGHT_INTENSITY*.
+    /// Override with *Hd_USTC_CG_CAMERA_LIGHT_INTENSITY*.
     float cameraLightIntensity;
 
 private:
     // The constructor initializes the config variables with their
     // default or environment-provided override, and optionally prints
     // them.
-    HdEmbreeConfig();
-    ~HdEmbreeConfig() = default;
+    Hd_USTC_CG_Config();
+    ~Hd_USTC_CG_Config() = default;
 
-    HdEmbreeConfig(const HdEmbreeConfig&) = delete;
-    HdEmbreeConfig& operator=(const HdEmbreeConfig&) = delete;
+    Hd_USTC_CG_Config(const Hd_USTC_CG_Config&) = delete;
+    Hd_USTC_CG_Config& operator=(const Hd_USTC_CG_Config&) = delete;
 
-    friend class TfSingleton<HdEmbreeConfig>;
+    friend class TfSingleton<Hd_USTC_CG_Config>;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

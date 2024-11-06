@@ -7,13 +7,13 @@
                         "bases": [
                             "HdRendererPlugin"
                         ],
-                        "displayName": "USTC_CG GL",
+                        "displayName": "USTC_CG",
                         "priority": 1
                     }
                 }
             },
             "LibraryPath": "@PLUG_INFO_LIBRARY_PATH@",
-            "Name": "hd_USTC_CG_GL",
+            "Name": "hd_USTC_CG",
             "ResourcePath": "@PLUG_INFO_RESOURCE_PATH@",
             "Root": "@PLUG_INFO_ROOT@",
             "Type": "library"

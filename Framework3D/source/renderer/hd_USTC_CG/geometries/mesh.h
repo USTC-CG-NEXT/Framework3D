@@ -21,8 +21,8 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-#ifndef EXTRAS_IMAGING_EXAMPLES_HD_TINY_MESH_H
-#define EXTRAS_IMAGING_EXAMPLES_HD_TINY_MESH_H
+#ifndef Hd_USTC_CG_MESH_H
+#define Hd_USTC_CG_MESH_H
 
 #include "api.h"
 #include "nvrhi/nvrhi.h"
@@ -130,4 +130,4 @@ class Hd_USTC_CG_Mesh final : public HdMesh {
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 
-#endif  // EXTRAS_IMAGING_EXAMPLES_HD_TINY_MESH_H
+#endif  // Hd_USTC_CG_MESH_H

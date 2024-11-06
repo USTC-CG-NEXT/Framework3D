@@ -21,8 +21,8 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-#ifndef EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDER_PASS_H
-#define EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDER_PASS_H
+#ifndef Hd_USTC_CG_RENDER_PASS_H
+#define Hd_USTC_CG_RENDER_PASS_H
 
 #include "renderBuffer.h"
 #include "renderer.h"
@@ -87,4 +87,4 @@ protected:
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 
-#endif // EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDER_PASS_H
+#endif // Hd_USTC_CG_RENDER_PASS_H

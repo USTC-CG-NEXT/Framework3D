@@ -21,8 +21,10 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-#ifndef EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDER_DELEGATE_H
-#define EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDER_DELEGATE_H
+#ifndef Hd_USTC_CG_RENDER_DELEGATE_H
+#define Hd_USTC_CG_RENDER_DELEGATE_H
+
+#include "api.h"
 
 #include "nvrhi/nvrhi.h"
 #include "pxr/base/tf/staticTokens.h"
@@ -31,21 +33,23 @@
 #include "renderParam.h"
 #include "renderer.h"
 
+
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_Material;
 class Hd_USTC_CG_Light;
 using namespace pxr;
-#define HDEMBREE_RENDER_SETTINGS_TOKENS          \
+#define Hd_USTC_CG_RENDER_SETTINGS_TOKENS          \
     (enableAmbientOcclusion)(enableSceneColors)( \
         ambientOcclusionSamples)(renderMode)
 // Also: HdRenderSettingsTokens->convergedSamplesPerPixel
 
 TF_DECLARE_PUBLIC_TOKENS(
-    HdEmbreeRenderSettingsTokens,
-    HDEMBREE_RENDER_SETTINGS_TOKENS);
+    Hd_USTC_CG_RenderSettingsTokens,
+    Hd_USTC_CG_RENDER_SETTINGS_TOKENS);
 using nvrhi::RefCountPtr;
 
-class Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
+class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
    public:
     /// Render delegate constructor.
     Hd_USTC_CG_RenderDelegate();
@@ -128,4 +132,4 @@ class Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 
-#endif  // EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDER_DELEGATE_H
+#endif  // Hd_USTC_CG_RENDER_DELEGATE_H

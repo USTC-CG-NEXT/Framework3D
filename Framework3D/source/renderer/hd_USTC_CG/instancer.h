@@ -38,9 +38,9 @@ using namespace pxr;
 
 /// \class Hd_USTC_CG_Instancer
 ///
-/// HdEmbree implements instancing by adding prototype geometry to the BVH
-/// multiple times within HdEmbreeMesh::Sync(). The only instance-varying
-/// attribute that HdEmbree supports is transform, so the natural
+/// Hd_USTC_CG implements instancing by adding prototype geometry to the BVH
+/// multiple times within Hd_USTC_CGMesh::Sync(). The only instance-varying
+/// attribute that Hd_USTC_CG supports is transform, so the natural
 /// accessor to instancer data is ComputeInstanceTransforms(),
 /// which returns a list of transforms to apply to the given prototype
 /// (one instance per transform).

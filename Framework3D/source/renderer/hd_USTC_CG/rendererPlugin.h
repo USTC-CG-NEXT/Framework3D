@@ -21,8 +21,8 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-#ifndef EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDERER_PLUGIN_H
-#define EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDERER_PLUGIN_H
+#ifndef Hd_USTC_CG_RENDERER_PLUGIN_H
+#define Hd_USTC_CG_RENDERER_PLUGIN_H
 #include "api.h"
 #include "pxr/imaging/hd/rendererPlugin.h"
 #include "pxr/pxr.h"
@@ -71,4 +71,4 @@ class HD_USTC_CG_API Hd_USTC_CG_RendererPlugin final
 
 PXR_NAMESPACE_CLOSE_SCOPE
 
-#endif  // EXTRAS_IMAGING_EXAMPLES_HD_TINY_RENDERER_PLUGIN_H
+#endif  // Hd_USTC_CG_RENDERER_PLUGIN_H

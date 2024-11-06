@@ -41,7 +41,7 @@ using namespace pxr;
 /// \class Hd_USTC_CG_RenderParam
 ///
 /// The render delegate can create an object of type HdRenderParam, to pass
-/// to each prim during Sync(). HdEmbree uses this class to pass top-level
+/// to each prim during Sync(). Hd_USTC_CG uses this class to pass top-level
 /// embree state around.
 ///
 class Hd_USTC_CG_RenderParam final : public HdRenderParam {
