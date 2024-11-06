@@ -109,8 +109,8 @@ struct DeviceCreationParameters : public InstanceParameters {
     bool allowModeSwitch = true;
     int windowPosX = -1;  // -1 means use default placement
     int windowPosY = -1;
-    uint32_t backBufferWidth = 1280;
-    uint32_t backBufferHeight = 720;
+    uint32_t backBufferWidth = 1920;
+    uint32_t backBufferHeight = 1080;
     uint32_t refreshRate = 0;
     uint32_t swapChainBufferCount = 3;
     nvrhi::Format swapChainFormat = nvrhi::Format::SRGBA8_UNORM;

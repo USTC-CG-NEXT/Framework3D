@@ -22,6 +22,11 @@ int init(bool with_window, bool use_dx12)
     device_manager = std::unique_ptr<DeviceManager>(DeviceManager::Create(api));
 
     DeviceCreationParameters params;
+
+    params.enableRayTracingExtensions = true;
+    params.enableComputeQueue = true;
+    params.enableCopyQueue = true;
+
     params.optionalVulkanInstanceExtensions = {
         VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME
     };

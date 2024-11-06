@@ -55,11 +55,10 @@ function(UCG_ADD_TEST)
         ${test_name}_test
     )
 endfunction(UCG_ADD_TEST)
-
 function(USTC_CG_ADD_LIB LIB_NAME)
     set(options SHARED)
-    set(oneValueArgs SRC_DIR RESOURCE_COPY_TARGET)
-    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS COMPILE_DEFS USD_RESOURCE_DIRS USD_RESOURCE_FILES)
+    set(oneValueArgs RESOURCE_COPY_TARGET)
+    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS COMPILE_DEFS USD_RESOURCE_DIRS USD_RESOURCE_FILES SKIP_DIRS)
     cmake_parse_arguments(USTC_CG_ADD_LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     if(NOT LIB_NAME)
@@ -68,20 +67,21 @@ function(USTC_CG_ADD_LIB LIB_NAME)
 
     set(name ${LIB_NAME})
 
-    set(folder ${USTC_CG_ADD_LIB_SRC_DIR})
-    if(NOT USTC_CG_ADD_LIB_SRC_DIR)
-        set(folder ${CMAKE_CURRENT_SOURCE_DIR})
-    endif()
-
+    set(folder ${CMAKE_CURRENT_SOURCE_DIR})
+    
     file(GLOB_RECURSE ${name}_src_headers ${folder}/*.h)
     file(GLOB_RECURSE ${name}_cpp_sources ${folder}/*.cpp)
 
-    # Exclude files under ${SRC_DIR}/test and ${USD_RESOURCE_DIRS}
+    # Exclude files under ${SRC_DIR}/test, ${USD_RESOURCE_DIRS}, and ${SKIP_DIRS}
     list(FILTER ${name}_src_headers EXCLUDE REGEX "${folder}/tests/.*")
     list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${folder}/tests/.*")
     foreach(resource_dir ${USTC_CG_ADD_LIB_USD_RESOURCE_DIRS})
         list(FILTER ${name}_src_headers EXCLUDE REGEX "${resource_dir}/.*")
         list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${resource_dir}/.*")
+    endforeach()
+    foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
+        list(FILTER ${name}_src_headers EXCLUDE REGEX "${skip_dir}/.*")
+        list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${skip_dir}/.*")
     endforeach()
 
     set(${name}_sources
@@ -96,6 +96,9 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${folder}/tests/.*")
         foreach(resource_dir ${USTC_CG_ADD_LIB_USD_RESOURCE_DIRS})
             list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${resource_dir}/.*")
+        endforeach()
+        foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
+            list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${skip_dir}/.*")
         endforeach()
         set(${name}_sources ${${name}_sources} ${${name}_cuda_sources})
         list(LENGTH ${name}_cuda_sources cuda_file_count)
@@ -135,6 +138,9 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     set_target_properties(${name} PROPERTIES ${OUTPUT_DIR})
 
     file(GLOB test_sources ${folder}/tests/*.cpp)
+    foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
+        list(FILTER test_sources EXCLUDE REGEX "${skip_dir}/.*")
+    endforeach()
     foreach(source ${test_sources})
         UCG_ADD_TEST(
             SRC ${source}
