@@ -1,8 +1,5 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
@@ -10,18 +7,19 @@
 #include "shaders/utils/cpp_shader_macro.h"
 #include "utils/compile_shader.h"
 
-namespace USTC_CG::node_render_scatter_contribution {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(render_scatter_contribution)
 {
-    b.add_input<decl::Buffer>("PixelTarget");
-    b.add_input<decl::Buffer>("Eval");
-    b.add_input<decl::Int>("Buffer Size");
-    b.add_input<decl::Texture>("Source Texture");
+    b.add_input<nvrhi::BufferHandle>("PixelTarget");
+    b.add_input<nvrhi::BufferHandle>("Eval");
+    b.add_input<int>("Buffer Size");
+    b.add_input<nvrhi::TextureHandle>("Source Texture");
 
-    b.add_output<decl::Texture>("Result Texture");
+    b.add_output<nvrhi::TextureHandle>("Result Texture");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_scatter_contribution)
 {
     using namespace nvrhi;
 
@@ -103,18 +101,7 @@ static void node_exec(ExeParams params)
     params.set_output("Result Texture", source_texture);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "render_scatter_contribution");
-    strcpy(ntype.id_name, "node_render_scatter_contribution");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_scatter_contribution
+NODE_DECLARATION_UI(render_scatter_contribution);
+NODE_DEF_CLOSE_SCOPE

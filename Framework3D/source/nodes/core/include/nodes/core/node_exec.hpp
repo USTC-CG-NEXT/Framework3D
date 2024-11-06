@@ -8,7 +8,6 @@
 #include "entt/meta/resolve.hpp"
 #include "node.hpp"
 #include "nodes/core/api.h"
-// #include "Utils/Functions/GenericPointer.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct NodeSocket;

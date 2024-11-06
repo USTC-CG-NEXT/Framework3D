@@ -1,8 +1,5 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
@@ -10,22 +7,23 @@
 #include "shaders/utils/motion_vec_cb.h"
 #include "utils/compile_shader.h"
 
-namespace USTC_CG::node_render_motion_vec {
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
 
 struct PrevCamStatus {
     pxr::GfMatrix4f PrevProjViewMatrix;
 };
 
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(render_motion_vec)
 {
-    b.add_input<decl::Texture>("World Position");
-    b.add_input<decl::Camera>("Camera");
-    b.add_output<decl::Texture>("Motion Vector");
+    b.add_input<nvrhi::TextureHandle>("World Position");
+
+    b.add_output<nvrhi::TextureHandle>("Motion Vector");
 
     b.add_runtime_storage<PrevCamStatus>();
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_motion_vec)
 {
     auto world_position = params.get_input<TextureHandle>("World Position");
     auto texture_info = world_position->getDesc();
@@ -112,18 +110,7 @@ static void node_exec(ExeParams params)
         current_camera->viewMatrix * current_camera->projMatrix;
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Motion Vector");
-    strcpy(ntype.id_name, "node_render_motion_vec");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_motion_vec
+NODE_DECLARATION_UI(render_motion_vec);
+NODE_DEF_CLOSE_SCOPE

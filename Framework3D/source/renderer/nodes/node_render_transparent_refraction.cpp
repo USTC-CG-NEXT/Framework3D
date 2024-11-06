@@ -1,8 +1,4 @@
-#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "Nodes/socket_types/basic_socket_types.hpp"
+
 #include "camera.h"
 #include "geometries/mesh.h"
 #include "light.h"
@@ -14,22 +10,24 @@
 #include "rich_type_buffer.hpp"
 #include "utils/draw_fullscreen.h"
 
-namespace USTC_CG::node_transparent_refraction {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+#include "nvrhi/nvrhi.h"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(transparent_refraction)
 {
-    b.add_input<decl::Camera>("Camera");
 
-    b.add_input<decl::Texture>("Position");
-    b.add_input<decl::Texture>("diffuseColor");
-    b.add_input<decl::Texture>("Normal");
-    b.add_input<decl::Texture>("Depth");
-    b.add_input<decl::Lights>("Lights");
 
-    b.add_input<decl::String>("Shader").default_val("shaders/transparent_refraction.fs");
-    b.add_output<decl::Texture>("Color");
+    b.add_input<nvrhi::TextureHandle>("Position");
+    b.add_input<nvrhi::TextureHandle>("diffuseColor");
+    b.add_input<nvrhi::TextureHandle>("Normal");
+    b.add_input<nvrhi::TextureHandle>("Depth");
+
+
+    b.add_input<std::string>("Shader").default_val("shaders/transparent_refraction.fs");
+    b.add_output<nvrhi::TextureHandle>("Color");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(transparent_refraction)
 {
 #ifdef USTC_CG_BACKEND_OPENGL 
     auto lights = params.get_input<LightArray>("Lights");
@@ -141,18 +139,7 @@ static void node_exec(ExeParams params)
     }
 #endif
 }
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Transparent Refraction");
-    strcpy(ntype.id_name, "render_transparent_refraction");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_transparent_refraction
+NODE_DECLARATION_UI(transparent_refraction);
+NODE_DEF_CLOSE_SCOPE

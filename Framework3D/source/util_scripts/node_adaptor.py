@@ -24,6 +24,7 @@ def process_cpp_file(file_path):
         match = re.match(r'namespace USTC_CG::node_(\w+) {', line)
         if match:
             node_name = match.group(1)
+            new_lines.append('#include "nodes/core/def/node_def.hpp"\n')
             new_lines.append('NODE_DEF_OPEN_SCOPE\n')
             print(f"Found node name: {node_name}")
             continue
@@ -32,11 +33,11 @@ def process_cpp_file(file_path):
         exec_match = re.match(r'static void node_(\w+)\(ExeParams params\)', line)
         if declare_match:
             func_name = declare_match.group(1)
-            new_lines.append(f'NODE_DECLARATION_FUNCTION({func_name})\n')
+            new_lines.append(f'NODE_DECLARATION_FUNCTION({node_name})\n')
             print(f"Replaced node_declare function for node: {func_name}")
         elif exec_match:
             func_name = exec_match.group(1)
-            new_lines.append(f'NODE_EXECUTION_FUNCTION({func_name})\n')
+            new_lines.append(f'NODE_EXECUTION_FUNCTION({node_name})\n')
             print(f"Replaced node_exec function for node: {func_name}")
         elif re.match(r'#include "Nodes/.*"', line):
             print(f"Removed include statement: {line.strip()}")

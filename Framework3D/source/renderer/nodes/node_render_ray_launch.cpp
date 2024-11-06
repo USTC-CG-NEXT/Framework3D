@@ -1,8 +1,5 @@
-#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+
+#include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
@@ -11,19 +8,20 @@
 
 #define WITH_NVAPI 1
 
-namespace USTC_CG::node_scene_ray_launch {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(scene_ray_launch)
 {
-    b.add_input<decl::Buffer>("Pixel Target");
-    b.add_input<decl::Buffer>("Rays");
-    b.add_input<decl::AccelStruct>("Accel Struct");
+    b.add_input<nvrhi::BufferHandle>("Pixel Target");
+    b.add_input<nvrhi::BufferHandle>("Rays");
 
-    b.add_output<decl::Buffer>("Pixel Target");
-    b.add_output<decl::Buffer>("Hit Objects");
-    b.add_output<decl::Int>("Buffer Size");
+
+    b.add_output<nvrhi::BufferHandle>("Pixel Target");
+    b.add_output<nvrhi::BufferHandle>("Hit Objects");
+    b.add_output<int>("Buffer Size");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(scene_ray_launch)
 {
     Hd_USTC_CG_Camera* free_camera =
         params.get_global_payload<RenderGlobalParams>().camera;
@@ -209,18 +207,7 @@ static void node_exec(ExeParams params)
     }
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Ray Launch");
-    strcpy(ntype.id_name, "render_ray_launch");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_scene_ray_launch
+NODE_DECLARATION_UI(scene_ray_launch);
+NODE_DEF_CLOSE_SCOPE

@@ -1,19 +1,17 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
 
-namespace USTC_CG::node_render_create_empty_texture {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(render_create_empty_texture)
 {
-    b.add_output<decl::Texture>("Texture");
+    b.add_output<nvrhi::TextureHandle>("Texture");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_create_empty_texture)
 {
     Hd_USTC_CG_Camera* free_camera =
         params.get_global_payload<RenderGlobalParams>().camera;
@@ -42,18 +40,7 @@ static void node_exec(ExeParams params)
     params.set_output("Texture", output);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "render_create_empty_texture");
-    strcpy(ntype.id_name, "node_render_create_empty_texture");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_create_empty_texture
+NODE_DECLARATION_UI(render_create_empty_texture);
+NODE_DEF_CLOSE_SCOPE

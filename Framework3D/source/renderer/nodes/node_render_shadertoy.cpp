@@ -1,8 +1,4 @@
-#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "Nodes/socket_types/basic_socket_types.hpp"
+
 #include "camera.h"
 #include "light.h"
 #include "pxr/imaging/hd/tokens.h"
@@ -11,16 +7,17 @@
 #include "rich_type_buffer.hpp"
 #include "utils/draw_fullscreen.h"
 
-namespace USTC_CG::node_shadertoy {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(shadertoy)
 {
-    b.add_input<decl::Camera>("Camera");
 
-    b.add_input<decl::String>("Shader").default_val("shaders/Raymarching.fs");
-    b.add_output<decl::Texture>("Color");
+
+    b.add_input<std::string>("Shader").default_val("shaders/Raymarching.fs");
+    b.add_output<nvrhi::TextureHandle>("Color");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(shadertoy)
 {
 #ifdef USTC_CG_BACKEND_OPENGL
     auto cameras = params.get_input<CameraArray>("Camera");
@@ -69,18 +66,7 @@ static void node_exec(ExeParams params)
 
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Shadertoy");
-    strcpy(ntype.id_name, "render_shadertoy");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_shadertoy
+NODE_DECLARATION_UI(shadertoy);
+NODE_DEF_CLOSE_SCOPE

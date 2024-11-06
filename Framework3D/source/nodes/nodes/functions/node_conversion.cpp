@@ -11,7 +11,7 @@
 
 #include "../render/resource_allocator_instance.hpp"
 
-#include "NODES_FILES_DIR.h"
+
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
 #include "Nodes/node_register.h"
@@ -167,7 +167,7 @@ void node_exec_NumpyArray_to_Texture(ExeParams exe_params)
 void node_declare_NumpyArray_to_Buffer(NodeDeclarationBuilder& b)
 {
     b.add_input<decl::NumpyArray>("NumpyArray");
-    b.add_output<decl::Buffer>("Buffer");
+    b.add_output<nvrhi::BufferHandle>("Buffer");
 }
 
 void node_exec_NumpyArray_to_Buffer(ExeParams params)

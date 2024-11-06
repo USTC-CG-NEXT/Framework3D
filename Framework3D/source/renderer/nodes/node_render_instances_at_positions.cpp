@@ -1,8 +1,5 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "geometries/mesh.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
@@ -10,17 +7,18 @@
 #include "renderer/render_context.hpp"
 #include "resource_allocator_instance.hpp"
 
-namespace USTC_CG::node_render_instances_at_positions {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(render_instances_at_positions)
 {
-    b.add_input<decl::Camera>("Camera");
-    b.add_input<decl::String>("Instance");
-    b.add_input<decl::Buffer>("Transforms");
 
-    b.add_output<decl::Texture>("Draw");
+    b.add_input<std::string>("Instance");
+    b.add_input<nvrhi::BufferHandle>("Transforms");
+
+    b.add_output<nvrhi::TextureHandle>("Draw");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_instances_at_positions)
 {
     auto instance_name = params.get_input<std::string>("Instance");
     auto sdf_id = pxr::SdfPath(instance_name.c_str());
@@ -30,8 +28,8 @@ static void node_exec(ExeParams params)
     auto size = camera->dataWindow.GetSize();
 
     // Output texture
-    TextureDesc desc =
-        TextureDesc{}
+    nvrhi::TextureDesc desc =
+        nvrhi::TextureDesc{}
             .setWidth(size[0])
             .setHeight(size[1])
             .setFormat(nvrhi::Format::RGBA8_UNORM)
@@ -69,18 +67,7 @@ static void node_exec(ExeParams params)
     params.set_output("Draw", output_texture);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "render_instances_at_positions");
-    strcpy(ntype.id_name, "node_render_instances_at_positions");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_instances_at_positions
+NODE_DECLARATION_UI(render_instances_at_positions);
+NODE_DEF_CLOSE_SCOPE

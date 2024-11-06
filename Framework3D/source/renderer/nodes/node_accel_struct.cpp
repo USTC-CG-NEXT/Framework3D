@@ -1,35 +1,22 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
 
-namespace USTC_CG::node_accel_struct {
-static void node_declare(NodeDeclarationBuilder& b)
-{
-    b.add_output<decl::AccelStruct>("Accel Structure");
-}
-
-static void node_exec(ExeParams params)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(accel_struct)
 {
 
 }
 
-static void node_register()
+NODE_EXECUTION_FUNCTION(accel_struct)
 {
-    static NodeTypeInfo ntype;
 
-    strcpy(ntype.ui_name, "Accel Structure");
-    strcpy(ntype.id_name, "node_accel_struct");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
 }
 
 
-}  // namespace USTC_CG::node_accel_struct
+
+NODE_DECLARATION_UI(accel_struct);
+NODE_DEF_CLOSE_SCOPE

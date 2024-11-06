@@ -13,7 +13,7 @@ if (Test-Path $cppFilePath) {
 
 # Ҫд�������
 $content = @"
-#include "NODES_FILES_DIR.h"
+
 #include "Nodes/node.hpp"
 #include "Nodes/node_declare.hpp"
 #include "Nodes/node_register.h"

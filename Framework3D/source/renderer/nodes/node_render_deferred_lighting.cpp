@@ -1,10 +1,6 @@
 // #define __GNUC__
 
-#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "Nodes/socket_types/basic_socket_types.hpp"
+
 #include "camera.h"
 #include "light.h"
 #include "pxr/imaging/glf/simpleLight.h"
@@ -15,21 +11,22 @@
 #include "utils/draw_fullscreen.h"
 #include "pxr/base/gf/matrix4f.h"
 
-namespace USTC_CG::node_deferred_lighting {
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
 
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(deferred_lighting)
 {
-    b.add_input<decl::Camera>("Camera");
-    b.add_input<decl::Lights>("Lights");
 
-    b.add_input<decl::Texture>("Position");
-    b.add_input<decl::Texture>("diffuseColor");
-    b.add_input<decl::Texture>("MetallicRoughness");
-    b.add_input<decl::Texture>("Normal");
-    b.add_input<decl::Texture>("Shadow Maps");
 
-    b.add_input<decl::String>("Lighting Shader").default_val("shaders/blinn_phong.fs");
-    b.add_output<decl::Texture>("Color");
+
+    b.add_input<nvrhi::TextureHandle>("Position");
+    b.add_input<nvrhi::TextureHandle>("diffuseColor");
+    b.add_input<nvrhi::TextureHandle>("MetallicRoughness");
+    b.add_input<nvrhi::TextureHandle>("Normal");
+    b.add_input<nvrhi::TextureHandle>("Shadow Maps");
+
+    b.add_input<std::string>("Lighting Shader").default_val("shaders/blinn_phong.fs");
+    b.add_output<nvrhi::TextureHandle>("Color");
 }
 
 struct LightInfo {
@@ -41,7 +38,7 @@ struct LightInfo {
     int shadow_map_id;
 };
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(deferred_lighting)
 {
     // Fetch all the information
 #ifdef USTC_CG_BACKEND_OPENGL 
@@ -171,18 +168,7 @@ static void node_exec(ExeParams params)
 #endif
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Deferred Lighting");
-    strcpy(ntype.id_name, "render_deferred_lighting");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_deferred_lighting
+NODE_DECLARATION_UI(deferred_lighting);
+NODE_DEF_CLOSE_SCOPE

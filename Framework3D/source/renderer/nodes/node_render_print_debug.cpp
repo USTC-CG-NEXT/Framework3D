@@ -1,6 +1,3 @@
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "camera.h"
 #include "geometries/mesh.h"
 #include "light.h"
@@ -9,18 +6,19 @@
 #include "render_node_base.h"
 #include "rich_type_buffer.hpp"
 
-namespace USTC_CG::node_debug_info {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(debug_info)
 {
-    b.add_input<decl::Lights>("Lights");
-    b.add_input<decl::Camera>("Camera");
-    b.add_input<decl::Meshes>("Meshes");
-    b.add_input<decl::Materials>("Materials");
 
-    b.add_input<decl::Any>("Variable");
+
+
+
+
+    b.add_input<entt::meta_any>("Variable");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(debug_info)
 {
     // Left empty.
     auto lights = params.get_input<LightArray>("Lights");
@@ -51,19 +49,7 @@ static void node_exec(ExeParams params)
 
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Debug Info");
-    strcpy(ntype.id_name, "render_debug_info");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.ALWAYS_REQUIRED = true;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_debug_info
+NODE_DECLARATION_UI(debug_info);
+NODE_DEF_CLOSE_SCOPE

@@ -1,31 +1,18 @@
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "render_node_base.h"
+#include "nodes/core/def/node_def.hpp"
 
-namespace USTC_CG::node_scene_materials {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(scene_materials)
 {
-    b.add_output<decl::Materials>("Materials");
+
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(scene_materials)
 {
     // Do nothing. The output is filled in renderer.
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Scene Materials");
-    strcpy(ntype.id_name, "render_scene_materials");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_scene_materials
+NODE_DECLARATION_UI(scene_materials);
+NODE_DEF_CLOSE_SCOPE

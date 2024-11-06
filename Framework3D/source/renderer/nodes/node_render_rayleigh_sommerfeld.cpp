@@ -2,12 +2,7 @@
 #include <boost/python/import.hpp>
 #include <boost/python/numpy/ndarray.hpp>
 
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "Nodes/socket_types/buffer_socket_types.hpp"
-#include "Nodes/socket_types/stage_socket_types.hpp"
-#include "RCore/Backend.hpp"
+#include "nvrhi/nvrhi.h"
 #include "entt/meta/resolve.hpp"
 #include "pxr/base/vt/arrayPyBuffer.h"
 #include "render_node_base.h"
@@ -17,14 +12,15 @@
     bp::object reload = bp::import("importlib").attr("reload"); \
     module = reload(module);
 
-namespace USTC_CG::node_render_rayleigh_sommerfeld {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(render_rayleigh_sommerfeld)
 {
-    b.add_input<decl::NumpyArray>("Input");
-    b.add_output<decl::NumpyArray>("Output");
+
+
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_rayleigh_sommerfeld)
 {
     using nparray = boost::python::numpy::ndarray;
 
@@ -44,19 +40,7 @@ static void node_exec(ExeParams params)
     }
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Rayleigh Sommerfeld");
-    strcpy(ntype.id_name, "node_render_rayleigh_sommerfeld");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    ntype.ALWAYS_REQUIRED = true;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_rayleigh_sommerfeld
+NODE_DECLARATION_UI(render_rayleigh_sommerfeld);
+NODE_DEF_CLOSE_SCOPE

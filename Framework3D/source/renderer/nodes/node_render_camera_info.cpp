@@ -1,31 +1,28 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "Nodes/socket_types/buffer_socket_types.hpp"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
 
-namespace USTC_CG::node_render_camera_info {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(render_camera_info)
 {
-    b.add_input<decl::Camera>("Camera");
-    b.add_output<decl::Float1Buffer>("Rotation Matrix");
-    b.add_output<decl::Float1Buffer>("Translation");
-    b.add_output<decl::Float>("FOV x");
-    b.add_output<decl::Float>("FOV y");
-    b.add_output<decl::Int>("X resolution");
-    b.add_output<decl::Int>("Y resolution");
 
-    b.add_output<decl::Float1Buffer>("world_view_transform");
-    b.add_output<decl::Float1Buffer>("projection_matrix");
-    b.add_output<decl::Float1Buffer>("full_proj_transform");
-    b.add_output<decl::Float1Buffer>("camera_center");
+    b.add_output<float1Buffer>("Rotation Matrix");
+    b.add_output<float1Buffer>("Translation");
+    b.add_output<float>("FOV x");
+    b.add_output<float>("FOV y");
+    b.add_output<int>("X resolution");
+    b.add_output<int>("Y resolution");
+
+    b.add_output<float1Buffer>("world_view_transform");
+    b.add_output<float1Buffer>("projection_matrix");
+    b.add_output<float1Buffer>("full_proj_transform");
+    b.add_output<float1Buffer>("camera_center");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_camera_info)
 {
     Hd_USTC_CG_Camera* camera = get_free_camera(params);
 
@@ -108,18 +105,7 @@ static void node_exec(ExeParams params)
     }
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "render_camera_info");
-    strcpy(ntype.id_name, "node_render_camera_info");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_camera_info
+NODE_DECLARATION_UI(render_camera_info);
+NODE_DEF_CLOSE_SCOPE

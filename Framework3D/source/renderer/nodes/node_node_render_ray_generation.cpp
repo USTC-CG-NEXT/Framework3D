@@ -1,33 +1,30 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
 #include "Utils/Math/math.h"
+#include "nodes/core/def/node_def.hpp"
+#include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
 #include "shaders/utils/ray.h"
 #include "utils/cam_to_view_contants.h"
 #include "utils/compile_shader.h"
-
-namespace USTC_CG::node_node_render_ray_generation {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(node_render_ray_generation)
 {
-    b.add_input<decl::Camera>("Camera");
-    b.add_input<decl::Texture>("random seeds");
 
-    b.add_output<decl::Buffer>("Pixel Target");
-    b.add_output<decl::Buffer>("Rays");
+    b.add_input<nvrhi::TextureHandle>("random seeds");
+
+    b.add_output<nvrhi::BufferHandle>("Pixel Target");
+    b.add_output<nvrhi::BufferHandle>("Rays");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 {
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
 
     // 0. Prepare the output buffer
-    BufferDesc ray_buffer_desc;
+    nvrhi::BufferDesc ray_buffer_desc;
     ray_buffer_desc.byteSize = size[0] * size[1] * sizeof(RayDesc);
     ray_buffer_desc.structStride = sizeof(RayDesc);
     ray_buffer_desc.canHaveUAVs = true;
@@ -37,7 +34,7 @@ static void node_exec(ExeParams params)
 
     // Prepare the pixel target buffer
     auto pixel_target_buffer_desc =
-        BufferDesc{}
+        nvrhi::BufferDesc{}
             .setByteSize(size[0] * size[1] * sizeof(pxr::GfVec2i))
             .setStructStride(sizeof(pxr::GfVec2i))
             .setCanHaveUAVs(true)
@@ -111,18 +108,5 @@ static void node_exec(ExeParams params)
     params.set_output("Pixel Target", pixel_target_buffer);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Ray Generation");
-    strcpy(ntype.id_name, "node_node_render_ray_generation");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
-
-
-}  // namespace USTC_CG::node_node_render_ray_generation
+NODE_DECLARATION_UI(node_render_ray_generation);
+NODE_DEF_CLOSE_SCOPE

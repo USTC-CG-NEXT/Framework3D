@@ -1,39 +1,34 @@
-#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "Nodes/socket_types/basic_socket_types.hpp"
-#include "RCore/Backend.hpp"
+
 #include "RCore/ResourceAllocator.hpp"
 #include "camera.h"
 #include "geometries/mesh.h"
 #include "light.h"
 #include "material.h"
+#include "nodes/core/def/node_def.hpp"
+#include "nvrhi/nvrhi.h"
 #include "pxr/imaging/hd/tokens.h"
 #include "pxr/imaging/hgiGL/computeCmds.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
 #include "rich_type_buffer.hpp"
-
-namespace USTC_CG::node_rasterize_impl {
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(rasterize_impl)
 {
-    b.add_input<decl::Camera>("Camera");
-    b.add_input<decl::Meshes>("Meshes");
-    b.add_input<decl::Materials>("Materials");
-    b.add_input<decl::String>("Vertex Shader").default_val("shaders/rasterize_impl.vs");
-    b.add_input<decl::String>("Fragment Shader").default_val("shaders/rasterize_impl.fs");
-    b.add_output<decl::Texture>("Position");
-    b.add_output<decl::Texture>("Depth");
-    b.add_output<decl::Texture>("Texcoords");
-    b.add_output<decl::Texture>("diffuseColor");
-    b.add_output<decl::Texture>("MetallicRoughness");
-    b.add_output<decl::Texture>("Normal");
+    b.add_input<std::string>("Vertex Shader")
+        .default_val("shaders/rasterize_impl.vs");
+    b.add_input<std::string>("Fragment Shader")
+        .default_val("shaders/rasterize_impl.fs");
+    b.add_output<nvrhi::TextureHandle>("Position");
+    b.add_output<nvrhi::TextureHandle>("Depth");
+    b.add_output<nvrhi::TextureHandle>("Texcoords");
+    b.add_output<nvrhi::TextureHandle>("diffuseColor");
+    b.add_output<nvrhi::TextureHandle>("MetallicRoughness");
+    b.add_output<nvrhi::TextureHandle>("Normal");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(rasterize_impl)
 {
-#ifdef USTC_CG_BACKEND_OPENGL  
+#ifdef USTC_CG_BACKEND_OPENGL
     auto meshes = params.get_input<MeshArray>("Meshes");
     MaterialMap materials = params.get_input<MaterialMap>("Materials");
 
@@ -67,10 +62,12 @@ static void node_exec(ExeParams params)
 
     ShaderDesc shader_desc;
     shader_desc.set_vertex_path(
-        std::filesystem::path(RENDER_NODES_FILES_DIR) / std::filesystem::path(vs_path));
+        std::filesystem::path(RENDER_NODES_FILES_DIR) /
+        std::filesystem::path(vs_path));
 
     shader_desc.set_fragment_path(
-        std::filesystem::path(RENDER_NODES_FILES_DIR) / std::filesystem::path(fs_path));
+        std::filesystem::path(RENDER_NODES_FILES_DIR) /
+        std::filesystem::path(fs_path));
     auto shader_handle = resource_allocator.create(shader_desc);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -79,17 +76,41 @@ static void node_exec(ExeParams params)
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position_texture->texture_id, 0);
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D,
+        position_texture->texture_id,
+        0);
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, depth_texture->texture_id, 0);
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT1,
+        GL_TEXTURE_2D,
+        depth_texture->texture_id,
+        0);
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texcoords_texture->texture_id, 0);
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT2,
+        GL_TEXTURE_2D,
+        texcoords_texture->texture_id,
+        0);
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, diffuseColor_texture->texture_id, 0);
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT3,
+        GL_TEXTURE_2D,
+        diffuseColor_texture->texture_id,
+        0);
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, metallic_roughness->texture_id, 0);
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT4,
+        GL_TEXTURE_2D,
+        metallic_roughness->texture_id,
+        0);
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, normal_texture->texture_id, 0);
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT5,
+        GL_TEXTURE_2D,
+        normal_texture->texture_id,
+        0);
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,
         GL_DEPTH_STENCIL_ATTACHMENT,
@@ -97,8 +118,9 @@ static void node_exec(ExeParams params)
         depth_texture_for_opengl->texture_id,
         0);
 
-    GLenum attachments[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,
-                              GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
+    GLenum attachments[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+                              GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
+                              GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
     glDrawBuffers(6, attachments);
 
     glClearColor(0.0f, 0.f, 0.f, 1.0f);
@@ -108,7 +130,8 @@ static void node_exec(ExeParams params)
 
     shader_handle->shader.use();
     shader_handle->shader.setMat4("view", GfMatrix4f(free_camera->viewMatrix));
-    shader_handle->shader.setMat4("projection", GfMatrix4f(free_camera->projMatrix));
+    shader_handle->shader.setMat4(
+        "projection", GfMatrix4f(free_camera->projMatrix));
 
     for (int i = 0; i < meshes.size(); ++i) {
         auto mesh = meshes[i];
@@ -154,18 +177,5 @@ static void node_exec(ExeParams params)
 #endif
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Rasterize");
-    strcpy(ntype.id_name, "render_rasterize_impl");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
-
-
-}  // namespace USTC_CG::node_rasterize_impl
+NODE_DECLARATION_UI(rasterize_impl);
+NODE_DEF_CLOSE_SCOPE

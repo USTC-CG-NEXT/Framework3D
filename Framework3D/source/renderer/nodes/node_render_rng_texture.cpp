@@ -1,26 +1,25 @@
 ﻿#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
 #include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
 #include "utils/compile_shader.h"
 
-namespace USTC_CG::node_render_rng_texture {
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
 struct RNGStorage {
     nvrhi::TextureHandle random_number = nullptr;
 };
 
 // This texture is for repeated read and write.
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(render_rng_texture)
 {
-    b.add_input<decl::Camera>("Camera");
-    b.add_output<decl::Texture>("Random Number");
+
+    b.add_output<nvrhi::TextureHandle>("Random Number");
     b.add_storage<RNGStorage>();
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_rng_texture)
 {
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
@@ -114,18 +113,7 @@ static void node_exec(ExeParams params)
     params.set_output("Random Number", stored_rng.random_number);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Random Number Texture");
-    strcpy(ntype.id_name, "node_render_rng_texture");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_rng_texture
+NODE_DECLARATION_UI(render_rng_texture);
+NODE_DEF_CLOSE_SCOPE

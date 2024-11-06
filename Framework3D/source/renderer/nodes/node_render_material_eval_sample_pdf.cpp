@@ -1,8 +1,5 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
@@ -10,22 +7,23 @@
 #include "shaders/utils/HitObject.h"
 #include "utils/compile_shader.h"
 
-namespace USTC_CG::node_render_material_eval_sample_pdf {
-static void node_declare(NodeDeclarationBuilder& b)
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
+NODE_DECLARATION_FUNCTION(render_material_eval_sample_pdf)
 {
-    b.add_input<decl::Buffer>("PixelTarget");
-    b.add_input<decl::AccelStruct>("Accel Struct");
-    b.add_input<decl::Buffer>("HitInfo");
+    b.add_input<nvrhi::BufferHandle>("PixelTarget");
 
-    b.add_output<decl::Buffer>("PixelTarget");
-    b.add_input<decl::Int>("Buffer Size").min(1).max(10).default_val(4);
-    b.add_output<decl::Buffer>("Eval");
-    b.add_output<decl::Buffer>("Sample");
-    b.add_output<decl::Buffer>("Weight");
-    b.add_output<decl::Buffer>("Pdf");
+    b.add_input<nvrhi::BufferHandle>("HitInfo");
+
+    b.add_output<nvrhi::BufferHandle>("PixelTarget");
+    b.add_input<int>("Buffer Size").min(1).max(10).default_val(4);
+    b.add_output<nvrhi::BufferHandle>("Eval");
+    b.add_output<nvrhi::BufferHandle>("Sample");
+    b.add_output<nvrhi::BufferHandle>("Weight");
+    b.add_output<nvrhi::BufferHandle>("Pdf");
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
 {
     using namespace nvrhi;
 
@@ -213,18 +211,7 @@ static void node_exec(ExeParams params)
     params.set_output("Pdf", pdf_buffer);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Material Eval");
-    strcpy(ntype.id_name, "node_render_material_eval_sample_pdf");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_material_eval_sample_pdf
+NODE_DECLARATION_UI(render_material_eval_sample_pdf);
+NODE_DEF_CLOSE_SCOPE

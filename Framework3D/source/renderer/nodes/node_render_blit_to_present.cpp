@@ -1,13 +1,12 @@
 ﻿#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
+#include "RHI/internal/resources.hpp"
+#include "nodes/core/def/node_def.hpp"
+#include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
 #include "resource_allocator_instance.hpp"
 #include "shaders/utils/blit_cb.h"
 #include "utils/compile_shader.h"
-
-namespace USTC_CG::node_render_blit_to_present {
-
+NODE_DEF_OPEN_SCOPE
 enum class BlitSampler { Point, Linear, Sharpen };
 
 struct BlitParameters {
@@ -28,10 +27,10 @@ struct BlitParameters {
     nvrhi::Color blendConstantColor = nvrhi::Color(0.f);
 };
 
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(render_blit_to_present)
 {
-    b.add_input<decl::Texture>("Tex");
-    b.add_output<decl::Texture>("Tex");
+    b.add_input<nvrhi::TextureHandle>("Tex");
+    b.add_output<nvrhi::TextureHandle>("Tex");
     b.add_storage<BlitParameters>();
 }
 
@@ -50,9 +49,7 @@ static bool IsTextureArray(nvrhi::TextureDimension dimension)
            dimension == nvrhi::TextureDimension::TextureCubeArray;
 }
 
-
-
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_blit_to_present)
 {
     auto sourceTexture = params.get_input<TextureHandle>("Tex");
     if (!sourceTexture) {
@@ -71,7 +68,7 @@ static void node_exec(ExeParams params)
 
     assert(commandList);
 
-    auto framebuffer_desc = FramebufferDesc{};
+    auto framebuffer_desc = nvrhi::FramebufferDesc{};
 
     framebuffer_desc.colorAttachments.push_back(
         nvrhi::FramebufferAttachment{ output.Get() });
@@ -228,18 +225,5 @@ static void node_exec(ExeParams params)
     params.set_output("Tex", output);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "Blit to Present");
-    strcpy(ntype.id_name, "node_render_blit_to_present");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
-
-
-}  // namespace USTC_CG::node_render_blit_to_present
+NODE_DECLARATION_UI(render_blit_to_present);
+NODE_DEF_CLOSE_SCOPE

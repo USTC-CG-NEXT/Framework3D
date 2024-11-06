@@ -1,11 +1,34 @@
-#include "Nodes/node_exec_eager.hpp"
+#include <set>
 #include "Nodes/node_tree.hpp"
 #include "USTC_CG.h"
 #include "entt/meta/context.hpp"
 #include "node_global_payload.h"
+#include "nodes/core/node_exec.hpp"
 #include "resource_allocator_instance.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
+class EagerNodeTreeExecutorRender : public EagerNodeTreeExecutor {
+   protected:
+    bool execute_node(NodeTree* tree, Node* node) override;
+    RenderGlobalParams* global_param = nullptr;
+    ExeParams prepare_params(NodeTree* tree, Node* node) override;
+
+    void try_storage() override;
+    void remove_storage(const std::set<std::string>::value_type& key) override;
+
+   public:
+    void set_global_param(RenderGlobalParams* param);
+    void finalize(NodeTree* tree) override;
+    virtual void set_device(
+        nvrhi::IDevice*
+            device);  // Make this virtual to send it to vtable. A better
+                      // practice should definitely be better solving the
+                      // 'resource allocator' setting issue.
+
+    virtual void reset_allocator();
+    ~EagerNodeTreeExecutorRender() override;
+};
 
 bool EagerNodeTreeExecutorRender::execute_node(NodeTree* tree, Node* node)
 {

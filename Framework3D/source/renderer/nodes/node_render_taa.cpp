@@ -1,8 +1,5 @@
-﻿#include "NODES_FILES_DIR.h"
-#include "Nodes/node.hpp"
-#include "Nodes/node_declare.hpp"
-#include "Nodes/node_register.h"
-#include "RCore/Backend.hpp"
+﻿
+#include "nvrhi/nvrhi.h"
 #include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
@@ -10,23 +7,24 @@
 #include "shaders/utils/taa_cb.h"
 #include "utils/compile_shader.h"
 
-namespace USTC_CG::node_render_taa {
+#include "nodes/core/def/node_def.hpp"
+NODE_DEF_OPEN_SCOPE
 struct CameraState {
     pxr::GfMatrix4f camera_status;
 };
 
-static void node_declare(NodeDeclarationBuilder& b)
+NODE_DECLARATION_FUNCTION(render_taa)
 {
-    b.add_input<decl::Texture>("Previous Frame");
-    b.add_input<decl::Texture>("Current Frame");
-    b.add_input<decl::Texture>("Motion Vector");
+    b.add_input<nvrhi::TextureHandle>("Previous Frame");
+    b.add_input<nvrhi::TextureHandle>("Current Frame");
+    b.add_input<nvrhi::TextureHandle>("Motion Vector");
 
-    b.add_output<decl::Texture>("Output Frame");
+    b.add_output<nvrhi::TextureHandle>("Output Frame");
 
     b.add_runtime_storage<CameraState>();
 }
 
-static void node_exec(ExeParams params)
+NODE_EXECUTION_FUNCTION(render_taa)
 {
     auto previous = params.get_input<TextureHandle>("Previous Frame");
     auto current = params.get_input<TextureHandle>("Current Frame");
@@ -127,18 +125,7 @@ static void node_exec(ExeParams params)
     params.set_output("Output Frame", output);
 }
 
-static void node_register()
-{
-    static NodeTypeInfo ntype;
-
-    strcpy(ntype.ui_name, "TAA");
-    strcpy(ntype.id_name, "node_render_taa");
-
-    render_node_type_base(&ntype);
-    ntype.node_execute = node_exec;
-    ntype.declare = node_declare;
-    nodeRegisterType(&ntype);
-}
 
 
-}  // namespace USTC_CG::node_render_taa
+NODE_DECLARATION_UI(render_taa);
+NODE_DEF_CLOSE_SCOPE
