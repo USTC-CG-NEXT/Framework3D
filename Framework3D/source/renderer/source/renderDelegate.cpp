@@ -35,6 +35,7 @@
 #include "instancer.h"
 #include "light.h"
 #include "material.h"
+#include "node_exec_eager_render.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/validation.h"
@@ -130,14 +131,12 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     _globalPayload = std::make_unique<RenderGlobalPayload>(
         &cameras, &lights, &meshes, &materials, nvrhi_device);
 
-    // Node System
-
-    NodeTreeExecutorDesc render_nodes_desc;
-    render_nodes_desc.policy = NodeTreeExecutorDesc::Policy::Eager;
+    std::unique_ptr<NodeTreeExecutor> render_executor =
+        std::make_unique<EagerNodeTreeExecutorRender>();
 
     node_system = create_dynamic_loading_system();
     node_system->load_configuration("render_nodes.json");
-    node_system->set_node_tree_executor_desc(render_nodes_desc);
+    node_system->set_node_tree_executor(std::move(render_executor));
     node_system->init();
 
     node_system->register_global_params(*_globalPayload);

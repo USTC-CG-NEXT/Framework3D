@@ -18,8 +18,6 @@ inline GeomSystem::GeomSystem()
 
 inline void GeomSystem::execute() const
 {
-    if (node_tree_executor) {
-    }
     NodeDynamicLoadingSystem::execute();
 }
 

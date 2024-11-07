@@ -1,12 +1,17 @@
 #include "nodes/system/node_system.hpp"
+
 #include "nodes/system/node_system_dl.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 void NodeSystem::init()
 {
     this->node_tree = create_node_tree(node_tree_descriptor());
-    this->node_tree_executor =
-        create_node_tree_executor(node_tree_executor_desc);
+}
+
+void NodeSystem::set_node_tree_executor(
+    std::unique_ptr<NodeTreeExecutor> executor)
+{
+    node_tree_executor = std::move(executor);
 }
 
 NodeSystem::~NodeSystem()
@@ -28,11 +33,6 @@ NodeTree* NodeSystem::get_node_tree() const
 NodeTreeExecutor* NodeSystem::get_node_tree_executor() const
 {
     return node_tree_executor.get();
-}
-
-void NodeSystem::set_node_tree_executor_desc(NodeTreeExecutorDesc& desc)
-{
-    node_tree_executor_desc = desc;
 }
 
 std::shared_ptr<NodeSystem> create_dynamic_loading_system()

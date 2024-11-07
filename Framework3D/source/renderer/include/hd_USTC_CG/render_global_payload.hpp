@@ -1,6 +1,7 @@
 #pragma once
 #include "RHI/ResourceManager/resource_allocator.hpp"
 #include "pxr/base/vt/array.h"
+#include "pxr/base/vt/hash.h"
 #include "pxr/usd/sdf/path.h"
 
 namespace USTC_CG {
@@ -20,7 +21,7 @@ struct RenderGlobalPayload {
         pxr::VtArray<Hd_USTC_CG_Camera*>* cameras,
         pxr::VtArray<Hd_USTC_CG_Light*>* lights,
         pxr::VtArray<Hd_USTC_CG_Mesh*>* meshes,
-        pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, TfHash>* materials,
+        pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, pxr::TfHash>* materials,
         nvrhi::IDevice* nvrhi_device)
         : cameras(cameras),
           lights(lights),
@@ -28,6 +29,7 @@ struct RenderGlobalPayload {
           materials(materials),
           nvrhi_device(nvrhi_device)
     {
+        resource_allocator.device = nvrhi_device;
     }
 
     ResourceAllocator resource_allocator;
@@ -57,7 +59,7 @@ struct RenderGlobalPayload {
     pxr::VtArray<Hd_USTC_CG_Camera*>* cameras;
     pxr::VtArray<Hd_USTC_CG_Light*>* lights;
     pxr::VtArray<Hd_USTC_CG_Mesh*>* meshes;
-    pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, TfHash>* materials;
+    pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, pxr::TfHash>* materials;
 };
 
 }  // namespace USTC_CG

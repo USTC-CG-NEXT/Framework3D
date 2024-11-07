@@ -120,6 +120,9 @@ bool NodeDynamicLoadingSystem::load_configuration(
 
                 new_node.ALWAYS_REQUIRED =
                     node_always_requred ? node_always_requred() : false;
+                if (new_node.ALWAYS_REQUIRED) {
+                    log::info("%s is always required.", func_name_str.c_str());
+                }
                 new_node.set_declare_function(node_declare);
                 new_node.set_execution_function(node_execution);
 

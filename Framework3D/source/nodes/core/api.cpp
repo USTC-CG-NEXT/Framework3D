@@ -1,6 +1,6 @@
 #include "nodes/core/api.hpp"
 
-#include "node_exec_eager.hpp"
+#include "nodes/core/node_exec_eager.hpp"
 #include "nodes/core/node.hpp"
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/node_tree.hpp"

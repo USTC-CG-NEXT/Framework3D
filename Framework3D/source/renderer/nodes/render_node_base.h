@@ -1,25 +1,5 @@
 #pragma once
-// #include "Nodes/node.hpp"
-// #include "Nodes/node_exec.hpp"
-// #include "Nodes/socket_types/render_socket_types.hpp"
-// #include "Nodes/socket_types/stage_socket_types.hpp"
-//
-//
-// #include "node_global_payload.h"
-//
-// USTC_CG_NAMESPACE_OPEN_SCOPE
-// inline void render_node_type_base(NodeTypeInfo* ntype)
-//{
-//     ntype->color[0] = 114 / 255.f;
-//     ntype->color[1] = 94 / 255.f;
-//     ntype->color[2] = 29 / 255.f;
-//     ntype->color[3] = 1.0f;
-//
-//     ntype->node_type_of_grpah = NodeTypeOfGrpah::Render;
-// }
 
-//
-// USTC_CG_NAMESPACE_CLOSE_SCOPE
 #include "../source/camera.h"
 #include "../source/geometries/mesh.h"
 #include "../source/light.h"

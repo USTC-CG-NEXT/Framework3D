@@ -26,7 +26,7 @@ struct RuntimeOutputState {
 // Provide single threaded execution. The aim of this executor is simplicity and
 // robustness.
 
-class EagerNodeTreeExecutor : public NodeTreeExecutor {
+class NODES_CORE_API EagerNodeTreeExecutor : public NodeTreeExecutor {
    public:
     void compile(NodeTree* tree);
     void prepare_memory();

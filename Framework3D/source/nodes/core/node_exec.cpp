@@ -1,6 +1,6 @@
 #include "nodes/core/node_exec.hpp"
 
-#include "node_exec_eager.hpp"
+#include "nodes/core/node_exec_eager.hpp"
 #include "nodes/core/node.hpp"
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/socket.hpp"
