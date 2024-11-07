@@ -1,16 +1,10 @@
 
-#include "RCore/ResourceAllocator.hpp"
-#include "camera.h"
-#include "geometries/mesh.h"
-#include "light.h"
-#include "material.h"
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "pxr/imaging/hd/tokens.h"
 #include "pxr/imaging/hgiGL/computeCmds.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
-#include "rich_type_buffer.hpp"
+
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(rasterize_impl)
 {

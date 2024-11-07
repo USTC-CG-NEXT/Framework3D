@@ -1,20 +1,18 @@
 #pragma once
-#include "RHI/ResourceManager/resource_allocator.hpp"
+#include <filesystem>
+
+#include "RHI/internal/resources.hpp"
 #include "RHI/rhi.hpp"
 #include "rhi/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-
-class ShaderFactory {
+class RHI_API ShaderFactory {
    public:
     ShaderFactory() : device(RHI::get_device())
     {
-        shader_search_path =
-            "C:\\Users\\pengfei\\WorkSpace\\USTC_CG_"
-            "24\\Framework3D\\source\\GUI\\source";
     }
 
-    nvrhi::ShaderHandle RHI_API compile_shader(
+    nvrhi::ShaderHandle compile_shader(
         const std::string& entryName,
         nvrhi::ShaderType shader_type,
         std::filesystem::path shader_path,
@@ -23,6 +21,8 @@ class ShaderFactory {
         const std::vector<ShaderMacro>& macro_defines,
         const std::string& source_code,
         bool absolute = false);
+
+    ProgramHandle createProgram(const ProgramDesc& desc) const;
 
    private:
     void SlangCompile(
@@ -36,8 +36,6 @@ class ShaderFactory {
         Slang::ComPtr<ISlangBlob>& ppResultBlob,
         std::string& error_string,
         SlangCompileTarget target) const;
-
-    ProgramHandle createProgram(const ProgramDesc& desc);
 
     std::string shader_search_path;
     nvrhi::IDevice* device;

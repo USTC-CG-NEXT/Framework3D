@@ -1,10 +1,10 @@
 
-#include "camera.h"
-#include "light.h"
+
+
 #include "pxr/imaging/hd/tokens.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
-#include "rich_type_buffer.hpp"
+
+
 #include "utils/draw_fullscreen.h"
 
 #include "nodes/core/def/node_def.hpp"

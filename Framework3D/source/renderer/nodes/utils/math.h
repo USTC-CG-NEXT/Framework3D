@@ -1,11 +1,9 @@
 #pragma once
-#include "USTC_CG.h"
-
-USTC_CG_NAMESPACE_OPEN_SCOPE
+namespace USTC_CG {
 
 inline int div_ceil(int dividend, int divisor)
 {
     return (dividend + (divisor - 1)) / divisor;
 }
 
-USTC_CG_NAMESPACE_CLOSE_SCOPE
+}  // namespace USTC_CG

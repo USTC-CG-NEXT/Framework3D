@@ -1,13 +1,11 @@
 ﻿
+#include "RHI/internal/nvrhi_patch.hpp"
+#include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
-#include "Utils/Math/math.h"
-#include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "shaders/utils/cpp_shader_macro.h"
 #include "utils/compile_shader.h"
-
-#include "nodes/core/def/node_def.hpp"
+#include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_scatter_contribution)
 {
@@ -100,8 +98,6 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
     }
     params.set_output("Result Texture", source_texture);
 }
-
-
 
 NODE_DECLARATION_UI(render_scatter_contribution);
 NODE_DEF_CLOSE_SCOPE

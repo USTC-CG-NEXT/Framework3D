@@ -1,20 +1,17 @@
-﻿#include "Nodes/node.hpp"
-#include "Utils/Math/math.h"
+﻿#include "nodes/core/def/node_def.hpp"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "utils/compile_shader.h"
-
-#include "nodes/core/def/node_def.hpp"
+#include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 struct RNGStorage {
+    static constexpr bool has_storage = false;
     nvrhi::TextureHandle random_number = nullptr;
 };
 
 // This texture is for repeated read and write.
 NODE_DECLARATION_FUNCTION(render_rng_texture)
 {
-
     b.add_output<nvrhi::TextureHandle>("Random Number");
     b.add_storage<RNGStorage>();
 }
@@ -24,7 +21,7 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
 
-    TextureDesc output_desc;
+    nvrhi::TextureDesc output_desc;
     output_desc.debugName = "Random Number Texture";
     output_desc.width = size[0];
     output_desc.height = size[1];
@@ -33,7 +30,7 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
     output_desc.keepInitialState = true;
     output_desc.isUAV = true;
 
-    auto& stored_rng = params.get_runtime_storage<RNGStorage&>();
+    auto& stored_rng = params.get_storage<RNGStorage&>();
     bool first_attempt = stored_rng.random_number == nullptr ||
                          output_desc != stored_rng.random_number->getDesc();
     if (first_attempt) {
@@ -112,8 +109,6 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
 
     params.set_output("Random Number", stored_rng.random_number);
 }
-
-
 
 NODE_DECLARATION_UI(render_rng_texture);
 NODE_DEF_CLOSE_SCOPE

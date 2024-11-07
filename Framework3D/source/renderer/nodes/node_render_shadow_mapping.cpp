@@ -1,21 +1,15 @@
 
-#include "camera.h"
-#include "geometries/mesh.h"
-#include "light.h"
+
+#include "nodes/core/def/node_def.hpp"
 #include "pxr/base/gf/frustum.h"
 #include "pxr/imaging/glf/simpleLight.h"
 #include "pxr/imaging/hd/tokens.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
-#include "rich_type_buffer.hpp"
-#include "utils/draw_fullscreen.h"
 
-#include "nodes/core/def/node_def.hpp"
+#include "utils/draw_fullscreen.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(shadow_mapping)
 {
-
-
     b.add_input<int>("resolution").default_val(1024).min(256).max(4096);
     b.add_input<std::string>("Shader").default_val("shaders/shadow_mapping.fs");
 
@@ -24,7 +18,7 @@ NODE_DECLARATION_FUNCTION(shadow_mapping)
 
 NODE_EXECUTION_FUNCTION(shadow_mapping)
 {
-#ifdef USTC_CG_BACKEND_OPENGL 
+#ifdef USTC_CG_BACKEND_OPENGL
     auto meshes = params.get_input<MeshArray>("Meshes");
     auto lights = params.get_input<LightArray>("Lights");
     auto resolution = params.get_input<int>("resolution");
@@ -44,7 +38,8 @@ NODE_EXECUTION_FUNCTION(shadow_mapping)
         std::filesystem::path("shaders/shadow_mapping.vs"));
 
     shader_desc.set_fragment_path(
-        std::filesystem::path(RENDER_NODES_FILES_DIR) / std::filesystem::path(shaderPath));
+        std::filesystem::path(RENDER_NODES_FILES_DIR) /
+        std::filesystem::path(shaderPath));
     auto shader_handle = resource_allocator.create(shader_desc);
 
     glEnable(GL_DEPTH_TEST);
@@ -64,36 +59,46 @@ NODE_EXECUTION_FUNCTION(shadow_mapping)
             GlfSimpleLight light_params =
                 lights[light_id]->Get(HdTokens->params).Get<GlfSimpleLight>();
 
-            // HW6: The matrices for lights information is here! Current value is set that "it just
-            // works". However, you should try to modify the values to see how it affects the
-            // performance of the shadow maps.
+            // HW6: The matrices for lights information is here! Current value
+            // is set that "it just works". However, you should try to modify
+            // the values to see how it affects the performance of the shadow
+            // maps.
 
             GfMatrix4f light_view_mat;
             GfMatrix4f light_projection_mat;
 
-            if (lights[light_id]->GetLightType() == HdPrimTypeTokens->sphereLight) {
+            if (lights[light_id]->GetLightType() ==
+                HdPrimTypeTokens->sphereLight) {
                 GfFrustum frustum;
                 GfVec3f light_position = { light_params.GetPosition()[0],
                                            light_params.GetPosition()[1],
                                            light_params.GetPosition()[2] };
 
-                light_view_mat =
-                    GfMatrix4f().SetLookAt(light_position, GfVec3f(0, 0, 0), GfVec3f(0, 0, 1));
+                light_view_mat = GfMatrix4f().SetLookAt(
+                    light_position, GfVec3f(0, 0, 0), GfVec3f(0, 0, 1));
                 frustum.SetPerspective(120.f, 1.0, 1, 25.f);
-                light_projection_mat = GfMatrix4f(frustum.ComputeProjectionMatrix());
+                light_projection_mat =
+                    GfMatrix4f(frustum.ComputeProjectionMatrix());
             }
-            // else (lights[light_id]->GetLightType() == HdPrimTypeTokens->distantLight). See
-            // light.cpp under hd_ustc_cg_gl/
+            // else (lights[light_id]->GetLightType() ==
+            // HdPrimTypeTokens->distantLight). See light.cpp under
+            // hd_ustc_cg_gl/
 
             shader_handle->shader.setMat4("light_view", light_view_mat);
-            shader_handle->shader.setMat4("light_projection", GfMatrix4f(light_projection_mat));
+            shader_handle->shader.setMat4(
+                "light_projection", GfMatrix4f(light_projection_mat));
 
             glFramebufferTextureLayer(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadow_map_texture->texture_id, 0, light_id);
+                GL_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0,
+                shadow_map_texture->texture_id,
+                0,
+                light_id);
 
             texture_desc.format = HdFormatFloat32UInt8;
             texture_desc.array_size = 1;
-            auto depth_texture_for_opengl = resource_allocator.create(texture_desc);
+            auto depth_texture_for_opengl =
+                resource_allocator.create(texture_desc);
             depth_textures.push_back(depth_texture_for_opengl);
 
             glFramebufferTexture2D(
@@ -104,7 +109,9 @@ NODE_EXECUTION_FUNCTION(shadow_mapping)
                 0);
 
             glClearColor(0.f, 0.f, 0.f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            glClear(
+                GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+                GL_STENCIL_BUFFER_BIT);
 
             for (int mesh_id = 0; mesh_id < meshes.size(); ++mesh_id) {
                 auto mesh = meshes[mesh_id];
@@ -116,7 +123,8 @@ NODE_EXECUTION_FUNCTION(shadow_mapping)
                 glBindVertexArray(mesh->VAO);
                 glDrawElements(
                     GL_TRIANGLES,
-                    static_cast<unsigned int>(mesh->triangulatedIndices.size() * 3),
+                    static_cast<unsigned int>(
+                        mesh->triangulatedIndices.size() * 3),
                     GL_UNSIGNED_INT,
                     0);
                 glBindVertexArray(0);
@@ -141,7 +149,6 @@ NODE_EXECUTION_FUNCTION(shadow_mapping)
     }
 #endif
 }
-
 
 NODE_DECLARATION_UI(shadow_mapping);
 NODE_DEF_CLOSE_SCOPE

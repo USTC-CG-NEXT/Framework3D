@@ -1,7 +1,6 @@
 #pragma once
 
-#include "RCore/ResourceAllocator.hpp"
-#include "USTC_CG.h"
+#include "RHI/ResourceManager/resource_allocator.hpp"
 #include "nvrhi/nvrhi.h"
 #include "program_vars.hpp"
 
@@ -27,7 +26,7 @@ struct RenderBufferState {
 
 class RenderContext {
    public:
-    explicit RenderContext(ResourceAllocator& resource_allocator);
+    explicit RenderContext(ResourceAllocator& r);
     ~RenderContext();
     RenderContext& set_program(const ProgramHandle& program);
     RenderContext& set_render_target(

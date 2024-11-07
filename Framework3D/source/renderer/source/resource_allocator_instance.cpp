@@ -1,4 +1,6 @@
-#include "resource_allocator_instance.hpp"
+
+#include "RHI/ResourceManager/resource_allocator.hpp"
+#include "api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 ResourceAllocator resource_allocator;

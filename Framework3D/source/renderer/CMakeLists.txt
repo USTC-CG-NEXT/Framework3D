@@ -9,9 +9,11 @@ USTC_CG_ADD_LIB(
 	RESOURCE_COPY_TARGET ${OUT_BINARY_DIR}/usd/hd_USTC_CG/resources
 )
 
+add_subdirectory(nodes/renderer)
+
 add_nodes(
 	TARGET_NAME render_nodes 
 	SRC_DIRS nodes
-	DEP_LIBS RHI hd_USTC_CG
+	DEP_LIBS usd RHI hd_USTC_CG render_nodes_facilities
 	COMPILE_DEFS NOMINMAX 
 )

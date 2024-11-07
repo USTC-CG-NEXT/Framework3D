@@ -1,13 +1,13 @@
 
-#include "camera.h"
-#include "geometries/mesh.h"
-#include "light.h"
+
+
+
 #include "pxr/base/gf/frustum.h"
 #include "pxr/imaging/glf/simpleLight.h"
 #include "pxr/imaging/hd/tokens.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
-#include "rich_type_buffer.hpp"
+
+
 #include "utils/draw_fullscreen.h"
 
 #include "nodes/core/def/node_def.hpp"

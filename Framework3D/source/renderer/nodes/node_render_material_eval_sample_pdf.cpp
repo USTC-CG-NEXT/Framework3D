@@ -1,13 +1,11 @@
 ﻿
+#include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
-#include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "shaders/utils/HitObject.h"
 #include "utils/compile_shader.h"
-
-#include "nodes/core/def/node_def.hpp"
+#include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_material_eval_sample_pdf)
 {
@@ -73,7 +71,7 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
 
     ProgramDesc program_desc;
     program_desc.set_path(
-        std::filesystem::path(RENDER_NODES_FILES_DIR) /
+
         std::filesystem::path("shaders/material_eval_sample_pdf.slang"));
     program_desc.shaderType = nvrhi::ShaderType::AllRayTracing;
     program_desc.nvapi_support = true;
@@ -210,8 +208,6 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
     params.set_output("Weight", weight_buffer);
     params.set_output("Pdf", pdf_buffer);
 }
-
-
 
 NODE_DECLARATION_UI(render_material_eval_sample_pdf);
 NODE_DEF_CLOSE_SCOPE

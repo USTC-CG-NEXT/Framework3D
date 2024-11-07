@@ -1,15 +1,14 @@
 #pragma once
 
-#include "RCore/ResourceAllocator.hpp"
-#include "RCore/internal/nvrhi/Resources.hpp"
-#include "USTC_CG.h"
+#include "RHI/ResourceManager/resource_allocator.hpp"
+
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class ProgramVars {
    public:
     ProgramVars(
         const ProgramHandle& program,
-        ResourceAllocator& resource_allocator);
+        ResourceAllocator& r);
     ~ProgramVars();
 
     void finish_setting_vars();
@@ -25,7 +24,6 @@ class ProgramVars {
         bindingSetsSolid_;
     ResourceAllocator& resource_allocator_;
     IProgram* program_;
-
 
     unsigned get_binding_space(const std::string& name);
     unsigned get_binding_id(const std::string& name);

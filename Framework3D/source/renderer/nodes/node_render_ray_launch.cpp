@@ -2,7 +2,6 @@
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "shaders/utils/HitObject.h"
 #include "shaders/utils/ray.h"
 
@@ -15,7 +14,6 @@ NODE_DECLARATION_FUNCTION(scene_ray_launch)
     b.add_input<nvrhi::BufferHandle>("Pixel Target");
     b.add_input<nvrhi::BufferHandle>("Rays");
 
-
     b.add_output<nvrhi::BufferHandle>("Pixel Target");
     b.add_output<nvrhi::BufferHandle>("Hit Objects");
     b.add_output<int>("Buffer Size");
@@ -23,8 +21,7 @@ NODE_DECLARATION_FUNCTION(scene_ray_launch)
 
 NODE_EXECUTION_FUNCTION(scene_ray_launch)
 {
-    Hd_USTC_CG_Camera* free_camera =
-        params.get_global_payload<RenderGlobalParams>().camera;
+    Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
 
     auto m_CommandList = resource_allocator.create(CommandListDesc{});
@@ -70,7 +67,6 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
 
     ProgramDesc shader_compile_desc;
     shader_compile_desc.set_path(
-        std::filesystem::path(RENDER_NODES_FILES_DIR) /
         std::filesystem::path("shaders/ray_launch.slang"));
     shader_compile_desc.shaderType = nvrhi::ShaderType::AllRayTracing;
 
@@ -200,14 +196,12 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     memcpy(&info, cpu_read_out, sizeof(HitObjectInfo));
     resource_allocator.device->unmapBuffer(read_out);
 
-    logging("Buffer size: " + std::to_string(info.InstanceIndex));
+    log::info("Buffer size: %s", +std::to_string(info.InstanceIndex).c_str());
     params.set_output("Buffer Size", static_cast<int>(info.InstanceIndex));
     if (error.size()) {
         throw std::runtime_error(error);
     }
 }
-
-
 
 NODE_DECLARATION_UI(scene_ray_launch);
 NODE_DEF_CLOSE_SCOPE

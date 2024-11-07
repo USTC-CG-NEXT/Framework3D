@@ -1,16 +1,15 @@
 ﻿
+#include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
-#include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "shaders/utils/motion_vec_cb.h"
 #include "utils/compile_shader.h"
-
-#include "nodes/core/def/node_def.hpp"
+#include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 
 struct PrevCamStatus {
+    static constexpr bool has_storage = false;
     pxr::GfMatrix4f PrevProjViewMatrix;
 };
 
@@ -25,11 +24,12 @@ NODE_DECLARATION_FUNCTION(render_motion_vec)
 
 NODE_EXECUTION_FUNCTION(render_motion_vec)
 {
-    auto world_position = params.get_input<TextureHandle>("World Position");
+    auto world_position =
+        params.get_input<nvrhi::TextureHandle>("World Position");
     auto texture_info = world_position->getDesc();
     Hd_USTC_CG_Camera* current_camera = get_free_camera(params, "Camera");
 
-    auto& prev_camera = params.get_runtime_storage<PrevCamStatus&>();
+    auto& prev_camera = params.get_storage<PrevCamStatus&>();
 
     texture_info.isUAV = true;
     texture_info.format = nvrhi::Format::RGBA32_FLOAT;
@@ -109,8 +109,6 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
     prev_camera.PrevProjViewMatrix =
         current_camera->viewMatrix * current_camera->projMatrix;
 }
-
-
 
 NODE_DECLARATION_UI(render_motion_vec);
 NODE_DEF_CLOSE_SCOPE

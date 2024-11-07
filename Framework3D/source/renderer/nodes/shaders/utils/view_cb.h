@@ -23,7 +23,7 @@
 #ifndef VIEW_CB_H
 #define VIEW_CB_H
 
-#include "utils/cpp_shader_macro.h"
+#include "cpp_shader_macro.h"
 
 struct PlanarViewConstants {
 #ifdef __cplusplus

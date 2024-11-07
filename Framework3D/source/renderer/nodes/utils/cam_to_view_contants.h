@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shaders/view_cb.h"
+#include "shaders/utils/view_cb.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

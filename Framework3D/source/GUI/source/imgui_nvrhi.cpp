@@ -52,6 +52,7 @@ SOFTWARE.
 
 #include "RHI/ShaderFactory/shader.hpp"
 #include "GUI/api.h"
+#include "Logger/Logger.h"
 
 const char* vertex_shader_source = R"(
 struct Constants {

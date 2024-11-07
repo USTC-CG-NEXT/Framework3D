@@ -1,17 +1,13 @@
 ﻿
+#include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
-#include "geometries/mesh.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "renderer/program_vars.hpp"
 #include "renderer/render_context.hpp"
-#include "resource_allocator_instance.hpp"
-
-#include "nodes/core/def/node_def.hpp"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_instances_at_positions)
 {
-
     b.add_input<std::string>("Instance");
     b.add_input<nvrhi::BufferHandle>("Transforms");
 
@@ -39,7 +35,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
 
     auto output_texture = resource_allocator.create(desc);
 
-    auto meshes = params.get_input<MeshArray>("Meshes");
+    auto& meshes = params.get_global_payload<RenderGlobalPayload&>().meshes;
 
     // find the named mesh
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {
@@ -66,8 +62,6 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
 
     params.set_output("Draw", output_texture);
 }
-
-
 
 NODE_DECLARATION_UI(render_instances_at_positions);
 NODE_DEF_CLOSE_SCOPE

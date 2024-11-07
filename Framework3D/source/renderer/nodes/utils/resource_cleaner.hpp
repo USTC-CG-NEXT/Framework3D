@@ -1,10 +1,8 @@
 #pragma once
 
-#include "RCore/ResourceAllocator.hpp"
-#include "USTC_CG.h"
+#include "RHI/ResourceManager/resource_allocator.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-extern ResourceAllocator resource_allocator;
 
 template<typename T>
 class RAII_resource_cleaner {

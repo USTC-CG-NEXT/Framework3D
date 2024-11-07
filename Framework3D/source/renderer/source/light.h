@@ -1,5 +1,6 @@
 #pragma once
 #include "api.h"
+#include "api.h"
 #include "pxr/base/gf/vec3f.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/light.h"

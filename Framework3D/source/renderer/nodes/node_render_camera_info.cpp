@@ -1,25 +1,22 @@
 ﻿
-#include "nvrhi/nvrhi.h"
-#include "nvrhi/utils.h"
-#include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
-
 #include "nodes/core/def/node_def.hpp"
+#include "nvrhi/nvrhi.h"
+#include "pxr/base/gf/matrix3d.h"
+#include "render_node_base.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_camera_info)
 {
-
-    b.add_output<float1Buffer>("Rotation Matrix");
-    b.add_output<float1Buffer>("Translation");
+    b.add_output<pxr::VtArray<float>>("Rotation Matrix");
+    b.add_output<pxr::VtArray<float>>("Translation");
     b.add_output<float>("FOV x");
     b.add_output<float>("FOV y");
     b.add_output<int>("X resolution");
     b.add_output<int>("Y resolution");
 
-    b.add_output<float1Buffer>("world_view_transform");
-    b.add_output<float1Buffer>("projection_matrix");
-    b.add_output<float1Buffer>("full_proj_transform");
-    b.add_output<float1Buffer>("camera_center");
+    b.add_output<pxr::VtArray<float>>("world_view_transform");
+    b.add_output<pxr::VtArray<float>>("projection_matrix");
+    b.add_output<pxr::VtArray<float>>("full_proj_transform");
+    b.add_output<pxr::VtArray<float>>("camera_center");
 }
 
 NODE_EXECUTION_FUNCTION(render_camera_info)
@@ -104,8 +101,6 @@ NODE_EXECUTION_FUNCTION(render_camera_info)
         params.set_output("Y resolution", y_resolution);
     }
 }
-
-
 
 NODE_DECLARATION_UI(render_camera_info);
 NODE_DEF_CLOSE_SCOPE

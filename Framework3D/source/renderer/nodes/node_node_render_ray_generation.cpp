@@ -1,17 +1,16 @@
 ﻿
-#include "Utils/Math/math.h"
+#include "RHI/internal/resources.hpp"
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
-#include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "shaders/utils/ray.h"
+#include "shaders/utils/view_cb.h"
 #include "utils/cam_to_view_contants.h"
 #include "utils/compile_shader.h"
+#include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(node_render_ray_generation)
 {
-
     b.add_input<nvrhi::TextureHandle>("random seeds");
 
     b.add_output<nvrhi::BufferHandle>("Pixel Target");
@@ -79,7 +78,7 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     auto command_list = resource_allocator.create(CommandListDesc{});
     MARK_DESTROY_NVRHI_RESOURCE(command_list);
 
-    auto random_seeds = params.get_input<TextureHandle>("random seeds");
+    auto random_seeds = params.get_input<nvrhi::TextureHandle>("random seeds");
 
     BindingSetDesc binding_set_desc;
     binding_set_desc.bindings = {

@@ -1,13 +1,11 @@
 ﻿
+#include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
-#include "Utils/Math/math.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "shaders/utils/taa_cb.h"
 #include "utils/compile_shader.h"
-
-#include "nodes/core/def/node_def.hpp"
+#include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 struct CameraState {
     pxr::GfMatrix4f camera_status;
@@ -35,15 +33,7 @@ NODE_EXECUTION_FUNCTION(render_taa)
         assert(previous != current);
     }
 
-    auto& cam_status = params.get_runtime_storage<CameraState&>();
-
-    auto cam = params.get_global_payload<RenderGlobalParams>().camera;
-
-    //auto cam_mat = cam->projMatrix * cam->viewMatrix;
-    //if (cam_status.camera_status != cam_mat) {
-    //    previous = current;
-    //    cam_status.camera_status = cam_mat;
-    //}
+    auto cam = get_free_camera(params);
 
     auto motion_vector = params.get_input<TextureHandle>("Motion Vector");
     auto texture_info = current->getDesc();
@@ -124,8 +114,6 @@ NODE_EXECUTION_FUNCTION(render_taa)
 
     params.set_output("Output Frame", output);
 }
-
-
 
 NODE_DECLARATION_UI(render_taa);
 NODE_DEF_CLOSE_SCOPE

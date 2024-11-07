@@ -9,6 +9,7 @@
 //#include "entt/meta/meta.hpp"
 //#include "entt/meta/resolve.hpp"
 #include "RHI/internal/resources.hpp"
+#include "RHI/ShaderFactory/shader.hpp"
 
 #ifdef USTC_CG_BACKEND_NVRHI
 #include <nvrhi/nvrhi.h>
@@ -158,6 +159,7 @@ class ResourceAllocator {
         return handle;
     }
     nvrhi::IDevice* device;
+    ShaderFactory* shader_factory;
     void set_device(nvrhi::IDevice* device)
     {
         assert(device);
@@ -199,7 +201,7 @@ class ResourceAllocator {
     {
         MACRO_MAP(CREATE_CONCRETE, NVRHI_RESOURCE_LIST)
         if constexpr (std::is_same_v<ProgramHandle, RESOURCE>) {
-            return createProgram(desc);
+            return shader_factory->createProgram(desc);
         }
         if constexpr (std::is_same_v<PipelineHandle, RESOURCE>) {
             return device->createRayTracingPipeline(desc, rest...);

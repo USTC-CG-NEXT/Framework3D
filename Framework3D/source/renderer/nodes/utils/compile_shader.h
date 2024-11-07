@@ -1,12 +1,11 @@
 #pragma once
 #include <string>
 
-#include "RCore/internal/nvrhi/Resources.hpp"
-#include "USTC_CG.h"
+#include "RHI/ResourceManager/resource_allocator.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-ShaderHandle compile_shader(
+inline ShaderHandle compile_shader(
     const std::string& entryName,
     nvrhi::ShaderType shader_type,
     std::filesystem::path shader_path,
@@ -14,6 +13,9 @@ ShaderHandle compile_shader(
     std::string& error_string,
     const std::vector<ShaderMacro>& macro_defines = {},
     bool nvapi_support = false,
-    bool absolute = false);
+    bool absolute = false)
+{
+    return {};
+}
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

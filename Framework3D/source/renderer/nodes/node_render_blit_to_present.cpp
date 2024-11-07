@@ -1,18 +1,14 @@
-﻿#include "Nodes/node.hpp"
-#include "RHI/internal/resources.hpp"
+﻿#include "RHI/internal/resources.hpp"
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
-#include "resource_allocator_instance.hpp"
 #include "shaders/utils/blit_cb.h"
 #include "utils/compile_shader.h"
 NODE_DEF_OPEN_SCOPE
 enum class BlitSampler { Point, Linear, Sharpen };
 
 struct BlitParameters {
-    void deserialize(const nlohmann::json& info)
-    {
-    }
+    static constexpr bool has_storage = false;
 
     nvrhi::Viewport targetViewport;
 

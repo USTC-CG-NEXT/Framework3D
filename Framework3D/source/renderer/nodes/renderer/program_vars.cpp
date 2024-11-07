@@ -1,13 +1,11 @@
 #include "program_vars.hpp"
 
-#include "RCore/ResourceAllocator.hpp"
+#include "RHI/ResourceManager/resource_allocator.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-ProgramVars::ProgramVars(
-    const ProgramHandle& program,
-    ResourceAllocator& resource_allocator)
+ProgramVars::ProgramVars(const ProgramHandle& program, ResourceAllocator& r)
     : program_(program.Get()),
-      resource_allocator_(resource_allocator)
+      resource_allocator_(r)
 {
 }
 
@@ -21,9 +19,9 @@ void ProgramVars::finish_setting_vars()
         BindingSetDesc desc{};
         desc.bindings = bindingSetItems_[i];
 
-
-        //bindingSetsSolid_[i] =
-        //    resource_allocator_.create(desc, program_->get_binding_layout_descs());
+        // bindingSetsSolid_[i] =
+        //     resource_allocator_.create(desc,
+        //     program_->get_binding_layout_descs());
     }
 }
 

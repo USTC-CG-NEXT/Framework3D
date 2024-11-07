@@ -63,8 +63,10 @@ struct NODES_CORE_API ExeParams {
     {
         if (!node_.storage) {
             node_.storage = get_socket_type<T>().construct();
-            if (!node_.storage_info.empty()) {
-                node_.storage.cast<T&>().deserialize(node_.storage_info);
+            if constexpr (std::decay_t<T>::has_storage) {
+                if (!node_.storage_info.empty()) {
+                    node_.storage.cast<T&>().deserialize(node_.storage_info);
+                }
             }
         }
 
@@ -75,7 +77,9 @@ struct NODES_CORE_API ExeParams {
     void set_storage(T&& value)
     {
         node_.storage.cast<T&>() = value;
-        node_.storage_info = value.serialize();
+        if constexpr (std::decay_t<T>::has_storage) {
+            node_.storage_info = value.serialize();
+        }
     }
 
     template<typename T>

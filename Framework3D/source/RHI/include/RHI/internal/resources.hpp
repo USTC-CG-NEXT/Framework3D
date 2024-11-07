@@ -16,7 +16,7 @@ typedef static_vector<BindingLayoutDesc, c_MaxBindingLayouts>
 
 struct StagingTextureDesc : public nvrhi::TextureDesc { };
 
-struct CPUBuffer {
+struct RHI_API CPUBuffer {
     void* data;
 
     ~CPUBuffer()
@@ -57,7 +57,7 @@ MACRO_MAP(USING_NVRHI_RT_SYMBOL, NVRHI_RT_RESOURCE_LIST);
 
 using ProgramHandle = nvrhi::RefCountPtr<Program>;
 
-class IProgram : public nvrhi::IResource {
+class RHI_API IProgram : public nvrhi::IResource {
    public:
     virtual void const* getBufferPointer() const = 0;
     virtual size_t getBufferSize() const = 0;
@@ -66,7 +66,10 @@ class IProgram : public nvrhi::IResource {
     get_binding_layout_descs() const = 0;
 };
 
-struct Program : nvrhi::RefCounter<IProgram> {
+/**
+ * A program is a compiled shader program combined with reflection data.
+ */
+struct RHI_API Program : nvrhi::RefCounter<IProgram> {
     void const* getBufferPointer() const override;
     size_t getBufferSize() const override;
 
@@ -89,7 +92,7 @@ struct Program : nvrhi::RefCounter<IProgram> {
     std::string error_string;
 };
 
-struct ShaderMacro {
+struct RHI_API ShaderMacro {
     std::string name;
     std::string definition;
 
@@ -100,7 +103,7 @@ struct ShaderMacro {
     }
 };
 
-struct ProgramDesc {
+struct RHI_API ProgramDesc {
     friend bool operator==(const ProgramDesc& lhs, const ProgramDesc& rhs)
     {
         return lhs.path == rhs.path && lhs.entry_name == rhs.entry_name &&
@@ -136,10 +139,10 @@ struct ProgramDesc {
     std::string entry_name;
 };
 
-ProgramHandle createProgram(const ProgramDesc& desc);
+//ProgramHandle RHI_API createProgram(const ProgramDesc& desc);
 
 // Function to merge two BindingLayoutDescVector objects
-nvrhi::BindingLayoutDescVector mergeBindingLayoutDescVectors(
+nvrhi::BindingLayoutDescVector RHI_API mergeBindingLayoutDescVectors(
     const nvrhi::BindingLayoutDescVector& vec1,
     const nvrhi::BindingLayoutDescVector& vec2);
 

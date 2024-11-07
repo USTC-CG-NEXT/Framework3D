@@ -4,11 +4,11 @@
 #include <memory>
 #include <string>
 
+#include "Logger/Logger.h"
 #include "entt/meta/factory.hpp"
 #include "node.hpp"
 #include "nodes/core/api.h"
 #include "socket.hpp"
-#include "Logger/Logger.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct NodeTreeExecutorDesc;
@@ -43,7 +43,7 @@ SocketType get_socket_type()
 {
     auto type = entt::resolve(get_entt_ctx(), entt::type_hash<T>());
     if (!type) {
-        register_cpp_type<T>();
+        register_cpp_type<std::decay_t<T>>();
         log::info("register type: %s", typeid(T).name());
         type = entt::resolve(get_entt_ctx(), entt::type_hash<T>());
         assert(type);

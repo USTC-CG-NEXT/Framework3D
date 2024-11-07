@@ -449,7 +449,7 @@ void ShaderFactory::SlangCompile(
     spDestroyCompileRequest(slangRequest);
 }
 
-ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc)
+ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
 {
     ProgramHandle ret = ProgramHandle::Create(new Program);
 
