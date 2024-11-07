@@ -17,16 +17,16 @@ NODE_EXECUTION_FUNCTION(debug_info)
 
     auto& global_payload = params.get_global_payload<RenderGlobalPayload&>();
 
-    for (auto&& camera : global_payload.cameras) {
+    for (auto&& camera : global_payload.get_cameras()) {
         std::cout << camera->GetTransform() << std::endl;
     }
 
-    for (auto&& light : global_payload.lights) {
+    for (auto&& light : global_payload.get_lights()) {
         std::cout << light->Get(HdTokens->transform).Cast<GfMatrix4d>()
                   << std::endl;
     }
 
-    for (auto&& mesh : global_payload.meshes) {
+    for (auto&& mesh : global_payload.get_meshes()) {
         std::cout << mesh->GetId() << std::endl;
         auto names = mesh->GetBuiltinPrimvarNames();
         for (auto&& name : names) {
@@ -34,7 +34,7 @@ NODE_EXECUTION_FUNCTION(debug_info)
         }
         log::info(
             "Mesh contained material: %s",
-            global_payload.materials[mesh->GetMaterialId()]
+            global_payload.get_materials()[mesh->GetMaterialId()]
                 ->GetId()
                 .GetString()
                 .c_str());

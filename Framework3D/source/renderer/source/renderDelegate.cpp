@@ -27,11 +27,15 @@
 #include <iostream>
 
 #include "Logger/Logger.h"
+#include "RHI/Hgi/desc_conversion.hpp"
+#include "RHI/rhi.hpp"
 #include "config.h"
 #include "geometries/mesh.h"
+#include "hd_USTC_CG/render_global_payload.hpp"
 #include "instancer.h"
 #include "light.h"
 #include "material.h"
+#include "nodes/system/node_system.hpp"
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/validation.h"
 #include "pxr/imaging/hd/camera.h"
@@ -39,8 +43,6 @@
 #include "renderBuffer.h"
 #include "renderPass.h"
 #include "renderer.h"
-#include "RHI/rhi.hpp"
-#include "RHI/Hgi/desc_conversion.hpp"
 
 #define HR_RETURN(hr) \
     if (FAILED(hr))   \
@@ -122,15 +124,27 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
                                VtValue(0) };
     _PopulateDefaultSettings(_settingDescriptors);
 
+    // Device
     nvrhi_device = RHI::get_device();
+
+    _globalPayload = std::make_unique<RenderGlobalPayload>(
+        &cameras, &lights, &meshes, &materials, nvrhi_device);
+
+    // Node System
+
+    NodeTreeExecutorDesc render_nodes_desc;
+    render_nodes_desc.policy = NodeTreeExecutorDesc::Policy::Eager;
+
+    node_system = create_dynamic_loading_system();
+    node_system->load_configuration("render_nodes.json");
+    node_system->set_node_tree_executor_desc(render_nodes_desc);
+    node_system->init();
+
+    node_system->register_global_params(*_globalPayload);
 
     _renderParam = std::make_shared<Hd_USTC_CG_RenderParam>(
         &_renderThread,
         &_sceneVersion,
-        &lights,
-        &cameras,
-        &meshes,
-        &materials,
         nvrhi_device);
 
     _renderer = std::make_shared<Hd_USTC_CG_Renderer>(_renderParam.get());
@@ -400,6 +414,14 @@ void Hd_USTC_CG_RenderDelegate::SetRenderSetting(
     //     auto&& context = entt::locator<entt::meta_ctx>::value_or();
     //     _renderParam->context = &_renderParam->executor->get_meta_ctx();
     // }
+}
+
+VtValue Hd_USTC_CG_RenderDelegate::GetRenderSetting(TfToken const& key) const
+{
+    if (key == TfToken("RenderNodeSystem")) {
+        return VtValue(reinterpret_cast<const void*>(&node_system));
+    }
+    return HdRenderDelegate::GetRenderSetting(key);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

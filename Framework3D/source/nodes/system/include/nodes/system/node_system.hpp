@@ -8,6 +8,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 class NODES_SYSTEM_API NodeSystem {
    public:
     void init();
+    virtual void set_node_tree_executor_desc(NodeTreeExecutorDesc& desc);
     virtual bool load_configuration(const std::filesystem::path& config) = 0;
     virtual ~NodeSystem();
 
@@ -24,7 +25,6 @@ class NODES_SYSTEM_API NodeSystem {
 
    protected:
     virtual NodeTreeDescriptor node_tree_descriptor() = 0;
-    virtual void set_node_tree_executor_desc(NodeTreeExecutorDesc& desc);
     std::unique_ptr<NodeTree> node_tree;
     std::unique_ptr<NodeTreeExecutor> node_tree_executor;
     NodeTreeExecutorDesc node_tree_executor_desc = {};

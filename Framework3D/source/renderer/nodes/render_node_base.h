@@ -34,7 +34,7 @@ inline Hd_USTC_CG_Camera* get_free_camera(
     ExeParams& params,
     const std::string& camera_name = "Camera")
 {
-    auto& cameras = params.get_global_payload<RenderGlobalPayload&>().cameras;
+    auto& cameras = params.get_global_payload<RenderGlobalPayload&>().get_cameras();
 
     Hd_USTC_CG_Camera* free_camera = nullptr;
     for (auto camera : cameras) {

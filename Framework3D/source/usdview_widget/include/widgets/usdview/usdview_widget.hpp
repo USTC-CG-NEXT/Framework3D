@@ -17,16 +17,26 @@ struct UsdviewEnginePrivateData;
 class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
    public:
     explicit UsdviewEngine(pxr::UsdStageRefPtr root_stage);
+    void ChooseRenderer(
+        const pxr::TfTokenVector& available_renderers,
+        unsigned i);
     ~UsdviewEngine() override;
     bool BuildUI() override;
     void SetEditMode(bool editing);
+
+    const void* emit_create_renderer_ui_control()
+    {
+        auto temp = renderer_ui_control;
+        renderer_ui_control = nullptr;
+        return temp;
+    }
 
    protected:
     ImGuiWindowFlags GetWindowFlag() override;
     const char* GetWindowName() override;
     std::string GetWindowUniqueName() override;
 
-private:
+   private:
     void RenderBackBufferResized(float x, float y);
 
     enum class CamType { First, Third };
@@ -48,6 +58,7 @@ private:
     pxr::UsdStageRefPtr root_stage_;
     pxr::HgiUniquePtr hgi;
     std::vector<uint8_t> texture_data_;
+    const void* renderer_ui_control = nullptr;
 
     void DrawMenuBar();
     void OnFrame(float delta_time);

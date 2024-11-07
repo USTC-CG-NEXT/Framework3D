@@ -29,6 +29,7 @@
 #include "pxr/imaging/hd/renderThread.h"
 #include "pxr/pxr.h"
 #include "renderTLAS.h"
+#include "nodes/system/node_system.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_Material;
@@ -49,17 +50,9 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
     Hd_USTC_CG_RenderParam(
         HdRenderThread *renderThread,
         std::atomic<int> *sceneVersion,
-        pxr::VtArray<Hd_USTC_CG_Light *> *lights,
-        pxr::VtArray<Hd_USTC_CG_Camera *> *cameras,
-        pxr::VtArray<Hd_USTC_CG_Mesh *> *meshes,
-        pxr::TfHashMap<SdfPath, Hd_USTC_CG_Material *, TfHash> *materials,
         nvrhi::IDevice *device)
         : _renderThread(renderThread),
           _sceneVersion(sceneVersion),
-          lights(lights),
-          cameras(cameras),
-          meshes(meshes),
-          materials(materials),
           nvrhi_device(device),
           TLAS(new Hd_USTC_CG_RenderTLAS(device))
     {
@@ -68,10 +61,7 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
 
     HdRenderThread *_renderThread = nullptr;
 
-    pxr::VtArray<Hd_USTC_CG_Light *> *lights = nullptr;
-    pxr::VtArray<Hd_USTC_CG_Camera *> *cameras = nullptr;
-    pxr::VtArray<Hd_USTC_CG_Mesh *> *meshes = nullptr;
-    pxr::TfHashMap<SdfPath, Hd_USTC_CG_Material *, TfHash> *materials = nullptr;
+    NodeSystem *node_system;
 
     nvrhi::IDevice *nvrhi_device;
     nvrhi::CommandListHandle m_command_list;

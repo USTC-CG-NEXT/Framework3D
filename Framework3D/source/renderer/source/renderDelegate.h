@@ -24,22 +24,26 @@
 #ifndef Hd_USTC_CG_RENDER_DELEGATE_H
 #define Hd_USTC_CG_RENDER_DELEGATE_H
 
-#include "api.h"
+#include <complex.h>
 
+#include "api.h"
 #include "nvrhi/nvrhi.h"
 #include "pxr/base/tf/staticTokens.h"
 #include "pxr/imaging/hd/renderDelegate.h"
 #include "pxr/pxr.h"
 #include "renderParam.h"
 #include "renderer.h"
+#include "nodes/system/node_system.hpp"
 
-
+namespace USTC_CG {
+struct RenderGlobalPayload;
+}
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_Material;
 class Hd_USTC_CG_Light;
 using namespace pxr;
-#define Hd_USTC_CG_RENDER_SETTINGS_TOKENS          \
+#define Hd_USTC_CG_RENDER_SETTINGS_TOKENS        \
     (enableAmbientOcclusion)(enableSceneColors)( \
         ambientOcclusionSamples)(renderMode)
 // Also: HdRenderSettingsTokens->convergedSamplesPerPixel
@@ -94,6 +98,8 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
     HdRenderParam* GetRenderParam() const override;
     void SetRenderSetting(const TfToken& key, const VtValue& value) override;
 
+    VtValue GetRenderSetting(TfToken const& key) const override;
+
    private:
     static const TfTokenVector SUPPORTED_RPRIM_TYPES;
     static const TfTokenVector SUPPORTED_SPRIM_TYPES;
@@ -110,6 +116,8 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
     pxr::TfHashMap<SdfPath, Hd_USTC_CG_Material*, TfHash> materials;
     pxr::VtArray<Hd_USTC_CG_Mesh*> meshes;
     nvrhi::IDevice* nvrhi_device;
+    std::unique_ptr<RenderGlobalPayload> _globalPayload;
+    std::shared_ptr<NodeSystem> node_system;
 
     static std::mutex _mutexResourceRegistry;
     static std::atomic_int _counterResourceRegistry;

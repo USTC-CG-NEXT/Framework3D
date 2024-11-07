@@ -35,7 +35,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
 
     auto output_texture = resource_allocator.create(desc);
 
-    auto& meshes = params.get_global_payload<RenderGlobalPayload&>().meshes;
+    auto& meshes = params.get_global_payload<RenderGlobalPayload&>().get_meshes();
 
     // find the named mesh
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {

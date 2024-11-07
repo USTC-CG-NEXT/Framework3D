@@ -79,6 +79,22 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
         pxr::VtValue(pxr::GfVec2f{ 0.1f, 1000.f }));
 }
 
+void UsdviewEngine::ChooseRenderer(
+    const pxr::TfTokenVector& available_renderers,
+    unsigned i)
+{
+    renderer_->SetRendererPlugin(available_renderers[i]);
+    log::info(
+        "Switching to renderer %s", available_renderers[i].GetString().c_str());
+    if (available_renderers[i].GetString() == "Hd_USTC_CG_RendererPlugin") {
+        renderer_ui_control =
+            renderer_->GetRendererSetting(pxr::TfToken("RenderNodeSystem"))
+                .Get<const void*>();
+    }
+
+    this->engine_status.renderer_id = i;
+}
+
 void UsdviewEngine::DrawMenuBar()
 {
     ImGui::BeginMenuBar();
@@ -115,8 +131,7 @@ void UsdviewEngine::DrawMenuBar()
                         0,
                         this->engine_status.renderer_id == i)) {
                     if (this->engine_status.renderer_id != i) {
-                        renderer_->SetRendererPlugin(available_renderers[i]);
-                        this->engine_status.renderer_id = i;
+                        ChooseRenderer(available_renderers, i);
                     }
                 }
             }

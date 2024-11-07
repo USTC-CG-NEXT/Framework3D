@@ -1,6 +1,7 @@
 #pragma once
-#include "pxr/usd/sdf/path.h"
 #include "RHI/ResourceManager/resource_allocator.hpp"
+#include "pxr/base/vt/array.h"
+#include "pxr/usd/sdf/path.h"
 
 namespace USTC_CG {
 class Hd_USTC_CG_Light;
@@ -12,12 +13,51 @@ class Hd_USTC_CG_Material;
 namespace USTC_CG {
 
 struct RenderGlobalPayload {
-    std::vector<Hd_USTC_CG_Camera*> cameras;
-    std::vector<Hd_USTC_CG_Light*> lights;
-    std::vector<Hd_USTC_CG_Mesh*> meshes;
+    RenderGlobalPayload()
+    {
+    }
+    RenderGlobalPayload(
+        pxr::VtArray<Hd_USTC_CG_Camera*>* cameras,
+        pxr::VtArray<Hd_USTC_CG_Light*>* lights,
+        pxr::VtArray<Hd_USTC_CG_Mesh*>* meshes,
+        pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, TfHash>* materials,
+        nvrhi::IDevice* nvrhi_device)
+        : cameras(cameras),
+          lights(lights),
+          meshes(meshes),
+          materials(materials),
+          nvrhi_device(nvrhi_device)
+    {
+    }
 
-    std::map<pxr::SdfPath, Hd_USTC_CG_Material*> materials;
     ResourceAllocator resource_allocator;
+    nvrhi::IDevice* nvrhi_device;
+
+    auto& get_cameras() const
+    {
+        return *cameras;
+    }
+
+    auto& get_lights() const
+    {
+        return *lights;
+    }
+
+    auto& get_meshes() const
+    {
+        return *meshes;
+    }
+
+    auto& get_materials() const
+    {
+        return *materials;
+    }
+
+   private:
+    pxr::VtArray<Hd_USTC_CG_Camera*>* cameras;
+    pxr::VtArray<Hd_USTC_CG_Light*>* lights;
+    pxr::VtArray<Hd_USTC_CG_Mesh*>* meshes;
+    pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, TfHash>* materials;
 };
 
 }  // namespace USTC_CG

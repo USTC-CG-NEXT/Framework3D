@@ -155,7 +155,10 @@ struct NODES_CORE_API NodeTreeExecutor {
     T get_global_payload()
     {
         if (!global_payload) {
-            global_payload = entt::resolve<T>().construct();
+            global_payload = get_socket_type<T>().construct();
+            if (!global_payload) {
+                log::error("The global payload must be default constructable");
+            }
         }
         return global_payload.cast<T>();
     }
@@ -168,6 +171,6 @@ struct NodeTreeExecutorDesc {
     enum class Policy {
         Eager,
         Lazy,
-    } policy;
+    } policy = Policy::Eager;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

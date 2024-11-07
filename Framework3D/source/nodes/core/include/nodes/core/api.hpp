@@ -41,11 +41,13 @@ inline void register_cpp_type()
 template<typename T>
 SocketType get_socket_type()
 {
-    auto type = entt::resolve(get_entt_ctx(), entt::type_hash<T>());
+    auto type =
+        entt::resolve(get_entt_ctx(), entt::type_hash<std::decay_t<T>>());
     if (!type) {
         register_cpp_type<std::decay_t<T>>();
         log::info("register type: %s", typeid(T).name());
-        type = entt::resolve(get_entt_ctx(), entt::type_hash<T>());
+        type =
+            entt::resolve(get_entt_ctx(), entt::type_hash<std::decay_t<T>>());
         assert(type);
     }
     return type;

@@ -189,8 +189,6 @@ void DockingImguiRenderer::buildUI()
 
         widget->End();
 
-        widget->CallBack();
-
         if (!widget->IsOpen()) {
             widget_to_remove.push_back(widget.get());
         }
@@ -206,7 +204,9 @@ void DockingImguiRenderer::buildUI()
                 }),
             widgets_.end());
     }
-
+    for (auto& widget : widgets_) {
+        widget->CallBack();
+    }
     ImGui::End();
 
     for (auto&& callback : callbacks_) {
