@@ -10,7 +10,8 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 class Hd_USTC_CG_RenderTLAS {
    public:
-    explicit Hd_USTC_CG_RenderTLAS(nvrhi::IDevice *nvrhi_device);
+    explicit Hd_USTC_CG_RenderTLAS();
+    ~Hd_USTC_CG_RenderTLAS();
 
     nvrhi::rt::AccelStructHandle get_tlas();
 
@@ -26,9 +27,6 @@ class Hd_USTC_CG_RenderTLAS {
     nvrhi::rt::AccelStructHandle TLAS;
     std::map<HdRprim *, std::vector<nvrhi::rt::InstanceDesc>> instances;
     bool require_rebuild_tlas = true;
-
-    nvrhi::IDevice *nvrhi_device;
-    nvrhi::CommandListHandle m_command_list;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

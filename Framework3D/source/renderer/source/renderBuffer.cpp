@@ -28,11 +28,12 @@
 #include "Windows.h"
 #include "pxr/base/gf/half.h"
 #include "renderParam.h"
+#include "RHI/rhi.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
 
-Hd_USTC_CG_RenderBufferGL::Hd_USTC_CG_RenderBufferGL(SdfPath const &id)
+Hd_USTC_CG_RenderBuffer::Hd_USTC_CG_RenderBuffer(SdfPath const &id)
     : HdRenderBuffer(id),
       _width(0),
       _height(0),
@@ -46,27 +47,31 @@ Hd_USTC_CG_RenderBufferGL::Hd_USTC_CG_RenderBufferGL(SdfPath const &id)
 {
 }
 
-Hd_USTC_CG_RenderBufferGL::~Hd_USTC_CG_RenderBufferGL() = default;
+Hd_USTC_CG_RenderBuffer::~Hd_USTC_CG_RenderBuffer()
+{
+    staging = nullptr;
+    m_CommandList = nullptr;
+}
 
 /*virtual*/
-void Hd_USTC_CG_RenderBufferGL::Sync(
+void Hd_USTC_CG_RenderBuffer::Sync(
     HdSceneDelegate *sceneDelegate,
     HdRenderParam *renderParam,
     HdDirtyBits *dirtyBits)
 {
     auto ustc_renderParam = static_cast<Hd_USTC_CG_RenderParam *>(renderParam);
-    nvrhi_device = ustc_renderParam->nvrhi_device;
+    nvrhi_device = RHI::get_device();
     HdRenderBuffer::Sync(sceneDelegate, renderParam, dirtyBits);
 }
 
 /*virtual*/
-void Hd_USTC_CG_RenderBufferGL::Finalize(HdRenderParam *renderParam)
+void Hd_USTC_CG_RenderBuffer::Finalize(HdRenderParam *renderParam)
 {
     HdRenderBuffer::Finalize(renderParam);
 }
 
 /*virtual*/
-void Hd_USTC_CG_RenderBufferGL::_Deallocate()
+void Hd_USTC_CG_RenderBuffer::_Deallocate()
 {
     // If the buffer is mapped while we're doing this, there's not a great
     // recovery path...
@@ -100,7 +105,7 @@ void Hd_USTC_CG_RenderBufferGL::_Deallocate()
 }
 
 /*static*/
-HdFormat Hd_USTC_CG_RenderBufferGL::_GetSampleFormat(HdFormat format)
+HdFormat Hd_USTC_CG_RenderBuffer::_GetSampleFormat(HdFormat format)
 {
     HdFormat component = HdGetComponentFormat(format);
     size_t arity = HdGetComponentCount(format);
@@ -138,7 +143,7 @@ HdFormat Hd_USTC_CG_RenderBufferGL::_GetSampleFormat(HdFormat format)
 }
 
 /*virtual*/
-bool Hd_USTC_CG_RenderBufferGL::Allocate(
+bool Hd_USTC_CG_RenderBuffer::Allocate(
     GfVec3i const &dimensions,
     HdFormat format,
     bool multiSampled)
@@ -201,7 +206,7 @@ static void _WriteOutput(HdFormat format, uint8_t *dst, T const *value)
     }
 }
 
-void Hd_USTC_CG_RenderBufferGL::Clear(const float *value)
+void Hd_USTC_CG_RenderBuffer::Clear(const float *value)
 {
     uint8_t buffer[16];
     _WriteOutput(_format, buffer, value);
@@ -211,22 +216,13 @@ void Hd_USTC_CG_RenderBufferGL::Clear(const float *value)
     glBindTexture(GL_TEXTURE_2D, 0);
 #endif
 }
-void Hd_USTC_CG_RenderBufferGL::Clear(const int *value)
+void Hd_USTC_CG_RenderBuffer::Clear(const int *value)
 {
     uint8_t buffer[16];
     _WriteOutput(_format, buffer, value);
-
-#ifdef USTC_CG_BACKEND_OPENGL
-
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glClearTexImage(tex, 0, _GetGLFormat(_format), _GetGLType(_format), buffer);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    assert(glGetError() == 0);
-
-#endif
 }
 
-void Hd_USTC_CG_RenderBufferGL::Present(nvrhi::TextureHandle handle)
+void Hd_USTC_CG_RenderBuffer::Present(nvrhi::TextureHandle handle)
 {
     if (!m_CommandList) {
         m_CommandList = nvrhi_device->createCommandList();
@@ -251,11 +247,9 @@ void Hd_USTC_CG_RenderBufferGL::Present(nvrhi::TextureHandle handle)
     }
 
     nvrhi_device->unmapStagingTexture(staging);
-
-    
 }
 
-GLenum Hd_USTC_CG_RenderBufferGL::_GetGLFormat(HdFormat hd_format)
+GLenum Hd_USTC_CG_RenderBuffer::_GetGLFormat(HdFormat hd_format)
 {
     switch (hd_format) {
         case HdFormatInvalid:
@@ -292,7 +286,7 @@ GLenum Hd_USTC_CG_RenderBufferGL::_GetGLFormat(HdFormat hd_format)
     }
 }
 
-GLenum Hd_USTC_CG_RenderBufferGL::_GetGLType(HdFormat hd_format)
+GLenum Hd_USTC_CG_RenderBuffer::_GetGLType(HdFormat hd_format)
 {
     switch (hd_format) {
         case HdFormatInvalid:
@@ -329,12 +323,12 @@ GLenum Hd_USTC_CG_RenderBufferGL::_GetGLType(HdFormat hd_format)
     }
 }
 
-GLsizei Hd_USTC_CG_RenderBufferGL::GetbufSize()
+GLsizei Hd_USTC_CG_RenderBuffer::GetbufSize()
 {
     return _width * _height * HdDataSizeOfFormat(_format);
 }
 
-void *Hd_USTC_CG_RenderBufferGL::Map()
+void *Hd_USTC_CG_RenderBuffer::Map()
 {
 #ifdef USTC_CG_BACKEND_OPENGL
     glGetTextureImage(
@@ -350,13 +344,13 @@ void *Hd_USTC_CG_RenderBufferGL::Map()
     return _buffer.data();
 }
 
-void Hd_USTC_CG_RenderBufferGL::Unmap()
+void Hd_USTC_CG_RenderBuffer::Unmap()
 {
     _mappers--;
 }
 
 /*virtual*/
-void Hd_USTC_CG_RenderBufferGL::Resolve()
+void Hd_USTC_CG_RenderBuffer::Resolve()
 {
 }
 

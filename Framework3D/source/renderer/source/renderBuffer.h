@@ -32,10 +32,10 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
-class Hd_USTC_CG_RenderBufferGL : public HdRenderBuffer {
+class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {
    public:
-    Hd_USTC_CG_RenderBufferGL(const SdfPath& id);
-    ~Hd_USTC_CG_RenderBufferGL() override;
+    Hd_USTC_CG_RenderBuffer(const SdfPath& id);
+    ~Hd_USTC_CG_RenderBuffer() override;
 
     void Sync(
         HdSceneDelegate* sceneDelegate,

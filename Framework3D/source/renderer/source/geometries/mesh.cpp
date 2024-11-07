@@ -144,7 +144,7 @@ void Hd_USTC_CG_Mesh::_UpdatePrimvarSources(
 
 void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
 {
-    auto device = render_param->nvrhi_device;
+    auto device = RHI::get_device();
 
     nvrhi::BufferDesc buffer_desc;
 
@@ -185,8 +185,7 @@ void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
     blas_desc.isTopLevel = false;
     BLAS = device->createAccelStruct(blas_desc);
 
-    std::lock_guard lock(render_param->command_list_mutex);
-    auto m_CommandList = render_param->m_command_list.Get();
+    auto m_CommandList = device->createCommandList();
     m_CommandList->open();
     nvrhi::utils::BuildBottomLevelAccelStruct(m_CommandList, BLAS, blas_desc);
     m_CommandList->close();

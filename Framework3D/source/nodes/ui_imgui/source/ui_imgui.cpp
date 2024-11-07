@@ -753,7 +753,8 @@ ImColor NodeWidget::GetIconColor(SocketType type)
     auto hashValue_g = hashColorComponent("g", typeName);
     auto hashValue_b = hashColorComponent("b", typeName);
 
-    return ImColor(hashValue_r % 255, hashValue_g % 255, hashValue_b % 255);
+    return ImColor(
+        hashValue_r % 192 + 63, hashValue_g % 192 + 63, hashValue_b % 192 + 63);
 }
 NodeWidgetSettings::NodeWidgetSettings()
 {
@@ -798,6 +799,11 @@ std::unique_ptr<NodeSystemStorage> FileBasedNodeWidgetSettings::create_storage()
     const
 {
     return std::make_unique<NodeSystemFileStorage>(json_path);
+}
+
+std::string FileBasedNodeWidgetSettings::WidgetName() const
+{
+    return json_path.string();
 }
 
 std::unique_ptr<IWidget> create_node_imgui_widget(

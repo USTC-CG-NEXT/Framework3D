@@ -25,146 +25,83 @@ Hd_USTC_CG_Renderer::~Hd_USTC_CG_Renderer()
 
 void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 {
-    
-
     _completedSamples.store(0);
 
-    // Commit any pending changes to the scene.
+    auto node_system = render_param->node_system;
 
-    if (!_ValidateAovBindings()) {
-        for (size_t i = 0; i < _aovBindings.size(); ++i) {
-            auto rb = static_cast<Hd_USTC_CG_RenderBufferGL*>(
+    node_system->execute();
+
+    for (size_t i = 0; i < _aovBindings.size(); ++i) {
+        std::string present_name = "render_present";
+        nvrhi::TextureHandle texture = nullptr;
+
+        if (_aovBindings[i].aovName == HdAovTokens->depth) {
+            present_name = "render_present_depth";
+        }
+
+        for (auto&& node : node_system->get_node_tree()->nodes) {
+            auto try_fetch_info = [&node, node_system]<typename T>(
+                                      const char* id_name, T& obj) {
+                if (std::string(node->typeinfo->id_name) == id_name) {
+                    assert(node->get_inputs().size() == 1);
+                    auto output_socket = node->get_inputs()[0];
+                    entt::meta_any data;
+                    node_system->get_node_tree_executor()
+                        ->sync_node_to_external_storage(output_socket, data);
+                    obj = data.cast<T>();
+                }
+            };
+            try_fetch_info(present_name.c_str(), texture);
+            if (texture) {
+                break;
+            }
+        }
+        if (texture) {
+            auto rb = static_cast<Hd_USTC_CG_RenderBuffer*>(
                 _aovBindings[i].renderBuffer);
+            rb->Present(texture);
             rb->SetConverged(true);
         }
-        // XXX:validation
-        TF_WARN("Could not validate Aovs. Render will not complete");
-        return;
     }
 
-    //// Fill the nodes that requires value from the scene.
-    // auto executor =
-    //     dynamic_cast<EagerNodeTreeExecutorRender*>(render_param->executor);
-    // auto& node_tree = render_param->node_tree;
-
-    // executor->prepare_tree(node_tree);
-
-    // executor->set_device(render_param->nvrhi_device);
-
-    // for (auto&& node : node_tree->nodes) {
-    //     auto try_fill_info = [&node, &executor, this]<typename T>(
-    //                              const char* id_name, const T& obj) {
-    //         if (std::string(node->typeinfo->id_name) == id_name) {
-    //             assert(node->get_outputs().size() == 1);
-    //             auto output_socket = node->get_outputs()[0];
-    //             entt::meta_any data(*(render_param->context), obj);
-    //             executor->sync_node_from_external_storage(output_socket,
-    //             data);
-    //         }
-    //     };
-    //     try_fill_info("render_scene_lights", *render_param->lights);
-    //     try_fill_info("render_scene_camera", *render_param->cameras);
-    //     try_fill_info("render_scene_meshes", *render_param->meshes);
-    //     try_fill_info("render_scene_materials", *render_param->materials);
-    //     try_fill_info("node_accel_struct", render_param->TLAS->get_tlas());
-    // }
-    // RenderGlobalParams params;
-    // Hd_USTC_CG_Camera* free_camera = nullptr;
-    // for (Hd_USTC_CG_Camera* camera : *render_param->cameras) {
-    //     if (camera->GetId() != SdfPath::EmptyPath()) {
-    //         free_camera = camera;
-    //         break;
-    //     }
-    // }
-    // assert(free_camera);
-    // params.camera = free_camera;
-    // executor->set_global_param(&params);
-    // executor->execute_tree(node_tree);
-
-    // for (size_t i = 0; i < _aovBindings.size(); ++i) {
-    //     std::string present_name = "render_present";
-    //     TextureHandle texture = nullptr;
-
-    //    if (_aovBindings[i].aovName == HdAovTokens->depth) {
-    //        present_name = "render_present_depth";
-    //    }
-
-    //    for (auto&& node : node_tree->nodes) {
-    //        auto try_fetch_info = [&node, &executor]<typename T>(
-    //                                  const char* id_name, T& obj) {
-    //            if (std::string(node->typeinfo->id_name) == id_name) {
-    //                assert(node->get_inputs().size() == 1);
-    //                auto output_socket = node->get_inputs()[0];
-    //                entt::meta_any data;
-    //                executor->sync_node_to_external_storage(
-    //                    output_socket, data);
-    //                obj = data.cast<T>();
-    //            }
-    //        };
-    //        try_fetch_info(present_name.c_str(), texture);
-    //        if (texture) {
-    //            break;
-    //        }
-    //    }
-    //    if (texture) {
-    //        auto rb = static_cast<Hd_USTC_CG_RenderBufferGL*>(
-    //            _aovBindings[i].renderBuffer);
-    //        rb->Present(texture);
-    //        rb->SetConverged(true);
-    //    }
-    //}
-
-    render_param->nvrhi_device->runGarbageCollection();
+    RHI::get_device()->runGarbageCollection();
 
     // executor->finalize(node_tree);
 }
 
 void Hd_USTC_CG_Renderer::Clear()
 {
-    if (!_ValidateAovBindings()) {
-        return;
-    }
-    
-
     for (size_t i = 0; i < _aovBindings.size(); ++i) {
         if (_aovBindings[i].clearValue.IsEmpty()) {
             continue;
         }
-        
 
-        auto rb = static_cast<Hd_USTC_CG_RenderBufferGL*>(
-            _aovBindings[i].renderBuffer);
-        
+        auto rb =
+            static_cast<Hd_USTC_CG_RenderBuffer*>(_aovBindings[i].renderBuffer);
 
         rb->Map();
-        
 
         if (_aovNames[i].name == HdAovTokens->color) {
             GfVec4f clearColor = _GetClearColor(_aovBindings[i].clearValue);
 
             rb->Clear(clearColor.data());
-            
         }
         else if (rb->GetFormat() == HdFormatInt32) {
             int32_t clearValue = _aovBindings[i].clearValue.Get<int32_t>();
             rb->Clear(&clearValue);
-            
         }
         else if (rb->GetFormat() == HdFormatFloat32) {
             float clearValue = _aovBindings[i].clearValue.Get<float>();
             rb->Clear(&clearValue);
-            
         }
         else if (rb->GetFormat() == HdFormatFloat32Vec3) {
             auto clearValue = _aovBindings[i].clearValue.Get<GfVec3f>();
             rb->Clear(clearValue.data());
-            
 
         }  // else, _ValidateAovBindings would have already warned.
 
         rb->Unmap();
         rb->SetConverged(false);
-        
     }
 }
 
@@ -217,8 +154,8 @@ void Hd_USTC_CG_Renderer::SetAovBindings(
 void Hd_USTC_CG_Renderer::MarkAovBuffersUnconverged()
 {
     for (size_t i = 0; i < _aovBindings.size(); ++i) {
-        auto rb = static_cast<Hd_USTC_CG_RenderBufferGL*>(
-            _aovBindings[i].renderBuffer);
+        auto rb =
+            static_cast<Hd_USTC_CG_RenderBuffer*>(_aovBindings[i].renderBuffer);
         rb->SetConverged(false);
     }
 }
@@ -245,155 +182,5 @@ bool Hd_USTC_CG_Renderer::nodetree_modified(bool new_status)
 
     return false;
 }
-
-bool Hd_USTC_CG_Renderer::_ValidateAovBindings()
-{
-    if (!_aovBindingsNeedValidation) {
-        return _aovBindingsValid;
-    }
-
-    _aovBindingsNeedValidation = false;
-    _aovBindingsValid = true;
-
-    for (size_t i = 0; i < _aovBindings.size(); ++i) {
-        // By the time the attachment gets here, there should be a bound
-        // output buffer.
-        if (_aovBindings[i].renderBuffer == nullptr) {
-            TF_WARN(
-                "Aov '%s' doesn't have any renderbuffer bound",
-                _aovNames[i].name.GetText());
-            _aovBindingsValid = false;
-            continue;
-        }
-
-        if (_aovNames[i].name != HdAovTokens->color &&
-            _aovNames[i].name != HdAovTokens->cameraDepth &&
-            _aovNames[i].name != HdAovTokens->depth &&
-            _aovNames[i].name != HdAovTokens->primId &&
-            _aovNames[i].name != HdAovTokens->instanceId &&
-            _aovNames[i].name != HdAovTokens->elementId &&
-            _aovNames[i].name != HdAovTokens->Neye &&
-            _aovNames[i].name != HdAovTokens->normal &&
-            !_aovNames[i].isPrimvar) {
-            TF_WARN(
-                "Unsupported attachment with Aov '%s' won't be rendered to",
-                _aovNames[i].name.GetText());
-        }
-
-        HdFormat format = _aovBindings[i].renderBuffer->GetFormat();
-
-        // depth is only supported for float32 attachments
-        if ((_aovNames[i].name == HdAovTokens->cameraDepth ||
-             _aovNames[i].name == HdAovTokens->depth) &&
-            format != HdFormatFloat32) {
-            TF_WARN(
-                "Aov '%s' has unsupported format '%s'",
-                _aovNames[i].name.GetText(),
-                TfEnum::GetName(format).c_str());
-            _aovBindingsValid = false;
-        }
-
-        // ids are only supported for int32 attachments
-        if ((_aovNames[i].name == HdAovTokens->primId ||
-             _aovNames[i].name == HdAovTokens->instanceId ||
-             _aovNames[i].name == HdAovTokens->elementId) &&
-            format != HdFormatInt32) {
-            TF_WARN(
-                "Aov '%s' has unsupported format '%s'",
-                _aovNames[i].name.GetText(),
-                TfEnum::GetName(format).c_str());
-            _aovBindingsValid = false;
-        }
-
-        // Normal is only supported for vec3 attachments of float.
-        if ((_aovNames[i].name == HdAovTokens->Neye ||
-             _aovNames[i].name == HdAovTokens->normal) &&
-            format != HdFormatFloat32Vec3) {
-            TF_WARN(
-                "Aov '%s' has unsupported format '%s'",
-                _aovNames[i].name.GetText(),
-                TfEnum::GetName(format).c_str());
-            _aovBindingsValid = false;
-        }
-
-        // Primvars support vec3 output (though some channels may not be
-        // used).
-        if (_aovNames[i].isPrimvar && format != HdFormatFloat32Vec3) {
-            TF_WARN(
-                "Aov 'primvars:%s' has unsupported format '%s'",
-                _aovNames[i].name.GetText(),
-                TfEnum::GetName(format).c_str());
-            _aovBindingsValid = false;
-        }
-
-        // color is only supported for vec3/vec4 attachments of float,
-        // unorm, or snorm.
-        if (_aovNames[i].name == HdAovTokens->color) {
-            switch (format) {
-                case HdFormatUNorm8Vec4:
-                case HdFormatUNorm8Vec3:
-                case HdFormatSNorm8Vec4:
-                case HdFormatSNorm8Vec3:
-                case HdFormatFloat32Vec4:
-                case HdFormatFloat32Vec3: break;
-                default:
-                    TF_WARN(
-                        "Aov '%s' has unsupported format '%s'",
-                        _aovNames[i].name.GetText(),
-                        TfEnum::GetName(format).c_str());
-                    _aovBindingsValid = false;
-                    break;
-            }
-        }
-
-        // make sure the clear value is reasonable for the format of the
-        // attached buffer.
-        if (!_aovBindings[i].clearValue.IsEmpty()) {
-            HdTupleType clearType =
-                HdGetValueTupleType(_aovBindings[i].clearValue);
-
-            // array-valued clear types aren't supported.
-            if (clearType.count != 1) {
-                TF_WARN(
-                    "Aov '%s' clear value type '%s' is an array",
-                    _aovNames[i].name.GetText(),
-                    _aovBindings[i].clearValue.GetTypeName().c_str());
-                _aovBindingsValid = false;
-            }
-
-            // color only supports float/double vec3/4
-            if (_aovNames[i].name == HdAovTokens->color &&
-                clearType.type != HdTypeFloatVec3 &&
-                clearType.type != HdTypeFloatVec4 &&
-                clearType.type != HdTypeDoubleVec3 &&
-                clearType.type != HdTypeDoubleVec4) {
-                TF_WARN(
-                    "Aov '%s' clear value type '%s' isn't compatible",
-                    _aovNames[i].name.GetText(),
-                    _aovBindings[i].clearValue.GetTypeName().c_str());
-                _aovBindingsValid = false;
-            }
-
-            // only clear float formats with float, int with int, float3
-            // with float3.
-            if ((format == HdFormatFloat32 && clearType.type != HdTypeFloat) ||
-                (format == HdFormatInt32 && clearType.type != HdTypeInt32) ||
-                (format == HdFormatFloat32Vec3 &&
-                 clearType.type != HdTypeFloatVec3)) {
-                TF_WARN(
-                    "Aov '%s' clear value type '%s' isn't compatible with"
-                    " format %s",
-                    _aovNames[i].name.GetText(),
-                    _aovBindings[i].clearValue.GetTypeName().c_str(),
-                    TfEnum::GetName(format).c_str());
-                _aovBindingsValid = false;
-            }
-        }
-    }
-    if (!_aovBindingsValid) {
-        _aovBindingsNeedValidation = true;
-    }
-    return _aovBindingsValid;
-};
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

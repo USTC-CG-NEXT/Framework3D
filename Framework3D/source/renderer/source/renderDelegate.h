@@ -51,7 +51,6 @@ using namespace pxr;
 TF_DECLARE_PUBLIC_TOKENS(
     Hd_USTC_CG_RenderSettingsTokens,
     Hd_USTC_CG_RENDER_SETTINGS_TOKENS);
-using nvrhi::RefCountPtr;
 
 class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
    public:
@@ -96,7 +95,6 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
     void CommitResources(HdChangeTracker* tracker) override;
 
     HdRenderParam* GetRenderParam() const override;
-    void SetRenderSetting(const TfToken& key, const VtValue& value) override;
 
     VtValue GetRenderSetting(TfToken const& key) const override;
 

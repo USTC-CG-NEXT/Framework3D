@@ -1,14 +1,17 @@
 #include "renderTLAS.h"
 
-USTC_CG::Hd_USTC_CG_RenderTLAS::Hd_USTC_CG_RenderTLAS(
-    nvrhi::IDevice* nvrhi_device)
-    : nvrhi_device(nvrhi_device)
+#include "RHI/rhi.hpp"
+
+USTC_CG::Hd_USTC_CG_RenderTLAS::Hd_USTC_CG_RenderTLAS()
 {
-    m_command_list = nvrhi_device->createCommandList();
     nvrhi::rt::AccelStructDesc tlasDesc;
     tlasDesc.isTopLevel = true;
     tlasDesc.topLevelMaxInstances = 114514;
-    TLAS = nvrhi_device->createAccelStruct(tlasDesc);
+    TLAS = RHI::get_device()->createAccelStruct(tlasDesc);
+}
+
+USTC_CG::Hd_USTC_CG_RenderTLAS::~Hd_USTC_CG_RenderTLAS()
+{
 }
 
 nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_RenderTLAS::get_tlas()
@@ -44,17 +47,19 @@ void USTC_CG::Hd_USTC_CG_RenderTLAS::rebuild_tlas()
         const std::vector<nvrhi::rt::InstanceDesc>& vec = pair.second;
         instances_vec.insert(instances_vec.end(), vec.begin(), vec.end());
     }
-    nvrhi_device->waitForIdle();
+    auto nvrhi_device = RHI::get_device();
 
-    m_command_list->open();
-    m_command_list->beginMarker("TLAS Update");
-    m_command_list->buildTopLevelAccelStruct(
+    auto command_list = nvrhi_device->createCommandList();
+
+    command_list->open();
+    command_list->beginMarker("TLAS Update");
+    command_list->buildTopLevelAccelStruct(
         TLAS, instances_vec.data(), instances_vec.size());
-    m_command_list->endMarker();
+    command_list->endMarker();
 
-    m_command_list->close();
+    command_list->close();
 
-    nvrhi_device->executeCommandList(m_command_list);
+    nvrhi_device->executeCommandList(command_list);
 
     nvrhi_device->waitForIdle();
 }

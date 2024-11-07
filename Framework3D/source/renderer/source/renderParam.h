@@ -23,19 +23,17 @@
 //
 #pragma once
 
+#include "RHI/rhi.hpp"
 #include "api.h"
+#include "nodes/system/node_system.hpp"
 #include "nvrhi/d3d12.h"
 #include "pxr/imaging/hd/renderDelegate.h"
 #include "pxr/imaging/hd/renderThread.h"
 #include "pxr/pxr.h"
 #include "renderTLAS.h"
-#include "nodes/system/node_system.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class Hd_USTC_CG_Material;
-class Hd_USTC_CG_Mesh;
-class Hd_USTC_CG_Light;
-class Hd_USTC_CG_Camera;
+
 using namespace pxr;
 
 ///
@@ -50,24 +48,20 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
     Hd_USTC_CG_RenderParam(
         HdRenderThread *renderThread,
         std::atomic<int> *sceneVersion,
-        nvrhi::IDevice *device)
+        NodeSystem *node_system)
         : _renderThread(renderThread),
           _sceneVersion(sceneVersion),
-          nvrhi_device(device),
-          TLAS(new Hd_USTC_CG_RenderTLAS(device))
+          node_system(node_system)
     {
-        m_command_list = nvrhi_device->createCommandList();
+        TLAS = std::make_unique<Hd_USTC_CG_RenderTLAS>();
+    }
+    ~Hd_USTC_CG_RenderParam()
+    {
     }
 
     HdRenderThread *_renderThread = nullptr;
 
     NodeSystem *node_system;
-
-    nvrhi::IDevice *nvrhi_device;
-    nvrhi::CommandListHandle m_command_list;
-
-    std::mutex command_list_mutex;
-
     std::unique_ptr<Hd_USTC_CG_RenderTLAS> TLAS;
 
    private:

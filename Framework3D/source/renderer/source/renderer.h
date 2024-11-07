@@ -50,7 +50,6 @@ class Hd_USTC_CG_Renderer {
     const Hd_USTC_CG_Camera* camera_ = nullptr;
     Hd_USTC_CG_RenderParam* render_param;
 
-    bool _ValidateAovBindings();
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

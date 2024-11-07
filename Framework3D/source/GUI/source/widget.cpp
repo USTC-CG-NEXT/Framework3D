@@ -67,6 +67,11 @@ void IWidget::Animate(float elapsed_time_seconds)
 {
 }
 
+IWidget::~IWidget()
+{
+    call_back_ = nullptr;
+}
+
 void IWidget::SetCallBack(
     const std::function<void(Window*, IWidget*)>& call_back)
 {

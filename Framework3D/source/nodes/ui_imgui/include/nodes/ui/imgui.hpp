@@ -37,6 +37,8 @@ struct NodeWidgetSettings {
 struct FileBasedNodeWidgetSettings : public NodeWidgetSettings {
     std::filesystem::path json_path;
     std::unique_ptr<NodeSystemStorage> create_storage() const override;
+
+    std::string WidgetName() const override;
 };
 
 std::unique_ptr<IWidget> create_node_imgui_widget(

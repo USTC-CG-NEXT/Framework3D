@@ -12,11 +12,15 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace RHI {
 
-std::unique_ptr<DeviceManager> device_manager;
+std::unique_ptr<DeviceManager> device_manager = nullptr;
 
 int init(bool with_window, bool use_dx12)
 {
-    device_manager.reset();
+    if (device_manager) {
+        log::warning("Trying to initialize the RHI again");
+        return 0;
+    }
+
     auto api =
         use_dx12 ? nvrhi::GraphicsAPI::D3D12 : nvrhi::GraphicsAPI::VULKAN;
     device_manager = std::unique_ptr<DeviceManager>(DeviceManager::Create(api));
@@ -52,6 +56,7 @@ int init(bool with_window, bool use_dx12)
     else {
         return device_manager->CreateHeadlessDevice(params);
     }
+    return 1;
 }
 
 nvrhi::IDevice* get_device()

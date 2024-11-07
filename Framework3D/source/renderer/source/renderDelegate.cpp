@@ -143,9 +143,7 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     node_system->register_global_params(*_globalPayload);
 
     _renderParam = std::make_shared<Hd_USTC_CG_RenderParam>(
-        &_renderThread,
-        &_sceneVersion,
-        nvrhi_device);
+        &_renderThread, &_sceneVersion, node_system.get());
 
     _renderer = std::make_shared<Hd_USTC_CG_Renderer>(_renderParam.get());
 
@@ -171,14 +169,14 @@ HdAovDescriptor Hd_USTC_CG_RenderDelegate::GetDefaultAovDescriptor(
 
     if (name == HdAovTokens->color) {
         return HdAovDescriptor(
-            HdFormatFloat32Vec4, false, VtValue(GfVec4f(0.0f)));
+            HdFormatFloat16Vec4, false, VtValue(GfVec4f(0.0f)));
     }
     if (name == HdAovTokens->normal || name == HdAovTokens->Neye) {
         return HdAovDescriptor(
-            HdFormatFloat32Vec3, false, VtValue(GfVec3f(-1.0f)));
+            HdFormatFloat16Vec3, false, VtValue(GfVec3f(-1.0f)));
     }
     if (name == HdAovTokens->depth) {
-        return HdAovDescriptor(HdFormatFloat32, false, VtValue(1.0f));
+        return HdAovDescriptor(HdFormatFloat16, false, VtValue(1.0f));
     }
     if (name == HdAovTokens->primId || name == HdAovTokens->instanceId ||
         name == HdAovTokens->elementId) {
@@ -187,7 +185,7 @@ HdAovDescriptor Hd_USTC_CG_RenderDelegate::GetDefaultAovDescriptor(
     HdParsedAovToken aovId(name);
     if (aovId.isPrimvar) {
         return HdAovDescriptor(
-            HdFormatFloat32Vec3, false, VtValue(GfVec3f(0.0f)));
+            HdFormatFloat16Vec3, false, VtValue(GfVec3f(0.0f)));
     }
 
     return HdAovDescriptor();
@@ -199,8 +197,13 @@ Hd_USTC_CG_RenderDelegate::~Hd_USTC_CG_RenderDelegate()
     // for (auto&& node : _renderParam->node_tree->nodes) {
     //    node->runtime_storage.reset();
     //}
+    _renderParam.reset();
     _resourceRegistry.reset();
     _renderer.reset();
+    _globalPayload.reset();
+
+    RHI::get_device()->runGarbageCollection();
+
     std::cout << "Destroying Tiny RenderDelegate" << std::endl;
 }
 
@@ -357,7 +360,7 @@ HdBprim* Hd_USTC_CG_RenderDelegate::CreateBprim(
                    ",prim id = " + bprimId.GetString())
                       .c_str());
 
-        return new Hd_USTC_CG_RenderBufferGL(bprimId);
+        return new Hd_USTC_CG_RenderBuffer(bprimId);
     }
     TF_CODING_ERROR("Unknown Bprim Type %s", typeId.GetText());
     return nullptr;
@@ -366,7 +369,7 @@ HdBprim* Hd_USTC_CG_RenderDelegate::CreateBprim(
 HdBprim* Hd_USTC_CG_RenderDelegate::CreateFallbackBprim(const TfToken& typeId)
 {
     if (typeId == HdPrimTypeTokens->renderBuffer) {
-        return new Hd_USTC_CG_RenderBufferGL(SdfPath::EmptyPath());
+        return new Hd_USTC_CG_RenderBuffer(SdfPath::EmptyPath());
     }
     TF_CODING_ERROR("Unknown Bprim Type %s", typeId.GetText());
     return nullptr;
@@ -398,22 +401,6 @@ void Hd_USTC_CG_RenderDelegate::DestroyInstancer(HdInstancer* instancer)
 HdRenderParam* Hd_USTC_CG_RenderDelegate::GetRenderParam() const
 {
     return _renderParam.get();
-}
-
-void Hd_USTC_CG_RenderDelegate::SetRenderSetting(
-    const TfToken& key,
-    const VtValue& value)
-{
-    HdRenderDelegate::SetRenderSetting(key, value);
-    // if (key == TfToken("RenderNodeTree")) {
-    //     _renderParam->node_tree = static_cast<NodeTree*>(value.Get<void*>());
-    // }
-    // if (key == TfToken("RenderNodeTreeExecutor")) {
-    //     _renderParam->executor =
-    //         static_cast<NodeTreeExecutor*>(value.Get<void*>());
-    //     auto&& context = entt::locator<entt::meta_ctx>::value_or();
-    //     _renderParam->context = &_renderParam->executor->get_meta_ctx();
-    // }
 }
 
 VtValue Hd_USTC_CG_RenderDelegate::GetRenderSetting(TfToken const& key) const

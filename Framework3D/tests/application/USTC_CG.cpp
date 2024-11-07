@@ -16,6 +16,8 @@ using namespace USTC_CG;
 
 int main()
 {
+    auto window = std::make_unique<Window>();
+
     log::SetMinSeverity(Severity::Debug);
     log::EnableOutputToConsole(true);
     auto stage = create_global_stage();
@@ -26,14 +28,13 @@ int main()
     auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
 
     render->SetCallBack([](Window* window, IWidget* render_widget) {
-        log::info("Callback on creating the UI called");
         auto node_system = static_cast<const std::shared_ptr<NodeSystem>*>(
             dynamic_cast<UsdviewEngine*>(render_widget)
                 ->emit_create_renderer_ui_control());
         if (node_system) {
             FileBasedNodeWidgetSettings desc;
             desc.system = *node_system;
-            desc.json_path = "render_nodes.json";
+            desc.json_path = "render_nodes_save.json";
 
             std::unique_ptr<IWidget> node_widget =
                 std::move(create_node_imgui_widget(desc));
@@ -41,8 +42,6 @@ int main()
             window->register_widget(std::move(node_widget));
         }
     });
-
-    auto window = std::make_unique<Window>();
 
     window->register_widget(std::move(widget));
     window->register_widget(std::move(render));

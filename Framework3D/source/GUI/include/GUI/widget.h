@@ -14,7 +14,7 @@ class GUI_API IWidget {
     IWidget()
     {
     }
-    virtual ~IWidget() = default;
+    virtual ~IWidget();
     virtual bool BuildUI() = 0;
 
     virtual void SetCallBack(const std::function<void(Window*, IWidget*)>&);

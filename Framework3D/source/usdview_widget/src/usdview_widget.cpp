@@ -69,10 +69,8 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
             pxr::GfVec3d{ 0, 0, 1 });
 
     auto plugins = renderer_->GetRendererPlugins();
-    for (const auto& plugin : plugins) {
-        log::info(plugin.GetText());
-    }
-    renderer_->SetRendererPlugin(plugins[engine_status.renderer_id]);
+
+    ChooseRenderer(plugins, engine_status.renderer_id);
 
     free_camera_->CreateFocusDistanceAttr().Set(2.0f);
     free_camera_->CreateClippingRangeAttr(
@@ -158,10 +156,7 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     renderer_->SetCameraState(viewMatrix, projectionMatrix);
     renderer_->SetRendererAov(HdAovTokens->color);
-    // renderer_->SetRendererSetting(
-    //     TfToken("RenderNodeTree"), VtValue((void*)node_tree));
-    // renderer_->SetRendererSetting(
-    //     TfToken("RenderNodeTreeExecutor"), VtValue((void*)executor));
+
 
     _renderParams.enableLighting = true;
     _renderParams.enableSceneMaterials = true;
@@ -409,6 +404,7 @@ void UsdviewEngine::CreateGLContext()
 
 UsdviewEngine::~UsdviewEngine()
 {
+    assert(RHI::get_device());
     renderer_.reset();
     hgi.reset();
 }
