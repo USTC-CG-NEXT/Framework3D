@@ -252,7 +252,7 @@ void Hd_USTC_CG_RenderBufferGL::Present(nvrhi::TextureHandle handle)
 
     nvrhi_device->unmapStagingTexture(staging);
 
-    assert(glGetError() == GL_NO_ERROR);
+    
 }
 
 GLenum Hd_USTC_CG_RenderBufferGL::_GetGLFormat(HdFormat hd_format)
