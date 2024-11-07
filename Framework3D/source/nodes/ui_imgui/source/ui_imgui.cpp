@@ -492,7 +492,7 @@ bool NodeWidget::BuildUI()
     ed::End();
 
     if (tree_->GetDirty()) {
-        system_->execute();
+        system_->execute(true);
         tree_->SetDirty(false);
     }
 

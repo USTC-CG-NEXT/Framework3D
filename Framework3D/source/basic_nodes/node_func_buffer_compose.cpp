@@ -79,6 +79,7 @@ NODE_EXECUTION_FUNCTION(compose_buffer2f)
         }
     }
     params.set_output("Buffer", Buffer);
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(compose_buffer3f)
@@ -104,6 +105,7 @@ NODE_EXECUTION_FUNCTION(compose_buffer3f)
         }
     }
     params.set_output("Buffer", Buffer);
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(compose_buffer4f)
@@ -129,6 +131,7 @@ NODE_EXECUTION_FUNCTION(compose_buffer4f)
         }
     }
     params.set_output("Buffer", Buffer);
+    return true;
 };
 ;
 
@@ -155,6 +158,7 @@ NODE_EXECUTION_FUNCTION(compose_buffer2i)
         }
     }
     params.set_output("Buffer", Buffer);
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(compose_buffer3i)
@@ -180,6 +184,7 @@ NODE_EXECUTION_FUNCTION(compose_buffer3i)
         }
     }
     params.set_output("Buffer", Buffer);
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(compose_buffer4i)
@@ -205,6 +210,7 @@ NODE_EXECUTION_FUNCTION(compose_buffer4i)
         }
     }
     params.set_output("Buffer", Buffer);
+    return true;
 };
 ;
 

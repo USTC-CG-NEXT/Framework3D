@@ -25,8 +25,11 @@ void NodeSystem::finalize()
     }
 }
 
-void NodeSystem::execute() const
+void NodeSystem::execute(bool is_ui_execution) const
 {
+    if (is_ui_execution && !allow_ui_execution) {
+        return;
+    }
     if (node_tree_executor) {
         return node_tree_executor->execute(node_tree.get());
     }

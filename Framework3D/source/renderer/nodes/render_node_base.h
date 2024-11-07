@@ -14,7 +14,8 @@ inline Hd_USTC_CG_Camera* get_free_camera(
     ExeParams& params,
     const std::string& camera_name = "Camera")
 {
-    auto& cameras = params.get_global_payload<RenderGlobalPayload&>().get_cameras();
+    auto& cameras =
+        params.get_global_payload<RenderGlobalPayload&>().get_cameras();
 
     Hd_USTC_CG_Camera* free_camera = nullptr;
     for (auto camera : cameras) {
@@ -31,6 +32,13 @@ inline ResourceAllocator& get_resource_allocator(ExeParams& params)
     return params.get_global_payload<RenderGlobalPayload&>().resource_allocator;
 }
 
-#define resource_allocator (get_resource_allocator(params))
+inline ShaderFactory& get_shader_factory(ExeParams& params)
+{
+    return params.get_global_payload<RenderGlobalPayload&>().shader;
+}
+
+
+#define resource_allocator get_resource_allocator(params)
+#
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

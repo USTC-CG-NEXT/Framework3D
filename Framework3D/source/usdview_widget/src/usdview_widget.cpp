@@ -34,7 +34,7 @@ class NodeTree;
 
 struct UsdviewEnginePrivateData {
     nvrhi::TextureHandle nvrhi_texture = nullptr;
-    nvrhi::Format present_format = nvrhi::Format::RGBA16_UNORM;
+    nvrhi::Format present_format = nvrhi::Format::RGBA32_FLOAT;
 };
 
 UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)

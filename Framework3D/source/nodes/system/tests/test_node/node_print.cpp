@@ -20,6 +20,7 @@ NODE_EXECUTION_FUNCTION(print)
     std::ostringstream oss;
     oss << "Print Info: " << val;
     log::info(oss.str().c_str());
+    return true;
 }
 
 NODE_DECLARATION_REQUIRED(print)

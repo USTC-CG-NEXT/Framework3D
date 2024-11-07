@@ -1,6 +1,7 @@
 #include "renderer.h"
 
 #include "camera.h"
+#include "node_exec_eager_render.hpp"
 #include "nvrhi/d3d12.h"
 #include "pxr/imaging/hd/renderBuffer.h"
 #include "pxr/imaging/hd/tokens.h"
@@ -18,9 +19,9 @@ Hd_USTC_CG_Renderer::Hd_USTC_CG_Renderer(Hd_USTC_CG_RenderParam* render_param)
 
 Hd_USTC_CG_Renderer::~Hd_USTC_CG_Renderer()
 {
-    // auto executor =
-    //     dynamic_cast<EagerNodeTreeExecutorRender*>(render_param->executor);
-    // executor->reset_allocator();
+    auto executor = dynamic_cast<EagerNodeTreeExecutorRender*>(
+        render_param->node_system->get_node_tree_executor());
+    executor->reset_allocator();
 }
 
 void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
@@ -29,14 +30,18 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 
     auto node_system = render_param->node_system;
 
-    node_system->execute();
+    node_system->execute(false);
 
     for (size_t i = 0; i < _aovBindings.size(); ++i) {
-        std::string present_name = "render_present";
+        std::string present_name;
         nvrhi::TextureHandle texture = nullptr;
 
         if (_aovBindings[i].aovName == HdAovTokens->depth) {
-            present_name = "render_present_depth";
+            present_name = "present_depth";
+        }
+
+        if (_aovBindings[i].aovName == HdAovTokens->color) {
+            present_name = "present_color";
         }
 
         for (auto&& node : node_system->get_node_tree()->nodes) {
@@ -79,63 +84,7 @@ void Hd_USTC_CG_Renderer::Clear()
 
         auto rb =
             static_cast<Hd_USTC_CG_RenderBuffer*>(_aovBindings[i].renderBuffer);
-
-        rb->Map();
-
-        if (_aovNames[i].name == HdAovTokens->color) {
-            GfVec4f clearColor = _GetClearColor(_aovBindings[i].clearValue);
-
-            rb->Clear(clearColor.data());
-        }
-        else if (rb->GetFormat() == HdFormatInt32) {
-            int32_t clearValue = _aovBindings[i].clearValue.Get<int32_t>();
-            rb->Clear(&clearValue);
-        }
-        else if (rb->GetFormat() == HdFormatFloat32) {
-            float clearValue = _aovBindings[i].clearValue.Get<float>();
-            rb->Clear(&clearValue);
-        }
-        else if (rb->GetFormat() == HdFormatFloat32Vec3) {
-            auto clearValue = _aovBindings[i].clearValue.Get<GfVec3f>();
-            rb->Clear(clearValue.data());
-
-        }  // else, _ValidateAovBindings would have already warned.
-
-        rb->Unmap();
-        rb->SetConverged(false);
-    }
-}
-
-/* static */
-GfVec4f Hd_USTC_CG_Renderer::_GetClearColor(const VtValue& clearValue)
-{
-    HdTupleType type = HdGetValueTupleType(clearValue);
-    if (type.count != 1) {
-        return GfVec4f(0.0f, 0.0f, 0.0f, 1.0f);
-    }
-
-    switch (type.type) {
-        case HdTypeFloatVec3: {
-            GfVec3f f =
-                *(static_cast<const GfVec3f*>(HdGetValueData(clearValue)));
-            return GfVec4f(f[0], f[1], f[2], 1.0f);
-        }
-        case HdTypeFloatVec4: {
-            GfVec4f f =
-                *(static_cast<const GfVec4f*>(HdGetValueData(clearValue)));
-            return f;
-        }
-        case HdTypeDoubleVec3: {
-            GfVec3d f =
-                *(static_cast<const GfVec3d*>(HdGetValueData(clearValue)));
-            return GfVec4f(f[0], f[1], f[2], 1.0f);
-        }
-        case HdTypeDoubleVec4: {
-            GfVec4d f =
-                *(static_cast<const GfVec4d*>(HdGetValueData(clearValue)));
-            return GfVec4f(f);
-        }
-        default: return GfVec4f(0.0f, 0.0f, 0.0f, 1.0f);
+        rb->Clear();
     }
 }
 

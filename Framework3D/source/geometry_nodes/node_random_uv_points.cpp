@@ -44,6 +44,7 @@ NODE_EXECUTION_FUNCTION(random_uv_points)
     points_component->set_width(widths);
 
     params.set_output("Points", geometry);
+    return true;
 }
 
 NODE_DECLARATION_UI(random_uv_points);

@@ -57,6 +57,7 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
         TO output;
         conversion(input, output);
         params.set_output("output", std::move(output));
+        return true;
     });
     conversion_type_info.INVISIBLE = true;
 

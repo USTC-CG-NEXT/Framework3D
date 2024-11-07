@@ -12,6 +12,7 @@ NODE_DECLARATION_FUNCTION(dynamic_socket)
 
 NODE_EXECUTION_FUNCTION(dynamic_socket)
 {
+    return true;
 }
 
 

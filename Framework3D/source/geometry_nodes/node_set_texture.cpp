@@ -23,6 +23,7 @@ NODE_EXECUTION_FUNCTION(set_texture)
     geometry.attach_component(material);
 
     params.set_output("Geometry", std::move(geometry));
+    return true;
 }
 
 NODE_DECLARATION_UI(set_texture);

@@ -227,6 +227,7 @@ NODE_EXECUTION_FUNCTION(write_usd)
     }
 
     pxr::UsdGeomImageable(stage->GetPrimAtPath(sdf_path)).MakeVisible();
+    return true;
 }
 
 NODE_DECLARATION_REQUIRED(write_usd);

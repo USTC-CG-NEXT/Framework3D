@@ -39,6 +39,7 @@ NODE_EXECUTION_FUNCTION(debug_info)
                 .GetString()
                 .c_str());
     }
+    return true;
 }
 
 NODE_DECLARATION_UI(debug_info);

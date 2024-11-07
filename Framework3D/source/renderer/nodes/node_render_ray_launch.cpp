@@ -2,8 +2,8 @@
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "shaders/utils/HitObject.h"
-#include "shaders/utils/ray.h"
+#include "shaders/shaders/utils/HitObject.h"
+#include "shaders/shaders/utils/ray.h"
 
 #define WITH_NVAPI 1
 
@@ -199,8 +199,9 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     log::info("Buffer size: %s", +std::to_string(info.InstanceIndex).c_str());
     params.set_output("Buffer Size", static_cast<int>(info.InstanceIndex));
     if (error.size()) {
-        throw std::runtime_error(error);
+        log::error(error.c_str());
     }
+    return true;
 }
 
 NODE_DECLARATION_UI(scene_ray_launch);

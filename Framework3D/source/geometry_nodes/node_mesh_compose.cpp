@@ -41,6 +41,7 @@ NODE_EXECUTION_FUNCTION(mesh_compose)
     }
 
     params.set_output("Mesh", geometry);
+    return true;
 }
 
 NODE_DECLARATION_UI(mesh_compose);

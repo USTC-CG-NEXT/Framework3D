@@ -85,7 +85,6 @@ static void _RenderCallback(
     Hd_USTC_CG_Renderer* renderer,
     HdRenderThread* renderThread)
 {
-    renderer->Clear();
     renderer->Render(renderThread);
 }
 
@@ -137,6 +136,7 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     node_system = create_dynamic_loading_system();
     node_system->load_configuration("render_nodes.json");
     node_system->set_node_tree_executor(std::move(render_executor));
+    node_system->allow_ui_execution = false;
     node_system->init();
 
     node_system->register_global_params(*_globalPayload);
@@ -168,14 +168,14 @@ HdAovDescriptor Hd_USTC_CG_RenderDelegate::GetDefaultAovDescriptor(
 
     if (name == HdAovTokens->color) {
         return HdAovDescriptor(
-            HdFormatFloat16Vec4, false, VtValue(GfVec4f(0.0f)));
+            HdFormatFloat32Vec4, false, VtValue(GfVec4f(0.0f)));
     }
     if (name == HdAovTokens->normal || name == HdAovTokens->Neye) {
         return HdAovDescriptor(
-            HdFormatFloat16Vec3, false, VtValue(GfVec3f(-1.0f)));
+            HdFormatFloat32Vec3, false, VtValue(GfVec3f(-1.0f)));
     }
     if (name == HdAovTokens->depth) {
-        return HdAovDescriptor(HdFormatFloat16, false, VtValue(1.0f));
+        return HdAovDescriptor(HdFormatFloat32, false, VtValue(1.0f));
     }
     if (name == HdAovTokens->primId || name == HdAovTokens->instanceId ||
         name == HdAovTokens->elementId) {
@@ -184,7 +184,7 @@ HdAovDescriptor Hd_USTC_CG_RenderDelegate::GetDefaultAovDescriptor(
     HdParsedAovToken aovId(name);
     if (aovId.isPrimvar) {
         return HdAovDescriptor(
-            HdFormatFloat16Vec3, false, VtValue(GfVec3f(0.0f)));
+            HdFormatFloat32Vec3, false, VtValue(GfVec3f(0.0f)));
     }
 
     return HdAovDescriptor();
@@ -192,14 +192,15 @@ HdAovDescriptor Hd_USTC_CG_RenderDelegate::GetDefaultAovDescriptor(
 
 Hd_USTC_CG_RenderDelegate::~Hd_USTC_CG_RenderDelegate()
 {
-    //_renderParam->executor->prepare_tree(_renderParam->node_tree);
+    node_system->get_node_tree_executor()->finalize(
+        node_system->get_node_tree());
     // for (auto&& node : _renderParam->node_tree->nodes) {
     //    node->runtime_storage.reset();
     //}
-    _renderParam.reset();
     _resourceRegistry.reset();
     _renderer.reset();
     _globalPayload.reset();
+    _renderParam.reset();
 
     RHI::get_device()->runGarbageCollection();
 

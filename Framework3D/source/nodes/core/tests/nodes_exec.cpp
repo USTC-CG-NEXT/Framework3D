@@ -34,6 +34,7 @@ class NodeExecTest : public ::testing::Test {
             auto a = params.get_input<int>("a");
             auto b = params.get_input<int>("b");
             params.set_output("result", a + b);
+            return true;
         });
 
         descriptor.register_node(add_node);

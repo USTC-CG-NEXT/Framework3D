@@ -20,10 +20,12 @@ class NODES_SYSTEM_API NodeSystem {
     template<typename T>
     void register_global_params(T global_params);
 
-    virtual void execute() const;
+    virtual void execute(bool is_ui_execution = false) const;
 
     [[nodiscard]] NodeTree* get_node_tree() const;
     [[nodiscard]] NodeTreeExecutor* get_node_tree_executor() const;
+
+    bool allow_ui_execution = true;
 
    protected:
     virtual NodeTreeDescriptor node_tree_descriptor() = 0;

@@ -14,6 +14,8 @@ NODE_DECLARATION_FUNCTION(test_socket)
 
 NODE_EXECUTION_FUNCTION(test_socket)
 {
+    return true;
+
 }
 
 

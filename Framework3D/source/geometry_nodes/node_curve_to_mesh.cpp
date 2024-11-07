@@ -111,6 +111,7 @@ NODE_EXECUTION_FUNCTION(curve_to_mesh)
     mesh->set_face_vertex_indices(face_vertex_indices);
 
     mesh->set_texcoords_array(texcoords_array);
+    return true;
 }
 
 NODE_DECLARATION_UI(curve_to_mesh);

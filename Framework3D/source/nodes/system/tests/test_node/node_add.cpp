@@ -19,6 +19,7 @@ NODE_EXECUTION_FUNCTION(add)
     auto val = params.get_input<int>("value");
 
     params.set_output("value", val);
+    return true;
 }
 
 NODE_DEF_CLOSE_SCOPE

@@ -44,7 +44,7 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
     ShaderHandle compute_shader;
 
     if (first_attempt) {
-        compute_shader = compile_shader(
+        compute_shader = shader_factory.compile_shader(
             "main",
             nvrhi::ShaderType::Compute,
             "shaders/utils/random_init.slang",
@@ -61,7 +61,7 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
     }
 
     if (!compute_shader) {
-        throw std::runtime_error(error_string);
+        log::error(error_string.c_str());
     }
 
     nvrhi::BindingLayoutVector binding_layouts;
@@ -108,6 +108,7 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
     resource_allocator.destroy(command_list);
 
     params.set_output("Random Number", stored_rng.random_number);
+    return true;
 }
 
 NODE_DECLARATION_UI(render_rng_texture);

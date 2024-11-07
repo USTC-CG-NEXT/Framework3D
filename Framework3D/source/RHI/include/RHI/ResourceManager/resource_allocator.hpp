@@ -157,6 +157,7 @@ class ResourceAllocator {
         else {
             handle = create_resource(desc, std::forward<Args>(rest)...);
         }
+        assert(handle);
         return handle;
     }
     nvrhi::IDevice* device;

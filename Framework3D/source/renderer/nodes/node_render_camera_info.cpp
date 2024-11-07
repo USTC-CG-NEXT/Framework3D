@@ -100,6 +100,7 @@ NODE_EXECUTION_FUNCTION(render_camera_info)
         params.set_output("X resolution", x_resolution);
         params.set_output("Y resolution", y_resolution);
     }
+    return true;
 }
 
 NODE_DECLARATION_UI(render_camera_info);

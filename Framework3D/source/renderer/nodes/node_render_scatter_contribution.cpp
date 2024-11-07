@@ -3,7 +3,7 @@
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
-#include "shaders/utils/cpp_shader_macro.h"
+#include "shaders/shaders/utils/cpp_shader_macro.h"
 #include "utils/compile_shader.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
@@ -67,7 +67,7 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
         MARK_DESTROY_NVRHI_RESOURCE(binding_set);
         if (!binding_set) {
             // Handle error
-            return;
+            return false;
         }
         // Execute the shader
         ComputePipelineDesc pipeline_desc;
@@ -78,7 +78,7 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
         MARK_DESTROY_NVRHI_RESOURCE(pipeline);
         if (!pipeline) {
             // Handle error
-            return;
+            return false;
         }
 
         ComputeState compute_state;
@@ -97,6 +97,7 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
         resource_allocator.device->executeCommandList(command_list);
     }
     params.set_output("Result Texture", source_texture);
+    return true;
 }
 
 NODE_DECLARATION_UI(render_scatter_contribution);

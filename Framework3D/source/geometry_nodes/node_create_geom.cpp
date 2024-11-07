@@ -54,6 +54,7 @@ NODE_EXECUTION_FUNCTION(create_grid)
     mesh->set_texcoords_array(texcoord);
 
     params.set_output("Geometry", std::move(geometry));
+    return true;
 }
 
 NODE_DECLARATION_FUNCTION(create_circle)
@@ -94,6 +95,7 @@ NODE_EXECUTION_FUNCTION(create_circle)
         pxr::VtValue(pxr::UsdGeomTokens->periodic));
 
     params.set_output("Circle", std::move(geometry));
+    return true;
 }
 
 NODE_DECLARATION_FUNCTION(create_spiral)
@@ -141,6 +143,7 @@ NODE_EXECUTION_FUNCTION(create_spiral)
     // for the circle.
 
     params.set_output("Curve", std::move(geometry));
+    return true;
 }
 
 NODE_DECLARATION_UI(create_geom);

@@ -15,11 +15,13 @@ NODE_DECLARATION_FUNCTION(present_depth)
 NODE_EXECUTION_FUNCTION(present_color)
 {
     // Do nothing. Wait for external statements to fetch
+    return true;
 }
 
 NODE_EXECUTION_FUNCTION(present_depth)
 {
     // Do nothing. Wait for external statements to fetch
+    return true;
 }
 
 NODE_DECLARATION_REQUIRED(present_color)

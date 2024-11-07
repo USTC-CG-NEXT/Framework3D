@@ -69,6 +69,7 @@ NODE_EXECUTION_FUNCTION(ssao)
 
     params.set_output("Color", color_texture);
 #endif
+    return true;
 }
 
 

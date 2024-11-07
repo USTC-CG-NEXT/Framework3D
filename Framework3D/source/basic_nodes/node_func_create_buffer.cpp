@@ -151,6 +151,7 @@ NODE_EXECUTION_FUNCTION(create_buffer1f)
     pxr::VtArray<float> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 NODE_EXECUTION_FUNCTION(create_buffer2f)
 {
@@ -164,6 +165,7 @@ NODE_EXECUTION_FUNCTION(create_buffer2f)
     pxr::VtArray<pxr::GfVec2f> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 NODE_EXECUTION_FUNCTION(create_buffer3f)
 {
@@ -177,6 +179,7 @@ NODE_EXECUTION_FUNCTION(create_buffer3f)
     pxr::VtArray<pxr::GfVec3f> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 NODE_EXECUTION_FUNCTION(create_buffer4f)
 {
@@ -190,6 +193,7 @@ NODE_EXECUTION_FUNCTION(create_buffer4f)
     pxr::VtArray<pxr::GfVec4f> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 
 NODE_EXECUTION_FUNCTION(create_float3f)
@@ -201,6 +205,7 @@ NODE_EXECUTION_FUNCTION(create_float3f)
     pxr::GfVec3f data;
     memcpy(&data, val, sizeof(pxr::GfVec3f));
     params.set_output("Buffer", data);
+    return true;
 };
 NODE_EXECUTION_FUNCTION(create_int3)
 {
@@ -211,6 +216,7 @@ NODE_EXECUTION_FUNCTION(create_int3)
     pxr::GfVec3i data;
     memcpy(&data, val, sizeof(pxr::GfVec3i));
     params.set_output("Buffer", data);
+    return true;
 };
 
 NODE_EXECUTION_FUNCTION(create_buffer1i)
@@ -225,6 +231,7 @@ NODE_EXECUTION_FUNCTION(create_buffer1i)
     pxr::VtArray<int> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 NODE_EXECUTION_FUNCTION(create_buffer2i)
 {
@@ -238,6 +245,7 @@ NODE_EXECUTION_FUNCTION(create_buffer2i)
     pxr::VtArray<pxr::GfVec2i> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 NODE_EXECUTION_FUNCTION(create_buffer3i)
 {
@@ -251,6 +259,7 @@ NODE_EXECUTION_FUNCTION(create_buffer3i)
     pxr::VtArray<pxr::GfVec3i> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 NODE_EXECUTION_FUNCTION(create_buffer4i)
 {
@@ -264,6 +273,7 @@ NODE_EXECUTION_FUNCTION(create_buffer4i)
     pxr::VtArray<pxr::GfVec4i> arr;
     arr.resize(s, data);
     params.set_output("Buffer", arr);
+    return true;
 };
 
 NODE_DECLARATION_UI(create_buffer);

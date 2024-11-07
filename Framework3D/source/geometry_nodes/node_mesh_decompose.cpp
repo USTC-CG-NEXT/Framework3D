@@ -34,6 +34,7 @@ NODE_EXECUTION_FUNCTION(mesh_decompose)
     else {
         // TODO: Throw something
     }
+    return true;
 }
 
 NODE_DECLARATION_UI(mesh_decompose);

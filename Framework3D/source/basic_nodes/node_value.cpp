@@ -10,6 +10,7 @@ NODE_EXECUTION_FUNCTION(int)
 {
     auto val = params.get_input<int>("value");
     params.set_output("value", val);
+    return true;
 }
 
 NODE_DECLARATION_FUNCTION(float)
@@ -22,6 +23,7 @@ NODE_EXECUTION_FUNCTION(float)
 {
     auto val = params.get_input<float>("value");
     params.set_output("value", val);
+    return true;
 }
 
 NODE_DECLARATION_FUNCTION(bool)
@@ -34,6 +36,7 @@ NODE_EXECUTION_FUNCTION(bool)
 {
     auto val = params.get_input<bool>("value");
     params.set_output("value", val);
+    return true;
 }
 
 NODE_DECLARATION_UI(value);

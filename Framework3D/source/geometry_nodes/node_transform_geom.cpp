@@ -52,6 +52,7 @@ NODE_EXECUTION_FUNCTION(transform_geom)
     xform->rotation.push_back(pxr::GfVec3f(r_x, r_y, r_z));
 
     params.set_output("Geometry", std::move(geometry));
+    return true;
 }
 
 NODE_DECLARATION_UI(transform_geom);

@@ -29,12 +29,13 @@ NODE_EXECUTION_FUNCTION(render_create_empty_texture)
     MARK_DESTROY_NVRHI_RESOURCE(command_list);
 
     command_list->open();
-    command_list->clearTextureFloat(output, {}, nvrhi::Color{ 0, 0, 0, 1 });
+    command_list->clearTextureFloat(output, {}, nvrhi::Color{ 1, 0, 0, 1 });
     command_list->close();
 
     resource_allocator.device->executeCommandList(command_list);
 
     params.set_output("Texture", output);
+    return true;
 }
 
 NODE_DECLARATION_UI(render_create_empty_texture);

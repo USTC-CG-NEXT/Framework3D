@@ -77,6 +77,58 @@ inline nvrhi::Format ConvertToNvrhiFormat(pxr::HgiFormat format)
     }
 }
 
+inline nvrhi::Format ConvertToNvrhiFormat(pxr::HdFormat format)
+{
+    using namespace pxr;
+    switch (format) {
+        case HdFormatUNorm8: return nvrhi::Format::R8_UNORM;
+        case HdFormatUNorm8Vec2: return nvrhi::Format::RG8_UNORM;
+        case HdFormatUNorm8Vec4: return nvrhi::Format::RGBA8_UNORM;
+        case HdFormatFloat16: return nvrhi::Format::R16_FLOAT;
+        case HdFormatFloat16Vec2: return nvrhi::Format::RG16_FLOAT;
+        case HdFormatFloat16Vec4: return nvrhi::Format::RGBA16_FLOAT;
+        case HdFormatFloat32: return nvrhi::Format::R32_FLOAT;
+        case HdFormatFloat32Vec2: return nvrhi::Format::RG32_FLOAT;
+        case HdFormatFloat32Vec3: return nvrhi::Format::RGB32_FLOAT;
+        case HdFormatFloat32Vec4: return nvrhi::Format::RGBA32_FLOAT;
+        case HdFormatUInt16: return nvrhi::Format::R16_UINT;
+        case HdFormatUInt16Vec2: return nvrhi::Format::RG16_UINT;
+        case HdFormatUInt16Vec4: return nvrhi::Format::RGBA16_UINT;
+        case HdFormatInt32: return nvrhi::Format::R32_UINT;
+        case HdFormatInt32Vec2: return nvrhi::Format::RG32_UINT;
+        case HdFormatInt32Vec3: return nvrhi::Format::RGB32_UINT;
+        case HdFormatInt32Vec4: return nvrhi::Format::RGBA32_UINT;
+        case HdFormatFloat32UInt8: return nvrhi::Format::D32S8;
+        default: return nvrhi::Format::UNKNOWN;
+    }
+}
+
+inline pxr::HdFormat ConvertToHdFormat(nvrhi::Format format)
+{
+    using namespace pxr;
+    switch (format) {
+        case nvrhi::Format::R8_UNORM: return HdFormatUNorm8;
+        case nvrhi::Format::RG8_UNORM: return HdFormatUNorm8Vec2;
+        case nvrhi::Format::RGBA8_UNORM: return HdFormatUNorm8Vec4;
+        case nvrhi::Format::R16_FLOAT: return HdFormatFloat16;
+        case nvrhi::Format::RG16_FLOAT: return HdFormatFloat16Vec2;
+        case nvrhi::Format::RGBA16_FLOAT: return HdFormatFloat16Vec4;
+        case nvrhi::Format::R32_FLOAT: return HdFormatFloat32;
+        case nvrhi::Format::RG32_FLOAT: return HdFormatFloat32Vec2;
+        case nvrhi::Format::RGB32_FLOAT: return HdFormatFloat32Vec3;
+        case nvrhi::Format::RGBA32_FLOAT: return HdFormatFloat32Vec4;
+        case nvrhi::Format::R16_UINT: return HdFormatUInt16;
+        case nvrhi::Format::RG16_UINT: return HdFormatUInt16Vec2;
+        case nvrhi::Format::RGBA16_UINT: return HdFormatUInt16Vec4;
+        case nvrhi::Format::R32_UINT: return HdFormatInt32;
+        case nvrhi::Format::RG32_UINT: return HdFormatInt32Vec2;
+        case nvrhi::Format::RGB32_UINT: return HdFormatInt32Vec3;
+        case nvrhi::Format::RGBA32_UINT: return HdFormatInt32Vec4;
+        case nvrhi::Format::D32S8: return HdFormatFloat32UInt8;
+        default: return HdFormatInvalid;
+    }
+}
+
 }  // namespace RHI
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

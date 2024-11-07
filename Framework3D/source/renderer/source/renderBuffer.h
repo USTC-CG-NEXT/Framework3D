@@ -72,8 +72,6 @@ class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {
         return _multiSampled;
     }
 
-    GLsizei GetbufSize();
-
     void* Map() override;
 
     void Unmap() override;
@@ -93,11 +91,8 @@ class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {
         _converged.store(cv);
     }
 
-    void Resolve() override;
-
     // The feed memory size must match the type
-    void Clear(const float* value);
-    void Clear(const int* value);
+    void Clear();
     void Present(nvrhi::TextureHandle texture);
 
 #ifdef USTC_CG_BACKEND_OPENGL
@@ -109,10 +104,7 @@ class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {
     nvrhi::IDevice* nvrhi_device;
     nvrhi::StagingTextureHandle staging;
     nvrhi::CommandListHandle m_CommandList;
-
-    static GLenum _GetGLFormat(HdFormat hd_format);
-
-    static GLenum _GetGLType(HdFormat hd_format);
+    std::string name;
 
     // Calculate the needed _buffer size, given the allocation parameters.
     static size_t _GetBufferSize(const GfVec2i& dims, HdFormat format);
@@ -122,6 +114,10 @@ class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {
     // Release any allocated resources.
     void _Deallocate() override;
 
+public:
+    void Resolve() override;
+
+private:
     // Buffer width.
     unsigned int _width;
     // Buffer height.
@@ -132,11 +128,6 @@ class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {
     bool _multiSampled;
 
     std::vector<uint8_t> _buffer;
-
-    // For multisampled buffers: the input write _buffer.
-    std::vector<uint8_t> _sampleBuffer;
-    // For multisampled buffers: the sample count _buffer.
-    std::vector<uint8_t> _sampleCount;
 
     // The number of callers mapping this _buffer.
     std::atomic<int> _mappers;

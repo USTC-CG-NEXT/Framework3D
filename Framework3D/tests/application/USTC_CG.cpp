@@ -3,13 +3,13 @@
 #include "GCore/GOP.h"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
-#include "geom_system.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
 #include "stage/stage.hpp"
 #include "usd_nodejson.hpp"
+#include "GCore/geom_payload.hpp"
 #include "widgets/usdtree/usd_fileviewer.h"
 #include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
@@ -60,7 +60,7 @@ int main()
             geom_global_params.stage = stage->get_usd_stage();
             geom_global_params.prim_path = json_path;
 
-            system->register_global_params<GeomPayload>(geom_global_params);
+            system->register_global_params(geom_global_params);
 
             UsdBasedNodeWidgetSettings desc;
 

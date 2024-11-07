@@ -32,6 +32,7 @@ int main()
         auto a = params.get_input<Eigen::VectorXd>("a");
         auto b = params.get_input<Eigen::VectorXd>("b");
         params.set_output("result", Eigen::VectorXd(a + b));
+        return true;
     });
 
     descriptor.register_node(add_node);

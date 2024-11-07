@@ -53,6 +53,7 @@ NODE_EXECUTION_FUNCTION(geom_add_point)
     //points_component->set_width(widths);
 
     //params.set_output("Points", geometry);
+    return true;
 }
 
 

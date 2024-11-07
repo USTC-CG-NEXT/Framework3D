@@ -15,7 +15,7 @@ class Hd_USTC_CG_Renderer {
     virtual ~Hd_USTC_CG_Renderer();
     void SetAovBindings(const HdRenderPassAovBindingVector& aovBindings);
     virtual void Render(HdRenderThread* render_thread);
-    virtual void Clear();
+    void Clear();
 
     void MarkAovBuffersUnconverged();
 

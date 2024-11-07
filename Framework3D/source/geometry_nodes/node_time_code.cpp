@@ -10,6 +10,7 @@ NODE_DECLARATION_FUNCTION(time_gain)
 NODE_EXECUTION_FUNCTION(time_gain)
 {
     // This is for external read. Do nothing.
+    return true;
 }
 
 // Through one execution, how much time is advected? Unit is seconds.
@@ -21,6 +22,7 @@ NODE_DECLARATION_FUNCTION(time_code)
 NODE_EXECUTION_FUNCTION(time_code)
 {
     // This is for external write. Do nothing.
+    return true;
 }
 
 NODE_DEF_CLOSE_SCOPE

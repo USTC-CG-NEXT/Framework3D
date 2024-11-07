@@ -98,7 +98,7 @@ bool NodeDynamicLoadingSystem::load_configuration(
                         ->template getFunction<void(NodeDeclarationBuilder&)>(
                             "node_declare_" + func_name_str);
                 auto node_execution =
-                    library_map[key]->template getFunction<void(ExeParams)>(
+                    library_map[key]->template getFunction<bool(ExeParams)>(
                         "node_execution_" + func_name_str);
 
                 NodeTypeInfo new_node;

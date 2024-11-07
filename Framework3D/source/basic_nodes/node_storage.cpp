@@ -9,6 +9,7 @@ NODE_DECLARATION_FUNCTION(storage_in)
 
 NODE_EXECUTION_FUNCTION(storage_in)
 {
+    return true;
 }
 
 NODE_DECLARATION_FUNCTION(storage_out)
@@ -19,6 +20,7 @@ NODE_DECLARATION_FUNCTION(storage_out)
 
 NODE_EXECUTION_FUNCTION(storage_out)
 {
+    return true;
 }
 
 NODE_DECLARATION_UI(storage);

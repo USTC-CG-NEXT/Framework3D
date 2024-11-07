@@ -2,7 +2,7 @@
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
-#include "shaders/utils/blit_cb.h"
+#include "shaders/shaders/utils/blit_cb.h"
 #include "utils/compile_shader.h"
 NODE_DEF_OPEN_SCOPE
 enum class BlitSampler { Point, Linear, Sharpen };
@@ -49,7 +49,7 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
 {
     auto sourceTexture = params.get_input<TextureHandle>("Tex");
     if (!sourceTexture) {
-        throw std::runtime_error("No texture to blit");
+        log::error("No texture to blit");
     }
     auto output_desc = sourceTexture->getDesc();
     output_desc.format = nvrhi::Format::RGBA32_FLOAT;
@@ -219,6 +219,7 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
     resource_allocator.device->executeCommandList(commandList);
 
     params.set_output("Tex", output);
+    return true;
 }
 
 NODE_DECLARATION_UI(render_blit_to_present);

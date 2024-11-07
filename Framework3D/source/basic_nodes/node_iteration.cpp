@@ -9,6 +9,7 @@ NODE_DECLARATION_FUNCTION(iteration_end)
 
 NODE_EXECUTION_FUNCTION(iteration_end)
 {
+    return true;
 }
 
 NODE_DECLARATION_FUNCTION(iteration_begin)
@@ -19,6 +20,7 @@ NODE_DECLARATION_FUNCTION(iteration_begin)
 
 NODE_EXECUTION_FUNCTION(iteration_begin)
 {
+    return true;
 }
 
 

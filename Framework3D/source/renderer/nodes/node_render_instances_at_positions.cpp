@@ -61,6 +61,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
     }
 
     params.set_output("Draw", output_texture);
+    return true;
 }
 
 NODE_DECLARATION_UI(render_instances_at_positions);

@@ -33,8 +33,9 @@ NODE_EXECUTION_FUNCTION(render_rayleigh_sommerfeld)
     //}
     //catch (const bp::error_already_set&) {
     //    PyErr_Print();
-    //    throw std::runtime_error("Python error.");
+    //    log::error("Python error.")
     //}
+    return true;
 }
 
 

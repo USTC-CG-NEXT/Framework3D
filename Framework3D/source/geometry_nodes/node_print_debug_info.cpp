@@ -23,6 +23,7 @@ NODE_EXECUTION_FUNCTION(print_debug_info)
     }
 
     MACRO_MAP(PrintType, TypesToPrint);
+    return true;
 }
 
 NODE_DECLARATION_REQUIRED(print_debug_info);

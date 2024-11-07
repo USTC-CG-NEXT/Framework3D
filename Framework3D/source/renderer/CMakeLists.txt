@@ -4,7 +4,7 @@ USTC_CG_ADD_LIB(
 	PRIVATE_LIBS usd Logger RHI hdx nodes_system
 	COMPILE_DEFS
 		NOMINMAX 
-	USD_RESOURCE_DIRS resources
+	USD_RESOURCE_DIRS resources nodes/shaders
 	SKIP_DIRS nodes
 	RESOURCE_COPY_TARGET ${OUT_BINARY_DIR}/usd/hd_USTC_CG/resources
 )

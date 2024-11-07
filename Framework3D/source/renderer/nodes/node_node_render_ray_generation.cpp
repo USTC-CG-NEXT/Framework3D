@@ -3,8 +3,8 @@
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
-#include "shaders/utils/ray.h"
-#include "shaders/utils/view_cb.h"
+#include "shaders/shaders/utils/ray.h"
+#include "shaders/shaders/utils/view_cb.h"
 #include "utils/cam_to_view_contants.h"
 #include "utils/compile_shader.h"
 #include "utils/math.h"
@@ -55,7 +55,7 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 
     if (!error_string.empty()) {
         resource_allocator.destroy(result_rays);
-        throw std::runtime_error(error_string);
+        log::error(error_string.c_str());
     }
     auto binding_layout = resource_allocator.create(binding_layout_desc_vec[0]);
     MARK_DESTROY_NVRHI_RESOURCE(binding_layout);
@@ -105,6 +105,7 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     resource_allocator.device->executeCommandList(command_list);
     params.set_output("Rays", result_rays);
     params.set_output("Pixel Target", pixel_target_buffer);
+    return true;
 }
 
 NODE_DECLARATION_UI(node_render_ray_generation);

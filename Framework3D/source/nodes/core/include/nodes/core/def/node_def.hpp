@@ -15,7 +15,7 @@
         USTC_CG::NodeDeclarationBuilder& b)
 
 #define NODE_EXECUTION_FUNCTION(name) \
-    __declspec(dllexport) void node_execution_##name(ExeParams params)
+    __declspec(dllexport) bool node_execution_##name(ExeParams params)
 
 #define NODE_DECLARATION_UI(name) \
     __declspec(dllexport) const char* node_ui_name_##name()
@@ -25,7 +25,7 @@
         USTC_CG::NodeDeclarationBuilder& b)
 
 #define CONVERSION_EXECUTION_FUNCTION(from, to) \
-    __declspec(dllexport) void node_execution_##from##_to_##to(ExeParams params)
+    __declspec(dllexport) bool node_execution_##from##_to_##to(ExeParams params)
 
 #define CONVERSION_FUNC_NAME(from, to)                                \
     __declspec(dllexport) std::string node_id_name_##from##_to_##to() \

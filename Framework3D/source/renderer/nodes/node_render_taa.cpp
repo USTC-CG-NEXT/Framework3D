@@ -3,7 +3,7 @@
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "shaders/utils/taa_cb.h"
+#include "shaders/shaders/utils/taa_cb.h"
 #include "utils/compile_shader.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
@@ -53,7 +53,7 @@ NODE_EXECUTION_FUNCTION(render_taa)
 
     if (!error_string.empty()) {
         resource_allocator.destroy(output);
-        throw std::runtime_error(error_string);
+        log::error(error_string.c_str());
     }
 
     auto binding_layout = resource_allocator.create(binding_layout_desc_vec[0]);
@@ -113,6 +113,7 @@ NODE_EXECUTION_FUNCTION(render_taa)
     resource_allocator.device->executeCommandList(command_list);
 
     params.set_output("Output Frame", output);
+    return true;
 }
 
 NODE_DECLARATION_UI(render_taa);

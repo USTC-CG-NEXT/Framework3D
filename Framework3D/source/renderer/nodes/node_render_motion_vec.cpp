@@ -3,7 +3,7 @@
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "shaders/utils/motion_vec_cb.h"
+#include "shaders/shaders/utils/motion_vec_cb.h"
 #include "utils/compile_shader.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
@@ -47,7 +47,7 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
 
     if (!error_string.empty()) {
         resource_allocator.destroy(output);
-        throw std::runtime_error(error_string);
+        log::error(error_string.c_str());
     }
 
     auto binding_layout = resource_allocator.create(binding_layout_desc_vec[0]);
@@ -108,6 +108,7 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
     params.set_output("Motion Vector", output);
     prev_camera.PrevProjViewMatrix =
         current_camera->viewMatrix * current_camera->projMatrix;
+    return true;
 }
 
 NODE_DECLARATION_UI(render_motion_vec);

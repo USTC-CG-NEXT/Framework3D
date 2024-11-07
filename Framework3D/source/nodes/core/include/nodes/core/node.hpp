@@ -27,7 +27,7 @@ class NodeDeclarationBuilder;
 
 extern entt::meta_ctx g_entt_ctx;
 
-using ExecFunction = std::function<void(ExeParams params)>;
+using ExecFunction = std::function<bool(ExeParams params)>;
 using NodeDeclareFunction =
     std::function<void(NodeDeclarationBuilder& builder)>;
 

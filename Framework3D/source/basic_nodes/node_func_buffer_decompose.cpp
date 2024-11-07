@@ -78,6 +78,7 @@ NODE_EXECUTION_FUNCTION(decompose_buffer2f)
         params.set_output(socket_name(i).c_str(), val[i]);
     }
     params.set_output("Size", int(input.size()));
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(decompose_buffer3f)
@@ -96,6 +97,7 @@ NODE_EXECUTION_FUNCTION(decompose_buffer3f)
         params.set_output(socket_name(i).c_str(), val[i]);
     }
     params.set_output("Size", int(input.size()));
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(decompose_buffer4f)
@@ -114,6 +116,7 @@ NODE_EXECUTION_FUNCTION(decompose_buffer4f)
         params.set_output(socket_name(i).c_str(), val[i]);
     }
     params.set_output("Size", int(input.size()));
+    return true;
 };
 ;
 
@@ -133,6 +136,7 @@ NODE_EXECUTION_FUNCTION(decompose_buffer2i)
         params.set_output(socket_name(i).c_str(), val[i]);
     }
     params.set_output("Size", int(input.size()));
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(decompose_buffer3i)
@@ -151,6 +155,7 @@ NODE_EXECUTION_FUNCTION(decompose_buffer3i)
         params.set_output(socket_name(i).c_str(), val[i]);
     }
     params.set_output("Size", int(input.size()));
+    return true;
 };
 ;
 NODE_EXECUTION_FUNCTION(decompose_buffer4i)
@@ -169,6 +174,7 @@ NODE_EXECUTION_FUNCTION(decompose_buffer4i)
         params.set_output(socket_name(i).c_str(), val[i]);
     }
     params.set_output("Size", int(input.size()));
+    return true;
 };
 ;
 

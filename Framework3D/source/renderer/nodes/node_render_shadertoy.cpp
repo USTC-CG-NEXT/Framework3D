@@ -63,7 +63,7 @@ NODE_EXECUTION_FUNCTION(shadertoy)
 
     params.set_output("Color", color_texture);
 #endif
-
+    return true;
 }
 
 

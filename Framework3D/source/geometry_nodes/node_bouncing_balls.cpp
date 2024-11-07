@@ -27,7 +27,7 @@ NODE_EXECUTION_FUNCTION(bouncing)
         params.set_output("p_z", p_z);
         params.set_output("v_z", v_z);
 
-        return;
+        return true;
     }
 
     v_z += -h * p_z * k;
@@ -35,9 +35,9 @@ NODE_EXECUTION_FUNCTION(bouncing)
 
     params.set_output("p_z", p_z);
     params.set_output("v_z", v_z);
+
+    return true;
 }
-
-
 
 NODE_DECLARATION_UI(bouncing);
 NODE_DEF_CLOSE_SCOPE

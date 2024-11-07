@@ -3,7 +3,7 @@
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "shaders/utils/HitObject.h"
+#include "shaders/shaders/utils/HitObject.h"
 #include "utils/compile_shader.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
@@ -198,7 +198,7 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
         resource_allocator.destroy(sample_buffer);
         resource_allocator.destroy(weight_buffer);
         resource_allocator.destroy(pdf_buffer);
-        throw std::runtime_error(raytrace_compiled->get_error_string());
+        log::error(raytrace_compiled->get_error_string().c_str());
     }
 
     // 4. Get the result
@@ -207,6 +207,7 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
     params.set_output("Sample", sample_buffer);
     params.set_output("Weight", weight_buffer);
     params.set_output("Pdf", pdf_buffer);
+    return true;
 }
 
 NODE_DECLARATION_UI(render_material_eval_sample_pdf);
