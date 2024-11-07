@@ -18,6 +18,13 @@ NodeSystem::~NodeSystem()
 {
 }
 
+void NodeSystem::finalize()
+{
+    if (node_tree_executor) {
+        node_tree_executor->finalize(node_tree.get());
+    }
+}
+
 void NodeSystem::execute() const
 {
     if (node_tree_executor) {

@@ -65,6 +65,7 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
     }
 
     RHI::get_device()->runGarbageCollection();
+    node_system->finalize();
 
     // executor->finalize(node_tree);
 }

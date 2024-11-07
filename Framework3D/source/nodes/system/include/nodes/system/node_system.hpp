@@ -12,6 +12,7 @@ class NODES_SYSTEM_API NodeSystem {
         std::unique_ptr<NodeTreeExecutor> executor);
     virtual bool load_configuration(const std::filesystem::path& config) = 0;
     virtual ~NodeSystem();
+    void finalize();
 
     template<typename T1, typename... T>
     static void register_cpp_types();
