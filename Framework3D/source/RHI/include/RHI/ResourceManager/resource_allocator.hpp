@@ -5,11 +5,12 @@
 #include <iterator>
 
 #include "Logger/Logger.h"
+#include "nodes/core/api.hpp"
 #include "rhi/api.h"
-//#include "entt/meta/meta.hpp"
-//#include "entt/meta/resolve.hpp"
-#include "RHI/internal/resources.hpp"
+// #include "entt/meta/meta.hpp"
+// #include "entt/meta/resolve.hpp"
 #include "RHI/ShaderFactory/shader.hpp"
+#include "RHI/internal/resources.hpp"
 
 #ifdef USTC_CG_BACKEND_NVRHI
 #include <nvrhi/nvrhi.h>
@@ -34,7 +35,7 @@ class ResourceAllocator {
 #define CACHE_SIZE(RESOURCE)   m##RESOURCE##CacheSize
 
 #define JUDGE_RESOURCE_DYNAMIC(RSC) \
-    if (entt::resolve<RSC##Handle>() == handle.type())
+    if (get_socket_type<RSC##Handle>() == handle.type())
 #define JUDGE_RESOURCE(RSC) if constexpr (std::is_same_v<RSC##Handle, RESOURCE>)
 
 #define RESOLVE_DESTROY_DYNAMIC(RESOURCE)             \
@@ -94,17 +95,17 @@ class ResourceAllocator {
         RESOLVE_DESTROY_DYNAMIC(RESOURCE) \
     }
 
-    //void destroy(entt::meta_any handle) noexcept
-    //{
-    //    if constexpr (mEnabled) {
-    //        // If code runs here, It means some of your output resource is not
-    //        // created;
-    //        MACRO_MAP(FOREACH_DESTROY_DYNAMIC, RESOURCE_LIST)
-    //    }
-    //    else {
-    //        handle = nullptr;
-    //    }
-    //}
+    void destroy(entt::meta_any handle) noexcept
+    {
+        if constexpr (mEnabled) {
+            // If code runs here, It means some of your output resource is not
+            // created;
+            MACRO_MAP(FOREACH_DESTROY_DYNAMIC, RESOURCE_LIST)
+        }
+        else {
+            handle = nullptr;
+        }
+    }
 
 #define FOREACH_DESTROY(RESOURCE) \
     JUDGE_RESOURCE(RESOURCE)      \

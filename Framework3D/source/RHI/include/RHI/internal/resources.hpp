@@ -4,9 +4,9 @@
 
 #include <filesystem>
 
-#include "rhi/api.h"
 #include "map.h"
 #include "nvrhi/nvrhi.h"
+#include "rhi/api.h"
 #include "slang-com-ptr.h"
 
 namespace nvrhi {
@@ -139,7 +139,7 @@ struct RHI_API ProgramDesc {
     std::string entry_name;
 };
 
-//ProgramHandle RHI_API createProgram(const ProgramDesc& desc);
+// ProgramHandle RHI_API createProgram(const ProgramDesc& desc);
 
 // Function to merge two BindingLayoutDescVector objects
 nvrhi::BindingLayoutDescVector RHI_API mergeBindingLayoutDescVectors(

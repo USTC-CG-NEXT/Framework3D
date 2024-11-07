@@ -112,8 +112,8 @@ bool NodeDynamicLoadingSystem::load_configuration(
                     descriptor.register_conversion_name(node_id_name());
                 }
                 else {
-                    new_node.id_name = node_id_name ? node_id_name()
-                                                    : key + "_" + func_name_str;
+                    new_node.id_name =
+                        node_id_name ? node_id_name() : func_name_str;
                     new_node.ui_name =
                         node_ui_name ? node_ui_name() : new_node.id_name;
                 }
