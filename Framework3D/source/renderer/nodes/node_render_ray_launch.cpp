@@ -27,7 +27,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     auto m_CommandList = resource_allocator.create(CommandListDesc{});
 
     auto rays = params.get_input<BufferHandle>("Rays");
-    auto length = rays->getDesc().byteSize / sizeof(RayDesc);
+    auto length = rays->getDesc().byteSize / sizeof(RayInfo);
 
     auto input_pixel_target_buffer =
         params.get_input<BufferHandle>("Pixel Target");
@@ -113,7 +113,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             resource_allocator.create(globalBindingLayoutDesc);
 
         nvrhi::rt::PipelineDesc pipeline_desc;
-        pipeline_desc.maxPayloadSize = 16 * sizeof(float);
+        pipeline_desc.maxPayloadSize = 32 * sizeof(float);
         pipeline_desc.globalBindingLayouts = { globalBindingLayout };
         pipeline_desc.shaders = { { "RayGen", raygen_shader, nullptr },
                                   { "Miss", miss_shader, nullptr } };
@@ -145,20 +145,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
 
         HitObjectInfo info;
         memset(&info, 0, sizeof(HitObjectInfo));
-        info.InstanceIndex = 1;
-
-        log::debug(
-            "Previous to shader launch: HitObjectInfo: InstanceIndex: %u, "
-            "GeometryIndex: %u, "
-            "PrimitiveIndex: "
-            "%u, HitKind: %u, RayContributionToHitGroupIndex: %u, "
-            "MultiplierForGeometryContributionToHitGroupIndex: %u",
-            info.InstanceIndex,
-            info.GeometryIndex,
-            info.PrimitiveIndex,
-            info.HitKind,
-            info.RayContributionToHitGroupIndex,
-            info.MultiplierForGeometryContributionToHitGroupIndex);
+        info.InstanceIndex = 0;
 
         nvrhi::rt::State state;
         nvrhi::rt::ShaderTableHandle sbt =
@@ -216,17 +203,6 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     HitObjectInfo info;
     memcpy(&info, cpu_read_out, sizeof(HitObjectInfo));
     resource_allocator.device->unmapBuffer(read_out);
-
-    log::debug(
-        "HitObjectInfo: InstanceIndex: %u, GeometryIndex: %u, PrimitiveIndex: "
-        "%u, HitKind: %u, RayContributionToHitGroupIndex: %u, "
-        "MultiplierForGeometryContributionToHitGroupIndex: %u",
-        info.InstanceIndex,
-        info.GeometryIndex,
-        info.PrimitiveIndex,
-        info.HitKind,
-        info.RayContributionToHitGroupIndex,
-        info.MultiplierForGeometryContributionToHitGroupIndex);
 
     log::info("Buffer size: %s", +std::to_string(info.InstanceIndex).c_str());
     assert(info.InstanceIndex <= length);

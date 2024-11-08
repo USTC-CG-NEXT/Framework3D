@@ -12,6 +12,6 @@ struct HitObjectInfo {
     uint HitKind;
     uint RayContributionToHitGroupIndex;
     uint MultiplierForGeometryContributionToHitGroupIndex;
-    RayDesc Ray;
     float2 attributes;
+    RayInfo rays;
 };

@@ -33,9 +33,10 @@ void RayGen()
     HitObjectInfo hitObject = hitObjects[id];
 
     BSDFContext context;
-    
+
     StandardBSDF bsdf;
-    
+    RayDesc ray_desc = get_ray_desc(hitObject.rays);
+
     HitObject object = HitObject.MakeHit<Attributes>(
         SceneBVH,
         hitObject.InstanceIndex,
@@ -44,7 +45,7 @@ void RayGen()
         hitObject.HitKind,
         hitObject.RayContributionToHitGroupIndex,
         hitObject.MultiplierForGeometryContributionToHitGroupIndex,
-        hitObject.Ray,
+        ray_desc,
         { hitObject.attributes });
 
     ReorderThread(object);

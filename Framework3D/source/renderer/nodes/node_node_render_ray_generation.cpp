@@ -23,8 +23,8 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 
     // 0. Prepare the output buffer
     nvrhi::BufferDesc ray_buffer_desc;
-    ray_buffer_desc.byteSize = size[0] * size[1] * sizeof(RayDesc);
-    ray_buffer_desc.structStride = sizeof(RayDesc);
+    ray_buffer_desc.byteSize = size[0] * size[1] * sizeof(RayInfo);
+    ray_buffer_desc.structStride = sizeof(RayInfo);
     ray_buffer_desc.canHaveUAVs = true;
     ray_buffer_desc.initialState = nvrhi::ResourceStates::UnorderedAccess;
     ray_buffer_desc.keepInitialState = true;

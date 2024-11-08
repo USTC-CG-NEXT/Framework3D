@@ -28,7 +28,7 @@
 
 RaytracingAccelerationStructure SceneBVH : register(t0);
 StructuredBuffer<int2> inPixelTarget : register(t1);
-RWStructuredBuffer<RayDesc> rays : register(u0);
+RWStructuredBuffer<RayInfo> rays : register(u0);
 RWStructuredBuffer<HitObjectInfo> hitObjectInfo : register(u1);
 RWStructuredBuffer<int2> PixelTarget : register(u2);
 
@@ -50,13 +50,14 @@ void RayGen()
     uint LaunchIndex = DispatchRaysIndex().x;
     uint LaunchDimensions = DispatchRaysDimensions().x;
     // Setup the ray
-    RayDesc ray = rays[LaunchIndex];
+    RayInfo ray = rays[LaunchIndex];
 
     // Trace the ray
     HitInfo payload;
     payload.ShadedColorAndHitT = float4(0, 0, 0, 0);
 
-    TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, ray, payload);
+    TraceRay(
+        SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, get_ray_desc(ray), payload);
     var color = payload.ShadedColorAndHitT.rgb;
 }
 
@@ -76,8 +77,7 @@ void ClosestHit(
     hitObjectInfo.GetDimensions(stride_count, stride_size);
 
     uint index = 0;
-    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 0, index);
-
+    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 1, index);
 
     PixelTarget[index] = inPixelTarget[DispatchRaysIndex().x];
     hitObjectInfo[index].InstanceIndex = InstanceIndex();
@@ -87,9 +87,10 @@ void ClosestHit(
 
     hitObjectInfo[index].RayContributionToHitGroupIndex = 0;
     hitObjectInfo[index].MultiplierForGeometryContributionToHitGroupIndex = 0;
-    hitObjectInfo[index].Ray = {
+    hitObjectInfo[index].rays = RayInfo(
         WorldRayOrigin(), RayTMin(), WorldRayDirection(), RayTCurrent()
-    };
+    );
+
     hitObjectInfo[index].attributes = payload.barycentric;
 }
 
@@ -100,5 +101,4 @@ void Miss(inout HitInfo payload: SV_RayPayload)
 {
     payload.barycentric = 0;
     payload.position = 1.0 / 0.0f;
-    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 0, index);
 }

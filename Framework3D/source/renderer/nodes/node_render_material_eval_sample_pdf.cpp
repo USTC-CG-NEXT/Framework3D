@@ -48,8 +48,8 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
         .setStructStride(sizeof(pxr::GfVec4f));
     auto eval_buffer = resource_allocator.create(buffer_desc);
 
-    buffer_desc.setByteSize(length * sizeof(RayDesc))
-        .setStructStride(sizeof(RayDesc));
+    buffer_desc.setByteSize(length * sizeof(RayInfo))
+        .setStructStride(sizeof(RayInfo));
     auto sample_buffer = resource_allocator.create(buffer_desc);
 
     buffer_desc.setByteSize(length * sizeof(float))
