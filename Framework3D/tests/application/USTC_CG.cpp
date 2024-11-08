@@ -24,7 +24,7 @@ int main()
     init(stage.get());
     // Add a sphere
 
-    auto widget = std::make_unique<UsdFileViewer>(stage.get());
+    auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
     auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
 
     render->SetCallBack([](Window* window, IWidget* render_widget) {
@@ -43,7 +43,7 @@ int main()
         }
     });
 
-    window->register_widget(std::move(widget));
+    window->register_widget(std::move(usd_file_viewer));
     window->register_widget(std::move(render));
 
     window->register_function_perframe([&stage](Window* window) {
@@ -55,6 +55,7 @@ int main()
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
             system->init();
+            system->set_node_tree_executor(create_node_tree_executor({}));
 
             GeomPayload geom_global_params;
             geom_global_params.stage = stage->get_usd_stage();

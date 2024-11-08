@@ -26,10 +26,10 @@
 
 #include <iostream>
 
+#include "../api.h"
 #include "../instancer.h"
 #include "../renderParam.h"
 #include "Logger/Logger.h"
-#include "../api.h"
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/imaging/hd/extComputationUtils.h"
@@ -186,9 +186,13 @@ void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
     BLAS = device->createAccelStruct(blas_desc);
 
     auto m_CommandList = device->createCommandList();
-    m_CommandList->open();
-    nvrhi::utils::BuildBottomLevelAccelStruct(m_CommandList, BLAS, blas_desc);
-    m_CommandList->close();
+    {
+        std::lock_guard lock(render_param->TLAS->edit_instances_mutex);
+        m_CommandList->open();
+        nvrhi::utils::BuildBottomLevelAccelStruct(
+            m_CommandList, BLAS, blas_desc);
+        m_CommandList->close();
+    }
     device->executeCommandList(m_CommandList);
 }
 
@@ -338,154 +342,8 @@ void Hd_USTC_CG_Mesh::Sync(
     *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
 }
 
-#ifdef USTC_CG_BACKEND_OPENGL
-
-void Hd_USTC_CG_Mesh::RefreshGLBuffer()
-{
-    const SdfPath& id = GetId();
-
-    if (HdChangeTracker::IsPrimvarDirty(_dirtyBits, id, HdTokens->points)) {
-        // Generate and bind the VAO
-        glDeleteVertexArrays(1, &VAO);
-        glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
-
-        // Generate and bind the VBO
-        glDeleteBuffers(1, &VBO);
-        glGenBuffers(1, &VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-        // Upload the points data to the VBO
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            points.size() * sizeof(pxr::GfVec3f),
-            points.cdata(),
-            GL_STATIC_DRAW);
-
-        // Specify the layout of the points in the VBO
-        glVertexAttribPointer(
-            0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
-
-        // Unbind the VAO and VBO
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-
-    if (HdChangeTracker::IsTopologyDirty(_dirtyBits, id)) {
-        glBindVertexArray(VAO);
-
-        glDeleteBuffers(1, &EBO);
-        glGenBuffers(1, &EBO);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-        glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER,
-            triangulatedIndices.size() * sizeof(GfVec3i),
-            triangulatedIndices.cdata(),
-            GL_STATIC_DRAW);
-    }
-    if (!_normalsValid) {
-        glBindVertexArray(VAO);
-
-        glDeleteBuffers(1, &normalBuffer);
-        glGenBuffers(1, &normalBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            computedNormals.size() * sizeof(GfVec3f),
-            computedNormals.cdata(),
-            GL_STATIC_DRAW);
-
-        // Enable and specify the layout of the normal buffer
-        glVertexAttribPointer(
-            normalLocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-        glEnableVertexAttribArray(normalLocation);
-
-        _normalsValid = true;
-    }
-    _dirtyBits = 0;
-}
-
-void Hd_USTC_CG_Mesh::RefreshTexcoordGLBuffer(TfToken texcoord_name)
-{
-    if (texcoord_name.IsEmpty()) {
-        texcoord_name = texcoord_name = TfToken("UVMap");
-    }
-    if (!texcoord_name.IsEmpty()) {
-        if (!_texcoordsClean) {
-            if (!this->_primvarSourceMap[texcoord_name].data.IsEmpty()) {
-                glDeleteBuffers(1, &texcoords);
-                glGenBuffers(1, &texcoords);
-
-                glBindBuffer(GL_SHADER_STORAGE_BUFFER, texcoords);
-
-                logging(
-                    GetId().GetString() + " Attempts to attach texcoord: " +
-                        texcoord_name.GetString(),
-                    Info);
-                assert(this->_primvarSourceMap[texcoord_name]
-                           .data.CanCast<VtVec2fArray>());
-
-                VtArray<GfVec2f> raw_texcoord =
-                    this->_primvarSourceMap[texcoord_name]
-                        .data.Get<VtVec2fArray>();
-
-                VtArray<GfVec2f> texcoord;
-
-                if (this->_primvarSourceMap[texcoord_name].interpolation ==
-                    HdInterpolationFaceVarying) {
-                    HdMeshUtil mesh_util(&topology, GetId());
-
-                    VtValue vt_triangulated;
-                    mesh_util.ComputeTriangulatedFaceVaryingPrimvar(
-                        raw_texcoord.cdata(),
-                        raw_texcoord.size(),
-                        HdTypeFloatVec2,
-                        &vt_triangulated);
-                    auto triangulated = vt_triangulated.Get<VtVec2fArray>();
-                    texcoord.resize(points.size());
-                    for (int i = 0; i < triangulatedIndices.size(); ++i) {
-                        for (int j = 0; j < 3; ++j) {
-                            texcoord[triangulatedIndices[i][j]] =
-                                triangulated[i * 3 + j];
-                        }
-                    }
-                }
-                else {
-                    texcoord = raw_texcoord;
-                }
-
-                glBufferData(
-                    GL_SHADER_STORAGE_BUFFER,
-                    texcoord.size() * sizeof(GfVec2f),
-                    texcoord.cdata(),
-                    GL_STATIC_DRAW);
-            }
-            _texcoordsClean = true;
-        }
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texcoords);
-    }
-}
-#endif
-
 void Hd_USTC_CG_Mesh::Finalize(HdRenderParam* renderParam)
 {
-#ifdef USTC_CG_BACKEND_OPENGL
-
-    glDeleteVertexArrays(1, &VAO);
-    VAO = 0;
-    glDeleteBuffers(1, &VBO);
-    VBO = 0;
-    glDeleteBuffers(1, &EBO);
-    EBO = 0;
-    glDeleteBuffers(1, &normalBuffer);
-    normalBuffer = 0;
-    glDeleteBuffers(1, &texcoords);
-    texcoords = 0;
-#endif
-
     static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
         ->TLAS->removeInstance(this);
 }

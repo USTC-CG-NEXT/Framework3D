@@ -49,7 +49,6 @@ int init(bool with_window, bool use_dx12)
 #ifdef _DEBUG
     params.enableNvrhiValidationLayer = true;
     params.enableDebugRuntime = true;
-    params.adapterIndex = 2;
 #endif
 
     if (with_window) {

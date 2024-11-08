@@ -11,7 +11,6 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 Stage::Stage()
-
 {
     // if stage.usda exists, load it
     stage = pxr::UsdStage::Open("stage.usda");
@@ -26,6 +25,8 @@ Stage::Stage()
 
 Stage::~Stage()
 {
+    remove_prim(pxr::SdfPath("/scratch_buffer"));
+    stage->Save();
 }
 
 template<typename T>

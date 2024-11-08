@@ -47,8 +47,14 @@ class DockingImguiRenderer final : public ImGui_Renderer {
 
 DockingImguiRenderer::~DockingImguiRenderer()
 {
-    widgets_.clear();
     callbacks_.clear();
+
+    // widgets_ should be cleared from the last to the first instead of using
+    // widgets_.clear();
+
+    for (auto it = widgets_.rbegin(); it != widgets_.rend(); ++it) {
+        it->reset();
+    }
 }
 
 bool DockingImguiRenderer::JoystickButtonUpdate(int button, bool pressed)
