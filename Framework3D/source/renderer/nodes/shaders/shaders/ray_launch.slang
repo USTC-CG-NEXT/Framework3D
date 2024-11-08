@@ -76,9 +76,12 @@ void ClosestHit(
     hitObjectInfo.GetDimensions(stride_count, stride_size);
 
     uint index = 0;
-    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 1, index);
+    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 1u, index);
 
-
+    if(index >= stride_count)
+    {
+        return;
+    }
     PixelTarget[index] = inPixelTarget[DispatchRaysIndex().x];
     hitObjectInfo[index].InstanceIndex = InstanceIndex();
     hitObjectInfo[index].GeometryIndex = GeometryIndex();

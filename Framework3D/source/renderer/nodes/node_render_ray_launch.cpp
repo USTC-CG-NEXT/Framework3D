@@ -34,7 +34,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
 
     BufferDesc hit_objects_desc;
 
-    auto maximum_hit_object_count = size[0] * size[1];
+    const auto maximum_hit_object_count = length;
 
     hit_objects_desc =
         BufferDesc{}
@@ -59,6 +59,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     read_out_desc.setByteSize(sizeof(HitObjectInfo))
         .setInitialState(nvrhi::ResourceStates::CopyDest)
         .setKeepInitialState(true)
+        .setStructStride(sizeof(HitObjectInfo))
         .setCpuAccess(nvrhi::CpuAccessMode::Read);
     auto read_out = resource_allocator.create(read_out_desc);
     MARK_DESTROY_NVRHI_RESOURCE(read_out);
@@ -142,6 +143,22 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         auto binding_set = resource_allocator.create(
             binding_set_desc, globalBindingLayout.Get());
 
+        HitObjectInfo info;
+        memset(&info, 0, sizeof(HitObjectInfo));
+
+        
+    log::debug(
+            "Previous to shader launch: HitObjectInfo: InstanceIndex: %u, GeometryIndex: %u, "
+            "PrimitiveIndex: "
+            "%u, HitKind: %u, RayContributionToHitGroupIndex: %u, "
+            "MultiplierForGeometryContributionToHitGroupIndex: %u",
+            info.InstanceIndex,
+            info.GeometryIndex,
+            info.PrimitiveIndex,
+            info.HitKind,
+            info.RayContributionToHitGroupIndex,
+            info.MultiplierForGeometryContributionToHitGroupIndex);
+
         nvrhi::rt::State state;
         nvrhi::rt::ShaderTableHandle sbt =
             raytracing_pipeline->createShaderTable();
@@ -151,8 +168,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         state.setShaderTable(sbt).addBindingSet(binding_set);
 
         m_CommandList->open();
-        HitObjectInfo info;
-        info.InstanceIndex = 0;
+
         m_CommandList->writeBuffer(
             hit_objects,
             &info,
@@ -162,6 +178,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         m_CommandList->setRayTracingState(state);
         nvrhi::rt::DispatchRaysArguments args;
         args.width = length;
+        log::debug("Ray length: %s", +std::to_string(length).c_str());
         m_CommandList->dispatchRays(args);
 
         m_CommandList->copyBuffer(
@@ -188,6 +205,8 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     auto error = raytrace_compiled->get_error_string();
     resource_allocator.destroy(raytrace_compiled);
 
+
+
     params.set_output("Hit Objects", hit_objects);
     params.set_output("Pixel Target", pixel_target_buffer);
 
@@ -196,6 +215,17 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     HitObjectInfo info;
     memcpy(&info, cpu_read_out, sizeof(HitObjectInfo));
     resource_allocator.device->unmapBuffer(read_out);
+
+    log::debug(
+        "HitObjectInfo: InstanceIndex: %u, GeometryIndex: %u, PrimitiveIndex: "
+        "%u, HitKind: %u, RayContributionToHitGroupIndex: %u, "
+        "MultiplierForGeometryContributionToHitGroupIndex: %u",
+        info.InstanceIndex,
+        info.GeometryIndex,
+        info.PrimitiveIndex,
+        info.HitKind,
+        info.RayContributionToHitGroupIndex,
+        info.MultiplierForGeometryContributionToHitGroupIndex);
 
     log::info("Buffer size: %s", +std::to_string(info.InstanceIndex).c_str());
     params.set_output("Buffer Size", static_cast<int>(info.InstanceIndex));

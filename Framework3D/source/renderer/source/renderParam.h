@@ -51,12 +51,10 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
     Hd_USTC_CG_RenderParam(
         HdRenderThread *renderThread,
         std::atomic<int> *sceneVersion,
-        NodeSystem *node_system,
-        RenderGlobalPayload *render_global_payload)
+        NodeSystem *node_system)
         : _renderThread(renderThread),
           _sceneVersion(sceneVersion),
-          node_system(node_system),
-          global_params(render_global_payload)
+          node_system(node_system)
     {
         TLAS = std::make_unique<Hd_USTC_CG_RenderTLAS>();
     }
@@ -68,7 +66,6 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
 
     NodeSystem *node_system;
     std::unique_ptr<Hd_USTC_CG_RenderTLAS> TLAS;
-    RenderGlobalPayload *global_params;
 
    private:
     /// A handle to the global render thread.

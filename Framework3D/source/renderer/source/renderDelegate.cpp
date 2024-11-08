@@ -127,7 +127,7 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     // Device
     nvrhi_device = RHI::get_device();
 
-    _globalPayload = std::make_unique<RenderGlobalPayload>(
+    RenderGlobalPayload global_payload = RenderGlobalPayload(
         &cameras, &lights, &meshes, &materials, nvrhi_device);
 
     std::unique_ptr<NodeTreeExecutor> render_executor =
@@ -139,10 +139,10 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     node_system->allow_ui_execution = false;
     node_system->init();
 
-    node_system->set_global_params(*_globalPayload);
+    node_system->set_global_params(global_payload);
 
     _renderParam = std::make_shared<Hd_USTC_CG_RenderParam>(
-        &_renderThread, &_sceneVersion, node_system.get(),_globalPayload.get());
+        &_renderThread, &_sceneVersion, node_system.get());
 
     _renderer = std::make_shared<Hd_USTC_CG_Renderer>(_renderParam.get());
 

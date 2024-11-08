@@ -344,10 +344,19 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
 
     binding_layout_desc = shader_compiled->get_binding_layout_descs();
 
-    auto compute_shader = device->createShader(
-        desc,
-        shader_compiled->getBufferPointer(),
-        shader_compiled->getBufferSize());
+    ShaderHandle compute_shader;
+    if (resource_allocator) {
+        compute_shader = resource_allocator->create(
+            desc,
+            shader_compiled->getBufferPointer(),
+            shader_compiled->getBufferSize());
+    }
+    else {
+        compute_shader = device->createShader(
+            desc,
+            shader_compiled->getBufferPointer(),
+            shader_compiled->getBufferSize());
+    }
 
     if (resource_allocator) {
         resource_allocator->destroy(shader_compiled);

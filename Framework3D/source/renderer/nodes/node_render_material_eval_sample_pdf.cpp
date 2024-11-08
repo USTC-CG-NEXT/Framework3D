@@ -4,7 +4,6 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/HitObject.h"
-
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_material_eval_sample_pdf)
@@ -180,18 +179,19 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
         sbt->addHitGroup("HitGroup");
         sbt->addMissShader("Miss");
         state.setShaderTable(sbt).addBindingSet(binding_set);
+        if (buffer_size > 0) {
+            m_CommandList->open();
 
-        m_CommandList->open();
-
-        m_CommandList->setRayTracingState(state);
-        nvrhi::rt::DispatchRaysArguments args;
-        args.width = buffer_size;
-        args.height = 1;
-        m_CommandList->dispatchRays(args);
-        m_CommandList->close();
-        resource_allocator.device->executeCommandList(m_CommandList);
-        resource_allocator.device
-            ->waitForIdle();  // This is not fully efficient.
+            m_CommandList->setRayTracingState(state);
+            nvrhi::rt::DispatchRaysArguments args;
+            args.width = buffer_size;
+            args.height = 1;
+            m_CommandList->dispatchRays(args);
+            m_CommandList->close();
+            resource_allocator.device->executeCommandList(m_CommandList);
+            resource_allocator.device
+                ->waitForIdle();  // This is not fully efficient.
+        }
     }
     else {
         resource_allocator.destroy(pixel_target_buffer);

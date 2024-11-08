@@ -36,6 +36,33 @@ struct RenderGlobalPayload {
         resource_allocator.shader_factory = &shader_factory;
     }
 
+    RenderGlobalPayload(const RenderGlobalPayload& rhs)
+        : cameras(rhs.cameras),
+          lights(rhs.lights),
+          meshes(rhs.meshes),
+          materials(rhs.materials),
+          nvrhi_device(rhs.nvrhi_device),
+          shader_factory(&resource_allocator)
+    {
+        shader_factory.set_search_path("../../source/renderer/nodes/shaders");
+        resource_allocator.device = nvrhi_device;
+        resource_allocator.shader_factory = &shader_factory;
+    }
+
+    RenderGlobalPayload& operator=(const RenderGlobalPayload& rhs)
+    {
+        cameras = rhs.cameras;
+        lights = rhs.lights;
+        meshes = rhs.meshes;
+        materials = rhs.materials;
+        nvrhi_device = rhs.nvrhi_device;
+        shader_factory = ShaderFactory(&resource_allocator);
+        shader_factory.set_search_path("../../source/renderer/nodes/shaders");
+        resource_allocator.device = nvrhi_device;
+        resource_allocator.shader_factory = &shader_factory;
+        return *this;
+    }
+
     ResourceAllocator resource_allocator;
     ShaderFactory shader_factory;
     nvrhi::IDevice* nvrhi_device;
