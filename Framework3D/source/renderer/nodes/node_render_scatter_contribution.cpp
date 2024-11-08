@@ -4,7 +4,6 @@
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/cpp_shader_macro.h"
-#include "utils/compile_shader.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_scatter_contribution)
@@ -28,12 +27,13 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
     if (length > 0) {
         std::string error_string;
         nvrhi::BindingLayoutDescVector binding_layout_desc;
-        auto compute_shader = compile_shader(
+        auto compute_shader = shader_factory.compile_shader(
             "main",
             ShaderType::Compute,
             "shaders/scatter.slang",
             binding_layout_desc,
             error_string,
+            {},
             {},
             false);
         MARK_DESTROY_NVRHI_RESOURCE(compute_shader);

@@ -34,11 +34,11 @@ inline ResourceAllocator& get_resource_allocator(ExeParams& params)
 
 inline ShaderFactory& get_shader_factory(ExeParams& params)
 {
-    return params.get_global_payload<RenderGlobalPayload&>().shader;
+    return params.get_global_payload<RenderGlobalPayload&>().shader_factory;
 }
 
 
 #define resource_allocator get_resource_allocator(params)
-#
+#define shader_factory     get_shader_factory(params)
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

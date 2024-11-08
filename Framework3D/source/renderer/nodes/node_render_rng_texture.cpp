@@ -1,7 +1,6 @@
 ﻿#include "nodes/core/def/node_def.hpp"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
-#include "utils/compile_shader.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 struct RNGStorage {
@@ -47,15 +46,15 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
         compute_shader = shader_factory.compile_shader(
             "main",
             nvrhi::ShaderType::Compute,
-            "shaders/utils/random_init.slang",
+            "utils/random_init.slang",
             binding_layout_descs,
             error_string);
     }
     else {
-        compute_shader = compile_shader(
+        compute_shader = shader_factory.compile_shader(
             "main",
             nvrhi::ShaderType::Compute,
-            "shaders/utils/random_step.slang",
+            "utils/random_step.slang",
             binding_layout_descs,
             error_string);
     }

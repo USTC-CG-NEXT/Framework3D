@@ -4,7 +4,7 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/HitObject.h"
-#include "utils/compile_shader.h"
+
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_material_eval_sample_pdf)

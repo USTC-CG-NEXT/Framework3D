@@ -6,7 +6,6 @@
 #include "shaders/shaders/utils/ray.h"
 #include "shaders/shaders/utils/view_cb.h"
 #include "utils/cam_to_view_contants.h"
-#include "utils/compile_shader.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(node_render_ray_generation)
@@ -45,7 +44,7 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     // 2. Prepare the shader
     nvrhi::BindingLayoutDescVector binding_layout_desc_vec;
     std::string error_string;
-    auto compute_shader = compile_shader(
+    auto compute_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Compute,
         "shaders/raygen.slang",

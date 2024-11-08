@@ -123,7 +123,6 @@ bool Hd_USTC_CG_RenderBuffer::Allocate(
 
 void Hd_USTC_CG_RenderBuffer::Clear()
 {
-    log::warning("RenderBuffer clear not implemented");
 }
 
 void Hd_USTC_CG_RenderBuffer::Present(nvrhi::TextureHandle handle)

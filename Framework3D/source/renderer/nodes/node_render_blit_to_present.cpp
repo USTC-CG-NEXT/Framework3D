@@ -3,7 +3,7 @@
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/blit_cb.h"
-#include "utils/compile_shader.h"
+
 NODE_DEF_OPEN_SCOPE
 enum class BlitSampler { Point, Linear, Sharpen };
 
@@ -102,10 +102,10 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
     nvrhi::BindingLayoutDescVector vs_binding_layout_descs;
     std::string error_string;
 
-    auto vertex_shader = compile_shader(
+    auto vertex_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Vertex,
-        "shaders/utils/" + vs_name,
+        "utils/" + vs_name,
         vs_binding_layout_descs,
         error_string,
         macro_defines);
@@ -113,14 +113,19 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
 
     nvrhi::BindingLayoutDescVector ps_binding_layout_descs;
 
-    auto pixel_shader = compile_shader(
+    auto pixel_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Pixel,
-        "shaders/utils/" + ps_name,
+        "utils/" + ps_name,
         ps_binding_layout_descs,
         error_string,
         macro_defines);
     MARK_DESTROY_NVRHI_RESOURCE(pixel_shader);
+
+    if (!error_string.empty()) {
+        log::warning(error_string.c_str());
+        return false;
+    }
 
     nvrhi::BindingLayoutDescVector binding_layout_descs =
         mergeBindingLayoutDescVectors(

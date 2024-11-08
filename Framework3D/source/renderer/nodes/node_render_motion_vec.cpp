@@ -4,7 +4,7 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/motion_vec_cb.h"
-#include "utils/compile_shader.h"
+
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 
@@ -37,7 +37,7 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
 
     nvrhi::BindingLayoutDescVector binding_layout_desc_vec;
     std::string error_string;
-    auto compute_shader = compile_shader(
+    auto compute_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Compute,
         "shaders/motion_vec.slang",

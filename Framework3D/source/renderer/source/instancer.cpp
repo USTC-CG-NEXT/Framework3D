@@ -66,7 +66,7 @@ void Hd_USTC_CG_Instancer::Sync(
 void Hd_USTC_CG_Instancer::_SyncPrimvars(
     HdSceneDelegate* delegate,
     HdDirtyBits dirtyBits)
-{
+{ 
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
 

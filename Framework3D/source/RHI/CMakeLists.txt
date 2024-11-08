@@ -6,7 +6,7 @@ if(SLANG_FOUND)
 		RHI
 		SHARED
 		PUBLIC_LIBS nvrhi SLANG::slang
-		PRIVATE_LIBS Vulkan::Headers Logger DXC::dxc glfw glm::glm
+		PRIVATE_LIBS Vulkan::Headers Logger glfw glm::glm nodes_core
 		COMPILE_DEFS 
 			NOMINMAX 
 			VULKAN_HPP_STORAGE_SHARED 

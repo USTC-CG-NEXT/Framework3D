@@ -21,18 +21,24 @@ struct RenderGlobalPayload {
         pxr::VtArray<Hd_USTC_CG_Camera*>* cameras,
         pxr::VtArray<Hd_USTC_CG_Light*>* lights,
         pxr::VtArray<Hd_USTC_CG_Mesh*>* meshes,
-        pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, pxr::TfHash>* materials,
+        pxr::TfHashMap<pxr::SdfPath, Hd_USTC_CG_Material*, pxr::TfHash>*
+            materials,
         nvrhi::IDevice* nvrhi_device)
         : cameras(cameras),
           lights(lights),
           meshes(meshes),
           materials(materials),
-          nvrhi_device(nvrhi_device)
+          nvrhi_device(nvrhi_device),
+          shader_factory(&resource_allocator)
     {
+        shader_factory.set_search_path("usd/hd_USTC_CG/resources/shaders");
         resource_allocator.device = nvrhi_device;
+        resource_allocator.shader_factory = &shader_factory;
+
     }
 
     ResourceAllocator resource_allocator;
+    ShaderFactory shader_factory;
     nvrhi::IDevice* nvrhi_device;
 
     auto& get_cameras() const

@@ -7,8 +7,6 @@
 #include "Logger/Logger.h"
 #include "nodes/core/api.hpp"
 #include "rhi/api.h"
-// #include "entt/meta/meta.hpp"
-// #include "entt/meta/resolve.hpp"
 #include "RHI/ShaderFactory/shader.hpp"
 #include "RHI/internal/resources.hpp"
 

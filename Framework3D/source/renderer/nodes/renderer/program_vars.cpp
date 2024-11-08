@@ -20,7 +20,7 @@ void ProgramVars::finish_setting_vars()
         desc.bindings = bindingSetItems_[i];
 
         // bindingSetsSolid_[i] =
-        //     resource_allocator_.create(desc,
+        //     resource_allocator.create(desc,
         //     program_->get_binding_layout_descs());
     }
 }

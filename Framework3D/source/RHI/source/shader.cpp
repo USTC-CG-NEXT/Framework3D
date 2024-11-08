@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 
+#include "RHI/ResourceManager/resource_allocator.hpp"
 #include "RHI/internal/resources.hpp"
 #include "shaderCompiler.h"
 #include "slang-com-ptr.h"
@@ -83,92 +84,6 @@ std::string ProgramDesc::get_profile() const
 
     // Default return value for cases not handled explicitly
     return "lib_6_5";
-}
-
-HRESULT DxcCompileHLSLToDXIL(
-    const wchar_t* filename,
-    const char* entryPoint,
-    const char* profile,
-    ComPtr<IDxcBlob>& ppResultBlob,
-    std::string& error_string)
-{
-    ComPtr<IDxcCompiler3> pCompiler;
-    ComPtr<IDxcUtils> pUtils;
-    ComPtr<IDxcIncludeHandler> pIncludeHandler;
-    HRESULT hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler));
-    if (FAILED(hr)) {
-        std::wcerr << L"Failed to create DXC Compiler instance." << std::endl;
-        return hr;
-    }
-
-    hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils));
-    if (FAILED(hr)) {
-        std::wcerr << L"Failed to create DXC Utils instance." << std::endl;
-        return hr;
-    }
-
-    hr = pUtils->CreateDefaultIncludeHandler(&pIncludeHandler);
-    if (FAILED(hr)) {
-        std::wcerr << L"Failed to create include handler." << std::endl;
-        return hr;
-    }
-
-    std::ifstream shaderFile(filename, std::ios::binary | std::ios::ate);
-    if (!shaderFile.is_open()) {
-        std::wcerr << L"Failed to open shader file." << std::endl;
-        return E_FAIL;
-    }
-
-    ComPtr<IDxcBlobEncoding> sourceBlob;
-    hr = pUtils->LoadFile(filename, nullptr, &sourceBlob);
-
-    DxcBuffer sourceBuffer = {};
-    sourceBuffer.Ptr = sourceBlob->GetBufferPointer();
-    sourceBuffer.Size = sourceBlob->GetBufferSize();
-
-    wchar_t w_entryPoint[100];
-    mbstowcs(w_entryPoint, entryPoint, strlen(entryPoint) + 1);  // Plus null
-
-    wchar_t w_profile[100];
-    mbstowcs(w_profile, profile, strlen(profile) + 1);  // Plus null
-
-    const wchar_t* args[] = {
-        filename,
-        L"-T",
-        w_profile,
-        L"-Zi",              // Enable debug information.
-        L"-Qstrip_reflect",  // Strip reflection data for smaller binaries.
-        L"-enable-16bit-types",
-        DXC_ARG_OPTIMIZATION_LEVEL3,
-    };
-
-    ComPtr<IDxcResult> pResults;
-    hr = pCompiler->Compile(
-        &sourceBuffer,
-        args,
-        _countof(args),
-        pIncludeHandler.Get(),
-        IID_PPV_ARGS(&pResults));
-    if (FAILED(hr)) {
-        std::wcerr << L"Compilation failed." << std::endl;
-        return hr;
-    }
-
-    ComPtr<IDxcBlobUtf8> pErrors;
-    hr = pResults->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr);
-    if (SUCCEEDED(hr) && pErrors != nullptr && pErrors->GetStringLength() > 0) {
-        std::wcerr << L"Warnings and Errors:" << std::endl;
-        std::wcerr << pErrors->GetStringPointer() << std::endl;
-        error_string = pErrors->GetStringPointer();
-    }
-
-    hr = pResults->GetResult(&ppResultBlob);
-    if (FAILED(hr)) {
-        std::wcerr << L"Failed to get compiled shader." << std::endl;
-        return hr;
-    }
-
-    return S_OK;
 }
 
 Slang::ComPtr<slang::IGlobalSession> globalSession;
@@ -323,7 +238,6 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     nvrhi::BindingLayoutDescVector& binding_layout_desc,
     std::string& error_string,
     const std::vector<ShaderMacro>& macro_defines,
-
     const std::string& source_code,
     bool absolute)
 {
@@ -341,7 +255,15 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     }
     shader_compile_desc.shaderType = shader_type;
     shader_compile_desc.source_code = source_code;
-    auto shader_compiled = createProgram(shader_compile_desc);
+
+    ProgramHandle shader_compiled;
+
+    if (resource_allocator) {
+        shader_compiled = resource_allocator->create(shader_compile_desc);
+    }
+    else {
+        shader_compiled = createProgram(shader_compile_desc);
+    }
 
     if (!shader_compiled->get_error_string().empty()) {
         error_string = shader_compiled->get_error_string();
@@ -361,7 +283,13 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
         desc,
         shader_compiled->getBufferPointer(),
         shader_compiled->getBufferSize());
-    shader_compiled = nullptr;
+
+    if (resource_allocator) {
+        resource_allocator->destroy(shader_compiled);
+    }
+    else {
+        shader_compiled = nullptr;
+    }
 
     return compute_shader;
 }
@@ -384,8 +312,37 @@ void ShaderFactory::SlangCompile(
         globalSession = createGlobal();
     }
 
+    std::vector<slang::CompilerOptionEntry> compiler_options;
+    compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShift,
+          slang::CompilerOptionValue{
+              slang::CompilerOptionValueKind::Int, 2 << 24, 0 } });
+    compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShift,
+          slang::CompilerOptionValue{
+              slang::CompilerOptionValueKind::Int, 1 << 24, 128 } });
+    compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShift,
+          slang::CompilerOptionValue{
+              slang::CompilerOptionValueKind::Int, 3 << 24, 256 } });
+    compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShift,
+          slang::CompilerOptionValue{
+              slang::CompilerOptionValueKind::Int, 0 << 24, 384 } });
+
+    auto profile_id = globalSession->findProfile(profile);
+
+    slang::TargetDesc desc;
+    desc.compilerOptionEntries = compiler_options.data();
+    desc.compilerOptionEntryCount = (SlangInt)compiler_options.size();
+    desc.format = target;
+    desc.profile = profile_id;
+
     Slang::ComPtr<slang::ISession> pSlangSession;
+
     slang::SessionDesc sessionDesc;
+    sessionDesc.targets = &desc;
+    sessionDesc.targetCount = 1;
     std::vector<std::string> searchPaths = { shader_search_path + "/shaders/" };
     std::vector<const char*> slangSearchPaths;
     for (auto& path : searchPaths) {
@@ -400,16 +357,13 @@ void ShaderFactory::SlangCompile(
     SlangCompileRequest* slangRequest = nullptr;
     result = pSlangSession->createCompileRequest(&slangRequest);
 
-    int targetIndex = slangRequest->addCodeGenTarget(target);
     slangRequest->setTargetFlags(
-        targetIndex,
+        0,
         (target != SLANG_SPIRV) ? SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM
                                 : kDefaultTargetFlags);
 
     int translationUnitIndex =
         slangRequest->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
-    auto profile_id = globalSession->findProfile(profile);
-    slangRequest->setTargetProfile(targetIndex, profile_id);
 
     if (!sourceCode.empty()) {
         slangRequest->addTranslationUnitSourceString(
@@ -432,7 +386,7 @@ void ShaderFactory::SlangCompile(
     }
 
     const SlangResult compileRes = slangRequest->compile();
-
+    auto diagnostics = slangRequest->getDiagnosticOutput();
     if (SLANG_FAILED(compileRes)) {
         if (auto diagnostics = slangRequest->getDiagnosticOutput()) {
             error_string = diagnostics;
@@ -443,7 +397,7 @@ void ShaderFactory::SlangCompile(
 
     shader_reflection = shader_reflect(slangRequest, shaderType);
     result = slangRequest->getEntryPointCodeBlob(
-        entryPointIndex, targetIndex, ppResultBlob.writeRef());
+        entryPointIndex, 0, ppResultBlob.writeRef());
     assert(result == SLANG_OK);
 
     spDestroyCompileRequest(slangRequest);
@@ -452,7 +406,6 @@ void ShaderFactory::SlangCompile(
 ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
 {
     ProgramHandle ret = ProgramHandle::Create(new Program);
-
     SlangCompileTarget target =
         (RHI::get_backend() == nvrhi::GraphicsAPI::VULKAN) ? SLANG_SPIRV
                                                            : SLANG_DXIL;
