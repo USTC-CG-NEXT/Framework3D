@@ -34,6 +34,7 @@ class NodeTree;
 
 struct UsdviewEnginePrivateData {
     nvrhi::TextureHandle nvrhi_texture = nullptr;
+    nvrhi::StagingTextureHandle staging = nullptr;
     nvrhi::Format present_format = nvrhi::Format::RGBA32_FLOAT;
 };
 
@@ -157,7 +158,6 @@ void UsdviewEngine::OnFrame(float delta_time)
     renderer_->SetCameraState(viewMatrix, projectionMatrix);
     renderer_->SetRendererAov(HdAovTokens->color);
 
-
     _renderParams.enableLighting = true;
     _renderParams.enableSceneMaterials = true;
     _renderParams.showRender = true;
@@ -212,8 +212,16 @@ void UsdviewEngine::OnFrame(float delta_time)
     blitCmds->CopyTextureGpuToCpu(copyOp);
 
     hgi->SubmitCmds(blitCmds.get(), HgiSubmitWaitTypeWaitUntilCompleted);
-
-    data_->nvrhi_texture = RHI::load_texture(tex_desc, texture_data_.data());
+    if (!data_->nvrhi_texture) {
+        std::tie(data_->nvrhi_texture, data_->staging) =
+            RHI::load_texture(tex_desc, texture_data_.data());
+    }
+    else {
+        RHI::write_texture(
+            data_->nvrhi_texture.Get(),
+            data_->staging.Get(),
+            texture_data_.data());
+    }
 
     auto imgui_frame_size =
         ImVec2(render_buffer_size_[0], render_buffer_size_[1]);
@@ -221,6 +229,7 @@ void UsdviewEngine::OnFrame(float delta_time)
     ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
 
     ImGui::GetIO().WantCaptureMouse = false;
+    assert(data_->nvrhi_texture.Get());
     ImGui::Image(
         static_cast<ImTextureID>(data_->nvrhi_texture.Get()),
         imgui_frame_size,
@@ -404,6 +413,7 @@ void UsdviewEngine::CreateGLContext()
 
 UsdviewEngine::~UsdviewEngine()
 {
+    data_.reset();
     assert(RHI::get_device());
     renderer_.reset();
     hgi.reset();
@@ -458,6 +468,8 @@ void UsdviewEngine::RenderBackBufferResized(float x, float y)
                       double(render_buffer_size_[0]),
                       double(render_buffer_size_[1]) });
 
+    data_->nvrhi_texture = nullptr;
+    data_->staging = nullptr;
     texture_data_.resize(
         render_buffer_size_[0] * render_buffer_size_[1] *
         RHI::calculate_bytes_per_pixel(data_->present_format));

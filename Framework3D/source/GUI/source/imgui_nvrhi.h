@@ -55,6 +55,8 @@ SOFTWARE.
 #include <vector>
 
 #include "GUI/api.h"
+#define RESOURCE_ALLOCATOR_STATIC_ONLY
+#include "RHI/ResourceManager/resource_allocator.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class ShaderFactory;
@@ -99,7 +101,9 @@ struct ImGui_NVRHI {
     bool createFontTexture(nvrhi::ICommandList* commandList);
 
     nvrhi::IGraphicsPipeline* getPSO(nvrhi::IFramebuffer* fb);
-    nvrhi::IBindingSet* getBindingSet(nvrhi::ITexture* texture);
+    nvrhi::BindingSetHandle getBindingSet(nvrhi::ITexture* texture);
     bool updateGeometry(nvrhi::ICommandList* commandList);
+
+    ResourceAllocator resource_allocator_;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

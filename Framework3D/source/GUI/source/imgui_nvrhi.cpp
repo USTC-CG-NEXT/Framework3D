@@ -50,9 +50,9 @@ SOFTWARE.
 #include <nvrhi/nvrhi.h>
 #include <stddef.h>
 
-#include "RHI/ShaderFactory/shader.hpp"
 #include "GUI/api.h"
 #include "Logger/Logger.h"
+#include "RHI/ShaderFactory/shader.hpp"
 
 const char* vertex_shader_source = R"(
 struct Constants {
@@ -175,6 +175,8 @@ bool ImGui_NVRHI::init(
 {
     this->renderer = renderer;
 
+    resource_allocator_.set_device(renderer.Get());
+
     m_commandList = renderer->createCommandList();
 
     m_commandList->open();
@@ -185,7 +187,7 @@ bool ImGui_NVRHI::init(
     vertexShader = shaderFactory->compile_shader(
         "main",
         nvrhi::ShaderType::Vertex,
-        {"imgui_shader/imgui_vertex.slang"},
+        { "imgui_shader/imgui_vertex.slang" },
         binding_layout,
         error_string,
         { { "SPIRV", "1" } },
@@ -348,7 +350,7 @@ nvrhi::IGraphicsPipeline* ImGui_NVRHI::getPSO(nvrhi::IFramebuffer* fb)
     return pso;
 }
 
-nvrhi::IBindingSet* ImGui_NVRHI::getBindingSet(nvrhi::ITexture* texture)
+nvrhi::BindingSetHandle ImGui_NVRHI::getBindingSet(nvrhi::ITexture* texture)
 {
     nvrhi::BindingSetDesc desc;
 
@@ -357,7 +359,7 @@ nvrhi::IBindingSet* ImGui_NVRHI::getBindingSet(nvrhi::ITexture* texture)
                       nvrhi::BindingSetItem::Texture_SRV(0, texture),
                       nvrhi::BindingSetItem::Sampler(0, fontSampler) };
 
-    binding = renderer->createBindingSet(desc, bindingLayout);
+    binding = resource_allocator_.create(desc, bindingLayout);
     assert(binding);
 
     return binding;
@@ -474,8 +476,9 @@ bool ImGui_NVRHI::render(nvrhi::IFramebuffer* framebuffer)
                 pCmd->UserCallback(cmdList, pCmd);
             }
             else {
-                drawState.bindings = { getBindingSet(
-                    (nvrhi::ITexture*)pCmd->TextureId) };
+                auto bindingSet =
+                    getBindingSet((nvrhi::ITexture*)pCmd->TextureId);
+                drawState.bindings = { bindingSet };
                 assert(drawState.bindings[0]);
 
                 drawState.viewport.scissorRects[0] = nvrhi::Rect(
@@ -493,6 +496,8 @@ bool ImGui_NVRHI::render(nvrhi::IFramebuffer* framebuffer)
                 m_commandList->setPushConstants(
                     invDisplaySize, sizeof(invDisplaySize));
                 m_commandList->drawIndexed(drawArguments);
+
+                resource_allocator_.destroy(bindingSet);
             }
 
             idxOffset += pCmd->ElemCount;

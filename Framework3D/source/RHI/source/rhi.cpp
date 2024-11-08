@@ -79,51 +79,57 @@ size_t calculate_bytes_per_pixel(nvrhi::Format format)
     return formatInfo.bytesPerBlock * formatInfo.blockSize;
 }
 
-nvrhi::TextureHandle load_texture(
+void write_texture(
+    nvrhi::ITexture* texture,
+    nvrhi::IStagingTexture* staging,
+    const void* data)
+{
+    nvrhi::IDevice* device = get_device();
+    size_t rowPitch;
+    void* mappedData = device->mapStagingTexture(
+        staging, {}, nvrhi::CpuAccessMode::Write, &rowPitch);
+    if (mappedData) {
+        const uint8_t* srcData = static_cast<const uint8_t*>(data);
+        uint8_t* dstData = static_cast<uint8_t*>(mappedData);
+
+        for (uint32_t y = 0; y < texture->getDesc().height; ++y) {
+            auto bytesPerPixel =
+                calculate_bytes_per_pixel(texture->getDesc().format);
+            memcpy(dstData, srcData, texture->getDesc().width * bytesPerPixel);
+            srcData += texture->getDesc().width * bytesPerPixel;
+            dstData += rowPitch;
+        }
+
+        device->unmapStagingTexture(staging);
+    }
+
+    nvrhi::CommandListHandle commandList = device->createCommandList();
+    commandList->open();
+    commandList->copyTexture(texture, {}, staging, {});
+    commandList->close();
+    device->executeCommandList(commandList);
+}
+
+std::tuple<nvrhi::TextureHandle, nvrhi::StagingTextureHandle> load_texture(
     const nvrhi::TextureDesc& desc,
     const void* data)
 {
     nvrhi::IDevice* device = get_device();
     auto texture = device->createTexture(desc);
+    // Create a staging texture for uploading data
+    nvrhi::TextureDesc stagingDesc = desc;
+    stagingDesc.isRenderTarget = false;
+    stagingDesc.isUAV = false;
+    stagingDesc.initialState = nvrhi::ResourceStates::CopyDest;
+    stagingDesc.keepInitialState = true;
+    stagingDesc.debugName = "StagingTexture";
 
-    if (data) {
-        // Create a staging texture for uploading data
-        nvrhi::TextureDesc stagingDesc = desc;
-        stagingDesc.isRenderTarget = false;
-        stagingDesc.isUAV = false;
-        stagingDesc.initialState = nvrhi::ResourceStates::CopyDest;
-        stagingDesc.keepInitialState = true;
-        stagingDesc.debugName = "StagingTexture";
+    auto stagingTexture =
+        device->createStagingTexture(stagingDesc, nvrhi::CpuAccessMode::Write);
 
-        auto stagingTexture = device->createStagingTexture(
-            stagingDesc, nvrhi::CpuAccessMode::Write);
-
-        size_t rowPitch;
-        // Map the staging texture and copy data
-        void* mappedData = device->mapStagingTexture(
-            stagingTexture, {}, nvrhi::CpuAccessMode::Write, &rowPitch);
-        if (mappedData) {
-            const uint8_t* srcData = static_cast<const uint8_t*>(data);
-            uint8_t* dstData = static_cast<uint8_t*>(mappedData);
-
-            for (uint32_t y = 0; y < desc.height; ++y) {
-                auto bytesPerPixel = calculate_bytes_per_pixel(desc.format);
-                memcpy(dstData, srcData, desc.width * bytesPerPixel);
-                srcData += desc.width * bytesPerPixel;
-                dstData += rowPitch;
-            }
-
-            device->unmapStagingTexture(stagingTexture);
-        }
-
-        // Copy data from the staging texture to the final texture
-        nvrhi::CommandListHandle commandList = device->createCommandList();
-        commandList->open();
-        commandList->copyTexture(texture, {}, stagingTexture, {});
-        commandList->close();
-        device->executeCommandList(commandList);
-    }
-    return texture;
+    write_texture(texture, stagingTexture, data);
+    assert(texture);
+    return std::make_tuple(texture, stagingTexture);
 }
 
 nvrhi::TextureHandle load_ogl_texture(

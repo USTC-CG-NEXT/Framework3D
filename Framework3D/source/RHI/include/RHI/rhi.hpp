@@ -19,16 +19,19 @@ RHI_API int shutdown();
 RHI_API nvrhi::IDevice* get_device();
 RHI_API nvrhi::GraphicsAPI get_backend();
 RHI_API size_t calculate_bytes_per_pixel(nvrhi::Format format);
-RHI_API nvrhi::TextureHandle load_texture(
-    const nvrhi::TextureDesc& desc,
+RHI_API std::tuple<nvrhi::TextureHandle, nvrhi::StagingTextureHandle>
+load_texture(const nvrhi::TextureDesc& desc, const void* data);
+
+RHI_API void write_texture(
+    nvrhi::ITexture* texture,
+    nvrhi::IStagingTexture* staging,
     const void* data);
 
-
 /**
- * 
+ *
  * @param desc Not tested. Don't use!
- * @param gl_texture 
- * @return 
+ * @param gl_texture
+ * @return
  */
 RHI_API nvrhi::TextureHandle load_ogl_texture(
     const nvrhi::TextureDesc& desc,

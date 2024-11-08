@@ -5,10 +5,12 @@
 #include <iterator>
 
 #include "Logger/Logger.h"
+#ifndef RESOURCE_ALLOCATOR_STATIC_ONLY
 #include "nodes/core/api.hpp"
-#include "rhi/api.h"
+#endif
 #include "RHI/ShaderFactory/shader.hpp"
 #include "RHI/internal/resources.hpp"
+#include "rhi/api.h"
 
 #ifdef USTC_CG_BACKEND_NVRHI
 #include <nvrhi/nvrhi.h>
@@ -93,6 +95,8 @@ class ResourceAllocator {
         RESOLVE_DESTROY_DYNAMIC(RESOURCE) \
     }
 
+#ifndef RESOURCE_ALLOCATOR_STATIC_ONLY
+
     void destroy(entt::meta_any handle) noexcept
     {
         if constexpr (mEnabled) {
@@ -104,6 +108,7 @@ class ResourceAllocator {
             handle = nullptr;
         }
     }
+#endif
 
 #define FOREACH_DESTROY(RESOURCE) \
     JUDGE_RESOURCE(RESOURCE)      \
