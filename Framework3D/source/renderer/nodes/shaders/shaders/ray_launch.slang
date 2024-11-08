@@ -76,12 +76,9 @@ void ClosestHit(
     hitObjectInfo.GetDimensions(stride_count, stride_size);
 
     uint index = 0;
-    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 1u, index);
+    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 0, index);
 
-    if(index >= stride_count)
-    {
-        return;
-    }
+
     PixelTarget[index] = inPixelTarget[DispatchRaysIndex().x];
     hitObjectInfo[index].InstanceIndex = InstanceIndex();
     hitObjectInfo[index].GeometryIndex = GeometryIndex();
@@ -103,4 +100,5 @@ void Miss(inout HitInfo payload: SV_RayPayload)
 {
     payload.barycentric = 0;
     payload.position = 1.0 / 0.0f;
+    InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 0, index);
 }

@@ -145,10 +145,11 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
 
         HitObjectInfo info;
         memset(&info, 0, sizeof(HitObjectInfo));
+        info.InstanceIndex = 1;
 
-        
-    log::debug(
-            "Previous to shader launch: HitObjectInfo: InstanceIndex: %u, GeometryIndex: %u, "
+        log::debug(
+            "Previous to shader launch: HitObjectInfo: InstanceIndex: %u, "
+            "GeometryIndex: %u, "
             "PrimitiveIndex: "
             "%u, HitKind: %u, RayContributionToHitGroupIndex: %u, "
             "MultiplierForGeometryContributionToHitGroupIndex: %u",
@@ -174,6 +175,8 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             &info,
             sizeof(HitObjectInfo),
             maximum_hit_object_count * sizeof(HitObjectInfo));
+
+        nvrhi::utils::BufferUavBarrier(m_CommandList, hit_objects);
 
         m_CommandList->setRayTracingState(state);
         nvrhi::rt::DispatchRaysArguments args;
@@ -205,8 +208,6 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     auto error = raytrace_compiled->get_error_string();
     resource_allocator.destroy(raytrace_compiled);
 
-
-
     params.set_output("Hit Objects", hit_objects);
     params.set_output("Pixel Target", pixel_target_buffer);
 
@@ -228,6 +229,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         info.MultiplierForGeometryContributionToHitGroupIndex);
 
     log::info("Buffer size: %s", +std::to_string(info.InstanceIndex).c_str());
+    assert(info.InstanceIndex <= length);
     params.set_output("Buffer Size", static_cast<int>(info.InstanceIndex));
     if (error.size()) {
         log::warning(error.c_str());
