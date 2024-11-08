@@ -24,7 +24,7 @@
 
 #include "matrix_op.h"
 #include "utils/random.slangh"
-#include "view_cb.h"
+#include "utils/view_cb.h"
 
 RWStructuredBuffer<RayDesc> rays : register(u0);
 RWTexture2D<uint> random_seeds : register(u1);

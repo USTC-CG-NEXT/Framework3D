@@ -149,13 +149,14 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
 
         pipeline_desc.setHlslExtensionsUAV(127);
 
-        auto m_TopLevelAS = params.get_input<AccelStructHandle>("Accel Struct");
+        auto m_TopLevelAS =
+            params.get_global_payload<RenderGlobalPayload&>().TLAS;
         auto raytracing_pipeline = resource_allocator.create(pipeline_desc);
         MARK_DESTROY_NVRHI_RESOURCE(raytracing_pipeline);
 
         BindingSetDesc binding_set_desc;
         binding_set_desc.bindings = nvrhi::BindingSetItemArray{
-            nvrhi::BindingSetItem::RayTracingAccelStruct(0, m_TopLevelAS.Get()),
+            nvrhi::BindingSetItem::RayTracingAccelStruct(0, m_TopLevelAS),
             nvrhi::BindingSetItem::StructuredBuffer_SRV(
                 1, hit_info_buffer.Get()),
             nvrhi::BindingSetItem::StructuredBuffer_SRV(
@@ -198,7 +199,8 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
         resource_allocator.destroy(sample_buffer);
         resource_allocator.destroy(weight_buffer);
         resource_allocator.destroy(pdf_buffer);
-        log::error(raytrace_compiled->get_error_string().c_str());
+        log::warning(raytrace_compiled->get_error_string().c_str());
+        return false;
     }
 
     // 4. Get the result

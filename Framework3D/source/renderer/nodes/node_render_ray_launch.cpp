@@ -114,8 +114,8 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         nvrhi::rt::PipelineDesc pipeline_desc;
         pipeline_desc.maxPayloadSize = 16 * sizeof(float);
         pipeline_desc.globalBindingLayouts = { globalBindingLayout };
-        pipeline_desc.shaders = { { "", raygen_shader, nullptr },
-                                  { "", miss_shader, nullptr } };
+        pipeline_desc.shaders = { { "RayGen", raygen_shader, nullptr },
+                                  { "Miss", miss_shader, nullptr } };
 
         pipeline_desc.hitGroups = { {
             "HitGroup",
@@ -125,12 +125,13 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             nullptr,  // bindingLayout
             false     // isProceduralPrimitive
         } };
-        auto m_TopLevelAS = params.get_input<AccelStructHandle>("Accel Struct");
+        auto m_TopLevelAS =
+            params.get_global_payload<RenderGlobalPayload&>().TLAS;
         auto raytracing_pipeline = resource_allocator.create(pipeline_desc);
 
         BindingSetDesc binding_set_desc;
         binding_set_desc.bindings = nvrhi::BindingSetItemArray{
-            nvrhi::BindingSetItem::RayTracingAccelStruct(0, m_TopLevelAS.Get()),
+            nvrhi::BindingSetItem::RayTracingAccelStruct(0, m_TopLevelAS),
             nvrhi::BindingSetItem::StructuredBuffer_SRV(
                 1, input_pixel_target_buffer.Get()),
             nvrhi::BindingSetItem::StructuredBuffer_UAV(0, rays.Get()),
@@ -199,7 +200,8 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     log::info("Buffer size: %s", +std::to_string(info.InstanceIndex).c_str());
     params.set_output("Buffer Size", static_cast<int>(info.InstanceIndex));
     if (error.size()) {
-        log::error(error.c_str());
+        log::warning(error.c_str());
+        return false;
     }
     return true;
 }

@@ -29,12 +29,11 @@ class RHI_API ShaderFactory {
         nvrhi::BindingLayoutDescVector& binding_layout_desc,
         std::string& error_string,
         const std::vector<ShaderMacro>& macro_defines = {},
-        const std::string& source_code = {},
-        bool absolute = false);
+        const std::string& source_code = {});
 
     ProgramHandle createProgram(const ProgramDesc& desc) const;
 
-    void set_search_path(const std::string& string)
+    static void set_search_path(const std::string& string)
     {
         shader_search_path = string;
     }
@@ -52,9 +51,10 @@ class RHI_API ShaderFactory {
         std::string& error_string,
         SlangCompileTarget target) const;
 
-    std::string shader_search_path;
+    static std::string shader_search_path;
     nvrhi::IDevice* device;
     ResourceAllocator* resource_allocator;
+    friend class ProgramDesc;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

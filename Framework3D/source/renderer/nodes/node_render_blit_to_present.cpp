@@ -49,7 +49,8 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
 {
     auto sourceTexture = params.get_input<TextureHandle>("Tex");
     if (!sourceTexture) {
-        log::error("No texture to blit");
+        log::warning("No texture to blit"); 
+return false;
     }
     auto output_desc = sourceTexture->getDesc();
     output_desc.format = nvrhi::Format::RGBA32_FLOAT;
@@ -105,7 +106,7 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
     auto vertex_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Vertex,
-        "utils/" + vs_name,
+        "shaders/utils/" + vs_name,
         vs_binding_layout_descs,
         error_string,
         macro_defines);
@@ -116,7 +117,7 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
     auto pixel_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Pixel,
-        "utils/" + ps_name,
+        "shaders/utils/" + ps_name,
         ps_binding_layout_descs,
         error_string,
         macro_defines);
@@ -210,10 +211,9 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
 
     commandList->open();
 
-    commandList->setGraphicsState(state);
-
     commandList->writeBuffer(
         constant_buffer.Get(), &blitConstants, sizeof(blitConstants));
+    commandList->setGraphicsState(state);
 
     nvrhi::DrawArguments args;
     args.instanceCount = 1;

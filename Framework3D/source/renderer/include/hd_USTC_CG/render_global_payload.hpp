@@ -31,15 +31,15 @@ struct RenderGlobalPayload {
           nvrhi_device(nvrhi_device),
           shader_factory(&resource_allocator)
     {
-        shader_factory.set_search_path("usd/hd_USTC_CG/resources/shaders");
+        shader_factory.set_search_path("../../source/renderer/nodes/shaders");
         resource_allocator.device = nvrhi_device;
         resource_allocator.shader_factory = &shader_factory;
-
     }
 
     ResourceAllocator resource_allocator;
     ShaderFactory shader_factory;
     nvrhi::IDevice* nvrhi_device;
+    nvrhi::rt::IAccelStruct* TLAS = nullptr;
 
     auto& get_cameras() const
     {

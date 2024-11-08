@@ -46,7 +46,7 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
         compute_shader = shader_factory.compile_shader(
             "main",
             nvrhi::ShaderType::Compute,
-            "utils/random_init.slang",
+            "shaders/utils/random_init.slang",
             binding_layout_descs,
             error_string);
     }
@@ -54,13 +54,14 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
         compute_shader = shader_factory.compile_shader(
             "main",
             nvrhi::ShaderType::Compute,
-            "utils/random_step.slang",
+            "shaders/utils/random_step.slang",
             binding_layout_descs,
             error_string);
     }
 
     if (!compute_shader) {
-        log::error(error_string.c_str());
+        log::warning(error_string.c_str()); 
+return false;
     }
 
     nvrhi::BindingLayoutVector binding_layouts;

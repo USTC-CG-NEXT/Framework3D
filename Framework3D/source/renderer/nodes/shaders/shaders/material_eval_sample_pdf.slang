@@ -2,7 +2,7 @@
 
 #include "matrix_op.h"
 #include "utils/HitObject.h"
-#include "view_cb.h"
+#include "utils/view_cb.h"
 RaytracingAccelerationStructure SceneBVH : register(t0);
 
 StructuredBuffer<HitObjectInfo> hitObjects : register(t1);

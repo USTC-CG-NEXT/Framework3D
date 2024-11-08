@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "GCore/GOP.h"
+#include "GCore/geom_payload.hpp"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
 #include "nodes/system/node_system.hpp"
@@ -9,17 +10,16 @@
 #include "pxr/usd/usdGeom/sphere.h"
 #include "stage/stage.hpp"
 #include "usd_nodejson.hpp"
-#include "GCore/geom_payload.hpp"
 #include "widgets/usdtree/usd_fileviewer.h"
 #include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
 
 int main()
 {
-    auto window = std::make_unique<Window>();
-
     log::SetMinSeverity(Severity::Debug);
     log::EnableOutputToConsole(true);
+    auto window = std::make_unique<Window>();
+
     auto stage = create_global_stage();
     init(stage.get());
     // Add a sphere
@@ -60,7 +60,7 @@ int main()
             geom_global_params.stage = stage->get_usd_stage();
             geom_global_params.prim_path = json_path;
 
-            system->register_global_params(geom_global_params);
+            system->set_global_params(geom_global_params);
 
             UsdBasedNodeWidgetSettings desc;
 

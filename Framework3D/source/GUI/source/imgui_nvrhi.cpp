@@ -185,7 +185,7 @@ bool ImGui_NVRHI::init(
     vertexShader = shaderFactory->compile_shader(
         "main",
         nvrhi::ShaderType::Vertex,
-        "imgui_shader/imgui_vertex.slang",
+        {"imgui_shader/imgui_vertex.slang"},
         binding_layout,
         error_string,
         { { "SPIRV", "1" } },

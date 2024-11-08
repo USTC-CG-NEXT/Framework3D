@@ -39,7 +39,8 @@ int init(bool with_window, bool use_dx12)
         VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
         VK_KHR_EXTERNAL_FENCE_EXTENSION_NAME,
         VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
-        VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
+        VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+        VK_NV_RAY_TRACING_INVOCATION_REORDER_EXTENSION_NAME
     };
 
     params.swapChainFormat = nvrhi::Format::RGBA8_UNORM;
@@ -47,6 +48,7 @@ int init(bool with_window, bool use_dx12)
 #ifdef _DEBUG
     params.enableNvrhiValidationLayer = true;
     params.enableDebugRuntime = true;
+    params.adapterIndex = 2;
 #endif
 
     if (with_window) {

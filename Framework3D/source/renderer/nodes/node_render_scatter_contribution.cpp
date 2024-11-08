@@ -34,8 +34,7 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
             binding_layout_desc,
             error_string,
             {},
-            {},
-            false);
+            {});
         MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
 
         // Constant buffer contains the size of the length (single float), and I

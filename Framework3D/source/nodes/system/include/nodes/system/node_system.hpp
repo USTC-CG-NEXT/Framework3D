@@ -18,7 +18,7 @@ class NODES_SYSTEM_API NodeSystem {
     static void register_cpp_types();
 
     template<typename T>
-    void register_global_params(T global_params);
+    void set_global_params(T global_params);
 
     virtual void execute(bool is_ui_execution = false) const;
 
@@ -43,7 +43,7 @@ void NodeSystem::register_cpp_types()
 }
 
 template<typename T>
-void NodeSystem::register_global_params(T global_params)
+void NodeSystem::set_global_params(T global_params)
 {
     register_cpp_type<T>();
     node_tree_executor->get_global_payload<T&>() = global_params;

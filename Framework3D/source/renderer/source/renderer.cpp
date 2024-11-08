@@ -30,6 +30,10 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 
     auto node_system = render_param->node_system;
 
+    node_system->get_node_tree_executor()
+        ->get_global_payload<RenderGlobalPayload&>()
+        .TLAS = render_param->TLAS->get_tlas();
+
     node_system->execute(false);
 
     for (size_t i = 0; i < _aovBindings.size(); ++i) {

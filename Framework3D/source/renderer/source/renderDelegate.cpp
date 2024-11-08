@@ -139,10 +139,10 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     node_system->allow_ui_execution = false;
     node_system->init();
 
-    node_system->register_global_params(*_globalPayload);
+    node_system->set_global_params(*_globalPayload);
 
     _renderParam = std::make_shared<Hd_USTC_CG_RenderParam>(
-        &_renderThread, &_sceneVersion, node_system.get());
+        &_renderThread, &_sceneVersion, node_system.get(),_globalPayload.get());
 
     _renderer = std::make_shared<Hd_USTC_CG_Renderer>(_renderParam.get());
 

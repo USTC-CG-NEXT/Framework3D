@@ -54,7 +54,8 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 
     if (!error_string.empty()) {
         resource_allocator.destroy(result_rays);
-        log::error(error_string.c_str());
+        log::warning(error_string.c_str());
+        return false;
     }
     auto binding_layout = resource_allocator.create(binding_layout_desc_vec[0]);
     MARK_DESTROY_NVRHI_RESOURCE(binding_layout);

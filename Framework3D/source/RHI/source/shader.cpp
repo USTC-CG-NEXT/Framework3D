@@ -18,6 +18,14 @@
 using namespace Microsoft::WRL;
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
+constexpr int SRV_OFFSET = 0;
+constexpr int SAMPLER_OFFSET = 128;
+constexpr int CONSTANT_BUFFER_OFFSET = 256;
+constexpr int UAV_OFFSET = 384;
+
+std::string ShaderFactory::shader_search_path = "";
+
 void const* Program::getBufferPointer() const
 {
     return blob->getBufferPointer();
@@ -48,8 +56,10 @@ namespace fs = std::filesystem;
 
 void ProgramDesc::update_last_write_time(const std::filesystem::path& path)
 {
-    if (fs::exists(path)) {
-        auto possibly_newer_lastWriteTime = fs::last_write_time(path);
+    auto full_path =
+        std::filesystem::path(ShaderFactory::shader_search_path) / path;
+    if (fs::exists(full_path)) {
+        auto possibly_newer_lastWriteTime = fs::last_write_time(full_path);
         if (possibly_newer_lastWriteTime > lastWriteTime) {
             lastWriteTime = possibly_newer_lastWriteTime;
         }
@@ -99,36 +109,53 @@ Slang::ComPtr<slang::IGlobalSession> createGlobal()
 }
 
 static nvrhi::ResourceType convertBindingTypeToResourceType(
-    slang::BindingType bindingType)
+    slang::BindingType bindingType,
+    SlangResourceShape resource_shape)
 {
     using namespace nvrhi;
     using namespace slang;
+
+    auto ret = ResourceType::None;
     switch (bindingType) {
-        case BindingType::Sampler: return ResourceType::Sampler;
+        case BindingType::Sampler: ret = ResourceType::Sampler; break;
         case BindingType::Texture:
         case BindingType::CombinedTextureSampler:
-        case BindingType::InputRenderTarget: return ResourceType::Texture_SRV;
-        case BindingType::MutableTexture: return ResourceType::Texture_UAV;
+        case BindingType::InputRenderTarget:
+            ret = ResourceType::Texture_SRV;
+            break;
+        case BindingType::MutableTexture:
+            ret = ResourceType::Texture_UAV;
+            break;
         case BindingType::TypedBuffer:
         case BindingType::MutableTypedBuffer:
-            return ResourceType::TypedBuffer_SRV;
-        case BindingType::RawBuffer: return ResourceType::RawBuffer_SRV;
-        case BindingType::MutableRawBuffer: return ResourceType::RawBuffer_UAV;
+            ret = ResourceType::TypedBuffer_SRV;
+            break;
+        case BindingType::RawBuffer: ret = ResourceType::RawBuffer_SRV; break;
+        case BindingType::MutableRawBuffer:
+            ret = ResourceType::RawBuffer_UAV;
+            break;
         case BindingType::ConstantBuffer:
-        case BindingType::ParameterBlock: return ResourceType::ConstantBuffer;
+        case BindingType::ParameterBlock:
+            ret = ResourceType::ConstantBuffer;
+            break;
         case BindingType::RayTracingAccelerationStructure:
-            return ResourceType::RayTracingAccelStruct;
-        case BindingType::PushConstant: return ResourceType::PushConstants;
-        case BindingType::InlineUniformData:
-        case BindingType::VaryingInput:
-        case BindingType::VaryingOutput:
-        case BindingType::ExistentialValue:
-        case BindingType::MutableFlag:
-        case BindingType::BaseMask:
-        case BindingType::ExtMask:
-        case BindingType::Unknown:
-        default: return ResourceType::None;
+            ret = ResourceType::RayTracingAccelStruct;
+            break;
+        case BindingType::PushConstant:
+            ret = ResourceType::PushConstants;
+            break;
     }
+
+    if (resource_shape == SLANG_STRUCTURED_BUFFER) {
+        if (ret == ResourceType::RawBuffer_SRV) {
+            ret = ResourceType::StructuredBuffer_SRV;
+        }
+        else if (ret == ResourceType::RawBuffer_UAV) {
+            ret = ResourceType::StructuredBuffer_UAV;
+        }
+    }
+
+    return ret;
 }
 
 nvrhi::BindingLayoutDescVector shader_reflect(
@@ -149,6 +176,9 @@ nvrhi::BindingLayoutDescVector shader_reflect(
             programReflection->getParameterByIndex(pp);
 
         slang::TypeLayoutReflection* typeLayout = parameter->getTypeLayout();
+        slang::TypeReflection* type_reflection = parameter->getType();
+        SlangResourceShape resource_shape = type_reflection->getResourceShape();
+
         auto categoryCount = parameter->getCategoryCount();
         assert(categoryCount == 1);
         auto category =
@@ -162,9 +192,48 @@ nvrhi::BindingLayoutDescVector shader_reflect(
         slang::BindingType type = typeLayout->getBindingRangeType(0);
 
         nvrhi::BindingLayoutItem item;
-
-        item.type = convertBindingTypeToResourceType(type);
+        item.type = convertBindingTypeToResourceType(type, resource_shape);
         item.slot = index;
+
+        switch (item.type) {
+            case nvrhi::ResourceType::None: break;
+            case nvrhi::ResourceType::Texture_SRV:
+                item.slot -= SRV_OFFSET;
+                break;
+            case nvrhi::ResourceType::Texture_UAV:
+                item.slot -= UAV_OFFSET;
+                break;
+            case nvrhi::ResourceType::TypedBuffer_SRV:
+                item.slot -= SRV_OFFSET;
+                break;
+            case nvrhi::ResourceType::TypedBuffer_UAV:
+                item.slot -= UAV_OFFSET;
+                break;
+            case nvrhi::ResourceType::StructuredBuffer_SRV:
+                item.slot -= SRV_OFFSET;
+                break;
+            case nvrhi::ResourceType::StructuredBuffer_UAV:
+                item.slot -= UAV_OFFSET;
+                break;
+            case nvrhi::ResourceType::RawBuffer_SRV:
+                item.slot -= SRV_OFFSET;
+                break;
+            case nvrhi::ResourceType::RawBuffer_UAV:
+                item.slot -= UAV_OFFSET;
+                break;
+            case nvrhi::ResourceType::ConstantBuffer:
+                item.slot -= CONSTANT_BUFFER_OFFSET;
+                break;
+            case nvrhi::ResourceType::VolatileConstantBuffer:
+                item.slot -= CONSTANT_BUFFER_OFFSET;
+                break;
+            case nvrhi::ResourceType::Sampler:
+                item.slot -= SAMPLER_OFFSET;
+                break;
+            case nvrhi::ResourceType::RayTracingAccelStruct:
+                item.slot -= SRV_OFFSET;
+                break;
+        }
 
         if (ret.size() < space + 1) {
             ret.resize(space + 1);
@@ -238,17 +307,13 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     nvrhi::BindingLayoutDescVector& binding_layout_desc,
     std::string& error_string,
     const std::vector<ShaderMacro>& macro_defines,
-    const std::string& source_code,
-    bool absolute)
+    const std::string& source_code)
 {
     ProgramDesc shader_compile_desc;
 
-    if (!absolute && shader_path != "") {
-        shader_path = std::filesystem::path(shader_search_path) / shader_path;
-    }
-    shader_compile_desc.set_entry_name(entryName);
     if (shader_path != "") {
         shader_compile_desc.set_path(shader_path);
+        shader_compile_desc.set_entry_name(entryName);
     }
     for (const auto& macro_define : macro_defines) {
         shader_compile_desc.define(macro_define.name, macro_define.definition);
@@ -316,33 +381,40 @@ void ShaderFactory::SlangCompile(
     compiler_options.push_back(
         { slang::CompilerOptionName::VulkanBindShift,
           slang::CompilerOptionValue{
-              slang::CompilerOptionValueKind::Int, 2 << 24, 0 } });
+              slang::CompilerOptionValueKind::Int, 2 << 24, SRV_OFFSET } });
     compiler_options.push_back(
         { slang::CompilerOptionName::VulkanBindShift,
           slang::CompilerOptionValue{
-              slang::CompilerOptionValueKind::Int, 1 << 24, 128 } });
+              slang::CompilerOptionValueKind::Int, 1 << 24, SAMPLER_OFFSET } });
+    compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShift,
+          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
+                                      3 << 24,
+                                      CONSTANT_BUFFER_OFFSET } });
     compiler_options.push_back(
         { slang::CompilerOptionName::VulkanBindShift,
           slang::CompilerOptionValue{
-              slang::CompilerOptionValueKind::Int, 3 << 24, 256 } });
+              slang::CompilerOptionValueKind::Int, 0 << 24, UAV_OFFSET } });
+
     compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanBindShift,
-          slang::CompilerOptionValue{
-              slang::CompilerOptionValueKind::Int, 0 << 24, 384 } });
+        { slang::CompilerOptionName::VulkanUseEntryPointName,
+          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
+                                      1 } });
 
     auto profile_id = globalSession->findProfile(profile);
 
     slang::TargetDesc desc;
-    desc.compilerOptionEntries = compiler_options.data();
-    desc.compilerOptionEntryCount = (SlangInt)compiler_options.size();
     desc.format = target;
     desc.profile = profile_id;
+    desc.flags = SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM;
 
     Slang::ComPtr<slang::ISession> pSlangSession;
 
     slang::SessionDesc sessionDesc;
     sessionDesc.targets = &desc;
     sessionDesc.targetCount = 1;
+    sessionDesc.compilerOptionEntries = compiler_options.data();
+    sessionDesc.compilerOptionEntryCount = (SlangInt)compiler_options.size();
     std::vector<std::string> searchPaths = { shader_search_path + "/shaders/" };
     std::vector<const char*> slangSearchPaths;
     for (auto& path : searchPaths) {
@@ -356,11 +428,6 @@ void ShaderFactory::SlangCompile(
 
     SlangCompileRequest* slangRequest = nullptr;
     result = pSlangSession->createCompileRequest(&slangRequest);
-
-    slangRequest->setTargetFlags(
-        0,
-        (target != SLANG_SPIRV) ? SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM
-                                : kDefaultTargetFlags);
 
     int translationUnitIndex =
         slangRequest->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
@@ -386,7 +453,10 @@ void ShaderFactory::SlangCompile(
     }
 
     const SlangResult compileRes = slangRequest->compile();
-    auto diagnostics = slangRequest->getDiagnosticOutput();
+    auto diagnostics = std::string(slangRequest->getDiagnosticOutput());
+    if (!diagnostics.empty()) {
+        log::warning(diagnostics.c_str());
+    }
     if (SLANG_FAILED(compileRes)) {
         if (auto diagnostics = slangRequest->getDiagnosticOutput()) {
             error_string = diagnostics;
@@ -396,8 +466,7 @@ void ShaderFactory::SlangCompile(
     }
 
     shader_reflection = shader_reflect(slangRequest, shaderType);
-    result = slangRequest->getEntryPointCodeBlob(
-        entryPointIndex, 0, ppResultBlob.writeRef());
+    result = slangRequest->getTargetCodeBlob(0, ppResultBlob.writeRef());
     assert(result == SLANG_OK);
 
     spDestroyCompileRequest(slangRequest);
@@ -405,13 +474,15 @@ void ShaderFactory::SlangCompile(
 
 ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
 {
-    ProgramHandle ret = ProgramHandle::Create(new Program);
+    ProgramHandle ret;
+
+    ret = ProgramHandle::Create(new Program);
     SlangCompileTarget target =
         (RHI::get_backend() == nvrhi::GraphicsAPI::VULKAN) ? SLANG_SPIRV
                                                            : SLANG_DXIL;
 
     SlangCompile(
-        desc.path,
+        std::filesystem::path(shader_search_path) / desc.path,
         desc.source_code,
         desc.entry_name.c_str(),
         desc.shaderType,
