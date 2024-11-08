@@ -9,6 +9,9 @@ USTC_CG_ADD_LIB(
 	RESOURCE_COPY_TARGET ${OUT_BINARY_DIR}/usd/hd_USTC_CG/resources
 )
 
+target_compile_definitions(hd_USTC_CG PRIVATE HOST_CODE=1)
+target_include_directories(hd_USTC_CG PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/nodes/shaders/shaders)
+
 add_subdirectory(nodes/renderer)
 
 add_nodes(

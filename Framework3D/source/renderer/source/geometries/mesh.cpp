@@ -36,6 +36,9 @@
 #include "pxr/imaging/hd/instancer.h"
 #include "pxr/imaging/hd/meshUtil.h"
 #include "pxr/imaging/hd/smoothNormals.h"
+
+#include "Scene/SceneTypes.slang"
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_RenderParam;
 using namespace pxr;
@@ -325,6 +328,8 @@ void Hd_USTC_CG_Mesh::Sync(
     if (!_normalsValid) {
         computedNormals = Hd_SmoothNormals::ComputeSmoothNormals(
             &_adjacency, points.size(), points.cdata());
+
+        assert(points.size() == computedNormals.size());
     }
     _UpdateComputedPrimvarSources(sceneDelegate, *dirtyBits);
     if (!points.empty()) {
