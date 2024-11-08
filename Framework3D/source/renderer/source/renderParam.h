@@ -66,8 +66,9 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
 
     NodeSystem *node_system;
     std::unique_ptr<Hd_USTC_CG_RenderTLAS> TLAS;
+    nvrhi::TextureHandle presented_texture;
 
-   private:
+private:
     /// A handle to the global render thread.
     /// A version counter for edits to _scene.
     std::atomic<int> *_sceneVersion;

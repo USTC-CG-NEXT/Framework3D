@@ -28,6 +28,7 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 {
     _completedSamples.store(0);
 
+    render_param->presented_texture = nullptr;
     auto node_system = render_param->node_system;
 
     {
@@ -72,6 +73,7 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
             auto rb = static_cast<Hd_USTC_CG_RenderBuffer*>(
                 _aovBindings[i].renderBuffer);
             rb->Present(texture);
+            render_param->presented_texture = texture;
             rb->SetConverged(true);
         }
     }

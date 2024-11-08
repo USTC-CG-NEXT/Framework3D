@@ -91,6 +91,8 @@ class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {
         _converged.store(cv);
     }
 
+    VtValue GetResource(bool multiSampled) const override;
+
     // The feed memory size must match the type
     void Clear();
     void Present(nvrhi::TextureHandle texture);

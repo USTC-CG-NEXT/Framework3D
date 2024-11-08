@@ -59,6 +59,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     pxr::HgiUniquePtr hgi;
     std::vector<uint8_t> texture_data_;
     const void* renderer_ui_control = nullptr;
+    bool first_draw = true;
 
     void DrawMenuBar();
     void OnFrame(float delta_time);

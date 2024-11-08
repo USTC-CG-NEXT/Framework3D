@@ -168,7 +168,6 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         m_CommandList->setRayTracingState(state);
         nvrhi::rt::DispatchRaysArguments args;
         args.width = length;
-        log::debug("Ray length: %s", +std::to_string(length).c_str());
         m_CommandList->dispatchRays(args);
 
         m_CommandList->copyBuffer(
@@ -204,7 +203,6 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     memcpy(&info, cpu_read_out, sizeof(HitObjectInfo));
     resource_allocator.device->unmapBuffer(read_out);
 
-    log::info("Buffer size: %s", +std::to_string(info.InstanceIndex).c_str());
     assert(info.InstanceIndex <= length);
     params.set_output("Buffer Size", static_cast<int>(info.InstanceIndex));
     if (error.size()) {

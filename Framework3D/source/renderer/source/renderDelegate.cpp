@@ -408,6 +408,12 @@ VtValue Hd_USTC_CG_RenderDelegate::GetRenderSetting(TfToken const& key) const
     if (key == TfToken("RenderNodeSystem")) {
         return VtValue(reinterpret_cast<const void*>(&node_system));
     }
+    if (key == TfToken("VulkanColorAov")) {
+        if (_renderParam->presented_texture) {
+            return VtValue(reinterpret_cast<const void*>(
+                &_renderParam->presented_texture));
+        }
+    }
     return HdRenderDelegate::GetRenderSetting(key);
 }
 

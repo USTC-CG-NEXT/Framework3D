@@ -91,6 +91,9 @@ void UsdviewEngine::ChooseRenderer(
                 .Get<const void*>();
     }
 
+    renderer_->SetEnablePresentation(false);
+    data_->nvrhi_texture = nullptr;
+
     this->engine_status.renderer_id = i;
 }
 
@@ -144,6 +147,10 @@ void UsdviewEngine::DrawMenuBar()
 
 void UsdviewEngine::OnFrame(float delta_time)
 {
+    if (first_draw) {
+        first_draw = false;
+        return;
+    }
     DrawMenuBar();
 
     auto previous = data_->nvrhi_texture.Get();
@@ -156,7 +163,6 @@ void UsdviewEngine::OnFrame(float delta_time)
     GfMatrix4d viewMatrix = frustum.ComputeViewMatrix();
 
     renderer_->SetCameraState(viewMatrix, projectionMatrix);
-    renderer_->SetRendererAov(HdAovTokens->color);
 
     _renderParams.enableLighting = true;
     _renderParams.enableSceneMaterials = true;
@@ -196,31 +202,45 @@ void UsdviewEngine::OnFrame(float delta_time)
     UsdPrim root = root_stage_->GetPseudoRoot();
 
     renderer_->Render(root, _renderParams);
-    auto hgi_texture = renderer_->GetAovTexture(HdAovTokens->color);
-    nvrhi::TextureDesc tex_desc =
-        RHI::ConvertToNvrhiTextureDesc(hgi_texture->GetDescriptor());
 
-    // Since Hgi and nvrhi vulkan are on different Vulkan instances and we don't
-    // want to modify Hgi's external information definition, we need to do a CPU
-    // read back to send the information to nvrhi.
-
-    HgiBlitCmdsUniquePtr blitCmds = hgi->CreateBlitCmds();
-    HgiTextureGpuToCpuOp copyOp;
-    copyOp.gpuSourceTexture = hgi_texture;
-    copyOp.cpuDestinationBuffer = texture_data_.data();
-    copyOp.destinationBufferByteSize = texture_data_.size();
-    blitCmds->CopyTextureGpuToCpu(copyOp);
-
-    hgi->SubmitCmds(blitCmds.get(), HgiSubmitWaitTypeWaitUntilCompleted);
-    if (!data_->nvrhi_texture) {
-        std::tie(data_->nvrhi_texture, data_->staging) =
-            RHI::load_texture(tex_desc, texture_data_.data());
+    // First try is there a hack?
+    auto hacked_handle =
+        renderer_->GetRendererSetting(TfToken("VulkanColorAov"));
+    if (hacked_handle.IsHolding<const void*>()) {
+        data_->nvrhi_texture = *reinterpret_cast<const nvrhi::TextureHandle*>(
+            hacked_handle.Get<const void*>());
     }
     else {
-        RHI::write_texture(
-            data_->nvrhi_texture.Get(),
-            data_->staging.Get(),
-            texture_data_.data());
+        // Since Hgi and nvrhi vulkan are on different Vulkan instances and we
+        // don't
+        // want to modify Hgi's external information definition, we need to do a
+        // CPU read back to send the information to nvrhi.
+
+        auto hgi_texture = renderer_->GetAovTexture(HdAovTokens->color);
+        if (hgi_texture) {
+            nvrhi::TextureDesc tex_desc =
+                RHI::ConvertToNvrhiTextureDesc(hgi_texture->GetDescriptor());
+
+            HgiBlitCmdsUniquePtr blitCmds = hgi->CreateBlitCmds();
+            HgiTextureGpuToCpuOp copyOp;
+            copyOp.gpuSourceTexture = hgi_texture;
+            copyOp.cpuDestinationBuffer = texture_data_.data();
+            copyOp.destinationBufferByteSize = texture_data_.size();
+            blitCmds->CopyTextureGpuToCpu(copyOp);
+
+            hgi->SubmitCmds(
+                blitCmds.get(), HgiSubmitWaitTypeWaitUntilCompleted);
+            if (!data_->nvrhi_texture) {
+                std::tie(data_->nvrhi_texture, data_->staging) =
+                    RHI::load_texture(tex_desc, texture_data_.data());
+            }
+            else {
+                RHI::write_texture(
+                    data_->nvrhi_texture.Get(),
+                    data_->staging.Get(),
+                    texture_data_.data());
+            }
+        }
     }
 
     auto imgui_frame_size =
@@ -229,12 +249,15 @@ void UsdviewEngine::OnFrame(float delta_time)
     ImGui::BeginChild("ViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
 
     ImGui::GetIO().WantCaptureMouse = false;
-    assert(data_->nvrhi_texture.Get());
-    ImGui::Image(
-        static_cast<ImTextureID>(data_->nvrhi_texture.Get()),
-        imgui_frame_size,
-        ImVec2(0.0f, 0.0f),
-        ImVec2(1.0f, 1.0f));
+    if (data_->nvrhi_texture.Get())
+        ImGui::Image(
+            static_cast<ImTextureID>(data_->nvrhi_texture.Get()),
+            imgui_frame_size,
+            ImVec2(0.0f, 0.0f),
+            ImVec2(1.0f, 1.0f));
+    else {
+        log ::warning("No image!");
+    }
     is_active = ImGui::IsWindowFocused();
     is_hovered = ImGui::IsItemHovered();
 

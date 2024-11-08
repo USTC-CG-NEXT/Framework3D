@@ -121,6 +121,11 @@ bool Hd_USTC_CG_RenderBuffer::Allocate(
     return true;
 }
 
+VtValue Hd_USTC_CG_RenderBuffer::GetResource(bool multiSampled) const
+{
+    return VtValue(pxr::HgiTextureHandle{});
+}
+
 void Hd_USTC_CG_RenderBuffer::Clear()
 {
 }
@@ -136,7 +141,6 @@ void Hd_USTC_CG_RenderBuffer::Present(nvrhi::TextureHandle handle)
     m_CommandList->close();
 
     nvrhi_device->executeCommandList(m_CommandList.Get());
-    nvrhi_device->waitForIdle();
 
     size_t pitch;
     auto mapped = nvrhi_device->mapStagingTexture(
@@ -153,6 +157,7 @@ void Hd_USTC_CG_RenderBuffer::Present(nvrhi::TextureHandle handle)
 }
 void *Hd_USTC_CG_RenderBuffer::Map()
 {
+    nvrhi_device->waitForIdle();
     _mappers++;
     return _buffer.data();
 }
