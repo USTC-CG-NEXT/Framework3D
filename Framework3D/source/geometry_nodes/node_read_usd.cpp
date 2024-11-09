@@ -55,9 +55,8 @@ NODE_EXECUTION_FUNCTION(read_usd)
     if (stage) {
         // Here 'c_str' call is necessary since prim_path
         auto sdf_path = pxr::SdfPath(prim_path.c_str());
-        auto prim = stage->GetPrimAtPath(sdf_path);
-        pxr::UsdGeomMesh usdgeom(prim);
-
+        pxr::UsdGeomMesh usdgeom = pxr::UsdGeomMesh::Get(stage, sdf_path);
+        
         if (usdgeom) {
             mesh->set_mesh_geom(usdgeom);
 
@@ -115,13 +114,16 @@ NODE_EXECUTION_FUNCTION(read_usd)
                     skel_component->jointWeight = jointWeight;
                     skel_component->jointIndices = jointIndices;
                 }
-                else
-                    throw std::runtime_error("Unable to read the skeleton.");
+                else {
+                    log::warning("Unable to read the skeleton.");
+                    return false;
+                }
             }
         }
 
         else {
-            throw std::runtime_error("Unable to read the prim.");
+            log::warning("Unable to read the prim.");
+            return false;
         }
 
         // TODO: add material reading
@@ -130,6 +132,7 @@ NODE_EXECUTION_FUNCTION(read_usd)
         // TODO: throw something
     }
     params.set_output("Geometry", std::move(geometry));
+    return true;
 }
 
 NODE_DECLARATION_UI(read_usd);

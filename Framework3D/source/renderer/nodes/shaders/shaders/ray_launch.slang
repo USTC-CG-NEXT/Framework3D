@@ -27,10 +27,10 @@
 #include "utils/view_cb.h"
 
 RaytracingAccelerationStructure SceneBVH : register(t0);
-StructuredBuffer<int2> inPixelTarget : register(t1);
+StructuredBuffer<uint2> inPixelTarget : register(t1);
 StructuredBuffer<RayInfo> rays : register(t2);
 RWStructuredBuffer<HitObjectInfo> hitObjectInfo : register(u0);
-RWStructuredBuffer<int2> PixelTarget : register(u1);
+RWStructuredBuffer<uint2> PixelTarget : register(u1);
 RWStructuredBuffer<uint> hit_counter_buffer : register(u2);
 RWStructuredBuffer<uint> miss_counter_buffer : register(u3);
 
@@ -51,10 +51,9 @@ void RayGen()
 {
     uint LaunchIndex = DispatchRaysIndex().x;
     uint LaunchDimensions = DispatchRaysDimensions().x;
-    // Setup the ray
+
     RayInfo ray = rays[LaunchIndex];
 
-    // Trace the ray
     HitInfo payload;
     payload.ShadedColorAndHitT = float4(0, 0, 0, 0);
 

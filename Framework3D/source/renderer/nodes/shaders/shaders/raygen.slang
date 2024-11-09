@@ -23,9 +23,12 @@
 // ---[ Structures ]---
 
 #include "matrix_op.h"
+#include "utils/CameraParameters.h"
 #include "utils/random.slangh"
-#include "utils/view_cb.h"
 #include "utils/ray.h"
+#include "utils/view_cb.h"
+
+import Utils.Math.MathHelpers;
 
 RWStructuredBuffer<RayInfo> rays : register(u0);
 RWTexture2D<uint> random_seeds : register(u1);
@@ -34,10 +37,13 @@ RWStructuredBuffer<uint2> pixel_targets : register(u2);
 // ---[ Constant Buffers ]---
 ConstantBuffer<PlanarViewConstants> viewConstant : register(b0);
 
-// ---[ Resources ]---
+ConstantBuffer<CameraParameters> cameraParams : register(b1);
 
-RayInfo
-setupPrimaryRay(uint2 pixelPosition, PlanarViewConstants view, inout uint seed)
+RayInfo setupPrimaryRay(
+    uint2 pixelPosition,
+    PlanarViewConstants view,
+    inout uint seed,
+    CameraParameters cameraParams)
 {
     float2 pixelPositionF = float2(pixelPosition);
     pixelPositionF.x += random_float(seed);
@@ -50,22 +56,46 @@ setupPrimaryRay(uint2 pixelPosition, PlanarViewConstants view, inout uint seed)
 
     RayInfo ray;
     ray.Origin = view.cameraDirectionOrPosition.xyz;
-    ray.Direction = normalize(worldPos.xyz - ray.Origin);
+
+    // Calculate cameraRight and cameraUp
+    float3 cameraRight = normalize(float3(
+        view.matViewToWorld[0].x,
+        view.matViewToWorld[1].x,
+        view.matViewToWorld[2].x));
+    float3 cameraUp = normalize(float3(
+        view.matViewToWorld[0].y,
+        view.matViewToWorld[1].y,
+        view.matViewToWorld[2].y));
+
+    // Apply depth of field effect
+    float lensRadius = cameraParams.aperture * 0.5;
+    float2 seed2 = float2(random_float(seed), random_float(seed));
+    float2 randomDisk = lensRadius * sample_disk(seed2);
+    float3 offset = cameraRight * randomDisk.x + cameraUp * randomDisk.y;
+    float3 focusPoint = ray.Origin + cameraParams.focusDistance *
+                                         normalize(worldPos.xyz - ray.Origin);
+
+    ray.Origin += offset;
+    ray.Direction = normalize(focusPoint - ray.Origin);
     ray.TMin = 0;
     ray.TMax = 1000;
     return ray;
 }
 
-[numthreads(8, 8, 1)]
+[numthreads(32, 32, 1)]
 void main(uint3 DTid: SV_DispatchThreadID)
 {
     uint2 LaunchIndex = DTid.xy;
     uint2 LaunchDimensions = viewConstant.resolution;
 
-    if (all(LaunchIndex.xy <= LaunchDimensions.xy)) {
-        var seed = random_seeds[LaunchIndex];
+    if (all(LaunchIndex.xy < LaunchDimensions.xy)) {
+        uint seed = random_seeds[LaunchIndex];
         // Setup the ray
-        RayInfo ray = setupPrimaryRay(LaunchIndex, viewConstant, seed);
+        CameraParameters c;
+        c.focusDistance = cameraParams.focusDistance;
+        c.aperture = cameraParams.aperture;
+        RayInfo ray =
+            setupPrimaryRay(LaunchIndex, viewConstant, seed, c);
 
         rays[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] = ray;
         pixel_targets[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] =

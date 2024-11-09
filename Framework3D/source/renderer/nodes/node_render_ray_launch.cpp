@@ -1,4 +1,5 @@
 
+#include <cassert>
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
@@ -34,6 +35,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
 
     BufferDesc hit_objects_desc;
     const auto maximum_hit_object_count = size[0] * size[1];
+    assert(maximum_hit_object_count==length);
     hit_objects_desc =
         BufferDesc{}
             .setByteSize(maximum_hit_object_count * sizeof(HitObjectInfo))

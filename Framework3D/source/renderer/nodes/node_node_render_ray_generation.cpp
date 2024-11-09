@@ -3,14 +3,19 @@
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
+#include "shaders/shaders/utils/CameraParameters.h"
 #include "shaders/shaders/utils/ray.h"
 #include "shaders/shaders/utils/view_cb.h"
 #include "utils/cam_to_view_contants.h"
 #include "utils/math.h"
+#include "utils/resource_cleaner.hpp"
+
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(node_render_ray_generation)
 {
     b.add_input<nvrhi::TextureHandle>("random seeds");
+    b.add_input<float>("Aperture").min(0).max(1).default_val(0);
+    b.add_input<float>("Focus Distance").min(0).max(20).default_val(2);
 
     b.add_output<nvrhi::BufferHandle>("Pixel Target");
     b.add_output<nvrhi::BufferHandle>("Rays");
@@ -20,6 +25,9 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 {
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
+
+    auto aperture = params.get_input<float>("Aperture");
+    auto focus_distance = params.get_input<float>("Focus Distance");
 
     // 0. Prepare the output buffer
     nvrhi::BufferDesc ray_buffer_desc;
@@ -69,6 +77,14 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 
     MARK_DESTROY_NVRHI_RESOURCE(constant_buffer);
 
+    auto camera_param_cb = resource_allocator.create(
+        BufferDesc{ .byteSize = sizeof(CameraParameters),
+                    .debugName = "cameraParamCB",
+                    .isConstantBuffer = true,
+                    .initialState = nvrhi::ResourceStates::ConstantBuffer,
+                    .cpuAccess = nvrhi::CpuAccessMode::Write });
+    MARK_DESTROY_NVRHI_RESOURCE(camera_param_cb);
+
     ComputePipelineDesc pipeline_desc;
     pipeline_desc.CS = compute_shader;
     pipeline_desc.bindingLayouts = { binding_layout };
@@ -85,7 +101,8 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
         nvrhi::BindingSetItem::StructuredBuffer_UAV(0, result_rays),
         nvrhi::BindingSetItem::Texture_UAV(1, random_seeds),
         nvrhi::BindingSetItem::StructuredBuffer_UAV(2, pixel_target_buffer),
-        nvrhi::BindingSetItem::ConstantBuffer(0, constant_buffer)
+        nvrhi::BindingSetItem::ConstantBuffer(0, constant_buffer),
+        nvrhi::BindingSetItem::ConstantBuffer(1, camera_param_cb),
     };
     auto binding_set =
         resource_allocator.create(binding_set_desc, binding_layout.Get());
@@ -95,11 +112,18 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     PlanarViewConstants view_constant = camera_to_view_constants(free_camera);
     command_list->writeBuffer(
         constant_buffer.Get(), &view_constant, sizeof(PlanarViewConstants));
+
+    CameraParameters camera_params;
+    camera_params.aperture = aperture;
+    camera_params.focusDistance = focus_distance;
+
+    command_list->writeBuffer(
+        camera_param_cb.Get(), &camera_params, sizeof(CameraParameters));
     nvrhi::ComputeState compute_state;
     compute_state.pipeline = compute_pipeline;
     compute_state.addBindingSet(binding_set);
     command_list->setComputeState(compute_state);
-    command_list->dispatch(div_ceil(size[0], 8), div_ceil(size[1], 8));
+    command_list->dispatch(div_ceil(size[0], 32), div_ceil(size[1], 32));
     command_list->close();
 
     resource_allocator.device->executeCommandList(command_list);
