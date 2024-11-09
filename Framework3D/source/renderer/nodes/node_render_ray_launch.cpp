@@ -43,7 +43,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             .setStructStride(sizeof(HitObjectInfo));
     auto hit_objects = resource_allocator.create(hit_objects_desc);
 
-    auto counter_buffer_desc =
+    auto hit_counter_buffer_desc =
         BufferDesc{}
             .setStructStride(sizeof(unsigned))
             .setByteSize(sizeof(unsigned))
@@ -51,8 +51,21 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             .setCanHaveUAVs(true)
             .setKeepInitialState(true)
             .setCpuAccess(nvrhi::CpuAccessMode::Read);
-    auto counter_buffer = resource_allocator.create(counter_buffer_desc);
-    MARK_DESTROY_NVRHI_RESOURCE(counter_buffer);
+    auto hit_counter_buffer =
+        resource_allocator.create(hit_counter_buffer_desc);
+    MARK_DESTROY_NVRHI_RESOURCE(hit_counter_buffer);
+
+    auto miss_counter_buffer_desc =
+        BufferDesc{}
+            .setStructStride(sizeof(unsigned))
+            .setByteSize(sizeof(unsigned))
+            .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
+            .setCanHaveUAVs(true)
+            .setKeepInitialState(true)
+            .setCpuAccess(nvrhi::CpuAccessMode::Read);
+    auto miss_counter_buffer =
+        resource_allocator.create(miss_counter_buffer_desc);
+    MARK_DESTROY_NVRHI_RESOURCE(miss_counter_buffer);
 
     auto pixel_buffer_desc =
         BufferDesc{}
@@ -104,6 +117,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         globalBindingLayoutDesc.bindings = {
             { 0, nvrhi::ResourceType::RayTracingAccelStruct },
             { 1, nvrhi::ResourceType::StructuredBuffer_SRV },
+            { 2, nvrhi::ResourceType::StructuredBuffer_SRV },
             { 0, nvrhi::ResourceType::StructuredBuffer_UAV },
             { 1, nvrhi::ResourceType::StructuredBuffer_UAV },
             { 2, nvrhi::ResourceType::StructuredBuffer_UAV },
@@ -136,13 +150,16 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             nvrhi::BindingSetItem::RayTracingAccelStruct(0, m_TopLevelAS),
             nvrhi::BindingSetItem::StructuredBuffer_SRV(
                 1, input_pixel_target_buffer.Get()),
-            nvrhi::BindingSetItem::StructuredBuffer_UAV(0, rays.Get()),
-            nvrhi::BindingSetItem::StructuredBuffer_UAV(1, hit_objects.Get()),
+            nvrhi::BindingSetItem::StructuredBuffer_SRV(2, rays.Get()),
+            nvrhi::BindingSetItem::StructuredBuffer_UAV(0, hit_objects.Get()),
             nvrhi::BindingSetItem::StructuredBuffer_UAV(
-                2, pixel_target_buffer.Get()),
+                1, pixel_target_buffer.Get()),
             nvrhi::BindingSetItem::StructuredBuffer_UAV(
-                3, counter_buffer.Get()),
+                2, hit_counter_buffer.Get()),
+            nvrhi::BindingSetItem::StructuredBuffer_UAV(
+                3, miss_counter_buffer.Get()),
         };
+
         auto binding_set = resource_allocator.create(
             binding_set_desc, globalBindingLayout.Get());
 
@@ -157,15 +174,15 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         resource_allocator.device->waitForIdle();
 
         m_CommandList->open();
-        unsigned counter = 0;
-        m_CommandList->writeBuffer(
-            counter_buffer, &counter, sizeof(unsigned), 0);
+
+        m_CommandList->clearBufferUInt(hit_counter_buffer, 0);
+        m_CommandList->clearBufferUInt(miss_counter_buffer, 0);
 
         m_CommandList->setRayTracingState(state);
         nvrhi::rt::DispatchRaysArguments args;
         args.width = length;
         m_CommandList->dispatchRays(args);
-        nvrhi::utils::BufferUavBarrier(m_CommandList, counter_buffer);
+        nvrhi::utils::BufferUavBarrier(m_CommandList, hit_counter_buffer);
 
         m_CommandList->close();
         resource_allocator.device->executeCommandList(m_CommandList);
@@ -185,14 +202,18 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     params.set_output("Hit Objects", hit_objects);
     params.set_output("Pixel Target", pixel_target_buffer);
 
-    auto cpu_read_out = resource_allocator.device->mapBuffer(
-        counter_buffer, nvrhi::CpuAccessMode::Read);
-    unsigned counter;
-    memcpy(&counter, cpu_read_out, sizeof(unsigned));
-    resource_allocator.device->unmapBuffer(counter_buffer);
+    auto hit_cpu_read_out = resource_allocator.device->mapBuffer(
+        hit_counter_buffer, nvrhi::CpuAccessMode::Read);
+    unsigned hit_counter = *reinterpret_cast<unsigned*>(hit_cpu_read_out);
+    resource_allocator.device->unmapBuffer(hit_counter_buffer);
 
-    assert(counter <= length);
-    params.set_output("Buffer Size", static_cast<int>(counter));
+    auto miss_cpu_read_out = resource_allocator.device->mapBuffer(
+        miss_counter_buffer, nvrhi::CpuAccessMode::Read);
+    unsigned miss_counter = *reinterpret_cast<unsigned*>(miss_cpu_read_out);
+    resource_allocator.device->unmapBuffer(miss_counter_buffer);
+
+    assert(hit_counter + miss_counter == length);
+    params.set_output("Buffer Size", static_cast<int>(hit_counter));
     if (error.size()) {
         log::warning(error.c_str());
         return false;

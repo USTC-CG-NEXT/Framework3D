@@ -25,8 +25,9 @@
 #include "matrix_op.h"
 #include "utils/random.slangh"
 #include "utils/view_cb.h"
+#include "utils/ray.h"
 
-RWStructuredBuffer<RayDesc> rays : register(u0);
+RWStructuredBuffer<RayInfo> rays : register(u0);
 RWTexture2D<uint> random_seeds : register(u1);
 RWStructuredBuffer<uint2> pixel_targets : register(u2);
 
@@ -35,7 +36,7 @@ ConstantBuffer<PlanarViewConstants> viewConstant : register(b0);
 
 // ---[ Resources ]---
 
-RayDesc
+RayInfo
 setupPrimaryRay(uint2 pixelPosition, PlanarViewConstants view, inout uint seed)
 {
     float2 pixelPositionF = float2(pixelPosition);
@@ -47,7 +48,7 @@ setupPrimaryRay(uint2 pixelPosition, PlanarViewConstants view, inout uint seed)
     float4 worldPos = mul(clipPos, view.matClipToWorld);
     worldPos.xyz /= worldPos.w;
 
-    RayDesc ray;
+    RayInfo ray;
     ray.Origin = view.cameraDirectionOrPosition.xyz;
     ray.Direction = normalize(worldPos.xyz - ray.Origin);
     ray.TMin = 0;
@@ -64,10 +65,10 @@ void main(uint3 DTid: SV_DispatchThreadID)
     if (all(LaunchIndex.xy <= LaunchDimensions.xy)) {
         var seed = random_seeds[LaunchIndex];
         // Setup the ray
-        RayDesc ray = setupPrimaryRay(LaunchIndex, viewConstant, seed);
+        RayInfo ray = setupPrimaryRay(LaunchIndex, viewConstant, seed);
 
-        rays[LaunchIndex.y * LaunchDimensions.x + LaunchIndex.x] = ray;
-        pixel_targets[LaunchIndex.y * LaunchDimensions.x + LaunchIndex.x] =
+        rays[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] = ray;
+        pixel_targets[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] =
             LaunchIndex;
         random_seeds[LaunchIndex] = seed;
     }

@@ -28,10 +28,11 @@
 
 RaytracingAccelerationStructure SceneBVH : register(t0);
 StructuredBuffer<int2> inPixelTarget : register(t1);
-RWStructuredBuffer<RayInfo> rays : register(u0);
-RWStructuredBuffer<HitObjectInfo> hitObjectInfo : register(u1);
-RWStructuredBuffer<int2> PixelTarget : register(u2);
-RWStructuredBuffer<uint> counter_buffer : register(u3);
+StructuredBuffer<RayInfo> rays : register(t2);
+RWStructuredBuffer<HitObjectInfo> hitObjectInfo : register(u0);
+RWStructuredBuffer<int2> PixelTarget : register(u1);
+RWStructuredBuffer<uint> hit_counter_buffer : register(u2);
+RWStructuredBuffer<uint> miss_counter_buffer : register(u3);
 
 struct HitInfo {
     float2 barycentric;
@@ -78,7 +79,7 @@ void ClosestHit(
     hitObjectInfo.GetDimensions(stride_count, stride_size);
 
     uint index;
-    InterlockedAdd(counter_buffer[0 ], 1u, index);
+    InterlockedAdd(hit_counter_buffer[0], 1u, index);
 
     hitObjectInfo[index].InstanceIndex = InstanceIndex();
     hitObjectInfo[index].GeometryIndex = GeometryIndex();
@@ -99,9 +100,14 @@ void ClosestHit(
 [shader("miss")]
 void Miss(inout HitInfo payload: SV_RayPayload)
 {
+    uint stride_count = 0;
+    uint stride_size = 0;
+    hitObjectInfo.GetDimensions(stride_count, stride_size);
 
+    uint index;
+    InterlockedAdd(miss_counter_buffer[0], 1u, index);
     // payload.barycentric = 0;
     // payload.position = 1.0 / 0.0f;
     // uint index;
-    // InterlockedAdd(counter_buffer[0], -1, index);
+    // InterlockedAdd(hit_counter_buffer[0], -1, index);
 }
