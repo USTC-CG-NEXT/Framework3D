@@ -39,7 +39,9 @@ size_t Program::getBufferSize() const
 void ProgramDesc::set_path(const std::filesystem::path& path)
 {
     this->path = path;
+#ifdef _DEBUG
     update_last_write_time(path);
+#endif
 }
 
 void ProgramDesc::set_shader_type(nvrhi::ShaderType shaderType)
@@ -50,7 +52,9 @@ void ProgramDesc::set_shader_type(nvrhi::ShaderType shaderType)
 void ProgramDesc::set_entry_name(const std::string& entry_name)
 {
     this->entry_name = entry_name;
+#ifdef _DEBUG
     update_last_write_time(path);
+#endif  
 }
 namespace fs = std::filesystem;
 

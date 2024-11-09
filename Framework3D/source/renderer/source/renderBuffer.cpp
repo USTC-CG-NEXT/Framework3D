@@ -132,6 +132,7 @@ void Hd_USTC_CG_RenderBuffer::Clear()
 
 void Hd_USTC_CG_RenderBuffer::Present(nvrhi::TextureHandle handle)
 {
+#ifndef USTC_CG_DIRECT_VK_DISPLAY
     if (!m_CommandList) {
         m_CommandList = nvrhi_device->createCommandList();
     }
@@ -154,6 +155,7 @@ void Hd_USTC_CG_RenderBuffer::Present(nvrhi::TextureHandle handle)
     }
 
     nvrhi_device->unmapStagingTexture(staging);
+#endif
 }
 void *Hd_USTC_CG_RenderBuffer::Map()
 {

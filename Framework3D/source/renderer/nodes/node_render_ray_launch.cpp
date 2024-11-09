@@ -179,8 +179,6 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
 
         m_CommandList->close();
         resource_allocator.device->executeCommandList(m_CommandList);
-        resource_allocator.device
-            ->waitForIdle();  // This is not fully efficient.
 
         resource_allocator.destroy(raytracing_pipeline);
         resource_allocator.destroy(globalBindingLayout);

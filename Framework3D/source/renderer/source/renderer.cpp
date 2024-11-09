@@ -72,8 +72,11 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
         if (texture) {
             auto rb = static_cast<Hd_USTC_CG_RenderBuffer*>(
                 _aovBindings[i].renderBuffer);
-            rb->Present(texture);
+#ifdef USTC_CG_DIRECT_VK_DISPLAY
             render_param->presented_texture = texture;
+#else
+            rb->Present(texture);
+#endif
             rb->SetConverged(true);
         }
     }

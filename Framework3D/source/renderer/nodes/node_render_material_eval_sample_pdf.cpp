@@ -189,8 +189,6 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
             m_CommandList->dispatchRays(args);
             m_CommandList->close();
             resource_allocator.device->executeCommandList(m_CommandList);
-            resource_allocator.device
-                ->waitForIdle();  // This is not fully efficient.
         }
     }
     else {

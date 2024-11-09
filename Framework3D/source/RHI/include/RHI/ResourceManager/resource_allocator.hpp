@@ -35,7 +35,7 @@ class ResourceAllocator {
 #define CACHE_SIZE(RESOURCE)   m##RESOURCE##CacheSize
 
 #define JUDGE_RESOURCE_DYNAMIC(RSC) \
-    if (get_socket_type<RSC##Handle>() == handle.type())
+    if (entt::type_hash<RSC##Handle>() == handle.type().id())
 #define JUDGE_RESOURCE(RSC) if constexpr (std::is_same_v<RSC##Handle, RESOURCE>)
 
 #define RESOLVE_DESTROY_DYNAMIC(RESOURCE)             \
