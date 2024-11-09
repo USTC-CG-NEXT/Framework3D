@@ -181,7 +181,8 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
         state.setShaderTable(sbt).addBindingSet(binding_set);
         if (buffer_size > 0) {
             m_CommandList->open();
-
+            m_CommandList->beginTrackingBufferState(
+                hit_info_buffer, nvrhi::ResourceStates::UnorderedAccess);
             m_CommandList->setRayTracingState(state);
             nvrhi::rt::DispatchRaysArguments args;
             args.width = buffer_size;

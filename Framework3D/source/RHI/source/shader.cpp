@@ -77,27 +77,27 @@ std::string ProgramDesc::get_profile() const
 {
     switch (shaderType) {
         case nvrhi::ShaderType::None: break;
-        case nvrhi::ShaderType::Compute: return "cs_6_5";
-        case nvrhi::ShaderType::Vertex: return "vs_6_5";
-        case nvrhi::ShaderType::Hull: return "hs_6_5";
-        case nvrhi::ShaderType::Domain: return "ds_6_5";
-        case nvrhi::ShaderType::Geometry: return "gs_6_5";
-        case nvrhi::ShaderType::Pixel: return "ps_6_5";
-        case nvrhi::ShaderType::Amplification: return "as_6_5";
-        case nvrhi::ShaderType::Mesh: return "ms_6_5";
-        case nvrhi::ShaderType::AllGraphics: return "lib_6_5";
-        case nvrhi::ShaderType::RayGeneration: return "rg_6_5";
-        case nvrhi::ShaderType::AnyHit: return "ah_6_5";
-        case nvrhi::ShaderType::ClosestHit: return "ch_6_5";
-        case nvrhi::ShaderType::Miss: return "ms_6_5";
-        case nvrhi::ShaderType::Intersection: return "is_6_5";
-        case nvrhi::ShaderType::Callable: return "cs_6_5";
-        case nvrhi::ShaderType::AllRayTracing: return "lib_6_5";
-        case nvrhi::ShaderType::All: return "lib_6_5";
+        case nvrhi::ShaderType::Compute: return "cs_6_6";
+        case nvrhi::ShaderType::Vertex: return "vs_6_6";
+        case nvrhi::ShaderType::Hull: return "hs_6_6";
+        case nvrhi::ShaderType::Domain: return "ds_6_6";
+        case nvrhi::ShaderType::Geometry: return "gs_6_6";
+        case nvrhi::ShaderType::Pixel: return "ps_6_6";
+        case nvrhi::ShaderType::Amplification: return "as_6_6";
+        case nvrhi::ShaderType::Mesh: return "ms_6_6";
+        case nvrhi::ShaderType::AllGraphics: return "lib_6_6";
+        case nvrhi::ShaderType::RayGeneration: return "rg_6_6";
+        case nvrhi::ShaderType::AnyHit: return "ah_6_6";
+        case nvrhi::ShaderType::ClosestHit: return "ch_6_6";
+        case nvrhi::ShaderType::Miss: return "ms_6_6";
+        case nvrhi::ShaderType::Intersection: return "is_6_6";
+        case nvrhi::ShaderType::Callable: return "cs_6_6";
+        case nvrhi::ShaderType::AllRayTracing: return "lib_6_6";
+        case nvrhi::ShaderType::All: return "lib_6_6";
     }
 
     // Default return value for cases not handled explicitly
-    return "lib_6_5";
+    return "lib_6_6";
 }
 
 Slang::ComPtr<slang::IGlobalSession> globalSession;

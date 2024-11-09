@@ -33,17 +33,26 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         params.get_input<BufferHandle>("Pixel Target");
 
     BufferDesc hit_objects_desc;
-
-    const auto maximum_hit_object_count = length;
-
+    const auto maximum_hit_object_count = size[0] * size[1];
     hit_objects_desc =
         BufferDesc{}
-            .setByteSize((1 + maximum_hit_object_count) * sizeof(HitObjectInfo))
+            .setByteSize(maximum_hit_object_count * sizeof(HitObjectInfo))
             .setCanHaveUAVs(true)
             .setInitialState(nvrhi::ResourceStates::CopyDest)
             .setKeepInitialState(true)
             .setStructStride(sizeof(HitObjectInfo));
     auto hit_objects = resource_allocator.create(hit_objects_desc);
+
+    auto counter_buffer_desc =
+        BufferDesc{}
+            .setStructStride(sizeof(unsigned))
+            .setByteSize(sizeof(unsigned))
+            .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
+            .setCanHaveUAVs(true)
+            .setKeepInitialState(true)
+            .setCpuAccess(nvrhi::CpuAccessMode::Read);
+    auto counter_buffer = resource_allocator.create(counter_buffer_desc);
+    MARK_DESTROY_NVRHI_RESOURCE(counter_buffer);
 
     auto pixel_buffer_desc =
         BufferDesc{}
@@ -53,16 +62,6 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
             .setCanHaveUAVs(true);
     auto pixel_target_buffer = resource_allocator.create(pixel_buffer_desc);
-
-    // Read out the hit object buffer info.
-    BufferDesc read_out_desc;
-    read_out_desc.setByteSize(sizeof(HitObjectInfo))
-        .setInitialState(nvrhi::ResourceStates::CopyDest)
-        .setKeepInitialState(true)
-        .setStructStride(sizeof(HitObjectInfo))
-        .setCpuAccess(nvrhi::CpuAccessMode::Read);
-    auto read_out = resource_allocator.create(read_out_desc);
-    MARK_DESTROY_NVRHI_RESOURCE(read_out);
 
     // 2. Prepare the shader
 
@@ -107,13 +106,15 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             { 1, nvrhi::ResourceType::StructuredBuffer_SRV },
             { 0, nvrhi::ResourceType::StructuredBuffer_UAV },
             { 1, nvrhi::ResourceType::StructuredBuffer_UAV },
-            { 2, nvrhi::ResourceType::StructuredBuffer_UAV }
+            { 2, nvrhi::ResourceType::StructuredBuffer_UAV },
+            { 3, nvrhi::ResourceType::StructuredBuffer_UAV },
         };
         auto globalBindingLayout =
             resource_allocator.create(globalBindingLayoutDesc);
 
         nvrhi::rt::PipelineDesc pipeline_desc;
         pipeline_desc.maxPayloadSize = 32 * sizeof(float);
+        pipeline_desc.hlslExtensionsUAV = 127;
         pipeline_desc.globalBindingLayouts = { globalBindingLayout };
         pipeline_desc.shaders = { { "RayGen", raygen_shader, nullptr },
                                   { "Miss", miss_shader, nullptr } };
@@ -139,13 +140,11 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             nvrhi::BindingSetItem::StructuredBuffer_UAV(1, hit_objects.Get()),
             nvrhi::BindingSetItem::StructuredBuffer_UAV(
                 2, pixel_target_buffer.Get()),
+            nvrhi::BindingSetItem::StructuredBuffer_UAV(
+                3, counter_buffer.Get()),
         };
         auto binding_set = resource_allocator.create(
             binding_set_desc, globalBindingLayout.Get());
-
-        HitObjectInfo info;
-        memset(&info, 0, sizeof(HitObjectInfo));
-        info.InstanceIndex = 0;
 
         nvrhi::rt::State state;
         nvrhi::rt::ShaderTableHandle sbt =
@@ -155,27 +154,18 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
         sbt->addMissShader("Miss");
         state.setShaderTable(sbt).addBindingSet(binding_set);
 
+        resource_allocator.device->waitForIdle();
+
         m_CommandList->open();
-
+        unsigned counter = 0;
         m_CommandList->writeBuffer(
-            hit_objects,
-            &info,
-            sizeof(HitObjectInfo),
-            maximum_hit_object_count * sizeof(HitObjectInfo));
-
-        nvrhi::utils::BufferUavBarrier(m_CommandList, hit_objects);
+            counter_buffer, &counter, sizeof(unsigned), 0);
 
         m_CommandList->setRayTracingState(state);
         nvrhi::rt::DispatchRaysArguments args;
         args.width = length;
         m_CommandList->dispatchRays(args);
-
-        m_CommandList->copyBuffer(
-            read_out,
-            0,
-            hit_objects,
-            maximum_hit_object_count * sizeof(HitObjectInfo),
-            sizeof(HitObjectInfo));
+        nvrhi::utils::BufferUavBarrier(m_CommandList, counter_buffer);
 
         m_CommandList->close();
         resource_allocator.device->executeCommandList(m_CommandList);
@@ -191,18 +181,18 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
     resource_allocator.destroy(m_CommandList);
     auto error = raytrace_compiled->get_error_string();
     resource_allocator.destroy(raytrace_compiled);
-
+    resource_allocator.device->waitForIdle();
     params.set_output("Hit Objects", hit_objects);
     params.set_output("Pixel Target", pixel_target_buffer);
 
     auto cpu_read_out = resource_allocator.device->mapBuffer(
-        read_out, nvrhi::CpuAccessMode::Read);
-    HitObjectInfo info;
-    memcpy(&info, cpu_read_out, sizeof(HitObjectInfo));
-    resource_allocator.device->unmapBuffer(read_out);
+        counter_buffer, nvrhi::CpuAccessMode::Read);
+    unsigned counter;
+    memcpy(&counter, cpu_read_out, sizeof(unsigned));
+    resource_allocator.device->unmapBuffer(counter_buffer);
 
-    assert(info.InstanceIndex <= length);
-    params.set_output("Buffer Size", static_cast<int>(info.InstanceIndex));
+    assert(counter <= length);
+    params.set_output("Buffer Size", static_cast<int>(counter));
     if (error.size()) {
         log::warning(error.c_str());
         return false;
