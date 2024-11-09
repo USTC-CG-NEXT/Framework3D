@@ -79,7 +79,6 @@ void ClosestHit(
     uint index = 0;
     InterlockedAdd(hitObjectInfo[stride_count - 1].InstanceIndex, 1, index);
 
-    PixelTarget[index] = inPixelTarget[DispatchRaysIndex().x];
     hitObjectInfo[index].InstanceIndex = InstanceIndex();
     hitObjectInfo[index].GeometryIndex = GeometryIndex();
     hitObjectInfo[index].PrimitiveIndex = PrimitiveIndex();
@@ -92,6 +91,7 @@ void ClosestHit(
     );
 
     hitObjectInfo[index].attributes = payload.barycentric;
+    PixelTarget[index] = inPixelTarget[DispatchRaysIndex().x];
 }
 
 // ---[ Miss Shader ]---

@@ -30,14 +30,13 @@
 #include "../instancer.h"
 #include "../renderParam.h"
 #include "Logger/Logger.h"
+#include "Scene/SceneTypes.slang"
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/imaging/hd/extComputationUtils.h"
 #include "pxr/imaging/hd/instancer.h"
 #include "pxr/imaging/hd/meshUtil.h"
 #include "pxr/imaging/hd/smoothNormals.h"
-
-#include "Scene/SceneTypes.slang"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_RenderParam;
@@ -278,6 +277,10 @@ void Hd_USTC_CG_Mesh::Sync(
     const SdfPath& id = GetId();
     std::string path = id.GetText();
 
+    if (HdChangeTracker::IsVisibilityDirty(*dirtyBits, id)) {
+        _sharedData.visible = sceneDelegate->GetVisible(id);
+    }
+
     if (*dirtyBits & HdChangeTracker::DirtyMaterialId) {
         _SetMaterialId(sceneDelegate, this);
     }
@@ -289,7 +292,8 @@ void Hd_USTC_CG_Mesh::Sync(
     bool requires_rebuild_tlas =
         requires_rebuild_blas ||
         HdChangeTracker::IsInstancerDirty(*dirtyBits, id) ||
-        HdChangeTracker::IsTransformDirty(*dirtyBits, id);
+        HdChangeTracker::IsTransformDirty(*dirtyBits, id) ||
+        HdChangeTracker::IsVisibilityDirty(*dirtyBits, id);
 
     if (HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->points)) {
         VtValue value = sceneDelegate->Get(id, HdTokens->points);
@@ -338,10 +342,16 @@ void Hd_USTC_CG_Mesh::Sync(
         }
 
         if (requires_rebuild_tlas) {
-            updateTLAS(
-                static_cast<Hd_USTC_CG_RenderParam*>(renderParam),
-                sceneDelegate,
-                dirtyBits);
+            if (IsVisible()) {
+                updateTLAS(
+                    static_cast<Hd_USTC_CG_RenderParam*>(renderParam),
+                    sceneDelegate,
+                    dirtyBits);
+            }
+            else {
+                static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
+                    ->TLAS->removeInstance(this);
+            }
         }
     }
     *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;

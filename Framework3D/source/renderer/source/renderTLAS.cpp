@@ -27,7 +27,9 @@ nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_RenderTLAS::get_tlas()
 void USTC_CG::Hd_USTC_CG_RenderTLAS::removeInstance(HdRprim* rPrim)
 {
     std::lock_guard lock(edit_instances_mutex);
-    instances.erase(rPrim);
+    if (instances.contains(rPrim)) {
+        instances.erase(rPrim);
+    }
     require_rebuild_tlas = true;
 }
 

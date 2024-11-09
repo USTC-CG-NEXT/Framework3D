@@ -134,6 +134,12 @@ void UsdviewEngine::DrawMenuBar()
                         this->engine_status.renderer_id == i)) {
                     if (this->engine_status.renderer_id != i) {
                         ChooseRenderer(available_renderers, i);
+                        renderer_->SetRenderBufferSize(render_buffer_size_);
+                        renderer_->SetRenderViewport(
+                            pxr::GfVec4d{ 0.0,
+                                          0.0,
+                                          double(render_buffer_size_[0]),
+                                          double(render_buffer_size_[1]) });
                     }
                 }
             }
