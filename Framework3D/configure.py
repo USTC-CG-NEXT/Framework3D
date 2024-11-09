@@ -218,7 +218,7 @@ def main():
     )
     parser.add_argument(
         "--library",
-        choices=["slang", "dxc", "openusd"],
+        choices=["slang", "openusd"],
         help="Specify the library to configure.",
     )
     parser.add_argument("--all", action="store_true", help="Configure all libraries.")
@@ -256,7 +256,7 @@ def main():
         return
 
     if args.all:
-        args.library = ["openusd", "slang", "dxc"]
+        args.library = ["openusd", "slang"]
     elif not args.library:
         print(
             "No library specified and --all not set. No libraries will be configured."
@@ -270,9 +270,8 @@ def main():
 
     urls = {
         "slang": "https://github.com/shader-slang/slang/releases/download/v2024.14.3/slang-2024.14.3-windows-x86_64.zip",
-        "dxc": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2407/dxc_2024_07_31.zip",
     }
-    folders = {"slang": "slang/bin", "dxc": "dxc/bin/x64"}
+    folders = {"slang": "slang/bin"}
 
     for lib in args.library:
         if lib == "openusd":

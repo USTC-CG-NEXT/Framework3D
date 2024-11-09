@@ -108,9 +108,6 @@ endif()
 # Include Slang
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-set(DXC_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/dxc)
-find_package(DXC REQUIRED)
-
 find_package(NVAPI REQUIRED)
 
 add_subdirectory(external)
