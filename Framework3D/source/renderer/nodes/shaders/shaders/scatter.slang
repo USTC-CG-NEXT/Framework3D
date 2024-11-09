@@ -3,7 +3,7 @@
 
 // Input buffers
 #include "utils/HitObject.h"
-StructuredBuffer<HitObjectInfo> inputColor : register(t0);
+StructuredBuffer<float4> inputColor : register(t0);
 StructuredBuffer<uint2> inputPixelID : register(t1);
 
 ConstantBuffer<uint> bufferLength : register(b0);
@@ -18,6 +18,6 @@ void main(uint3 DTid: SV_DispatchThreadID)
         return;
     }
     uint2 pixelID = inputPixelID[DTid.x];
-    HitObjectInfo color = inputColor[DTid.x];
-    outputTexture[pixelID] += float4(color.attributes,0,1);
+    float4 color = inputColor[DTid.x];
+    outputTexture[pixelID] += color;
 }

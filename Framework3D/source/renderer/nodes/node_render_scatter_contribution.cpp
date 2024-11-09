@@ -1,4 +1,6 @@
 ﻿
+#include <cstring>
+#include "Logger/Logger.h"
 #include "RHI/internal/nvrhi_patch.hpp"
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
@@ -23,7 +25,7 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
     auto pixel_target_buffer = params.get_input<BufferHandle>("PixelTarget");
     auto eval_buffer = params.get_input<BufferHandle>("Eval");
     auto source_texture = params.get_input<TextureHandle>("Source Texture");
-    auto length = params.get_input<int>("Buffer Size");
+    unsigned length = params.get_input<int>("Buffer Size");
     if (length > 0) {
         std::string error_string;
         nvrhi::BindingLayoutDescVector binding_layout_desc;
@@ -42,7 +44,7 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
         auto cb_desc = BufferDesc{}
                            .setByteSize(sizeof(float))
                            .setInitialState(ResourceStates::CopyDest)
-                           .setKeepInitialState(true)
+                            .setKeepInitialState(true)
                            .setCpuAccess(CpuAccessMode::Write)
                            .setIsConstantBuffer(true);
 
@@ -88,12 +90,18 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
             resource_allocator.create(CommandListDesc{});
         MARK_DESTROY_NVRHI_RESOURCE(command_list);
 
+        auto mapped = resource_allocator.device->mapBuffer(cb, CpuAccessMode::Read);
+        memcpy(mapped, &length, sizeof(length));
+        resource_allocator.device->unmapBuffer(cb);
+
         command_list->open();
-        command_list->writeBuffer(cb, &length, sizeof(length));
         command_list->setComputeState(compute_state);
         command_list->dispatch(div_ceil(length, 64), 1, 1);
         command_list->close();
         resource_allocator.device->executeCommandList(command_list);
+    }
+    else {
+        log::warning("Buffer size is 0");
     }
     params.set_output("Result Texture", source_texture);
     return true;
