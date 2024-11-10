@@ -177,17 +177,17 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
 
         binding_set_desc.bindings = {
             nvrhi::BindingSetItem::ConstantBuffer(0, constant_buffer),
+            nvrhi::BindingSetItem::Sampler(
+                0,
+                blit_parameters.sampler == BlitSampler::Point
+                    ? m_PointClampSampler
+                    : m_LinearClampSampler),
             nvrhi::BindingSetItem::Texture_SRV(
                 0,
                 sourceTexture,
                 sourceTexture->getDesc().format,
                 sourceSubresources,
-                sourceDimension),
-            nvrhi::BindingSetItem::Sampler(
-                0,
-                blit_parameters.sampler == BlitSampler::Point
-                    ? m_PointClampSampler
-                    : m_LinearClampSampler)
+                sourceDimension)
         };
     }
 
