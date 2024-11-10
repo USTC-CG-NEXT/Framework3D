@@ -18,25 +18,57 @@ struct VSOutput {
     float3 normal : NORMAL;
 };
 
-VSOutput vs_main(
-    float3 position: POSITION,
+void vs_main(
+    float3 i_pos: POSITION,
     float3 normal: NORMAL,
-    uint instanceID: SV_InstanceID)
+    uint i_vertexID: SV_VertexID,
+    uint i_instanceID: SV_InstanceID,
+    out float4 o_pos: SV_Position,
+    out float3 o_color: COLOR)
 {
-    VSOutput output;
-    float4x4 modelMatrix = GetModelMatrix(instanceID);
-    float4 worldPosition = mul(modelMatrix, float4(position, 1.0));
-    float4 viewPosition = mul(viewConstant.matWorldToView, worldPosition);
-    output.position = mul(viewConstant.matViewToClip, viewPosition);
-    output.position = float4(position, 1.0);
-    output.normal = mul((float3x3)modelMatrix, normal);
-    return output;
+    // Get the model matrix for the current instance
+    float4x4 modelMatrix = GetModelMatrix(i_instanceID);
+
+    // Transform the vertex position to world space
+    float4 worldPos = mul(modelMatrix, float4(i_pos, 1.0));
+
+    // Transform the vertex position to view space
+    float4 viewPos = mul(viewConstant.matWorldToView, worldPos);
+
+    // Transform the vertex position to clip space
+    // o_pos = mul(viewConstant.matWorldToClip, worldPos);
+    // o_pos = mul(viewConstant.matClipToWorld, worldPos);
+    o_pos = mul(viewConstant.matWorldToClip, worldPos);
+    o_pos = float4(-i_pos * 0.5, 1.0);
+    o_pos.xy *= 10;
+    // o_pos = mul(transpose(viewConstant.matClipToWorld), worldPos);
+
+    //    o_pos = mul(worldPos, viewConstant.matWorldToClip);
+    float4 ret = abs(float4(-i_pos*0.5, 1.0));
+    // o_pos.w);
+    // For debugging, set o_pos to the corners
+    if (i_vertexID == 0) {
+        o_pos += float4(-1.0, -1.0, 0.0, 1.0);
+    } else if (i_vertexID == 1) {
+        o_pos += float4(1.0, -1.0, 0.0, 1.0);
+    } else if (i_vertexID == 2) {
+        o_pos += float4(-1.0, 1.0, 0.0, 1.0);
+    } else if (i_vertexID == 3) {
+        o_pos = o_pos*2+ float4(1.0, 1.0, 0.0, 1.0);
+    }
+
+
+    
+
+    // Pass the normal through as color for now
+    o_color = (ret.xyz / ret.w);
 }
 
-float4 ps_main(VSOutput input) : SV_TARGET
+void ps_main(
+    in float4 i_pos: SV_Position,
+    out float4 o_color: SV_Target,
+    in float3 i_color: COLOR)
 {
-    float3 lightDir = normalize(float3(0.5, 0.5, -1.0));
-    float3 normal = normalize(input.normal);
-    float diffuse = max(dot(normal, lightDir), 0.0);
-    return float4(1, diffuse, 1, 1.0);
+    // Simply output the color passed from the vertex shader
+    o_color = float4((i_color), 1.0);
 }

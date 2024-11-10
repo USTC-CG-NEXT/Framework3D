@@ -24,7 +24,8 @@ inline bool operator!=(
 }
 inline bool operator==(const ShaderDesc& lhs, const ShaderDesc& rhs)
 {
-    return lhs.shaderType == rhs.shaderType && lhs.entryName == rhs.entryName &&
+    return lhs.shaderType == rhs.shaderType && lhs.debugName == rhs.debugName &&
+           lhs.entryName == rhs.entryName &&
            lhs.hlslExtensionsUAV == rhs.hlslExtensionsUAV &&
            lhs.useSpecificShaderExt == rhs.useSpecificShaderExt &&
            lhs.numCustomSemantics == rhs.numCustomSemantics &&
@@ -302,15 +303,17 @@ inline bool operator==(
     const GraphicsPipelineDesc& lhs,
     const GraphicsPipelineDesc& rhs)
 {
-    if (lhs.inputLayout->getNumAttributes() !=
-        rhs.inputLayout->getNumAttributes()) {
-        return false;
-    }
-    for (int i = 0; i < lhs.inputLayout->getNumAttributes(); ++i) {
-        auto l_attrs = lhs.inputLayout->getAttributeDesc(i);
-        auto r_attrs = rhs.inputLayout->getAttributeDesc(i);
-        if (*l_attrs != *r_attrs) {
+    if (lhs.inputLayout != nullptr && rhs.inputLayout != nullptr) {
+        if (lhs.inputLayout->getNumAttributes() !=
+            rhs.inputLayout->getNumAttributes()) {
             return false;
+        }
+        for (int i = 0; i < lhs.inputLayout->getNumAttributes(); ++i) {
+            auto l_attrs = lhs.inputLayout->getAttributeDesc(i);
+            auto r_attrs = rhs.inputLayout->getAttributeDesc(i);
+            if (*l_attrs != *r_attrs) {
+                return false;
+            }
         }
     }
 

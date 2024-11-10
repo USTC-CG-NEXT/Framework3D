@@ -1,5 +1,6 @@
 #include "render_context.hpp"
 
+#include "nvrhi/utils.h"
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/base/gf/vec3f.h"
 
@@ -51,6 +52,8 @@ RenderContext& RenderContext::set_render_target(
     }
 
     framebuffer_desc_.colorAttachments[i].texture = texture;
+    framebuffer_desc_.colorAttachments[i].format = texture->getDesc().format;
+
     return *this;
 }
 
@@ -88,11 +91,14 @@ void RenderContext::draw_instanced(
 
     commandList_->open();
     commandList_->clearDepthStencilTexture(
-        framebuffer_desc_.depthAttachment.texture, {}, true, 1.0f, false, 0);
+        framebuffer_desc_.depthAttachment.texture, {}, true, 0.0f, false, 0);
+    nvrhi::utils::ClearColorAttachment(
+        commandList_, framebuffer_, 0, nvrhi::Color(0.2, 0.2, 0.2, 1));
     commandList_->setGraphicsState(graphics_state);
     commandList_->drawIndexed(args);
     commandList_->close();
     resource_allocator_.device->executeCommandList(commandList_);
+    resource_allocator_.device->waitForIdle();
 }
 
 RenderContext& RenderContext::finish_setting_frame_buffer()
@@ -150,28 +156,24 @@ RenderContext& RenderContext::finish_setting_pso()
 
     pipeline_desc.bindingLayouts = bindingLayouts;
 
-    nvrhi::BlendState blendState;
-    blendState.targets[0]
-        .setBlendEnable(true)
-        .setSrcBlend(nvrhi::BlendFactor::SrcAlpha)
-        .setDestBlend(nvrhi::BlendFactor::InvSrcAlpha)
-        .setSrcBlendAlpha(nvrhi::BlendFactor::InvSrcAlpha)
-        .setDestBlendAlpha(nvrhi::BlendFactor::Zero);
+    // nvrhi::BlendState blendState;
+    // blendState.targets[0]
+    //     .setBlendEnable(true)
+    //     .setSrcBlend(nvrhi::BlendFactor::SrcAlpha)
+    //     .setDestBlend(nvrhi::BlendFactor::InvSrcAlpha)
+    //     .setSrcBlendAlpha(nvrhi::BlendFactor::InvSrcAlpha)
+    //     .setDestBlendAlpha(nvrhi::BlendFactor::Zero);
 
-    auto rasterState = nvrhi::RasterState()
-                           .setFillSolid()
-                           .setCullNone()
-                           .setScissorEnable(true)
-                           .setDepthClipEnable(true);
+    auto rasterState = nvrhi::RasterState().setFillSolid().setCullNone();
 
     auto depthStencilState = nvrhi::DepthStencilState()
                                  .disableDepthTest()
                                  .enableDepthWrite()
                                  .disableStencil()
-                                 .setDepthFunc(nvrhi::ComparisonFunc::Always);
+                                 .setDepthFunc(nvrhi::ComparisonFunc::Greater);
 
     nvrhi::RenderState renderState;
-    renderState.blendState = blendState;
+    // renderState.blendState = blendState;
     renderState.depthStencilState = depthStencilState;
     renderState.rasterState = rasterState;
 

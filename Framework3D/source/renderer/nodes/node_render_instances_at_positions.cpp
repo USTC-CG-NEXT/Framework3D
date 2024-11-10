@@ -29,11 +29,10 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
         nvrhi::TextureDesc{}
             .setWidth(size[0])
             .setHeight(size[1])
-            .setFormat(nvrhi::Format::RGBA32_FLOAT)
+            .setFormat(nvrhi::Format::RGBA8_UNORM)
             .setInitialState(nvrhi::ResourceStates::RenderTarget)
             .setKeepInitialState(true)
-            .setIsRenderTarget(true)
-            .setIsUAV(true);
+            .setIsRenderTarget(true);
     auto output_texture = resource_allocator.create(desc);
 
     // Depth texture
@@ -92,121 +91,76 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
     memcpy(matrices, matricies.data(), sizeof(pxr::GfMatrix4f) * 10);
     resource_allocator.device->unmapBuffer(matrixBuffer);
 
+    if (!vs_program->get_error_string().empty()) {
+        log::warning(
+            "Failed to create vertex shader program: %s",
+            vs_program->get_error_string().c_str());
+
+        resource_allocator.destroy(output_texture);
+        resource_allocator.destroy(depth_stencil_texture);
+        return false;
+    }
+
+    if (!ps_program->get_error_string().empty()) {
+        log::warning(
+            "Failed to create pixel shader program: %s",
+            ps_program->get_error_string().c_str());
+        resource_allocator.destroy(output_texture);
+        resource_allocator.destroy(depth_stencil_texture);
+        return false;
+    }
+
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
     RenderContext context(resource_allocator, program_vars);
 
     context.set_render_target(0, output_texture)
         .set_depth_stencil_target(depth_stencil_texture)
         .finish_setting_frame_buffer()
-        .add_vertex_buffer_desc("POSITION", nvrhi::Format::RGB32_FLOAT, 0)
-        .add_vertex_buffer_desc("NORMAL", nvrhi::Format::RGB32_FLOAT, 1)
+        .add_vertex_buffer_desc(
+            "POSITION",
+            nvrhi::Format::RGB32_FLOAT,
+            0,
+            1,
+            0,
+            sizeof(pxr::GfVec3f),
+            true)
+        .add_vertex_buffer_desc(
+            "NORMAL",
+            nvrhi::Format::RGB32_FLOAT,
+            1,
+            1,
+            0,
+            sizeof(pxr::GfVec3f),
+            true)
         .set_viewport(size)
         .finish_setting_pso();
 
-    // Debug vertex buffer
-    std::vector<pxr::GfVec3f> debugVertices = {
-        pxr::GfVec3f(-1.0f, -1.0f, 0.0f),
-        pxr::GfVec3f(1.0f, -1.0f, 0.0f),
-        pxr::GfVec3f(1.0f, 1.0f, 0.0f),
-        pxr::GfVec3f(-1.0f, 1.0f, 0.0f)
-    };
-
-    nvrhi::BufferDesc vertexBufferDesc =
-        nvrhi::BufferDesc{}
-            .setByteSize(sizeof(pxr::GfVec3f) * debugVertices.size())
-            .setStructStride(sizeof(pxr::GfVec3f))
-            .setCanHaveUAVs(false)
-            .setInitialState(nvrhi::ResourceStates::VertexBuffer)
-            .setCpuAccess(nvrhi::CpuAccessMode::Write)
-            .setIsVertexBuffer(true)
-            .setKeepInitialState(true);
-    auto debugVertexBuffer = resource_allocator.create(vertexBufferDesc);
-    MARK_DESTROY_NVRHI_RESOURCE(debugVertexBuffer);
-
-    auto vertexData = resource_allocator.device->mapBuffer(
-        debugVertexBuffer, nvrhi::CpuAccessMode::Write);
-    memcpy(
-        vertexData,
-        debugVertices.data(),
-        sizeof(pxr::GfVec3f) * debugVertices.size());
-    resource_allocator.device->unmapBuffer(debugVertexBuffer);
-
-    // Debug index buffer
-    std::vector<uint32_t> debugIndices = { 0, 1, 2, 2, 3, 0 };
-
-    nvrhi::BufferDesc indexBufferDesc =
-        nvrhi::BufferDesc{}
-            .setByteSize(sizeof(uint32_t) * debugIndices.size())
-            .setStructStride(sizeof(uint32_t))
-            .setCanHaveUAVs(false)
-            .setInitialState(nvrhi::ResourceStates::IndexBuffer)
-            .setCpuAccess(nvrhi::CpuAccessMode::Write)
-            .setIsIndexBuffer(true)
-            .setKeepInitialState(true);
-    auto debugIndexBuffer = resource_allocator.create(indexBufferDesc);
-    MARK_DESTROY_NVRHI_RESOURCE(debugIndexBuffer);
-
-    auto indexData = resource_allocator.device->mapBuffer(
-        debugIndexBuffer, nvrhi::CpuAccessMode::Write);
-    memcpy(
-        indexData, debugIndices.data(), sizeof(uint32_t) * debugIndices.size());
-    resource_allocator.device->unmapBuffer(debugIndexBuffer);
-
-    // Debug normal buffer
-    std::vector<pxr::GfVec3f> debugNormals = { pxr::GfVec3f(0.0f, 0.0f, 1.0f),
-                                               pxr::GfVec3f(0.0f, 0.0f, 1.0f),
-                                               pxr::GfVec3f(0.0f, 0.0f, 1.0f),
-                                               pxr::GfVec3f(0.0f, 0.0f, 1.0f) };
-
-    nvrhi::BufferDesc normalBufferDesc =
-        nvrhi::BufferDesc{}
-            .setByteSize(sizeof(pxr::GfVec3f) * debugNormals.size())
-            .setStructStride(sizeof(pxr::GfVec3f))
-            .setCanHaveUAVs(false)
-            .setInitialState(nvrhi::ResourceStates::VertexBuffer)
-            .setCpuAccess(nvrhi::CpuAccessMode::Write)
-            .setIsVertexBuffer(true)
-            .setKeepInitialState(true);
-    auto debugNormalBuffer = resource_allocator.create(normalBufferDesc);
-    MARK_DESTROY_NVRHI_RESOURCE(debugNormalBuffer);
-
-    auto normalData = resource_allocator.device->mapBuffer(
-        debugNormalBuffer, nvrhi::CpuAccessMode::Write);
-    memcpy(
-        normalData,
-        debugNormals.data(),
-        sizeof(pxr::GfVec3f) * debugNormals.size());
-    resource_allocator.device->unmapBuffer(debugNormalBuffer);
-
     // find the named mesh
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {
-        // if (mesh->GetId() == sdf_id)
-        {
-            program_vars["modelMatrixBuffer"] = matrixBuffer;
-            program_vars["viewConstant"] = view_cb;
+        //        if (mesh->GetId() == sdf_id)
 
-            program_vars.finish_setting_vars();
+        program_vars["modelMatrixBuffer"] = matrixBuffer;
+        program_vars["viewConstant"] = view_cb;
 
-            GraphicsRenderState state;
+        program_vars.finish_setting_vars();
 
-            // state
-            //     .addVertexBuffer(
-            //         nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0 })
-            //     .addVertexBuffer(
-            //         nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1 })
-            //     .setIndexBuffer(nvrhi::IndexBufferBinding{
-            //         mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT });
+        GraphicsRenderState state;
 
-            state
-                .addVertexBuffer(
-                    nvrhi::VertexBufferBinding{ debugVertexBuffer, 0 })
-                .addVertexBuffer(
-                    nvrhi::VertexBufferBinding{ debugNormalBuffer, 1 })
-                .setIndexBuffer(nvrhi::IndexBufferBinding{
-                    debugIndexBuffer, nvrhi::Format::R32_UINT });
+        state
+            .addVertexBuffer(
+                nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0 ,0})
+            .addVertexBuffer(
+                nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1,0 })
+            .setIndexBuffer(nvrhi::IndexBufferBinding{
+                mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT ,0});
 
-            context.draw_instanced(state, program_vars, debugIndices.size(), 10u);
-        }
+        // state.addVertexBuffer(nvrhi::VertexBufferBinding{ debugVertexBuffer,
+        // 0, 0 })
+        //     .addVertexBuffer(nvrhi::VertexBufferBinding{ debugNormalBuffer,
+        //     1, 0 }) .setIndexBuffer(nvrhi::IndexBufferBinding{
+        //         debugIndexBuffer, nvrhi::Format::R32_UINT, 0 });
+
+        context.draw_instanced(state, program_vars, mesh->IndexCount(), 1u);
     }
 
     params.set_output("Draw", output_texture);
