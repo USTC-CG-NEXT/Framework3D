@@ -47,6 +47,12 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
     MARK_DESTROY_NVRHI_RESOURCE(vs_program);
 
     RenderContext context(resource_allocator);
+    context.set_program(vs_program)
+        .set_render_target(0, output_texture)
+        .finish_setting_frame_buffer();
+
+    //context.AppendVertexAttribute(RenderContext::VertexAttribute::Position, "");
+
     // find the named mesh
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {
         // if (mesh->GetId() == sdf_id)
@@ -56,10 +62,6 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
             program_vars.finish_setting_vars();
 
             GraphicsRenderState state;
-
-            context.set_program(vs_program)
-                .set_render_target(0, output_texture)
-                .finish_setting_frame_buffer();
 
             context.draw_instanced(state, program_vars, 10u, 10u, 0u, 0u, 0u);
         }

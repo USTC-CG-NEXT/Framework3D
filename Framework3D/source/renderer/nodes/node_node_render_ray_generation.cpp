@@ -50,15 +50,17 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
         resource_allocator.create(pixel_target_buffer_desc);
 
     // 2. Prepare the shader
-    nvrhi::BindingLayoutDescVector binding_layout_desc_vec;
     std::string error_string;
+    ShaderReflectionInfo reflection_info;
     auto compute_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Compute,
         "shaders/raygen.slang",
-        binding_layout_desc_vec,
+        reflection_info,
         error_string);
     MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
+    nvrhi::BindingLayoutDescVector binding_layout_desc_vec =
+        reflection_info.get_binding_layout_descs();
 
     if (!error_string.empty()) {
         resource_allocator.destroy(result_rays);

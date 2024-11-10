@@ -182,7 +182,8 @@ bool ImGui_NVRHI::init(
     m_commandList->open();
 
     std::string error_string;
-    nvrhi::BindingLayoutDescVector binding_layout;
+
+    ShaderReflectionInfo binding_layout;
 
     vertexShader = shaderFactory->compile_shader(
         "main",

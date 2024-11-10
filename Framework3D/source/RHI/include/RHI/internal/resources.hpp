@@ -2,41 +2,18 @@
 
 #include <wrl.h>
 
+#include <RHI/ShaderFactory/shader_reflection.hpp>
 #include <filesystem>
 #include <map>
 
 #include "map.h"
 #include "nvrhi/nvrhi.h"
+#include "nvrhi_patch.hpp"
 #include "rhi/api.h"
 #include "slang-com-ptr.h"
 
-namespace nvrhi {
-using CommandListDesc = nvrhi::CommandListParameters;
-typedef static_vector<BindingLayoutDesc, c_MaxBindingLayouts>
-    BindingLayoutDescVector;
-
-struct StagingTextureDesc : public nvrhi::TextureDesc { };
-
-struct RHI_API CPUBuffer {
-    void* data;
-
-    ~CPUBuffer()
-    {
-        delete[] data;
-    }
-};
-
-struct CPUBufferDesc {
-    size_t size;
-};
-
-using CPUBufferHandle = std::shared_ptr<CPUBuffer>;
-}  // namespace nvrhi
-
-#include "nvrhi_equality.hpp"
-
-struct IDxcBlob;
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class ShaderReflectionInfo;
 struct Program;
 struct ProgramDesc;
 #define USING_NVRHI_SYMBOL(RESOURCE) \
@@ -63,11 +40,7 @@ class RHI_API IProgram : public nvrhi::IResource {
     virtual void const* getBufferPointer() const = 0;
     virtual size_t getBufferSize() const = 0;
     virtual [[nodiscard]] const std::string& get_error_string() const = 0;
-    virtual [[nodiscard]] const nvrhi::BindingLayoutDescVector&
-    get_binding_layout_descs() const = 0;
-    virtual unsigned get_binding_space(const std::string& name) = 0;
-    virtual unsigned get_binding_location(const std::string& name) = 0;
-    virtual nvrhi::ResourceType get_binding_type(const std::string& name) = 0;
+    virtual const ShaderReflectionInfo& get_reflection_info() const = 0;
 };
 
 /**
@@ -81,23 +54,11 @@ struct RHI_API Program : nvrhi::RefCounter<IProgram> {
     {
         return error_string;
     }
-
-    [[nodiscard]] const nvrhi::BindingLayoutDescVector&
-    get_binding_layout_descs() const override
-    {
-        return binding_layouts_;
-    }
-
-    unsigned get_binding_space(const std::string& name) override;
-    unsigned get_binding_location(const std::string& name) override;
-    nvrhi::ResourceType get_binding_type(const std::string& name) override;
+    const ShaderReflectionInfo& get_reflection_info() const override;
 
    private:
     friend class ShaderFactory;
-
-    std::map<std::string, std::tuple<unsigned, unsigned>> binding_locations;
-
-    nvrhi::BindingLayoutDescVector binding_layouts_;
+    ShaderReflectionInfo reflection_info;
     Slang::ComPtr<ISlangBlob> blob;
     std::string error_string;
 };
@@ -149,12 +110,6 @@ struct RHI_API ProgramDesc {
     std::string entry_name;
 };
 
-// ProgramHandle RHI_API createProgram(const ProgramDesc& desc);
-
-// Function to merge two BindingLayoutDescVector objects
-nvrhi::BindingLayoutDescVector RHI_API mergeBindingLayoutDescVectors(
-    const nvrhi::BindingLayoutDescVector& vec1,
-    const nvrhi::BindingLayoutDescVector& vec2);
 
 constexpr uint32_t c_FalcorMaterialInstanceSize = 128;
 

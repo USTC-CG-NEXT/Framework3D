@@ -1,5 +1,6 @@
 ﻿
 #include <cstring>
+
 #include "Logger/Logger.h"
 #include "RHI/internal/nvrhi_patch.hpp"
 #include "nodes/core/def/node_def.hpp"
@@ -28,23 +29,25 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
     unsigned length = params.get_input<int>("Buffer Size");
     if (length > 0) {
         std::string error_string;
-        nvrhi::BindingLayoutDescVector binding_layout_desc;
+        ShaderReflectionInfo reflection;
         auto compute_shader = shader_factory.compile_shader(
             "main",
             ShaderType::Compute,
             "shaders/scatter.slang",
-            binding_layout_desc,
+            reflection,
             error_string,
             {},
             {});
         MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
+        nvrhi::BindingLayoutDescVector binding_layout_desc =
+            reflection.get_binding_layout_descs();
 
         // Constant buffer contains the size of the length (single float), and I
         // can write if from CPU
         auto cb_desc = BufferDesc{}
                            .setByteSize(sizeof(float))
                            .setInitialState(ResourceStates::CopyDest)
-                            .setKeepInitialState(true)
+                           .setKeepInitialState(true)
                            .setCpuAccess(CpuAccessMode::Write)
                            .setIsConstantBuffer(true);
 
@@ -90,7 +93,8 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
             resource_allocator.create(CommandListDesc{});
         MARK_DESTROY_NVRHI_RESOURCE(command_list);
 
-        auto mapped = resource_allocator.device->mapBuffer(cb, CpuAccessMode::Read);
+        auto mapped =
+            resource_allocator.device->mapBuffer(cb, CpuAccessMode::Read);
         memcpy(mapped, &length, sizeof(length));
         resource_allocator.device->unmapBuffer(cb);
 

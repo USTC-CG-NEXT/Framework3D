@@ -2,13 +2,20 @@
 
 #include "RHI/ResourceManager/resource_allocator.hpp"
 
-
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class ProgramVars {
    public:
-    ProgramVars(
-        const ProgramHandle& program,
-        ResourceAllocator& r);
+    ProgramVars(ResourceAllocator& r) : resource_allocator_(r)
+    {
+    }
+
+    template<typename... T>
+    ProgramVars(const ProgramHandle& program, T&&... args, ResourceAllocator& r)
+        : ProgramVars(std::forward<T>(args)..., r)
+    {
+        programs.push_back(program.Get());
+        final_reflection_info += program.Get()->get_reflection_info();
+    }
     ~ProgramVars();
 
     void finish_setting_vars();
@@ -23,13 +30,15 @@ class ProgramVars {
     nvrhi::static_vector<nvrhi::BindingSetHandle, nvrhi::c_MaxBindingLayouts>
         bindingSetsSolid_;
     ResourceAllocator& resource_allocator_;
-    IProgram* program_;
+    std::vector<IProgram*> programs;
 
     unsigned get_binding_space(const std::string& name);
     unsigned get_binding_id(const std::string& name);
 
     nvrhi::ResourceType get_binding_type(const std::string& name);
-    std::tuple<unsigned,unsigned> get_binding_location(const std::string& name);
+    std::tuple<unsigned, unsigned> get_binding_location(
+        const std::string& name);
 
+    ShaderReflectionInfo final_reflection_info;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

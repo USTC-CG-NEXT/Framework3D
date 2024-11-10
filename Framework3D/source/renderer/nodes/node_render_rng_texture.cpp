@@ -37,17 +37,16 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
         stored_rng.random_number = resource_allocator.create(output_desc);
     }
 
-    nvrhi::BindingLayoutDescVector binding_layout_descs;
     std::string error_string;
 
     ShaderHandle compute_shader;
-
+    ShaderReflectionInfo reflection;
     if (first_attempt) {
         compute_shader = shader_factory.compile_shader(
             "main",
             nvrhi::ShaderType::Compute,
             "shaders/utils/random_init.slang",
-            binding_layout_descs,
+            reflection,
             error_string);
     }
     else {
@@ -55,13 +54,14 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
             "main",
             nvrhi::ShaderType::Compute,
             "shaders/utils/random_step.slang",
-            binding_layout_descs,
+            reflection,
             error_string);
     }
-
+    nvrhi::BindingLayoutDescVector binding_layout_descs =
+        reflection.get_binding_layout_descs();
     if (!compute_shader) {
-        log::warning(error_string.c_str()); 
-return false;
+        log::warning(error_string.c_str());
+        return false;
     }
 
     nvrhi::BindingLayoutVector binding_layouts;

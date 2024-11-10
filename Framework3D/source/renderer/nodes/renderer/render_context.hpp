@@ -12,7 +12,8 @@ struct GraphicsRenderState {
             vertexBuffers;
     nvrhi::IndexBufferBinding indexBuffer;
 
-    GraphicsRenderState& addVertexBuffer(const nvrhi::VertexBufferBinding& value)
+    GraphicsRenderState& addVertexBuffer(
+        const nvrhi::VertexBufferBinding& value)
     {
         vertexBuffers.push_back(value);
         return *this;
@@ -42,8 +43,26 @@ class RenderContext {
         uint32_t startInstanceLocation);
     RenderContext& finish_setting_frame_buffer();
 
+    enum class VertexAttribute {
+        Position,
+        PrevPosition,
+        TexCoord1,
+        TexCoord2,
+        Normal,
+        Tangent,
+        Transform,
+        PrevTransform,
+        JointIndices,
+        JointWeights,
+
+        Count
+    };
+
    private:
-    nvrhi::GraphicsState state_;
+    nvrhi::VertexAttributeDesc GetVertexAttributeDesc(
+        VertexAttribute attribute,
+        const char* name,
+        uint32_t bufferIndex);
 
     nvrhi::FramebufferDesc framebuffer_desc_;
     nvrhi::FramebufferHandle framebuffer_ = nullptr;
@@ -51,6 +70,10 @@ class RenderContext {
     ResourceAllocator& resource_allocator_;
     nvrhi::CommandListHandle commandList_;
     IProgram* program_;
+    nvrhi::GraphicsPipelineHandle graphics_pipeline;
+
+    nvrhi::VertexBufferBinding vbufBinding;
+    nvrhi::IndexBufferBinding ibufBinding;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

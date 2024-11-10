@@ -35,14 +35,17 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
     texture_info.format = nvrhi::Format::RGBA32_FLOAT;
     auto output = resource_allocator.create(texture_info);
 
-    nvrhi::BindingLayoutDescVector binding_layout_desc_vec;
+    
     std::string error_string;
+    ShaderReflectionInfo reflection;
     auto compute_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Compute,
         "shaders/motion_vec.slang",
-        binding_layout_desc_vec,
+        reflection,
         error_string);
+    nvrhi::BindingLayoutDescVector binding_layout_desc_vec =
+        reflection.get_binding_layout_descs();
     MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
 
     if (!error_string.empty()) {

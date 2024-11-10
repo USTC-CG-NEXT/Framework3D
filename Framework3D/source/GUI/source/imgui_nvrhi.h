@@ -48,13 +48,10 @@ SOFTWARE.
 
 #include <imgui.h>
 #include <nvrhi/nvrhi.h>
-#include <stdint.h>
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
-#include "GUI/api.h"
 #define RESOURCE_ALLOCATOR_STATIC_ONLY
 #include "RHI/ResourceManager/resource_allocator.hpp"
 

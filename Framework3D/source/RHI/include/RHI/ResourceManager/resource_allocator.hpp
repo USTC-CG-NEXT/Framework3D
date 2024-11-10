@@ -9,6 +9,7 @@
 #include "nodes/core/api.hpp"
 #endif
 #include "RHI/ShaderFactory/shader.hpp"
+#include "RHI/internal/nvrhi_equality.hpp"
 #include "RHI/internal/resources.hpp"
 #include "rhi/api.h"
 

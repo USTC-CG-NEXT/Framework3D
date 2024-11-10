@@ -4,7 +4,6 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/taa_cb.h"
-
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 struct CameraState {
@@ -41,20 +40,22 @@ NODE_EXECUTION_FUNCTION(render_taa)
     texture_info.isUAV = true;
     auto output = resource_allocator.create(texture_info);
 
-    nvrhi::BindingLayoutDescVector binding_layout_desc_vec;
     std::string error_string;
+    ShaderReflectionInfo reflection;
     auto compute_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Compute,
         "shaders/TAA.slang",
-        binding_layout_desc_vec,
+        reflection,
         error_string);
     MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
+    nvrhi::BindingLayoutDescVector binding_layout_desc_vec =
+        reflection.get_binding_layout_descs();
 
     if (!error_string.empty()) {
         resource_allocator.destroy(output);
-        log::warning(error_string.c_str()); 
-return false;
+        log::warning(error_string.c_str());
+        return false;
     }
 
     auto binding_layout = resource_allocator.create(binding_layout_desc_vec[0]);

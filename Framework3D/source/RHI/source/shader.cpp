@@ -31,36 +31,9 @@ size_t Program::getBufferSize() const
     return blob->getBufferSize();
 }
 
-unsigned Program::get_binding_space(const std::string& name)
+const ShaderReflectionInfo& Program::get_reflection_info() const
 {
-    auto it = binding_locations.find(name);
-    if (it != binding_locations.end()) {
-        return std::get<0>(it->second);
-    }
-    log::error("Binding space not found: %s", name.c_str());
-    return -1;
-}
-
-unsigned Program::get_binding_location(const std::string& name)
-{
-    auto it = binding_locations.find(name);
-    if (it != binding_locations.end()) {
-        return std::get<1>(it->second);
-    }
-    log::error("Binding location not found: %s", name.c_str());
-    return -1;
-}
-
-nvrhi::ResourceType Program::get_binding_type(const std::string& name)
-{
-    auto it = binding_locations.find(name);
-    if (it != binding_locations.end()) {
-        return binding_layouts_[std::get<0>(it->second)]
-            .bindings[std::get<1>(it->second)]
-            .type;
-    }
-    log::error("Binding type not found: %s", name.c_str());
-    return nvrhi::ResourceType::None;
+    return reflection_info;
 }
 
 ProgramDesc& ProgramDesc::set_path(const std::filesystem::path& path)
@@ -227,14 +200,13 @@ void ShaderFactory::modify_vulkan_binding_shift(
     }
 }
 
-std::tuple<
-    nvrhi::BindingLayoutDescVector,
-    std::map<std::string, std::tuple<unsigned, unsigned>>>
-ShaderFactory::shader_reflect(
+ShaderReflectionInfo ShaderFactory::shader_reflect(
     SlangCompileRequest* request,
     nvrhi::ShaderType shader_type) const
 {
-    std::map<std::string, std::tuple<unsigned, unsigned>> binding_locations;
+    ShaderReflectionInfo ret;
+    std::map<std::string, std::tuple<unsigned, unsigned>>& binding_locations =
+        ret.binding_locations;
 
     slang::ShaderReflection* programReflection =
         slang::ShaderReflection::get(request);
@@ -243,7 +215,7 @@ ShaderFactory::shader_reflect(
     //     programReflection->findEntryPointByName(entryPointName);
     auto parameterCount = programReflection->getParameterCount();
     // auto parameterCount = entryPoint->getParameterCount();
-    nvrhi::BindingLayoutDescVector ret;
+    nvrhi::BindingLayoutDescVector& layout_vector = ret.binding_spaces;
 
     for (int pp = 0; pp < parameterCount; ++pp) {
         slang::VariableLayoutReflection* parameter =
@@ -274,15 +246,15 @@ ShaderFactory::shader_reflect(
 
         modify_vulkan_binding_shift(item);
 
-        if (ret.size() < space + 1) {
-            ret.resize(space + 1);
+        if (layout_vector.size() < space + 1) {
+            layout_vector.resize(space + 1);
         }
 
-        ret[space].addItem(item);
-        ret[space].visibility = shader_type;
+        layout_vector[space].addItem(item);
+        layout_vector[space].visibility = shader_type;
     }
 
-    return std::make_tuple(ret, binding_locations);
+    return ret;
 }
 
 // Function to convert ShaderType to SlangStage
@@ -309,41 +281,11 @@ SlangStage ConvertShaderTypeToSlangStage(nvrhi::ShaderType shaderType)
     }
 }
 
-nvrhi::BindingLayoutDescVector mergeBindingLayoutDescVectors(
-    const nvrhi::BindingLayoutDescVector& vec1,
-    const nvrhi::BindingLayoutDescVector& vec2)
-{
-    nvrhi::BindingLayoutDescVector result;
-    size_t maxSize = std::max(vec1.size(), vec2.size());
-
-    for (size_t i = 0; i < maxSize; ++i) {
-        BindingLayoutDesc mergedDesc;
-
-        if (i < vec1.size()) {
-            mergedDesc = vec1[i];
-        }
-        else {
-            mergedDesc = BindingLayoutDesc();
-        }
-
-        if (i < vec2.size()) {
-            const BindingLayoutDesc& desc2 = vec2[i];
-            mergedDesc.visibility = mergedDesc.visibility | desc2.visibility;
-            for (int j = 0; j < desc2.bindings.size(); ++j) {
-                mergedDesc.bindings.push_back(desc2.bindings[j]);
-            }
-        }
-
-        result.push_back(mergedDesc);
-    }
-
-    return result;
-}
 nvrhi::ShaderHandle ShaderFactory::compile_shader(
     const std::string& entryName,
     nvrhi::ShaderType shader_type,
     std::filesystem::path shader_path,
-    nvrhi::BindingLayoutDescVector& binding_layout_desc,
+    ShaderReflectionInfo& reflection_info,
     std::string& error_string,
     const std::vector<ShaderMacro>& macro_defines,
     const std::string& source_code)
@@ -381,7 +323,7 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     desc.debugName = std::to_string(
         reinterpret_cast<long long>(shader_compiled->getBufferPointer()));
 
-    binding_layout_desc = shader_compiled->get_binding_layout_descs();
+    reflection_info = shader_compiled->get_reflection_info();
 
     ShaderHandle compute_shader;
     if (resource_allocator) {
@@ -414,8 +356,7 @@ void ShaderFactory::SlangCompile(
     nvrhi::ShaderType shaderType,
     const char* profile,
     const std::vector<ShaderMacro>& defines,
-    nvrhi::BindingLayoutDescVector& shader_reflection,
-    std::map<std::string, std::tuple<unsigned, unsigned>>& binding_locations,
+    ShaderReflectionInfo& shader_reflection,
     Slang::ComPtr<ISlangBlob>& ppResultBlob,
     std::string& error_string,
     SlangCompileTarget target) const
@@ -514,8 +455,7 @@ void ShaderFactory::SlangCompile(
         return;
     }
 
-    std::tie(shader_reflection, binding_locations) =
-        shader_reflect(slangRequest, shaderType);
+    shader_reflection = shader_reflect(slangRequest, shaderType);
     result = slangRequest->getTargetCodeBlob(0, ppResultBlob.writeRef());
     assert(result == SLANG_OK);
 
@@ -538,8 +478,7 @@ ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
         desc.shaderType,
         desc.get_profile().c_str(),
         desc.macros,
-        ret->binding_layouts_,
-        ret->binding_locations,
+        ret->reflection_info,
         ret->blob,
         ret->error_string,
         target);

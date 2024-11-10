@@ -3,12 +3,6 @@
 #include "RHI/ResourceManager/resource_allocator.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-ProgramVars::ProgramVars(const ProgramHandle& program, ResourceAllocator& r)
-    : program_(program.Get()),
-      resource_allocator_(r)
-{
-}
-
 ProgramVars::~ProgramVars()
 {
 }
@@ -24,19 +18,19 @@ void ProgramVars::finish_setting_vars()
 // This is based on reflection
 unsigned ProgramVars::get_binding_space(const std::string& name)
 {
-    return program_->get_binding_space(name);
+    return final_reflection_info.get_binding_space(name);
 }
 
 // This is based on reflection
 unsigned ProgramVars::get_binding_id(const std::string& name)
 {
-    return program_->get_binding_location(name);
+    return final_reflection_info.get_binding_location(name);
 }
 
 // This is based on reflection
 nvrhi::ResourceType ProgramVars::get_binding_type(const std::string& name)
 {
-    return program_->get_binding_type(name);
+    return final_reflection_info.get_binding_type(name);
 }
 
 // This is where it is within the binding set

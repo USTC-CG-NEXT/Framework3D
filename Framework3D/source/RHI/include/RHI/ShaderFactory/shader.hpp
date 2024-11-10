@@ -5,6 +5,8 @@
 #include "RHI/internal/resources.hpp"
 #include "RHI/rhi.hpp"
 #include "rhi/api.h"
+#include "shader_reflection.hpp"
+#include <nvrhi/nvrhi.h>
 
 namespace USTC_CG {
 class ResourceAllocator;
@@ -27,7 +29,7 @@ class RHI_API ShaderFactory {
         const std::string& entryName,
         nvrhi::ShaderType shader_type,
         std::filesystem::path shader_path,
-        nvrhi::BindingLayoutDescVector& binding_layout_desc,
+        ShaderReflectionInfo& reflection_info,
         std::string& error_string,
         const std::vector<ShaderMacro>& macro_defines = {},
         const std::string& source_code = {});
@@ -47,20 +49,16 @@ class RHI_API ShaderFactory {
         nvrhi::ShaderType shaderType,
         const char* profile,
         const std::vector<ShaderMacro>& defines,
-        nvrhi::BindingLayoutDescVector& shader_reflection,
-        std::map<std::string, std::tuple<unsigned, unsigned>>&
-            binding_locations,
+        ShaderReflectionInfo& shader_reflection,
         Slang::ComPtr<ISlangBlob>& ppResultBlob,
         std::string& error_string,
         SlangCompileTarget target) const;
 
     void modify_vulkan_binding_shift(nvrhi::BindingLayoutItem& item) const;
 
-    std::tuple<
-        nvrhi::BindingLayoutDescVector,
-        std::map<std::string, std::tuple<unsigned, unsigned>>>
-    shader_reflect(SlangCompileRequest* request, nvrhi::ShaderType shader_type)
-        const;
+    ShaderReflectionInfo shader_reflect(
+        SlangCompileRequest* request,
+        nvrhi::ShaderType shader_type) const;
 
     static constexpr int SRV_OFFSET = 0;
     static constexpr int SAMPLER_OFFSET = 128;

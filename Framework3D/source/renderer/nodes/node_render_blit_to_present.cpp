@@ -49,8 +49,8 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
 {
     auto sourceTexture = params.get_input<TextureHandle>("Tex");
     if (!sourceTexture) {
-        log::warning("No texture to blit"); 
-return false;
+        log::warning("No texture to blit");
+        return false;
     }
     auto output_desc = sourceTexture->getDesc();
     output_desc.format = nvrhi::Format::RGBA32_FLOAT;
@@ -100,25 +100,25 @@ return false;
     std::string vs_name = "rect_vs.hlsl";
     std::string ps_name = "blit_ps.hlsl";
 
-    nvrhi::BindingLayoutDescVector vs_binding_layout_descs;
     std::string error_string;
 
+    ShaderReflectionInfo vs_reflection_info;
     auto vertex_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Vertex,
         "shaders/utils/" + vs_name,
-        vs_binding_layout_descs,
+        vs_reflection_info,
         error_string,
         macro_defines);
     MARK_DESTROY_NVRHI_RESOURCE(vertex_shader);
 
-    nvrhi::BindingLayoutDescVector ps_binding_layout_descs;
+    ShaderReflectionInfo ps_reflection_info;
 
     auto pixel_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Pixel,
         "shaders/utils/" + ps_name,
-        ps_binding_layout_descs,
+        ps_reflection_info,
         error_string,
         macro_defines);
     MARK_DESTROY_NVRHI_RESOURCE(pixel_shader);
@@ -129,8 +129,7 @@ return false;
     }
 
     nvrhi::BindingLayoutDescVector binding_layout_descs =
-        mergeBindingLayoutDescVectors(
-            vs_binding_layout_descs, ps_binding_layout_descs);
+        (vs_reflection_info + ps_reflection_info).get_binding_layout_descs();
 
     auto samplerDesc =
         nvrhi::SamplerDesc().setAllFilters(false).setAllAddressModes(
