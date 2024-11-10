@@ -33,36 +33,6 @@ struct ProgramDesc;
 MACRO_MAP(USING_NVRHI_SYMBOL, NVRHI_RESOURCE_LIST);
 MACRO_MAP(USING_NVRHI_RT_SYMBOL, NVRHI_RT_RESOURCE_LIST);
 
-using ProgramHandle = nvrhi::RefCountPtr<Program>;
-
-class RHI_API IProgram : public nvrhi::IResource {
-   public:
-    virtual void const* getBufferPointer() const = 0;
-    virtual size_t getBufferSize() const = 0;
-    virtual [[nodiscard]] const std::string& get_error_string() const = 0;
-    virtual const ShaderReflectionInfo& get_reflection_info() const = 0;
-};
-
-/**
- * A program is a compiled shader program combined with reflection data.
- */
-struct RHI_API Program : nvrhi::RefCounter<IProgram> {
-    void const* getBufferPointer() const override;
-    size_t getBufferSize() const override;
-
-    [[nodiscard]] const std::string& get_error_string() const override
-    {
-        return error_string;
-    }
-    const ShaderReflectionInfo& get_reflection_info() const override;
-
-   private:
-    friend class ShaderFactory;
-    ShaderReflectionInfo reflection_info;
-    Slang::ComPtr<ISlangBlob> blob;
-    std::string error_string;
-};
-
 struct RHI_API ShaderMacro {
     std::string name;
     std::string definition;
@@ -103,13 +73,49 @@ struct RHI_API ProgramDesc {
     void update_last_write_time(const std::filesystem::path& path);
     std::vector<ShaderMacro> macros;
     std::string get_profile() const;
-    friend class ShaderFactory;
     std::filesystem::path path;
     std::string source_code;
     std::filesystem::file_time_type lastWriteTime;
     std::string entry_name;
+
+    friend class ShaderFactory;
+    friend class Program;
 };
 
+using ProgramHandle = nvrhi::RefCountPtr<Program>;
+
+class RHI_API IProgram : public nvrhi::IResource {
+   public:
+    virtual ProgramDesc get_desc() const = 0;
+    virtual nvrhi::ShaderDesc get_shader_desc() const = 0;
+    virtual void const* getBufferPointer() const = 0;
+    virtual size_t getBufferSize() const = 0;
+    virtual [[nodiscard]] const std::string& get_error_string() const = 0;
+    virtual const ShaderReflectionInfo& get_reflection_info() const = 0;
+};
+
+/**
+ * A program is a compiled shader program combined with reflection data.
+ */
+struct RHI_API Program : nvrhi::RefCounter<IProgram> {
+    ProgramDesc get_desc() const override;
+    nvrhi::ShaderDesc get_shader_desc() const override;
+    void const* getBufferPointer() const override;
+    size_t getBufferSize() const override;
+
+    [[nodiscard]] const std::string& get_error_string() const override
+    {
+        return error_string;
+    }
+    const ShaderReflectionInfo& get_reflection_info() const override;
+
+   private:
+    friend class ShaderFactory;
+    ShaderReflectionInfo reflection_info;
+    Slang::ComPtr<ISlangBlob> blob;
+    std::string error_string;
+    ProgramDesc desc;
+};
 
 constexpr uint32_t c_FalcorMaterialInstanceSize = 128;
 

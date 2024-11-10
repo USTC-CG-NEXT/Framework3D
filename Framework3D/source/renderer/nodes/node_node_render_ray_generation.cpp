@@ -70,15 +70,6 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     auto binding_layout = resource_allocator.create(binding_layout_desc_vec[0]);
     MARK_DESTROY_NVRHI_RESOURCE(binding_layout);
 
-    auto constant_buffer = resource_allocator.create(
-        BufferDesc{ .byteSize = sizeof(PlanarViewConstants),
-                    .debugName = "constantBuffer",
-                    .isConstantBuffer = true,
-                    .initialState = nvrhi::ResourceStates::ConstantBuffer,
-                    .cpuAccess = nvrhi::CpuAccessMode::Write });
-
-    MARK_DESTROY_NVRHI_RESOURCE(constant_buffer);
-
     auto camera_param_cb = resource_allocator.create(
         BufferDesc{ .byteSize = sizeof(CameraParameters),
                     .debugName = "cameraParamCB",
@@ -98,6 +89,10 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 
     auto random_seeds = params.get_input<nvrhi::TextureHandle>("random seeds");
 
+    auto constant_buffer = get_free_camera_cb(params);
+
+    MARK_DESTROY_NVRHI_RESOURCE(constant_buffer);
+
     BindingSetDesc binding_set_desc;
     binding_set_desc.bindings = {
         nvrhi::BindingSetItem::StructuredBuffer_UAV(0, result_rays),
@@ -111,9 +106,6 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     MARK_DESTROY_NVRHI_RESOURCE(binding_set);
 
     command_list->open();
-    PlanarViewConstants view_constant = camera_to_view_constants(free_camera);
-    command_list->writeBuffer(
-        constant_buffer.Get(), &view_constant, sizeof(PlanarViewConstants));
 
     CameraParameters camera_params;
     camera_params.aperture = aperture;

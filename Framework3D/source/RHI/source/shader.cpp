@@ -21,6 +21,22 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 std::string ShaderFactory::shader_search_path = "";
 
+ProgramDesc Program::get_desc() const
+{
+    return desc;
+}
+
+nvrhi::ShaderDesc Program::get_shader_desc() const
+{
+    ShaderDesc desc;
+
+    desc.shaderType = this->desc.shaderType;
+    desc.entryName = this->desc.entry_name;
+    desc.debugName =
+        std::to_string(reinterpret_cast<long long>(getBufferPointer()));
+    return desc;
+}
+
 void const* Program::getBufferPointer() const
 {
     return blob->getBufferPointer();
@@ -290,25 +306,25 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     const std::vector<ShaderMacro>& macro_defines,
     const std::string& source_code)
 {
-    ProgramDesc shader_compile_desc;
+    ProgramDesc program_desc;
 
     if (shader_path != "") {
-        shader_compile_desc.set_path(shader_path);
-        shader_compile_desc.set_entry_name(entryName);
+        program_desc.set_path(shader_path);
+        program_desc.set_entry_name(entryName);
     }
     for (const auto& macro_define : macro_defines) {
-        shader_compile_desc.define(macro_define.name, macro_define.definition);
+        program_desc.define(macro_define.name, macro_define.definition);
     }
-    shader_compile_desc.shaderType = shader_type;
-    shader_compile_desc.source_code = source_code;
+    program_desc.shaderType = shader_type;
+    program_desc.source_code = source_code;
 
     ProgramHandle shader_compiled;
 
     if (resource_allocator) {
-        shader_compiled = resource_allocator->create(shader_compile_desc);
+        shader_compiled = resource_allocator->create(program_desc);
     }
     else {
-        shader_compiled = createProgram(shader_compile_desc);
+        shader_compiled = createProgram(program_desc);
     }
 
     if (!shader_compiled->get_error_string().empty()) {
@@ -317,23 +333,19 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
         return nullptr;
     }
 
-    nvrhi::ShaderDesc desc;
-    desc.shaderType = shader_compile_desc.shaderType;
-    desc.entryName = entryName;
-    desc.debugName = std::to_string(
-        reinterpret_cast<long long>(shader_compiled->getBufferPointer()));
+    nvrhi::ShaderDesc desc = shader_compiled->get_shader_desc();
 
     reflection_info = shader_compiled->get_reflection_info();
 
-    ShaderHandle compute_shader;
+    ShaderHandle shader;
     if (resource_allocator) {
-        compute_shader = resource_allocator->create(
+        shader = resource_allocator->create(
             desc,
             shader_compiled->getBufferPointer(),
             shader_compiled->getBufferSize());
     }
     else {
-        compute_shader = device->createShader(
+        shader = device->createShader(
             desc,
             shader_compiled->getBufferPointer(),
             shader_compiled->getBufferSize());
@@ -346,7 +358,7 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
         shader_compiled = nullptr;
     }
 
-    return compute_shader;
+    return shader;
 }
 
 void ShaderFactory::SlangCompile(
@@ -465,8 +477,10 @@ void ShaderFactory::SlangCompile(
 ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
 {
     ProgramHandle ret;
+    ret = ProgramHandle::Create(new Program());
 
-    ret = ProgramHandle::Create(new Program);
+    ret->desc = desc;
+
     SlangCompileTarget target =
         (RHI::get_backend() == nvrhi::GraphicsAPI::VULKAN) ? SLANG_SPIRV
                                                            : SLANG_DXIL;

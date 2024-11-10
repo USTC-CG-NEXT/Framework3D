@@ -1,6 +1,7 @@
+#include "RHI/ShaderFactory/shader_reflection.hpp"
+
 #include "Logger/Logger.h"
 #include "RHI/ShaderFactory/shader.hpp"
-#include "RHI/ShaderFactory/shader_reflection.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
@@ -50,9 +51,17 @@ ShaderReflectionInfo ShaderReflectionInfo::operator+(
     result.binding_spaces = binding_spaces;
 
     auto larger_size =
-        std::max(binding_locations.size(), other.binding_locations.size());
+        std::max(binding_spaces.size(), other.binding_spaces.size());
 
     result.binding_spaces.resize(larger_size);
+
+    auto r_size = other.binding_spaces.size();
+    for (int i = 0; i < r_size; ++i) {
+        auto& r_space = other.binding_spaces[i];
+        auto& l_space = result.binding_spaces[i];
+
+        l_space.visibility = l_space.visibility | r_space.visibility;
+    }
 
     for (const auto& [name, location] : other.binding_locations) {
         auto r_space_id = std::get<0>(location);
@@ -75,9 +84,8 @@ ShaderReflectionInfo ShaderReflectionInfo::operator+(
                 std::make_tuple(l_space_id, new_l_location);
         }
         else {
-            log::info(
-                "The entry %s already exists, the initial name is used",
-                name.c_str());
+            result.binding_locations[name] =
+                std::make_tuple(l_space_id, pos - l_space.bindings.begin());
         }
     }
 

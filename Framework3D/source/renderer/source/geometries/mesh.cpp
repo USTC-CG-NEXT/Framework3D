@@ -154,10 +154,14 @@ void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
     buffer_desc.format = nvrhi::Format::RGB32_FLOAT;
     buffer_desc.isAccelStructBuildInput = true;
     buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
+    buffer_desc.debugName = "vertexBuffer";
+    buffer_desc.isVertexBuffer = true;
     vertexBuffer = device->createBuffer(buffer_desc);
 
     buffer_desc.byteSize = triangulatedIndices.size() * 3 * sizeof(unsigned);
     buffer_desc.format = nvrhi::Format ::R32_UINT;
+    buffer_desc.isVertexBuffer = false;
+    buffer_desc.isIndexBuffer = true;
     indexBuffer = device->createBuffer(buffer_desc);
 
     auto buffer = device->mapBuffer(vertexBuffer, nvrhi::CpuAccessMode::Write);
@@ -334,6 +338,27 @@ void Hd_USTC_CG_Mesh::Sync(
             &_adjacency, points.size(), points.cdata());
 
         assert(points.size() == computedNormals.size());
+
+        // Build Normal Buffer
+
+        auto device = RHI::get_device();
+        nvrhi::BufferDesc normal_buffer_desc =
+            nvrhi::BufferDesc{}
+                .setByteSize(points.size() * 3 * sizeof(float))
+                .setFormat(nvrhi::Format::RGB32_FLOAT)
+                .setIsVertexBuffer(true)
+                .setInitialState(nvrhi::ResourceStates::Common)
+                .setCpuAccess(nvrhi::CpuAccessMode::Write)
+                .setDebugName("normalBuffer");
+        normal_buffer = device->createBuffer(normal_buffer_desc);
+
+        auto buffer =
+            device->mapBuffer(normal_buffer, nvrhi::CpuAccessMode::Write);
+        memcpy(
+            buffer, computedNormals.data(), points.size() * 3 * sizeof(float));
+        device->unmapBuffer(normal_buffer);
+
+        _normalsValid = true;
     }
     _UpdateComputedPrimvarSources(sceneDelegate, *dirtyBits);
     if (!points.empty()) {
@@ -361,6 +386,26 @@ void Hd_USTC_CG_Mesh::Finalize(HdRenderParam* renderParam)
 {
     static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
         ->TLAS->removeInstance(this);
+}
+
+nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetVertexBuffer()
+{
+    return vertexBuffer;
+}
+
+nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetIndexBuffer()
+{
+    return indexBuffer;
+}
+
+uint32_t Hd_USTC_CG_Mesh::IndexCount()
+{
+    return triangulatedIndices.size() * 3;
+}
+
+nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetNormalBuffer()
+{
+    return normal_buffer;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

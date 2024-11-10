@@ -1,25 +1,45 @@
 #include "render_context.hpp"
+
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/base/gf/vec3f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-RenderContext::RenderContext(ResourceAllocator& resource_allocator)
-    : resource_allocator_(resource_allocator)
+RenderContext::RenderContext(
+    ResourceAllocator& resource_allocator,
+    ProgramVars& vars)
+    : resource_allocator_(resource_allocator),
+      vars_(vars)
 {
     commandList_ = resource_allocator_.create(CommandListDesc{});
+
+    auto programs = vars.get_programs();
+
+    for (auto program : programs) {
+        if (program->get_shader_desc().shaderType ==
+            nvrhi::ShaderType::Vertex) {
+            nvrhi::ShaderDesc vs_desc = program->get_shader_desc();
+            vs_shader = resource_allocator_.create(
+                vs_desc, program->getBufferPointer(), program->getBufferSize());
+            pipeline_desc.VS = vs_shader;
+        }
+        else if (
+            program->get_shader_desc().shaderType == nvrhi::ShaderType::Pixel) {
+            nvrhi::ShaderDesc ps_desc = program->get_shader_desc();
+            ps_shader = resource_allocator_.create(
+                ps_desc, program->getBufferPointer(), program->getBufferSize());
+            pipeline_desc.PS = ps_shader;
+        }
+    }
 }
 
 RenderContext::~RenderContext()
 {
     resource_allocator_.destroy(commandList_);
     resource_allocator_.destroy(framebuffer_);
-}
-
-RenderContext& RenderContext::set_program(const ProgramHandle& program)
-{
-    this->program_ = program.Get();
-    return *this;
+    resource_allocator_.destroy(graphics_pipeline);
+    resource_allocator_.destroy(vs_shader);
+    resource_allocator_.destroy(ps_shader);
 }
 
 RenderContext& RenderContext::set_render_target(
@@ -31,6 +51,13 @@ RenderContext& RenderContext::set_render_target(
     }
 
     framebuffer_desc_.colorAttachments[i].texture = texture;
+    return *this;
+}
+
+RenderContext& RenderContext::set_depth_stencil_target(
+    const nvrhi::TextureHandle& texture)
+{
+    framebuffer_desc_.depthAttachment.texture = texture;
     return *this;
 }
 
@@ -50,6 +77,7 @@ void RenderContext::draw_instanced(
     graphics_state.bindings = program_vars.get_binding_sets();
     graphics_state.framebuffer = framebuffer_;
     graphics_state.pipeline = graphics_pipeline;
+    graphics_state.viewport = viewport;
 
     nvrhi::DrawArguments args;
     args.vertexCount = indexCount;
@@ -59,6 +87,8 @@ void RenderContext::draw_instanced(
     args.startInstanceLocation = startInstanceLocation;
 
     commandList_->open();
+    commandList_->clearDepthStencilTexture(
+        framebuffer_desc_.depthAttachment.texture, {}, true, 1.0f, false, 0);
     commandList_->setGraphicsState(graphics_state);
     commandList_->drawIndexed(args);
     commandList_->close();
@@ -77,51 +107,83 @@ RenderContext& RenderContext::finish_setting_frame_buffer()
     return *this;
 }
 
-nvrhi::VertexAttributeDesc RenderContext::GetVertexAttributeDesc(
-    VertexAttribute attribute,
-    const char* name,
-    uint32_t bufferIndex)
+RenderContext& RenderContext::set_viewport(pxr::GfVec2f size)
 {
-    nvrhi::VertexAttributeDesc result = {};
-    result.name = name;
-    result.bufferIndex = bufferIndex;
-    result.arraySize = 1;
+    viewport.scissorRects.resize(1);
+    viewport.scissorRects[0].maxX = size[0];
+    viewport.scissorRects[0].maxY = size[1];
+    viewport.viewports.resize(1);
+    viewport.viewports[0].maxX = size[0];
+    viewport.viewports[0].maxY = size[1];
 
-    switch (attribute) {
-        case VertexAttribute::Position:
-        case VertexAttribute::PrevPosition:
-            result.format = nvrhi::Format::RGB32_FLOAT;
-            result.elementStride = sizeof(pxr::GfVec3f);
-            break;
-        case VertexAttribute::TexCoord1:
-        case VertexAttribute::TexCoord2:
-            result.format = nvrhi::Format::RG32_FLOAT;
-            result.elementStride = sizeof(pxr::GfVec2f);
-            break;
-        case VertexAttribute::Normal:
-        case VertexAttribute::Tangent:
-            result.format = nvrhi::Format::RGBA8_SNORM;
-            result.elementStride = sizeof(uint32_t);
-            break;
-            // case VertexAttribute::Transform:
-            //     result.format = nvrhi::Format::RGBA32_FLOAT;
-            //     result.arraySize = 3;
-            //     result.offset = offsetof(InstanceData, transform);
-            //     result.elementStride = sizeof(InstanceData);
-            //     result.isInstanced = true;
-            //     break;
-            // case VertexAttribute::PrevTransform:
-            //     result.format = nvrhi::Format::RGBA32_FLOAT;
-            //     result.arraySize = 3;
-            //     result.offset = offsetof(InstanceData, prevTransform);
-            //     result.elementStride = sizeof(InstanceData);
-            //     result.isInstanced = true;
-            //     break;
+    return *this;
+}
 
-        default: assert(!"unknown attribute");
+RenderContext& RenderContext::add_vertex_buffer_desc(
+    std::string name,
+    nvrhi::Format format,
+    uint32_t bufferIndex,
+    uint32_t arraySize,
+    uint32_t offset,
+    uint32_t elementStride,
+    bool isInstanced)
+{
+    vertex_attributes_.push_back(nvrhi::VertexAttributeDesc{}
+                                     .setName(name.c_str())
+                                     .setFormat(format)
+                                     .setArraySize(arraySize)
+                                     .setBufferIndex(bufferIndex)
+                                     .setOffset(offset)
+                                     .setElementStride(elementStride)
+                                     .setIsInstanced(isInstanced));
+    return *this;
+}
+
+RenderContext& RenderContext::finish_setting_pso()
+{
+    input_layout = resource_allocator_.device->createInputLayout(
+        vertex_attributes_.data(), vertex_attributes_.size(), vs_shader);
+
+    pipeline_desc.inputLayout = input_layout;
+
+    nvrhi::BindingLayoutVector bindingLayouts = vars_.get_binding_layout();
+
+    pipeline_desc.bindingLayouts = bindingLayouts;
+
+    nvrhi::BlendState blendState;
+    blendState.targets[0]
+        .setBlendEnable(true)
+        .setSrcBlend(nvrhi::BlendFactor::SrcAlpha)
+        .setDestBlend(nvrhi::BlendFactor::InvSrcAlpha)
+        .setSrcBlendAlpha(nvrhi::BlendFactor::InvSrcAlpha)
+        .setDestBlendAlpha(nvrhi::BlendFactor::Zero);
+
+    auto rasterState = nvrhi::RasterState()
+                           .setFillSolid()
+                           .setCullNone()
+                           .setScissorEnable(true)
+                           .setDepthClipEnable(true);
+
+    auto depthStencilState = nvrhi::DepthStencilState()
+                                 .disableDepthTest()
+                                 .enableDepthWrite()
+                                 .disableStencil()
+                                 .setDepthFunc(nvrhi::ComparisonFunc::Always);
+
+    nvrhi::RenderState renderState;
+    renderState.blendState = blendState;
+    renderState.depthStencilState = depthStencilState;
+    renderState.rasterState = rasterState;
+
+    pipeline_desc.renderState = renderState;
+
+    if (!framebuffer_) {
+        log::error("framebuffer must be set before pso");
     }
+    graphics_pipeline =
+        resource_allocator_.create(pipeline_desc, framebuffer_.Get());
 
-    return result;
+    return *this;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

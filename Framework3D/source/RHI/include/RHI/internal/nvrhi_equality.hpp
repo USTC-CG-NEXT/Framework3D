@@ -24,8 +24,7 @@ inline bool operator!=(
 }
 inline bool operator==(const ShaderDesc& lhs, const ShaderDesc& rhs)
 {
-    return lhs.shaderType == rhs.shaderType && lhs.debugName == rhs.debugName &&
-           lhs.entryName == rhs.entryName &&
+    return lhs.shaderType == rhs.shaderType && lhs.entryName == rhs.entryName &&
            lhs.hlslExtensionsUAV == rhs.hlslExtensionsUAV &&
            lhs.useSpecificShaderExt == rhs.useSpecificShaderExt &&
            lhs.numCustomSemantics == rhs.numCustomSemantics &&
@@ -46,7 +45,7 @@ inline bool operator==(const TextureDesc& lhs, const TextureDesc& rhs)
            lhs.mipLevels == rhs.mipLevels &&
            lhs.sampleCount == rhs.sampleCount &&
            lhs.sampleQuality == rhs.sampleQuality && lhs.format == rhs.format &&
-           lhs.dimension == rhs.dimension && lhs.debugName == rhs.debugName &&
+           lhs.dimension == rhs.dimension &&
            lhs.isShaderResource == rhs.isShaderResource &&
            lhs.isRenderTarget == rhs.isRenderTarget && lhs.isUAV == rhs.isUAV &&
            lhs.isTypeless == rhs.isTypeless &&
@@ -225,6 +224,24 @@ inline bool operator!=(
 }
 
 inline bool operator==(
+    const VertexAttributeDesc& lhs,
+    const VertexAttributeDesc& rhs)
+{
+    return lhs.name == rhs.name && lhs.format == rhs.format &&
+           lhs.arraySize == rhs.arraySize &&
+           lhs.bufferIndex == rhs.bufferIndex && lhs.offset == rhs.offset &&
+           lhs.elementStride == rhs.elementStride &&
+           lhs.isInstanced == rhs.isInstanced;
+}
+
+inline bool operator!=(
+    const VertexAttributeDesc& lhs,
+    const VertexAttributeDesc& rhs)
+{
+    return !(lhs == rhs);
+}
+
+inline bool operator==(
     const DepthStencilState& lhs,
     const DepthStencilState& rhs)
 {
@@ -285,11 +302,23 @@ inline bool operator==(
     const GraphicsPipelineDesc& lhs,
     const GraphicsPipelineDesc& rhs)
 {
+    if (lhs.inputLayout->getNumAttributes() !=
+        rhs.inputLayout->getNumAttributes()) {
+        return false;
+    }
+    for (int i = 0; i < lhs.inputLayout->getNumAttributes(); ++i) {
+        auto l_attrs = lhs.inputLayout->getAttributeDesc(i);
+        auto r_attrs = rhs.inputLayout->getAttributeDesc(i);
+        if (*l_attrs != *r_attrs) {
+            return false;
+        }
+    }
+
     return lhs.primType == rhs.primType &&
            lhs.patchControlPoints == rhs.patchControlPoints &&
-           lhs.inputLayout == rhs.inputLayout && lhs.VS == rhs.VS &&
-           lhs.HS == rhs.HS && lhs.DS == rhs.DS && lhs.GS == rhs.GS &&
-           lhs.PS == rhs.PS && lhs.renderState == rhs.renderState &&
+           lhs.VS == rhs.VS && lhs.HS == rhs.HS && lhs.DS == rhs.DS &&
+           lhs.GS == rhs.GS && lhs.PS == rhs.PS &&
+           lhs.renderState == rhs.renderState &&
            lhs.shadingRateState == rhs.shadingRateState &&
            lhs.bindingLayouts == rhs.bindingLayouts;
 }

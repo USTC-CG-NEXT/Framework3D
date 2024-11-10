@@ -5,30 +5,31 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class ProgramVars {
    public:
-    ProgramVars(ResourceAllocator& r) : resource_allocator_(r)
-    {
-    }
+    ProgramVars(ResourceAllocator& r);
 
-    template<typename... T>
-    ProgramVars(const ProgramHandle& program, T&&... args, ResourceAllocator& r)
-        : ProgramVars(std::forward<T>(args)..., r)
-    {
-        programs.push_back(program.Get());
-        final_reflection_info += program.Get()->get_reflection_info();
-    }
+    template<typename... Args>
+    ProgramVars(
+        ResourceAllocator& r,
+        const ProgramHandle& program,
+        Args&&... args);
+
     ~ProgramVars();
 
     void finish_setting_vars();
 
     nvrhi::IResource*& operator[](const std::string& name);
     nvrhi::BindingSetVector get_binding_sets() const;
+    nvrhi::BindingLayoutVector get_binding_layout();
+    std::vector<IProgram*> get_programs() const;
 
    private:
+    nvrhi::BindingLayoutVector binding_layouts;
+
     nvrhi::static_vector<nvrhi::BindingSetItemArray, nvrhi::c_MaxBindingLayouts>
         binding_spaces;
 
     nvrhi::static_vector<nvrhi::BindingSetHandle, nvrhi::c_MaxBindingLayouts>
-        bindingSetsSolid_;
+        binding_sets_solid;
     ResourceAllocator& resource_allocator_;
     std::vector<IProgram*> programs;
 
@@ -41,4 +42,16 @@ class ProgramVars {
 
     ShaderReflectionInfo final_reflection_info;
 };
+
+template<typename... Args>
+ProgramVars::ProgramVars(
+    ResourceAllocator& r,
+    const ProgramHandle& program,
+    Args&&... args)
+    : ProgramVars(r, std::forward<Args>(args)...)
+{
+    programs.push_back(program.Get());
+    final_reflection_info += program.Get()->get_reflection_info();
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

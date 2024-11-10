@@ -36,7 +36,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_RenderParam;
 using namespace pxr;
 
-class Hd_USTC_CG_Mesh final : public HdMesh {
+class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
    public:
     HF_MALLOC_TAG_NEW("new Hd_USTC_CG_Mesh");
 
@@ -52,6 +52,17 @@ class Hd_USTC_CG_Mesh final : public HdMesh {
         const TfToken& reprToken) override;
 
     void Finalize(HdRenderParam* renderParam) override;
+    nvrhi::IBuffer* GetVertexBuffer();
+    nvrhi::IBuffer* GetIndexBuffer();
+    uint32_t IndexCount();
+    nvrhi::IBuffer* GetNormalBuffer();
+
+    nvrhi::rt::AccelStructHandle BLAS;
+
+protected:
+    nvrhi::BufferHandle vertexBuffer;
+    nvrhi::BufferHandle indexBuffer;
+    nvrhi::BufferHandle normal_buffer;
 
     GfMatrix4f transform;
     VtArray<GfVec3i> triangulatedIndices;
@@ -61,23 +72,6 @@ class Hd_USTC_CG_Mesh final : public HdMesh {
     static constexpr GLuint normalLocation = 1;
     static constexpr GLuint texcoordLocation = 2;
 
-    nvrhi::rt::AccelStructHandle BLAS;
-    nvrhi::BufferHandle vertexBuffer;
-    nvrhi::BufferHandle indexBuffer;
-
-#ifdef USTC_CG_BACKEND_OPENGL
-
-    void RefreshGLBuffer();
-    void RefreshTexcoordGLBuffer(TfToken texcoord_name);
-
-    GLuint VAO = 0;
-    GLuint VBO = 0;
-    GLuint EBO = 0;
-    GLuint normalBuffer = 0;
-    GLuint texcoords = 0;
-#endif
-
-   protected:
     void updateBLAS(Hd_USTC_CG_RenderParam* render_param);
     void updateTLAS(
         Hd_USTC_CG_RenderParam* render_param,

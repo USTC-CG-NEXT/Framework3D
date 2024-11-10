@@ -1,17 +1,46 @@
 #include "program_vars.hpp"
 
+#include <nvrhi/nvrhi.h>
+
 #include "RHI/ResourceManager/resource_allocator.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
+ProgramVars::ProgramVars(ResourceAllocator& r) : resource_allocator_(r)
+{
+}
 
 ProgramVars::~ProgramVars()
 {
+    for (int i = 0; i < binding_sets_solid.size(); ++i) {
+        resource_allocator_.destroy(binding_sets_solid[i]);
+    }
+    for (int i = 0; i < binding_layouts.size(); ++i) {
+        resource_allocator_.destroy(binding_layouts[i]);
+    }
 }
 
 void ProgramVars::finish_setting_vars()
 {
+    for (int i = 0; i < binding_sets_solid.size(); ++i) {
+        resource_allocator_.destroy(binding_sets_solid[i]);
+    }
+    binding_sets_solid.resize(0);
+
     for (int i = 0; i < binding_spaces.size(); ++i) {
         BindingSetDesc desc{};
         desc.bindings = binding_spaces[i];
+
+        for (int i = 0; i < desc.bindings.size(); ++i) {
+            if (dynamic_cast<nvrhi::IBuffer*>(
+                    desc.bindings[i].resourceHandle)) {
+                desc.bindings[i].range = nvrhi::EntireBuffer;
+            }
+            else if (dynamic_cast<nvrhi::ITexture*>(
+                         desc.bindings[i].resourceHandle)) {
+                desc.bindings[i].subresources = {};
+            }
+        }
+        binding_sets_solid.push_back(
+            resource_allocator_.create(desc, binding_layouts[i].Get()));
     }
 }
 
@@ -24,7 +53,14 @@ unsigned ProgramVars::get_binding_space(const std::string& name)
 // This is based on reflection
 unsigned ProgramVars::get_binding_id(const std::string& name)
 {
-    return final_reflection_info.get_binding_location(name);
+    auto binding_space = get_binding_space(name);
+    auto binding_location = final_reflection_info.get_binding_location(name);
+
+    auto slot = final_reflection_info.get_binding_layout_descs()[binding_space]
+                    .bindings[binding_location]
+                    .slot;
+
+    return slot;
 }
 
 // This is based on reflection
@@ -78,10 +114,29 @@ nvrhi::IResource*& ProgramVars::operator[](const std::string& name)
 nvrhi::BindingSetVector ProgramVars::get_binding_sets() const
 {
     nvrhi::BindingSetVector result;
-    for (int i = 0; i < bindingSetsSolid_.size(); ++i) {
-        result.push_back(bindingSetsSolid_[i].Get());
+    for (int i = 0; i < binding_sets_solid.size(); ++i) {
+        result.push_back(binding_sets_solid[i].Get());
     }
     return result;
+}
+
+nvrhi::BindingLayoutVector ProgramVars::get_binding_layout()
+{
+    if (binding_layouts.empty()) {
+        auto binding_layout_descs =
+            final_reflection_info.get_binding_layout_descs();
+        for (int i = 0; i < binding_layout_descs.size(); ++i) {
+            auto binding_layout =
+                resource_allocator_.create(binding_layout_descs[i]);
+            binding_layouts.push_back(binding_layout);
+        }
+    }
+    return binding_layouts;
+}
+
+std::vector<IProgram*> ProgramVars::get_programs() const
+{
+    return programs;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
