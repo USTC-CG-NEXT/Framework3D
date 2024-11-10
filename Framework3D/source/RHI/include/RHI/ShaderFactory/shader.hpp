@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include <map>
 
 #include "RHI/internal/resources.hpp"
 #include "RHI/rhi.hpp"
@@ -47,9 +48,24 @@ class RHI_API ShaderFactory {
         const char* profile,
         const std::vector<ShaderMacro>& defines,
         nvrhi::BindingLayoutDescVector& shader_reflection,
+        std::map<std::string, std::tuple<unsigned, unsigned>>&
+            binding_locations,
         Slang::ComPtr<ISlangBlob>& ppResultBlob,
         std::string& error_string,
         SlangCompileTarget target) const;
+
+    void modify_vulkan_binding_shift(nvrhi::BindingLayoutItem& item) const;
+
+    std::tuple<
+        nvrhi::BindingLayoutDescVector,
+        std::map<std::string, std::tuple<unsigned, unsigned>>>
+    shader_reflect(SlangCompileRequest* request, nvrhi::ShaderType shader_type)
+        const;
+
+    static constexpr int SRV_OFFSET = 0;
+    static constexpr int SAMPLER_OFFSET = 128;
+    static constexpr int CONSTANT_BUFFER_OFFSET = 256;
+    static constexpr int UAV_OFFSET = 384;
 
     static std::string shader_search_path;
     nvrhi::IDevice* device;

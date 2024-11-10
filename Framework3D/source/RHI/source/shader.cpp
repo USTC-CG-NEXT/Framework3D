@@ -19,11 +19,6 @@ using namespace Microsoft::WRL;
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-constexpr int SRV_OFFSET = 0;
-constexpr int SAMPLER_OFFSET = 128;
-constexpr int CONSTANT_BUFFER_OFFSET = 256;
-constexpr int UAV_OFFSET = 384;
-
 std::string ShaderFactory::shader_search_path = "";
 
 void const* Program::getBufferPointer() const
@@ -36,25 +31,61 @@ size_t Program::getBufferSize() const
     return blob->getBufferSize();
 }
 
-void ProgramDesc::set_path(const std::filesystem::path& path)
+unsigned Program::get_binding_space(const std::string& name)
+{
+    auto it = binding_locations.find(name);
+    if (it != binding_locations.end()) {
+        return std::get<0>(it->second);
+    }
+    log::error("Binding space not found: %s", name.c_str());
+    return -1;
+}
+
+unsigned Program::get_binding_location(const std::string& name)
+{
+    auto it = binding_locations.find(name);
+    if (it != binding_locations.end()) {
+        return std::get<1>(it->second);
+    }
+    log::error("Binding location not found: %s", name.c_str());
+    return -1;
+}
+
+nvrhi::ResourceType Program::get_binding_type(const std::string& name)
+{
+    auto it = binding_locations.find(name);
+    if (it != binding_locations.end()) {
+        return binding_layouts_[std::get<0>(it->second)]
+            .bindings[std::get<1>(it->second)]
+            .type;
+    }
+    log::error("Binding type not found: %s", name.c_str());
+    return nvrhi::ResourceType::None;
+}
+
+ProgramDesc& ProgramDesc::set_path(const std::filesystem::path& path)
 {
     this->path = path;
 #ifdef _DEBUG
     update_last_write_time(path);
 #endif
+    return *this;
 }
 
-void ProgramDesc::set_shader_type(nvrhi::ShaderType shaderType)
+ProgramDesc& ProgramDesc::set_shader_type(nvrhi::ShaderType shaderType)
 {
     this->shaderType = shaderType;
+    return *this;
 }
 
-void ProgramDesc::set_entry_name(const std::string& entry_name)
+ProgramDesc& ProgramDesc::set_entry_name(const std::string& entry_name)
 {
     this->entry_name = entry_name;
 #ifdef _DEBUG
     update_last_write_time(path);
-#endif  
+#endif
+
+    return *this;
 }
 namespace fs = std::filesystem;
 
@@ -162,10 +193,49 @@ static nvrhi::ResourceType convertBindingTypeToResourceType(
     return ret;
 }
 
-nvrhi::BindingLayoutDescVector shader_reflect(
-    SlangCompileRequest* request,
-    nvrhi::ShaderType shader_type)
+void ShaderFactory::modify_vulkan_binding_shift(
+    nvrhi::BindingLayoutItem& item) const
 {
+    switch (item.type) {
+        case nvrhi::ResourceType::None: break;
+        case nvrhi::ResourceType::Texture_SRV: item.slot -= SRV_OFFSET; break;
+        case nvrhi::ResourceType::Texture_UAV: item.slot -= UAV_OFFSET; break;
+        case nvrhi::ResourceType::TypedBuffer_SRV:
+            item.slot -= SRV_OFFSET;
+            break;
+        case nvrhi::ResourceType::TypedBuffer_UAV:
+            item.slot -= UAV_OFFSET;
+            break;
+        case nvrhi::ResourceType::StructuredBuffer_SRV:
+            item.slot -= SRV_OFFSET;
+            break;
+        case nvrhi::ResourceType::StructuredBuffer_UAV:
+            item.slot -= UAV_OFFSET;
+            break;
+        case nvrhi::ResourceType::RawBuffer_SRV: item.slot -= SRV_OFFSET; break;
+        case nvrhi::ResourceType::RawBuffer_UAV: item.slot -= UAV_OFFSET; break;
+        case nvrhi::ResourceType::ConstantBuffer:
+            item.slot -= CONSTANT_BUFFER_OFFSET;
+            break;
+        case nvrhi::ResourceType::VolatileConstantBuffer:
+            item.slot -= CONSTANT_BUFFER_OFFSET;
+            break;
+        case nvrhi::ResourceType::Sampler: item.slot -= SAMPLER_OFFSET; break;
+        case nvrhi::ResourceType::RayTracingAccelStruct:
+            item.slot -= SRV_OFFSET;
+            break;
+    }
+}
+
+std::tuple<
+    nvrhi::BindingLayoutDescVector,
+    std::map<std::string, std::tuple<unsigned, unsigned>>>
+ShaderFactory::shader_reflect(
+    SlangCompileRequest* request,
+    nvrhi::ShaderType shader_type) const
+{
+    std::map<std::string, std::tuple<unsigned, unsigned>> binding_locations;
+
     slang::ShaderReflection* programReflection =
         slang::ShaderReflection::get(request);
 
@@ -191,6 +261,9 @@ nvrhi::BindingLayoutDescVector shader_reflect(
         auto index = parameter->getBindingIndex();
         auto space = parameter->getBindingSpace(category);
 
+        std::string name = parameter->getName();
+        binding_locations[name] = std::make_tuple(space, pp);
+
         auto bindingRangeCount = typeLayout->getBindingRangeCount();
         assert(bindingRangeCount == 1);
         slang::BindingType type = typeLayout->getBindingRangeType(0);
@@ -199,45 +272,7 @@ nvrhi::BindingLayoutDescVector shader_reflect(
         item.type = convertBindingTypeToResourceType(type, resource_shape);
         item.slot = index;
 
-        switch (item.type) {
-            case nvrhi::ResourceType::None: break;
-            case nvrhi::ResourceType::Texture_SRV:
-                item.slot -= SRV_OFFSET;
-                break;
-            case nvrhi::ResourceType::Texture_UAV:
-                item.slot -= UAV_OFFSET;
-                break;
-            case nvrhi::ResourceType::TypedBuffer_SRV:
-                item.slot -= SRV_OFFSET;
-                break;
-            case nvrhi::ResourceType::TypedBuffer_UAV:
-                item.slot -= UAV_OFFSET;
-                break;
-            case nvrhi::ResourceType::StructuredBuffer_SRV:
-                item.slot -= SRV_OFFSET;
-                break;
-            case nvrhi::ResourceType::StructuredBuffer_UAV:
-                item.slot -= UAV_OFFSET;
-                break;
-            case nvrhi::ResourceType::RawBuffer_SRV:
-                item.slot -= SRV_OFFSET;
-                break;
-            case nvrhi::ResourceType::RawBuffer_UAV:
-                item.slot -= UAV_OFFSET;
-                break;
-            case nvrhi::ResourceType::ConstantBuffer:
-                item.slot -= CONSTANT_BUFFER_OFFSET;
-                break;
-            case nvrhi::ResourceType::VolatileConstantBuffer:
-                item.slot -= CONSTANT_BUFFER_OFFSET;
-                break;
-            case nvrhi::ResourceType::Sampler:
-                item.slot -= SAMPLER_OFFSET;
-                break;
-            case nvrhi::ResourceType::RayTracingAccelStruct:
-                item.slot -= SRV_OFFSET;
-                break;
-        }
+        modify_vulkan_binding_shift(item);
 
         if (ret.size() < space + 1) {
             ret.resize(space + 1);
@@ -247,7 +282,7 @@ nvrhi::BindingLayoutDescVector shader_reflect(
         ret[space].visibility = shader_type;
     }
 
-    return ret;
+    return std::make_tuple(ret, binding_locations);
 }
 
 // Function to convert ShaderType to SlangStage
@@ -380,6 +415,7 @@ void ShaderFactory::SlangCompile(
     const char* profile,
     const std::vector<ShaderMacro>& defines,
     nvrhi::BindingLayoutDescVector& shader_reflection,
+    std::map<std::string, std::tuple<unsigned, unsigned>>& binding_locations,
     Slang::ComPtr<ISlangBlob>& ppResultBlob,
     std::string& error_string,
     SlangCompileTarget target) const
@@ -478,7 +514,8 @@ void ShaderFactory::SlangCompile(
         return;
     }
 
-    shader_reflection = shader_reflect(slangRequest, shaderType);
+    std::tie(shader_reflection, binding_locations) =
+        shader_reflect(slangRequest, shaderType);
     result = slangRequest->getTargetCodeBlob(0, ppResultBlob.writeRef());
     assert(result == SLANG_OK);
 
@@ -501,7 +538,8 @@ ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
         desc.shaderType,
         desc.get_profile().c_str(),
         desc.macros,
-        ret->binding_layout_,
+        ret->binding_layouts_,
+        ret->binding_locations,
         ret->blob,
         ret->error_string,
         target);

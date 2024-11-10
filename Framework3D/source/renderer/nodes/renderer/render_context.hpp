@@ -6,18 +6,18 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-struct RenderBufferState {
+struct GraphicsRenderState {
     nvrhi::
         static_vector<nvrhi::VertexBufferBinding, nvrhi::c_MaxVertexAttributes>
             vertexBuffers;
     nvrhi::IndexBufferBinding indexBuffer;
 
-    RenderBufferState& addVertexBuffer(const nvrhi::VertexBufferBinding& value)
+    GraphicsRenderState& addVertexBuffer(const nvrhi::VertexBufferBinding& value)
     {
         vertexBuffers.push_back(value);
         return *this;
     }
-    RenderBufferState& setIndexBuffer(const nvrhi::IndexBufferBinding& value)
+    GraphicsRenderState& setIndexBuffer(const nvrhi::IndexBufferBinding& value)
     {
         indexBuffer = value;
         return *this;
@@ -33,7 +33,7 @@ class RenderContext {
         unsigned i,
         const nvrhi::TextureHandle& texture);
     void draw_instanced(
-        const RenderBufferState& state,
+        const GraphicsRenderState& state,
         const ProgramVars& program_vars,
         uint32_t indexCount,
         uint32_t instanceCount,

@@ -29,7 +29,7 @@ RenderContext& RenderContext::set_render_target(
 }
 
 void RenderContext::draw_instanced(
-    const RenderBufferState& state,
+    const GraphicsRenderState& state,
     const ProgramVars& program_vars,
     uint32_t indexCount,
     uint32_t instanceCount,

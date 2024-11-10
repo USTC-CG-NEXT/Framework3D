@@ -3,6 +3,7 @@
 #include <wrl.h>
 
 #include <filesystem>
+#include <map>
 
 #include "map.h"
 #include "nvrhi/nvrhi.h"
@@ -64,6 +65,9 @@ class RHI_API IProgram : public nvrhi::IResource {
     virtual [[nodiscard]] const std::string& get_error_string() const = 0;
     virtual [[nodiscard]] const nvrhi::BindingLayoutDescVector&
     get_binding_layout_descs() const = 0;
+    virtual unsigned get_binding_space(const std::string& name) = 0;
+    virtual unsigned get_binding_location(const std::string& name) = 0;
+    virtual nvrhi::ResourceType get_binding_type(const std::string& name) = 0;
 };
 
 /**
@@ -81,13 +85,19 @@ struct RHI_API Program : nvrhi::RefCounter<IProgram> {
     [[nodiscard]] const nvrhi::BindingLayoutDescVector&
     get_binding_layout_descs() const override
     {
-        return binding_layout_;
+        return binding_layouts_;
     }
+
+    unsigned get_binding_space(const std::string& name) override;
+    unsigned get_binding_location(const std::string& name) override;
+    nvrhi::ResourceType get_binding_type(const std::string& name) override;
 
    private:
     friend class ShaderFactory;
 
-    nvrhi::BindingLayoutDescVector binding_layout_;
+    std::map<std::string, std::tuple<unsigned, unsigned>> binding_locations;
+
+    nvrhi::BindingLayoutDescVector binding_layouts_;
     Slang::ComPtr<ISlangBlob> blob;
     std::string error_string;
 };
@@ -121,9 +131,9 @@ struct RHI_API ProgramDesc {
     {
         macros.push_back(ShaderMacro(macro, value));
     }
-    void set_path(const std::filesystem::path& path);
-    void set_shader_type(nvrhi::ShaderType shaderType);
-    void set_entry_name(const std::string& entry_name);
+    ProgramDesc& set_path(const std::filesystem::path& path);
+    ProgramDesc& set_shader_type(nvrhi::ShaderType shaderType);
+    ProgramDesc& set_entry_name(const std::string& entry_name);
 
     nvrhi::ShaderType shaderType;
     bool nvapi_support = false;
