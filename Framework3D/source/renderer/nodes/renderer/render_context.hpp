@@ -37,11 +37,18 @@ class RenderContext {
     RenderContext& set_depth_stencil_target(
         const nvrhi::TextureHandle& texture);
 
+    void draw(
+        const GraphicsRenderState& state,
+        const ProgramVars& program_vars,
+        uint32_t indexCount,
+        uint32_t startIndexLocation = 0,
+        int32_t baseVertexLocation = 0);
+
     void draw_instanced(
         const GraphicsRenderState& state,
         const ProgramVars& program_vars,
         uint32_t indexCount,
-        uint32_t instanceCount,
+        uint32_t instanceCount = 1,
         uint32_t startIndexLocation = 0,
         int32_t baseVertexLocation = 0,
         uint32_t startInstanceLocation = 0);

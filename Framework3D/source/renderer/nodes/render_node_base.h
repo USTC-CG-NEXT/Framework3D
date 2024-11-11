@@ -62,4 +62,56 @@ inline BufferHandle get_free_camera_cb(
     return constant_buffer;
 }
 
+inline TextureHandle create_default_render_target(
+    ExeParams& params,
+    nvrhi::Format format = nvrhi::Format::RGBA8_UNORM)
+{
+    auto camera = get_free_camera(params);
+    auto size = camera->dataWindow.GetSize();
+    // Output texture
+    nvrhi::TextureDesc desc =
+        nvrhi::TextureDesc{}
+            .setWidth(size[0])
+            .setHeight(size[1])
+            .setFormat(format)
+            .setInitialState(nvrhi::ResourceStates::RenderTarget)
+            .setKeepInitialState(true)
+            .setIsRenderTarget(true);
+    auto output_texture = resource_allocator.create(desc);
+    return output_texture;
+}
+
+inline TextureHandle create_default_depth_stencil(ExeParams& params)
+{
+    auto camera = get_free_camera(params);
+    auto size = camera->dataWindow.GetSize();
+    // Depth texture
+    nvrhi::TextureDesc depth_desc =
+        nvrhi::TextureDesc{}
+            .setWidth(size[0])
+            .setHeight(size[1])
+            .setFormat(nvrhi::Format::D32)
+            .setIsRenderTarget(true)
+            .setInitialState(nvrhi::ResourceStates::DepthWrite)
+            .setKeepInitialState(true);
+    auto depth_stencil_texture = resource_allocator.create(depth_desc);
+    return depth_stencil_texture;
+}
+
+inline auto get_size(ExeParams& params)
+{
+    auto camera = get_free_camera(params);
+    auto size = camera->dataWindow.GetSize();
+    return size;
+}
+
+#define CHECK_PROGRAM_ERROR(program)              \
+    if (!program->get_error_string().empty()) {   \
+        log::warning(                             \
+            "Failed to create shader %s: %s",     \
+            #program,                             \
+            program->get_error_string().c_str()); \
+        return false;                             \
+    }
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

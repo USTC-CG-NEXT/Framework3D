@@ -404,6 +404,11 @@ nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetIndexBuffer()
     return indexBuffer;
 }
 
+nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetTexcoordBuffer()
+{
+    return texcoord_buffer;
+}
+
 uint32_t Hd_USTC_CG_Mesh::IndexCount()
 {
     return triangulatedIndices.size() * 3;

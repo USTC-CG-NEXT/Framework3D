@@ -64,6 +64,23 @@ RenderContext& RenderContext::set_depth_stencil_target(
     return *this;
 }
 
+void RenderContext::draw(
+    const GraphicsRenderState& state,
+    const ProgramVars& program_vars,
+    uint32_t indexCount,
+    uint32_t startIndexLocation,
+    int32_t baseVertexLocation)
+{
+    draw_instanced(
+        state,
+        program_vars,
+        indexCount,
+        1,
+        startIndexLocation,
+        baseVertexLocation,
+        0);
+}
+
 void RenderContext::draw_instanced(
     const GraphicsRenderState& state,
     const ProgramVars& program_vars,

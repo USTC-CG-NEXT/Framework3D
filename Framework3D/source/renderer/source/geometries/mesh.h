@@ -54,6 +54,7 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
     void Finalize(HdRenderParam* renderParam) override;
     nvrhi::IBuffer* GetVertexBuffer();
     nvrhi::IBuffer* GetIndexBuffer();
+    nvrhi::IBuffer* GetTexcoordBuffer();
     uint32_t IndexCount();
     nvrhi::IBuffer* GetNormalBuffer();
 
@@ -62,6 +63,7 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
 protected:
     nvrhi::BufferHandle vertexBuffer;
     nvrhi::BufferHandle indexBuffer;
+    nvrhi::BufferHandle texcoord_buffer;
     nvrhi::BufferHandle normal_buffer;
 
     GfMatrix4f transform;
