@@ -41,19 +41,18 @@ void vs_main(
     // Pass through the normal
     o_output.position.y *= -1;
 
-
     // Assign color based on vertex ID
-    o_output.color = float3((i_vertexID % 256) / 255.0, ((i_vertexID / 256) % 256) / 255.0, ((i_vertexID / (256 * 256)) % 256) / 255.0);
+    o_output.color = i_input.normal.xyz * 0.5 + 0.5f;
 }
 
 void ps_main(
-    in VSOutput i_input,
+    in VSOutput input,
     out float4 o_color: SV_Target0,
     out float depth: SV_Depth)
 {
     // Simply output the color passed from the vertex shader
-    o_color = float4(i_input.color, 1.0);
+    depth = input.position.z;
+    o_color = float4(input.color, 1.0);
 
     // Write depth using the position
-    depth = i_input.position.z / i_input.position.w;
 }

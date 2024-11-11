@@ -91,7 +91,7 @@ void RenderContext::draw_instanced(
 
     commandList_->open();
     commandList_->clearDepthStencilTexture(
-        framebuffer_desc_.depthAttachment.texture, {}, true, 0.0f, false, 0);
+        framebuffer_desc_.depthAttachment.texture, {}, true, 1.0f, false, 0);
     nvrhi::utils::ClearColorAttachment(
         commandList_, framebuffer_, 0, nvrhi::Color(0.2, 0.2, 0.2, 1));
     commandList_->setGraphicsState(graphics_state);
@@ -164,11 +164,12 @@ RenderContext& RenderContext::finish_setting_pso()
         .setSrcBlendAlpha(nvrhi::BlendFactor::InvSrcAlpha)
         .setDestBlendAlpha(nvrhi::BlendFactor::Zero);
 
-    auto rasterState = nvrhi::RasterState().setFillSolid().setCullNone();
+    auto rasterState = nvrhi::RasterState().setFillSolid().setCullBack();
 
-    auto depthStencilState =
-        nvrhi::DepthStencilState().enableDepthWrite().setDepthFunc(
-            nvrhi::ComparisonFunc::Greater);
+    auto depthStencilState = nvrhi::DepthStencilState()
+                                 .enableDepthWrite()
+                                 .enableDepthTest()
+                                 .setDepthFunc(nvrhi::ComparisonFunc::Less);
 
     nvrhi::RenderState renderState;
     renderState.blendState = blendState;

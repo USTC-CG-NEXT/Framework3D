@@ -69,7 +69,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
 
     nvrhi::BufferDesc matrixBufferDesc =
         nvrhi::BufferDesc{}
-            .setByteSize(sizeof(pxr::GfMatrix4f) * 10)
+            .setByteSize(sizeof(pxr::GfMatrix4f) * 100)
             .setStructStride(sizeof(pxr::GfMatrix4f))
             .setCanHaveUAVs(true)
             .setInitialState(nvrhi::ResourceStates::Common)
@@ -80,15 +80,17 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
 
     pxr::VtArray<pxr::GfMatrix4f> matricies;
     for (int i = 0; i < 10; ++i) {
-        auto translation = pxr::GfVec3f(i * 2.0f, 0.0f, 0.0f);
-        auto matrix = pxr::GfMatrix4f(1.0f);
-        matrix.SetTranslate(translation);
-        matricies.push_back(matrix);
+        for (int j = 0; j < 10; ++j) {
+            auto translation = pxr::GfVec3f(i * 3.0f, j * 3.0f, 0.0f);
+            auto matrix = pxr::GfMatrix4f(1.0f);
+            matrix.SetTranslate(translation);
+            matricies.push_back(matrix);
+        }
     }
 
     auto matrices = resource_allocator.device->mapBuffer(
         matrixBuffer, nvrhi::CpuAccessMode::Write);
-    memcpy(matrices, matricies.data(), sizeof(pxr::GfMatrix4f) * 10);
+    memcpy(matrices, matricies.data(), sizeof(pxr::GfMatrix4f) * 100);
     resource_allocator.device->unmapBuffer(matrixBuffer);
 
     if (!vs_program->get_error_string().empty()) {
@@ -160,7 +162,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
         //     1, 0 }) .setIndexBuffer(nvrhi::IndexBufferBinding{
         //         debugIndexBuffer, nvrhi::Format::R32_UINT, 0 });
 
-        context.draw_instanced(state, program_vars, mesh->IndexCount(), 1u);
+        context.draw_instanced(state, program_vars, mesh->IndexCount(), 100u);
     }
 
     params.set_output("Draw", output_texture);
