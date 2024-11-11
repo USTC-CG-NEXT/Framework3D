@@ -63,9 +63,9 @@ RayInfo setupPrimaryRay(
         view.matViewToWorld[1].x,
         view.matViewToWorld[2].x));
     float3 cameraUp = normalize(float3(
-        view.matViewToWorld[0].y,
-        view.matViewToWorld[1].y,
-        view.matViewToWorld[2].y));
+        view.matViewToWorld[0].z,
+        view.matViewToWorld[1].z,
+        view.matViewToWorld[2].z));
 
     // Apply depth of field effect
     float lensRadius = cameraParams.aperture * 0.5;
@@ -94,8 +94,7 @@ void main(uint3 DTid: SV_DispatchThreadID)
         CameraParameters c;
         c.focusDistance = cameraParams.focusDistance;
         c.aperture = cameraParams.aperture;
-        RayInfo ray =
-            setupPrimaryRay(LaunchIndex, viewConstant, seed, c);
+        RayInfo ray = setupPrimaryRay(LaunchIndex, viewConstant, seed, c);
 
         rays[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] = ray;
         pixel_targets[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] =
