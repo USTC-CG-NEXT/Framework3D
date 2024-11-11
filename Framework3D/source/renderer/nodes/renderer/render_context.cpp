@@ -156,24 +156,22 @@ RenderContext& RenderContext::finish_setting_pso()
 
     pipeline_desc.bindingLayouts = bindingLayouts;
 
-    // nvrhi::BlendState blendState;
-    // blendState.targets[0]
-    //     .setBlendEnable(true)
-    //     .setSrcBlend(nvrhi::BlendFactor::SrcAlpha)
-    //     .setDestBlend(nvrhi::BlendFactor::InvSrcAlpha)
-    //     .setSrcBlendAlpha(nvrhi::BlendFactor::InvSrcAlpha)
-    //     .setDestBlendAlpha(nvrhi::BlendFactor::Zero);
+    nvrhi::BlendState blendState;
+    blendState.targets[0]
+        .setBlendEnable(true)
+        .setSrcBlend(nvrhi::BlendFactor::SrcAlpha)
+        .setDestBlend(nvrhi::BlendFactor::InvSrcAlpha)
+        .setSrcBlendAlpha(nvrhi::BlendFactor::InvSrcAlpha)
+        .setDestBlendAlpha(nvrhi::BlendFactor::Zero);
 
     auto rasterState = nvrhi::RasterState().setFillSolid().setCullNone();
 
-    auto depthStencilState = nvrhi::DepthStencilState()
-                                 .disableDepthTest()
-                                 .enableDepthWrite()
-                                 .disableStencil()
-                                 .setDepthFunc(nvrhi::ComparisonFunc::Greater);
+    auto depthStencilState =
+        nvrhi::DepthStencilState().enableDepthWrite().setDepthFunc(
+            nvrhi::ComparisonFunc::Greater);
 
     nvrhi::RenderState renderState;
-    // renderState.blendState = blendState;
+    renderState.blendState = blendState;
     renderState.depthStencilState = depthStencilState;
     renderState.rasterState = rasterState;
 

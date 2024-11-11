@@ -123,7 +123,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
             1,
             0,
             sizeof(pxr::GfVec3f),
-            true)
+            false)
         .add_vertex_buffer_desc(
             "NORMAL",
             nvrhi::Format::RGB32_FLOAT,
@@ -131,7 +131,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
             1,
             0,
             sizeof(pxr::GfVec3f),
-            true)
+            false)
         .set_viewport(size)
         .finish_setting_pso();
 
@@ -148,11 +148,11 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
 
         state
             .addVertexBuffer(
-                nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0 ,0})
+                nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0, 0 })
             .addVertexBuffer(
-                nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1,0 })
+                nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1, 0 })
             .setIndexBuffer(nvrhi::IndexBufferBinding{
-                mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT ,0});
+                mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT, 0 });
 
         // state.addVertexBuffer(nvrhi::VertexBufferBinding{ debugVertexBuffer,
         // 0, 0 })
