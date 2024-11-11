@@ -66,7 +66,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
     program_vars["viewConstant"] = view_cb;
 
     // find the named mesh
-    context.begin_render();
+    context.begin();
 
     auto& meshes =
         params.get_global_payload<RenderGlobalPayload&>().get_meshes();
@@ -89,7 +89,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
                     state, program_vars, mesh->IndexCount(), instance_count);
             }
     }
-    context.finish_render();
+    context.finish();
 
     params.set_output("Draw", output_texture);
     params.set_output("Depth", depth_stencil_texture);

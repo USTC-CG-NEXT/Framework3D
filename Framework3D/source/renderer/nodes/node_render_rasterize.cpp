@@ -74,7 +74,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
         .finish_setting_pso();
 
     // find the named mesh
-    context.begin_render();
+    context.begin();
 
     auto& meshes =
         params.get_global_payload<RenderGlobalPayload&>().get_meshes();
@@ -111,7 +111,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
             context.draw(state, program_vars, mesh->IndexCount());
         }
     }
-    context.finish_render();
+    context.finish();
 
     params.set_output("Position", output_position);
     params.set_output("Depth", output_depth);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RHI/ResourceManager/resource_allocator.hpp"
+#include "context.hpp"
 #include "nvrhi/nvrhi.h"
 #include "program_vars.hpp"
 #include "pxr/base/gf/vec2f.h"
@@ -25,7 +26,7 @@ struct GraphicsRenderState {
     }
 };
 
-class RenderContext {
+class RenderContext : public GPUContext {
    public:
     explicit RenderContext(ResourceAllocator& r, ProgramVars& vars);
     ~RenderContext();
@@ -66,31 +67,13 @@ class RenderContext {
         bool isInstanced = false);
 
     RenderContext& finish_setting_pso();
-    void begin_render();
-    void finish_render();
-
-    enum class VertexAttribute {
-        Position,
-        PrevPosition,
-        TexCoord1,
-        TexCoord2,
-        Normal,
-        Tangent,
-        Transform,
-        PrevTransform,
-        JointIndices,
-        JointWeights,
-
-        Count
-    };
+    void begin();
+    void finish();
 
    private:
     nvrhi::GraphicsPipelineDesc pipeline_desc;
     nvrhi::FramebufferDesc framebuffer_desc_;
     nvrhi::FramebufferHandle framebuffer_ = nullptr;
-
-    ResourceAllocator& resource_allocator_;
-    nvrhi::CommandListHandle commandList_;
 
     nvrhi::GraphicsPipelineHandle graphics_pipeline;
 
@@ -100,7 +83,6 @@ class RenderContext {
     nvrhi::InputLayoutHandle input_layout;
     nvrhi::ShaderHandle vs_shader;
     nvrhi::ShaderHandle ps_shader;
-    ProgramVars& vars_;
     nvrhi::ViewportState viewport;
 };
 

@@ -193,7 +193,7 @@ RenderContext& RenderContext::finish_setting_pso()
     return *this;
 }
 
-void RenderContext::begin_render()
+void RenderContext::begin()
 {
     commandList_->open();
     commandList_->clearDepthStencilTexture(
@@ -205,7 +205,7 @@ void RenderContext::begin_render()
     }
 }
 
-void RenderContext::finish_render()
+void RenderContext::finish()
 {
     commandList_->close();
     resource_allocator_.device->executeCommandList(commandList_);
