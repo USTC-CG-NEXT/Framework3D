@@ -1,5 +1,6 @@
 #include <Logger/Logger.h>
 
+#include <cassert>
 #include <chrono>
 #include <cstdarg>
 #include <cstdio>
@@ -82,6 +83,7 @@ void DefaultCallback(Severity severity, const char* message)
 
         if (g_OutputToMessageBox) {
             if (severity == Severity::Error || severity == Severity::Fatal) {
+                assert(false);
                 MessageBoxA(
                     0, buf, g_ErrorMessageCaption.c_str(), MB_ICONERROR);
             }

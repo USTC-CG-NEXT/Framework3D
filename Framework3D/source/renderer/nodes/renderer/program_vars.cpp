@@ -81,24 +81,29 @@ std::tuple<unsigned, unsigned> ProgramVars::get_binding_location(
 
     auto& binding_space = binding_spaces[binding_space_id];
 
+    auto& binding_layout = get_binding_layout()[binding_space_id];
+    auto& layout_items = binding_layout->getDesc()->bindings;
+
     auto pos = std::find_if(
-        binding_space.begin(),
-        binding_space.end(),
-        [&name, this](const nvrhi::BindingSetItem& binding) {
+        layout_items.begin(),
+        layout_items.end(),
+        [&name, this](const nvrhi::BindingLayoutItem& binding) {
             return binding.slot == get_binding_id(name) &&
                    binding.type == get_binding_type(name);
         });
 
-    if (pos == binding_space.end()) {
-        // Create it
-        nvrhi::BindingSetItem item{};
-        item.slot = get_binding_id(name);
-        item.type = get_binding_type(name);
-        binding_space.push_back(item);
-        pos = binding_space.end() - 1;
+    assert(pos != layout_items.end());
+
+    unsigned binding_set_location = std::distance(layout_items.begin(), pos);
+
+    if (binding_set_location >= binding_space.size()) {
+        binding_space.resize(binding_set_location + 1);
     }
 
-    unsigned binding_set_location = std::distance(binding_space.begin(), pos);
+    nvrhi::BindingSetItem& item = binding_space[binding_set_location];
+
+    item.slot = get_binding_id(name);
+    item.type = get_binding_type(name);
 
     return std::make_tuple(binding_space_id, binding_set_location);
 }
@@ -120,7 +125,7 @@ nvrhi::BindingSetVector ProgramVars::get_binding_sets() const
     return result;
 }
 
-nvrhi::BindingLayoutVector ProgramVars::get_binding_layout()
+nvrhi::BindingLayoutVector& ProgramVars::get_binding_layout()
 {
     if (binding_layouts.empty()) {
         auto binding_layout_descs =

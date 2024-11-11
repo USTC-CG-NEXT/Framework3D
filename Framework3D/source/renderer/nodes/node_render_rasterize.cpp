@@ -20,17 +20,16 @@ NODE_DECLARATION_FUNCTION(rasterize)
 
 NODE_EXECUTION_FUNCTION(rasterize)
 {
-    std::vector<ShaderMacro> macros{
-        { "ENABLE_INSTANCING", "1" },
-        { "ENABLE_DIFFUSE_COLOR", "1" },
-        { "ENABLE_METALLIC_ROUGHNESS", "1" },
-        { "ENABLE_NORMAL", "1" },
-    };
+    std::vector<ShaderMacro> macros{ { "ENABLE_DIFFUSE_COLOR", "1" },
+                                     { "ENABLE_METALLIC_ROUGHNESS", "1" },
+                                     { "ENABLE_NORMAL", "1" },
+                                     { "ENABLE_TEXCOORD", "1" } };
 
     ProgramDesc vs_program_desc;
     vs_program_desc.shaderType = nvrhi::ShaderType::Vertex;
     vs_program_desc.set_path("shaders/rasterize.slang")
-        .set_entry_name("vs_main");
+        .set_entry_name("vs_main")
+        .define(macros);
 
     ProgramHandle vs_program = resource_allocator.create(vs_program_desc);
     MARK_DESTROY_NVRHI_RESOURCE(vs_program);
@@ -39,7 +38,8 @@ NODE_EXECUTION_FUNCTION(rasterize)
     ProgramDesc ps_program_desc;
     ps_program_desc.shaderType = nvrhi::ShaderType::Pixel;
     ps_program_desc.set_path("shaders/rasterize.slang")
-        .set_entry_name("ps_main");
+        .set_entry_name("ps_main")
+        .define(macros);
     ProgramHandle ps_program = resource_allocator.create(ps_program_desc);
     MARK_DESTROY_NVRHI_RESOURCE(ps_program);
     CHECK_PROGRAM_ERROR(ps_program);
@@ -86,7 +86,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
             false)
         .add_vertex_buffer_desc(
             "TEXCOORD",
-            nvrhi::Format::RG8_UNORM,
+            nvrhi::Format::RG32_FLOAT,
             2,
             1,
             0,
@@ -102,10 +102,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
         params.get_global_payload<RenderGlobalPayload&>().get_meshes();
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {
         if (mesh->GetVertexBuffer()) {
-            program_vars.finish_setting_vars();
-
             GraphicsRenderState state;
-
             state
                 .addVertexBuffer(
                     nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0, 0 })
@@ -113,6 +110,46 @@ NODE_EXECUTION_FUNCTION(rasterize)
                     nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1, 0 })
                 .setIndexBuffer(nvrhi::IndexBufferBinding{
                     mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT, 0 });
+
+            if (mesh->GetTexcoordBuffer(pxr::TfToken("UVMap"))) {
+                state.addVertexBuffer(nvrhi::VertexBufferBinding{
+                    mesh->GetTexcoordBuffer(pxr::TfToken("UVMap")), 2, 0 });
+            }
+            else {
+                nvrhi::BufferDesc texcoord_buffer_desc = nvrhi::BufferDesc();
+                texcoord_buffer_desc.byteSize =
+                    mesh->PointCount() * sizeof(pxr::GfVec2f);
+                texcoord_buffer_desc.isVertexBuffer = true;
+                texcoord_buffer_desc.initialState =
+                    nvrhi::ResourceStates::ShaderResource;
+                texcoord_buffer_desc.debugName = "texcoordBuffer";
+                texcoord_buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
+                auto texcoord_buffer =
+                    resource_allocator.create(texcoord_buffer_desc);
+
+                MARK_DESTROY_NVRHI_RESOURCE(texcoord_buffer);
+
+                // fill the buffer with default values
+                std::vector<pxr::GfVec2f> texcoords(
+                    mesh->PointCount(), { 0, 0 });
+                auto ptr = resource_allocator.device->mapBuffer(
+                    texcoord_buffer, nvrhi::CpuAccessMode::Write);
+
+                memcpy(
+                    ptr,
+                    texcoords.data(),
+                    texcoords.size() * sizeof(pxr::GfVec2f));
+
+                resource_allocator.device->unmapBuffer(texcoord_buffer);
+
+                state.addVertexBuffer(
+                    nvrhi::VertexBufferBinding{ texcoord_buffer, 2, 0 });
+            }
+
+            auto model_matrix = get_model_buffer(params, mesh->GetTransform());
+            MARK_DESTROY_NVRHI_RESOURCE(model_matrix);
+            program_vars["modelMatrixBuffer"] = model_matrix;
+            program_vars.finish_setting_vars();
 
             context.draw(state, program_vars, mesh->IndexCount());
         }

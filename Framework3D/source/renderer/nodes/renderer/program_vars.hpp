@@ -19,7 +19,7 @@ class ProgramVars {
 
     nvrhi::IResource*& operator[](const std::string& name);
     nvrhi::BindingSetVector get_binding_sets() const;
-    nvrhi::BindingLayoutVector get_binding_layout();
+    nvrhi::BindingLayoutVector& get_binding_layout();
     std::vector<IProgram*> get_programs() const;
 
    private:

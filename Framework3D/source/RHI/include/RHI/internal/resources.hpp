@@ -62,6 +62,12 @@ struct RHI_API ProgramDesc {
     {
         macros.push_back(ShaderMacro(macro, value));
     }
+
+    void define(const std::vector<ShaderMacro>& _macros)
+    {
+        macros.insert(macros.end(), _macros.begin(), _macros.end());
+    }
+
     ProgramDesc& set_path(const std::filesystem::path& path);
     ProgramDesc& set_shader_type(nvrhi::ShaderType shaderType);
     ProgramDesc& set_entry_name(const std::string& entry_name);

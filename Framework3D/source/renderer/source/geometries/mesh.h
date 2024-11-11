@@ -52,10 +52,19 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
         const TfToken& reprToken) override;
 
     void Finalize(HdRenderParam* renderParam) override;
+
+
     nvrhi::IBuffer* GetVertexBuffer();
     nvrhi::IBuffer* GetIndexBuffer();
-    nvrhi::IBuffer* GetTexcoordBuffer();
+    nvrhi::IBuffer* GetTexcoordBuffer(pxr::TfToken texcoord_name);
+
+    pxr::GfMatrix4f GetTransform()
+    {
+        return transform;
+    }
+
     uint32_t IndexCount();
+    uint32_t PointCount();
     nvrhi::IBuffer* GetNormalBuffer();
 
     nvrhi::rt::AccelStructHandle BLAS;

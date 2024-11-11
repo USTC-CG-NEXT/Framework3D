@@ -139,6 +139,29 @@ void Hd_USTC_CG_Mesh::_UpdatePrimvarSources(
                 _primvarSourceMap[pv.name] = {
                     GetPrimvar(sceneDelegate, pv.name), interp
                 };
+
+                if (pv.name == pxr::TfToken("UVMap")) {
+                    auto device = RHI::get_device();
+                    nvrhi::BufferDesc buffer_desc =
+                        nvrhi::BufferDesc{}
+                            .setByteSize(points.size() * 2 * sizeof(float))
+                            .setFormat(nvrhi::Format::RG32_FLOAT)
+                            .setIsVertexBuffer(true)
+                            .setInitialState(nvrhi::ResourceStates::Common)
+                            .setCpuAccess(nvrhi::CpuAccessMode::Write)
+                            .setDebugName("texcoordBuffer");
+                    texcoord_buffer = device->createBuffer(buffer_desc);
+
+                    auto buffer = device->mapBuffer(
+                        texcoord_buffer, nvrhi::CpuAccessMode::Write);
+                    memcpy(
+                        buffer,
+                        _primvarSourceMap[pv.name]
+                            .data.Get<VtVec2fArray>()
+                            .data(),
+                        points.size() * 2 * sizeof(float));
+                    device->unmapBuffer(texcoord_buffer);
+                }
             }
         }
     }
@@ -404,7 +427,7 @@ nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetIndexBuffer()
     return indexBuffer;
 }
 
-nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetTexcoordBuffer()
+nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetTexcoordBuffer(pxr::TfToken texcoord_name)
 {
     return texcoord_buffer;
 }
@@ -412,6 +435,11 @@ nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetTexcoordBuffer()
 uint32_t Hd_USTC_CG_Mesh::IndexCount()
 {
     return triangulatedIndices.size() * 3;
+}
+
+uint32_t Hd_USTC_CG_Mesh::PointCount()
+{
+    return points.size();
 }
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetNormalBuffer()

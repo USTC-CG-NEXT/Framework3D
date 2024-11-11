@@ -166,14 +166,6 @@ RenderContext& RenderContext::finish_setting_pso()
 
     pipeline_desc.bindingLayouts = bindingLayouts;
 
-    nvrhi::BlendState blendState;
-    blendState.targets[0]
-        .setBlendEnable(true)
-        .setSrcBlend(nvrhi::BlendFactor::SrcAlpha)
-        .setDestBlend(nvrhi::BlendFactor::InvSrcAlpha)
-        .setSrcBlendAlpha(nvrhi::BlendFactor::InvSrcAlpha)
-        .setDestBlendAlpha(nvrhi::BlendFactor::Zero);
-
     auto rasterState = nvrhi::RasterState().setFillSolid().setCullBack();
 
     auto depthStencilState = nvrhi::DepthStencilState()
@@ -182,7 +174,6 @@ RenderContext& RenderContext::finish_setting_pso()
                                  .setDepthFunc(nvrhi::ComparisonFunc::Less);
 
     nvrhi::RenderState renderState;
-    renderState.blendState = blendState;
     renderState.depthStencilState = depthStencilState;
     renderState.rasterState = rasterState;
 
@@ -202,8 +193,11 @@ void RenderContext::begin_render()
     commandList_->open();
     commandList_->clearDepthStencilTexture(
         framebuffer_desc_.depthAttachment.texture, {}, true, 1.0f, false, 0);
-    nvrhi::utils::ClearColorAttachment(
-        commandList_, framebuffer_, 0, nvrhi::Color(0.2, 0.2, 0.2, 1));
+
+    for (int i = 0; i < framebuffer_desc_.colorAttachments.size(); ++i) {
+        nvrhi::utils::ClearColorAttachment(
+            commandList_, framebuffer_, i, nvrhi::Color(0));
+    }
 }
 
 void RenderContext::finish_render()

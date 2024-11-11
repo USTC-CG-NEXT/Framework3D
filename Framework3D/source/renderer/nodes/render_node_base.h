@@ -62,6 +62,26 @@ inline BufferHandle get_free_camera_cb(
     return constant_buffer;
 }
 
+inline BufferHandle get_model_buffer(
+    ExeParams& params,
+    const pxr::GfMatrix4f& matrix)
+{
+    auto desc =
+        BufferDesc{ .byteSize = sizeof(pxr::GfMatrix4f),
+                    .debugName = "modelBuffer",
+                    .isConstantBuffer = true,
+                    .initialState = nvrhi::ResourceStates::ConstantBuffer,
+                    .cpuAccess = nvrhi::CpuAccessMode::Write };
+    desc.structStride = sizeof(pxr::GfMatrix4f);
+    auto model_buffer = resource_allocator.create(desc);
+
+    auto mapped_model_buffer = resource_allocator.device->mapBuffer(
+        model_buffer, nvrhi::CpuAccessMode::Write);
+    memcpy(mapped_model_buffer, &matrix, sizeof(pxr::GfMatrix4f));
+    resource_allocator.device->unmapBuffer(model_buffer);
+    return model_buffer;
+}
+
 inline TextureHandle create_default_render_target(
     ExeParams& params,
     nvrhi::Format format = nvrhi::Format::RGBA8_UNORM)
