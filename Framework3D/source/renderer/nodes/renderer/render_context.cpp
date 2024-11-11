@@ -82,6 +82,8 @@ void RenderContext::draw_instanced(
     graphics_state.pipeline = graphics_pipeline;
     graphics_state.viewport = viewport;
 
+    commandList_->setGraphicsState(graphics_state);
+
     nvrhi::DrawArguments args;
     args.vertexCount = indexCount;
     args.instanceCount = instanceCount;
@@ -89,16 +91,7 @@ void RenderContext::draw_instanced(
     args.startVertexLocation = baseVertexLocation;
     args.startInstanceLocation = startInstanceLocation;
 
-    commandList_->open();
-    commandList_->clearDepthStencilTexture(
-        framebuffer_desc_.depthAttachment.texture, {}, true, 1.0f, false, 0);
-    nvrhi::utils::ClearColorAttachment(
-        commandList_, framebuffer_, 0, nvrhi::Color(0.2, 0.2, 0.2, 1));
-    commandList_->setGraphicsState(graphics_state);
     commandList_->drawIndexed(args);
-    commandList_->close();
-    resource_allocator_.device->executeCommandList(commandList_);
-    resource_allocator_.device->waitForIdle();
 }
 
 RenderContext& RenderContext::finish_setting_frame_buffer()
@@ -185,6 +178,21 @@ RenderContext& RenderContext::finish_setting_pso()
         resource_allocator_.create(pipeline_desc, framebuffer_.Get());
 
     return *this;
+}
+
+void RenderContext::begin_render()
+{
+    commandList_->open();
+    commandList_->clearDepthStencilTexture(
+        framebuffer_desc_.depthAttachment.texture, {}, true, 1.0f, false, 0);
+    nvrhi::utils::ClearColorAttachment(
+        commandList_, framebuffer_, 0, nvrhi::Color(0.2, 0.2, 0.2, 1));
+}
+
+void RenderContext::finish_render()
+{
+    commandList_->close();
+    resource_allocator_.device->executeCommandList(commandList_);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

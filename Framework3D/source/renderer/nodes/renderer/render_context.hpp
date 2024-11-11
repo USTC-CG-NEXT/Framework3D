@@ -59,6 +59,8 @@ class RenderContext {
         bool isInstanced = false);
 
     RenderContext& finish_setting_pso();
+    void begin_render();
+    void finish_render();
 
     enum class VertexAttribute {
         Position,

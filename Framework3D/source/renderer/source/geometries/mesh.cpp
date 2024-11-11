@@ -306,80 +306,86 @@ void Hd_USTC_CG_Mesh::Sync(
         _normalsValid = false;
     }
 
-    if (HdChangeTracker::IsTopologyDirty(*dirtyBits, id)) {
-        topology = GetMeshTopology(sceneDelegate);
-        HdMeshUtil meshUtil(&topology, GetId());
-        meshUtil.ComputeTriangleIndices(
-            &triangulatedIndices, &trianglePrimitiveParams);
-        _normalsValid = false;
-        _adjacencyValid = false;
-    }
-    if (HdChangeTracker::IsInstancerDirty(*dirtyBits, id) ||
-        HdChangeTracker::IsTransformDirty(*dirtyBits, id)) {
-        transform = GfMatrix4f(sceneDelegate->GetTransform(id));
-    }
-
-    if (HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->normals) ||
-        HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->widths) ||
-        HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->primvar)) {
-        _UpdatePrimvarSources(sceneDelegate, *dirtyBits);
-        _texcoordsClean = false;
-    }
-
-    if (!_adjacencyValid) {
-        _adjacency.BuildAdjacencyTable(&topology);
-        _adjacencyValid = true;
-        // If we rebuilt the adjacency table, force a rebuild of normals.
-        _normalsValid = false;
-    }
-
-    if (!_normalsValid) {
-        computedNormals = Hd_SmoothNormals::ComputeSmoothNormals(
-            &_adjacency, points.size(), points.cdata());
-
-        assert(points.size() == computedNormals.size());
-
-        // Build Normal Buffer
-
-        auto device = RHI::get_device();
-        nvrhi::BufferDesc normal_buffer_desc =
-            nvrhi::BufferDesc{}
-                .setByteSize(points.size() * 3 * sizeof(float))
-                .setFormat(nvrhi::Format::RGB32_FLOAT)
-                .setIsVertexBuffer(true)
-                .setInitialState(nvrhi::ResourceStates::Common)
-                .setCpuAccess(nvrhi::CpuAccessMode::Write)
-                .setDebugName("normalBuffer");
-        normal_buffer = device->createBuffer(normal_buffer_desc);
-
-        auto buffer =
-            device->mapBuffer(normal_buffer, nvrhi::CpuAccessMode::Write);
-        memcpy(
-            buffer, computedNormals.data(), points.size() * 3 * sizeof(float));
-        device->unmapBuffer(normal_buffer);
-
-        _normalsValid = true;
-    }
-    _UpdateComputedPrimvarSources(sceneDelegate, *dirtyBits);
     if (!points.empty()) {
-        if (requires_rebuild_blas) {
-            updateBLAS(static_cast<Hd_USTC_CG_RenderParam*>(renderParam));
+        if (HdChangeTracker::IsTopologyDirty(*dirtyBits, id)) {
+            topology = GetMeshTopology(sceneDelegate);
+            HdMeshUtil meshUtil(&topology, GetId());
+            meshUtil.ComputeTriangleIndices(
+                &triangulatedIndices, &trianglePrimitiveParams);
+            _normalsValid = false;
+            _adjacencyValid = false;
+        }
+        if (HdChangeTracker::IsInstancerDirty(*dirtyBits, id) ||
+            HdChangeTracker::IsTransformDirty(*dirtyBits, id)) {
+            transform = GfMatrix4f(sceneDelegate->GetTransform(id));
         }
 
-        if (requires_rebuild_tlas) {
-            if (IsVisible()) {
-                updateTLAS(
-                    static_cast<Hd_USTC_CG_RenderParam*>(renderParam),
-                    sceneDelegate,
-                    dirtyBits);
+        if (HdChangeTracker::IsPrimvarDirty(
+                *dirtyBits, id, HdTokens->normals) ||
+            HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->widths) ||
+            HdChangeTracker::IsPrimvarDirty(
+                *dirtyBits, id, HdTokens->primvar)) {
+            _UpdatePrimvarSources(sceneDelegate, *dirtyBits);
+            _texcoordsClean = false;
+        }
+
+        if (!_adjacencyValid) {
+            _adjacency.BuildAdjacencyTable(&topology);
+            _adjacencyValid = true;
+            // If we rebuilt the adjacency table, force a rebuild of normals.
+            _normalsValid = false;
+        }
+
+        if (!_normalsValid) {
+            computedNormals = Hd_SmoothNormals::ComputeSmoothNormals(
+                &_adjacency, points.size(), points.cdata());
+
+            assert(points.size() == computedNormals.size());
+
+            // Build Normal Buffer
+
+            auto device = RHI::get_device();
+            nvrhi::BufferDesc normal_buffer_desc =
+                nvrhi::BufferDesc{}
+                    .setByteSize(points.size() * 3 * sizeof(float))
+                    .setFormat(nvrhi::Format::RGB32_FLOAT)
+                    .setIsVertexBuffer(true)
+                    .setInitialState(nvrhi::ResourceStates::Common)
+                    .setCpuAccess(nvrhi::CpuAccessMode::Write)
+                    .setDebugName("normalBuffer");
+            normal_buffer = device->createBuffer(normal_buffer_desc);
+
+            auto buffer =
+                device->mapBuffer(normal_buffer, nvrhi::CpuAccessMode::Write);
+            memcpy(
+                buffer,
+                computedNormals.data(),
+                points.size() * 3 * sizeof(float));
+            device->unmapBuffer(normal_buffer);
+
+            _normalsValid = true;
+        }
+        _UpdateComputedPrimvarSources(sceneDelegate, *dirtyBits);
+        if (!points.empty()) {
+            if (requires_rebuild_blas) {
+                updateBLAS(static_cast<Hd_USTC_CG_RenderParam*>(renderParam));
             }
-            else {
-                static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
-                    ->TLAS->removeInstance(this);
+
+            if (requires_rebuild_tlas) {
+                if (IsVisible()) {
+                    updateTLAS(
+                        static_cast<Hd_USTC_CG_RenderParam*>(renderParam),
+                        sceneDelegate,
+                        dirtyBits);
+                }
+                else {
+                    static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
+                        ->TLAS->removeInstance(this);
+                }
             }
         }
+        *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
     }
-    *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
 }
 
 void Hd_USTC_CG_Mesh::Finalize(HdRenderParam* renderParam)

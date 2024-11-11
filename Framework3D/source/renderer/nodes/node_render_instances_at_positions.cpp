@@ -137,33 +137,31 @@ NODE_EXECUTION_FUNCTION(render_instances_at_positions)
         .set_viewport(size)
         .finish_setting_pso();
 
+    program_vars["modelMatrixBuffer"] = matrixBuffer;
+    program_vars["viewConstant"] = view_cb;
+
     // find the named mesh
+    context.begin_render();
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {
         //        if (mesh->GetId() == sdf_id)
+        if (mesh->GetVertexBuffer()) {
+            program_vars.finish_setting_vars();
 
-        program_vars["modelMatrixBuffer"] = matrixBuffer;
-        program_vars["viewConstant"] = view_cb;
+            GraphicsRenderState state;
 
-        program_vars.finish_setting_vars();
+            state
+                .addVertexBuffer(
+                    nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0, 0 })
+                .addVertexBuffer(
+                    nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1, 0 })
+                .setIndexBuffer(nvrhi::IndexBufferBinding{
+                    mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT, 0 });
 
-        GraphicsRenderState state;
-
-        state
-            .addVertexBuffer(
-                nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0, 0 })
-            .addVertexBuffer(
-                nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1, 0 })
-            .setIndexBuffer(nvrhi::IndexBufferBinding{
-                mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT, 0 });
-
-        // state.addVertexBuffer(nvrhi::VertexBufferBinding{ debugVertexBuffer,
-        // 0, 0 })
-        //     .addVertexBuffer(nvrhi::VertexBufferBinding{ debugNormalBuffer,
-        //     1, 0 }) .setIndexBuffer(nvrhi::IndexBufferBinding{
-        //         debugIndexBuffer, nvrhi::Format::R32_UINT, 0 });
-
-        context.draw_instanced(state, program_vars, mesh->IndexCount(), 100u);
+            context.draw_instanced(
+                state, program_vars, mesh->IndexCount(), 100u);
+        }
     }
+    context.finish_render();
 
     params.set_output("Draw", output_texture);
     params.set_output("Depth", depth_stencil_texture);
