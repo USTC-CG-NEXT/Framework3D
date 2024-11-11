@@ -137,13 +137,18 @@ RenderContext& RenderContext::set_viewport(pxr::GfVec2f size)
 
 RenderContext& RenderContext::add_vertex_buffer_desc(
     std::string name,
-    nvrhi::Format format,
     uint32_t bufferIndex,
+    nvrhi::Format format,
+    uint32_t elementStride,
     uint32_t arraySize,
     uint32_t offset,
-    uint32_t elementStride,
     bool isInstanced)
 {
+    if (elementStride == 0) {
+        nvrhi::FormatInfo formatInfo = getFormatInfo(format);
+        elementStride = formatInfo.bytesPerBlock * formatInfo.blockSize;
+    }
+
     vertex_attributes_.push_back(nvrhi::VertexAttributeDesc{}
                                      .setName(name.c_str())
                                      .setFormat(format)

@@ -58,11 +58,11 @@ class RenderContext {
 
     RenderContext& add_vertex_buffer_desc(
         std::string name,
-        nvrhi::Format format = nvrhi::Format::UNKNOWN,
         uint32_t bufferIndex = 0,
+        nvrhi::Format format = nvrhi::Format::UNKNOWN,
+        uint32_t elementStride = 0,
         uint32_t arraySize = 1,
         uint32_t offset = 0,
-        uint32_t elementStride = 0,
         bool isInstanced = false);
 
     RenderContext& finish_setting_pso();

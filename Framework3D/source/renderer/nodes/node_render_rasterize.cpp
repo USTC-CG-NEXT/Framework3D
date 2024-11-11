@@ -67,31 +67,9 @@ NODE_EXECUTION_FUNCTION(rasterize)
         .set_depth_stencil_target(output_depth)
         .finish_setting_frame_buffer();
 
-    context
-        .add_vertex_buffer_desc(
-            "POSITION",
-            nvrhi::Format::RGB32_FLOAT,
-            0,
-            1,
-            0,
-            sizeof(pxr::GfVec3f),
-            false)
-        .add_vertex_buffer_desc(
-            "NORMAL",
-            nvrhi::Format::RGB32_FLOAT,
-            1,
-            1,
-            0,
-            sizeof(pxr::GfVec3f),
-            false)
-        .add_vertex_buffer_desc(
-            "TEXCOORD",
-            nvrhi::Format::RG32_FLOAT,
-            2,
-            1,
-            0,
-            sizeof(pxr::GfVec2f),
-            false)
+    context.add_vertex_buffer_desc("POSITION", 0, nvrhi::Format::RGB32_FLOAT)
+        .add_vertex_buffer_desc("NORMAL", 1, nvrhi::Format::RGB32_FLOAT)
+        .add_vertex_buffer_desc("TEXCOORD", 2, nvrhi::Format::RG32_FLOAT)
         .set_viewport(get_size(params))
         .finish_setting_pso();
 
@@ -116,31 +94,10 @@ NODE_EXECUTION_FUNCTION(rasterize)
                     mesh->GetTexcoordBuffer(pxr::TfToken("UVMap")), 2, 0 });
             }
             else {
-                nvrhi::BufferDesc texcoord_buffer_desc = nvrhi::BufferDesc();
-                texcoord_buffer_desc.byteSize =
-                    mesh->PointCount() * sizeof(pxr::GfVec2f);
-                texcoord_buffer_desc.isVertexBuffer = true;
-                texcoord_buffer_desc.initialState =
-                    nvrhi::ResourceStates::ShaderResource;
-                texcoord_buffer_desc.debugName = "texcoordBuffer";
-                texcoord_buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
-                auto texcoord_buffer =
-                    resource_allocator.create(texcoord_buffer_desc);
+                auto texcoord_buffer = create_buffer<pxr::GfVec2f>(
+                    params, mesh->PointCount(), { 0, 0 });
 
                 MARK_DESTROY_NVRHI_RESOURCE(texcoord_buffer);
-
-                // fill the buffer with default values
-                std::vector<pxr::GfVec2f> texcoords(
-                    mesh->PointCount(), { 0, 0 });
-                auto ptr = resource_allocator.device->mapBuffer(
-                    texcoord_buffer, nvrhi::CpuAccessMode::Write);
-
-                memcpy(
-                    ptr,
-                    texcoords.data(),
-                    texcoords.size() * sizeof(pxr::GfVec2f));
-
-                resource_allocator.device->unmapBuffer(texcoord_buffer);
 
                 state.addVertexBuffer(
                     nvrhi::VertexBufferBinding{ texcoord_buffer, 2, 0 });

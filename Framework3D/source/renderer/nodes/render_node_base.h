@@ -82,6 +82,30 @@ inline BufferHandle get_model_buffer(
     return model_buffer;
 }
 
+template<typename T>
+inline BufferHandle
+create_buffer(ExeParams& params, size_t count, const T& init_value = {})
+{
+    nvrhi::BufferDesc buffer_desc = nvrhi::BufferDesc();
+    buffer_desc.byteSize = count * sizeof(T);
+    buffer_desc.isVertexBuffer = true;
+    buffer_desc.initialState = nvrhi::ResourceStates::ShaderResource;
+    buffer_desc.debugName = typeid(T).name();
+    buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
+    auto buffer = resource_allocator.create(buffer_desc);
+
+    // fill the buffer with default values
+    std::vector<T> cpu_data(count, init_value);
+    auto ptr = resource_allocator.device->mapBuffer(
+        buffer, nvrhi::CpuAccessMode::Write);
+
+    memcpy(ptr, cpu_data.data(), cpu_data.size() * sizeof(T));
+
+    resource_allocator.device->unmapBuffer(buffer);
+
+    return buffer;
+}
+
 inline TextureHandle create_default_render_target(
     ExeParams& params,
     nvrhi::Format format = nvrhi::Format::RGBA8_UNORM)

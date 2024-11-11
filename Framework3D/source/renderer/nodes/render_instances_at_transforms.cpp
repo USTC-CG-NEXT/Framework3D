@@ -54,22 +54,8 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
     context.set_render_target(0, output_texture)
         .set_depth_stencil_target(depth_stencil_texture)
         .finish_setting_frame_buffer()
-        .add_vertex_buffer_desc(
-            "POSITION",
-            nvrhi::Format::RGB32_FLOAT,
-            0,
-            1,
-            0,
-            sizeof(pxr::GfVec3f),
-            false)
-        .add_vertex_buffer_desc(
-            "NORMAL",
-            nvrhi::Format::RGB32_FLOAT,
-            1,
-            1,
-            0,
-            sizeof(pxr::GfVec3f),
-            false)
+        .add_vertex_buffer_desc("POSITION", 0, nvrhi::Format::RGB32_FLOAT)
+        .add_vertex_buffer_desc("NORMAL", 1, nvrhi::Format::RGB32_FLOAT)
         .set_viewport(size)
         .finish_setting_pso();
 
