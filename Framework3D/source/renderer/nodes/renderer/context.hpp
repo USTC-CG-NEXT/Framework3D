@@ -9,8 +9,11 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 class GPUContext {
    public:
-    virtual ~GPUContext() = default;
+    virtual ~GPUContext();
 
+    GPUContext(ResourceAllocator& r, ProgramVars& vars);
+
+    virtual void begin();
     virtual void finish();
 
    protected:

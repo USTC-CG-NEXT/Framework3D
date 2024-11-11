@@ -10,9 +10,14 @@ NODE_DECLARATION_FUNCTION(render_instances_at_transforms)
 {
     b.add_input<std::string>("Instance");
     b.add_input<nvrhi::BufferHandle>("Transforms");
+    b.add_input<int>("Buffer Size").min(0).max(100).default_val(0);
 
-    b.add_output<nvrhi::TextureHandle>("Draw");
+    b.add_output<nvrhi::TextureHandle>("Position");
     b.add_output<nvrhi::TextureHandle>("Depth");
+    b.add_output<nvrhi::TextureHandle>("Texcoords");
+    b.add_output<nvrhi::TextureHandle>("DiffuseColor");
+    b.add_output<nvrhi::TextureHandle>("MetallicRoughness");
+    b.add_output<nvrhi::TextureHandle>("Normal");
 }
 
 NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
@@ -39,6 +44,11 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
     auto transforms = params.get_input<nvrhi::BufferHandle>("Transforms");
 
     auto output_texture = create_default_render_target(params);
+    auto normal_texture = create_default_render_target(params);
+    auto texcoord_texture =
+        create_default_render_target(params, nvrhi::Format::RG8_UNORM);
+    auto diffuse_color_texture = create_default_render_target(params);
+    auto metallic_roughness_texture = create_default_render_target(params);
 
     auto depth_stencil_texture = create_default_depth_stencil(params);
 
@@ -52,6 +62,10 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
     RenderContext context(resource_allocator, program_vars);
 
     context.set_render_target(0, output_texture)
+        .set_render_target(1, texcoord_texture)
+        .set_render_target(2, diffuse_color_texture)
+        .set_render_target(3, metallic_roughness_texture)
+        .set_render_target(4, normal_texture)
         .set_depth_stencil_target(depth_stencil_texture)
         .finish_setting_frame_buffer()
         .add_vertex_buffer_desc("POSITION", 0, nvrhi::Format::RGB32_FLOAT)
@@ -61,6 +75,11 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
 
     auto instance_count =
         transforms->getDesc().byteSize / sizeof(pxr::GfMatrix4f);
+
+    auto instance_count_from_input = params.get_input<int>("Buffer Size");
+    if (instance_count_from_input) {
+        instance_count = instance_count_from_input;
+    }
 
     program_vars["modelMatrixBuffer"] = transforms;
     program_vars["viewConstant"] = view_cb;
@@ -91,7 +110,12 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
     }
     context.finish();
 
-    params.set_output("Draw", output_texture);
+    params.set_output("Position", output_texture);
+    params.set_output("Normal", normal_texture);
+    params.set_output("Texcoords", texcoord_texture);
+    params.set_output("DiffuseColor", diffuse_color_texture);
+    params.set_output("MetallicRoughness", metallic_roughness_texture);
+
     params.set_output("Depth", depth_stencil_texture);
     return true;
 }

@@ -49,7 +49,8 @@ void vs_main(
     // Pass through the normal
     o_output.position.y *= -1;
 
-    o_output.normal = mul(float4(i_input.normal, 0.0), modelMatrix).xyz;
+    o_output.normal =
+        normalize(mul(float4(i_input.normal, 0.0), modelMatrix).xyz);
 
 #if defined(ENABLE_TEXCOORD)
     o_output.texcoord = i_input.texcoord;
@@ -67,7 +68,7 @@ void ps_main(
 {
     // Simply output the color passed from the vertex shader
     o_pos = float4(input.worldPos, 1.0);
-    o_normal = float4(input.normal * 0.5 + 0.5, 1.0);
+    o_normal = float4(-input.normal, 1.0);
     depth = input.position.z;
     o_diffuse_color = float4(1, 0, 1, 1);
     o_metallic_roughness = float4(0.5, 0.5, 0, 1);

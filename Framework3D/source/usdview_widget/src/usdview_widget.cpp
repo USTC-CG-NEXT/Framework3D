@@ -259,8 +259,8 @@ void UsdviewEngine::OnFrame(float delta_time)
         ImGui::Image(
             static_cast<ImTextureID>(data_->nvrhi_texture.Get()),
             imgui_frame_size,
-            ImVec2(0.0f, 0.0f),
-            ImVec2(1.0f, 1.0f));
+            ImVec2(0.0f, 1.0f),
+            ImVec2(1.0f, 0.0f));
     else {
         log ::warning("No image!");
     }

@@ -9,11 +9,8 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 RenderContext::RenderContext(
     ResourceAllocator& resource_allocator,
     ProgramVars& vars)
-    : resource_allocator_(resource_allocator),
-      vars_(vars)
+    : GPUContext(resource_allocator, vars)
 {
-    commandList_ = resource_allocator_.create(CommandListDesc{});
-
     auto programs = vars.get_programs();
 
     for (auto program : programs) {
@@ -36,7 +33,6 @@ RenderContext::RenderContext(
 
 RenderContext::~RenderContext()
 {
-    resource_allocator_.destroy(commandList_);
     resource_allocator_.destroy(framebuffer_);
     resource_allocator_.destroy(graphics_pipeline);
     resource_allocator_.destroy(vs_shader);
@@ -203,12 +199,6 @@ void RenderContext::begin()
         nvrhi::utils::ClearColorAttachment(
             commandList_, framebuffer_, i, nvrhi::Color(0));
     }
-}
-
-void RenderContext::finish()
-{
-    commandList_->close();
-    resource_allocator_.device->executeCommandList(commandList_);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

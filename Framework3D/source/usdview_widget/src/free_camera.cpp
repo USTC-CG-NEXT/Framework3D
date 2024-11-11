@@ -205,7 +205,7 @@ void FirstPersonCamera::Animate(double deltaT)
 
         cameraRotation =
             pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), -yaw) * cameraRotation;
-        cameraRotation = pxr::GfRotation(m_CameraRight, pitch) * cameraRotation;
+        cameraRotation = pxr::GfRotation(m_CameraRight, -pitch) * cameraRotation;
 
         cameraDirty = true;
     }

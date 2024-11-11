@@ -1,5 +1,4 @@
 #pragma once
-
 #include "RHI/ResourceManager/resource_allocator.hpp"
 #include "context.hpp"
 #include "nvrhi/nvrhi.h"
@@ -29,7 +28,7 @@ struct GraphicsRenderState {
 class RenderContext : public GPUContext {
    public:
     explicit RenderContext(ResourceAllocator& r, ProgramVars& vars);
-    ~RenderContext();
+    ~RenderContext() override;
 
     RenderContext& set_render_target(
         unsigned i,
@@ -67,8 +66,7 @@ class RenderContext : public GPUContext {
         bool isInstanced = false);
 
     RenderContext& finish_setting_pso();
-    void begin();
-    void finish();
+    void begin() override;
 
    private:
     nvrhi::GraphicsPipelineDesc pipeline_desc;

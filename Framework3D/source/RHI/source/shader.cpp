@@ -241,15 +241,15 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         slang::TypeReflection* type_reflection = parameter->getType();
         SlangResourceShape resource_shape = type_reflection->getResourceShape();
 
+        std::string name = parameter->getName();
+
         auto categoryCount = parameter->getCategoryCount();
-        assert(categoryCount == 1);
-        auto category =
-            SlangParameterCategory(parameter->getCategoryByIndex(0));
+        auto category = SlangParameterCategory(
+            parameter->getCategoryByIndex(categoryCount-1));
 
         auto index = parameter->getBindingIndex();
         auto space = parameter->getBindingSpace(category);
 
-        std::string name = parameter->getName();
         binding_locations[name] = std::make_tuple(space, pp);
 
         auto bindingRangeCount = typeLayout->getBindingRangeCount();
@@ -265,6 +265,7 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         if (layout_vector.size() < space + 1) {
             layout_vector.resize(space + 1);
         }
+        assert(categoryCount == 1);
 
         layout_vector[space].addItem(item);
         layout_vector[space].visibility = shader_type;
