@@ -27,7 +27,6 @@ NODE_DECLARATION_FUNCTION(render_blit_to_present)
 {
     b.add_input<nvrhi::TextureHandle>("Tex");
     b.add_output<nvrhi::TextureHandle>("Tex");
-    b.add_storage<BlitParameters>();
 }
 
 static bool IsSupportedBlitDimension(nvrhi::TextureDimension dimension)

@@ -12,7 +12,6 @@ struct RNGStorage {
 NODE_DECLARATION_FUNCTION(render_rng_texture)
 {
     b.add_output<nvrhi::TextureHandle>("Random Number");
-    b.add_storage<RNGStorage>();
 }
 
 NODE_EXECUTION_FUNCTION(render_rng_texture)

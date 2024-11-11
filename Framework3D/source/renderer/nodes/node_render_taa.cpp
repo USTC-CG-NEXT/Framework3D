@@ -17,8 +17,6 @@ NODE_DECLARATION_FUNCTION(render_taa)
     b.add_input<nvrhi::TextureHandle>("Motion Vector");
 
     b.add_output<nvrhi::TextureHandle>("Output Frame");
-
-    b.add_runtime_storage<CameraState>();
 }
 
 NODE_EXECUTION_FUNCTION(render_taa)

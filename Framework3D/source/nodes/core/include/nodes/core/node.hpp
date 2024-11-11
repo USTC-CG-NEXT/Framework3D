@@ -324,14 +324,6 @@ class NodeDeclarationBuilder {
         const char* name,
         const char* identifier = "");
 
-    // The difference between storage and runtime storage is that storaged types
-    // are expected to have the method of serialize() and deserialize().
-    template<typename Data>
-    void add_storage();
-
-    template<typename Data>
-    void add_runtime_storage();
-
    private:
     /* Note: in_out can be a combination of SOCK_IN and SOCK_OUT.
      * The generated socket declarations only have a single flag set. */
@@ -357,18 +349,6 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_output(
     const char* identifier)
 {
     return add_socket<T>(name, "", identifier, PinKind::Output);
-}
-
-template<typename Data>
-void NodeDeclarationBuilder::add_storage()
-{
-    register_cpp_type<Data>();
-}
-
-template<typename Data>
-void NodeDeclarationBuilder::add_runtime_storage()
-{
-    register_cpp_type<Data>();
 }
 
 template<typename T>

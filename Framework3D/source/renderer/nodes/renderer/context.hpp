@@ -16,6 +16,8 @@ class GPUContext {
     virtual void begin();
     virtual void finish();
 
+    void clear_texture(nvrhi::ITexture* texture, nvrhi::Color color = { 0 });
+
    protected:
     ResourceAllocator& resource_allocator_;
     ProgramVars& vars_;

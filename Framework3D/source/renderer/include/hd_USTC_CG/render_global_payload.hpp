@@ -67,6 +67,7 @@ struct RenderGlobalPayload {
     ShaderFactory shader_factory;
     nvrhi::IDevice* nvrhi_device;
     nvrhi::rt::IAccelStruct* TLAS = nullptr;
+    bool reset_accumulation = false;
 
     auto& get_cameras() const
     {

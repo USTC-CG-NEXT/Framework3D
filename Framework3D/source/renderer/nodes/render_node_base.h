@@ -6,8 +6,11 @@
 #include "../source/light.h"
 #include "../source/material.h"
 #include "RHI/ResourceManager/resource_allocator.hpp"
+#include "RHI/internal/resources.hpp"
 #include "hd_USTC_CG/render_global_payload.hpp"
 #include "nodes/core/node_exec.hpp"
+#include "nvrhi/nvrhi.h"
+#include "renderer/program_vars.hpp"
 #include "shaders/shaders/utils/view_cb.h"
 #include "utils/cam_to_view_contants.h"
 #include "utils/resource_cleaner.hpp"
@@ -29,6 +32,8 @@ inline Hd_USTC_CG_Camera* get_free_camera(
     }
     return free_camera;
 }
+
+#define global_payload params.get_global_payload<RenderGlobalPayload&>()
 
 inline ResourceAllocator& get_resource_allocator(ExeParams& params)
 {
@@ -193,6 +198,19 @@ inline TextureHandle create_default_render_target(
             .setIsRenderTarget(true);
     auto output_texture = resource_allocator.create(desc);
     return output_texture;
+}
+
+inline void initialize_texture(
+    ExeParams& params,
+    nvrhi::ITexture* texture,
+    const nvrhi::Color& color)
+{
+    auto command_list = resource_allocator.create(CommandListDesc{});
+    command_list->open();
+    command_list->clearTextureFloat(texture, {}, color);
+    command_list->close();
+    resource_allocator.device->executeCommandList(command_list);
+    resource_allocator.destroy(command_list);
 }
 
 inline TextureHandle create_default_depth_stencil(ExeParams& params)

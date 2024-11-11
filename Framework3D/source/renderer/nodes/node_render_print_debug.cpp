@@ -15,8 +15,6 @@ NODE_EXECUTION_FUNCTION(debug_info)
     // auto meshes = params.get_input<MeshArray>("Meshes");
     // MaterialMap materials = params.get_input<MaterialMap>("Materials");
 
-    auto& global_payload = params.get_global_payload<RenderGlobalPayload&>();
-
     for (auto&& camera : global_payload.get_cameras()) {
         std::cout << camera->GetTransform() << std::endl;
     }

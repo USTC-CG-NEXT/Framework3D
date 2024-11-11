@@ -33,9 +33,11 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 
     {
         std::lock_guard lock(render_param->TLAS->edit_instances_mutex);
-        node_system->get_node_tree_executor()
-            ->get_global_payload<RenderGlobalPayload&>()
-            .TLAS = render_param->TLAS->get_tlas();
+
+        auto& global_payload = node_system->get_node_tree_executor()
+                                   ->get_global_payload<RenderGlobalPayload&>();
+        global_payload.TLAS = render_param->TLAS->get_tlas();
+        global_payload.reset_accumulation = false;
 
         node_system->execute(false);
     }

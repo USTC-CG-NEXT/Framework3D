@@ -1,10 +1,10 @@
 #include "utils/view_cb.h"
 
 // ---[ Constant Buffers ]---
-ConstantBuffer<PlanarViewConstants> viewConstant : register(b0);
+ConstantBuffer<PlanarViewConstants> viewConstant;
 
 // Using a StructuredBuffer to hold the model matrices
-StructuredBuffer<float4x4> modelMatrixBuffer : register(t0);
+StructuredBuffer<float4x4> modelMatrixBuffer;
 
 // Function to get the model matrix for a given instance
 float4x4 GetModelMatrix(uint instanceID)

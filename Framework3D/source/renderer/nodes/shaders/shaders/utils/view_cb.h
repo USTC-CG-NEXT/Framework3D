@@ -28,7 +28,25 @@
 struct PlanarViewConstants {
 #ifdef __cplusplus
     USING_PXR_MATH_TYPES
+    friend bool operator==(
+        const PlanarViewConstants& lhs,
+        const PlanarViewConstants& rhs)
+    {
+        return lhs.matWorldToClip == rhs.matWorldToClip &&
+               lhs.resolution == rhs.resolution &&
+               lhs.viewportOrigin == rhs.viewportOrigin &&
+               lhs.viewportSize == rhs.viewportSize &&
+               lhs.pixelOffset == rhs.pixelOffset;
+    }
+
+    friend bool operator!=(
+        const PlanarViewConstants& lhs,
+        const PlanarViewConstants& rhs)
+    {
+        return !(lhs == rhs);
+    }
 #endif
+
     float4x4 matWorldToView;
     float4x4 matViewToClip;
     float4x4 matWorldToClip;

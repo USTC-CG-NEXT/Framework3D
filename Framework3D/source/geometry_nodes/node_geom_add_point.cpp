@@ -23,8 +23,6 @@ struct AddedPoints {
 
 NODE_DECLARATION_FUNCTION(geom_add_point)
 {
-    b.add_storage<AddedPoints>();
-
     b.add_input<float>("Width").min(0.001).max(1).default_val(0.1f);
 
     b.add_output<Geometry>("Points");

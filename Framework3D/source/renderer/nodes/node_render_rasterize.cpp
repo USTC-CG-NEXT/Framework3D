@@ -80,6 +80,13 @@ NODE_EXECUTION_FUNCTION(rasterize)
         params.get_global_payload<RenderGlobalPayload&>().get_meshes();
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {
         if (mesh->GetVertexBuffer()) {
+            log::info("Mesh: %s", mesh->GetId().GetString().c_str());
+
+            auto model_matrix = get_model_buffer(params, mesh->GetTransform());
+            MARK_DESTROY_NVRHI_RESOURCE(model_matrix);
+            program_vars["modelMatrixBuffer"] = model_matrix;
+            program_vars.finish_setting_vars();
+
             GraphicsRenderState state;
             state
                 .addVertexBuffer(
@@ -102,11 +109,6 @@ NODE_EXECUTION_FUNCTION(rasterize)
                 state.addVertexBuffer(
                     nvrhi::VertexBufferBinding{ texcoord_buffer, 2, 0 });
             }
-
-            auto model_matrix = get_model_buffer(params, mesh->GetTransform());
-            MARK_DESTROY_NVRHI_RESOURCE(model_matrix);
-            program_vars["modelMatrixBuffer"] = model_matrix;
-            program_vars.finish_setting_vars();
 
             context.draw(state, program_vars, mesh->IndexCount());
         }

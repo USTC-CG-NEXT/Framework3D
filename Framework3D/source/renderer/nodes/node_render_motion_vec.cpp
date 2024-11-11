@@ -4,7 +4,6 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/motion_vec_cb.h"
-
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
 
@@ -18,8 +17,6 @@ NODE_DECLARATION_FUNCTION(render_motion_vec)
     b.add_input<nvrhi::TextureHandle>("World Position");
 
     b.add_output<nvrhi::TextureHandle>("Motion Vector");
-
-    b.add_runtime_storage<PrevCamStatus>();
 }
 
 NODE_EXECUTION_FUNCTION(render_motion_vec)
@@ -35,7 +32,6 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
     texture_info.format = nvrhi::Format::RGBA32_FLOAT;
     auto output = resource_allocator.create(texture_info);
 
-    
     std::string error_string;
     ShaderReflectionInfo reflection;
     auto compute_shader = shader_factory.compile_shader(
@@ -50,8 +46,8 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
 
     if (!error_string.empty()) {
         resource_allocator.destroy(output);
-        log::warning(error_string.c_str()); 
-return false;
+        log::warning(error_string.c_str());
+        return false;
     }
 
     auto binding_layout = resource_allocator.create(binding_layout_desc_vec[0]);
