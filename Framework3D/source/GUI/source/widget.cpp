@@ -56,6 +56,22 @@ void IWidget::DrawArc(
     draw_list->PathStroke(color, false, thickness);
 }
 
+void IWidget::DrawFunction(
+    const std::function<float(float)>& f,
+    ImVec2 range,
+    ImVec2 origin_pos)
+{
+    // draw a function in the window
+    const float step = 2.f;
+    ImVec2 p1 = ImVec2(range.x, -f(range.x)) + origin_pos;
+    for (float x = range.x + step; x <= range.y; x += step) {
+        ImVec2 p2 = ImVec2(x, -f(x)) + origin_pos;
+
+        DrawLine(p1, p2);
+        p1 = p2;
+    }
+}
+
 void IWidget::End()
 {
     ImGui::End();

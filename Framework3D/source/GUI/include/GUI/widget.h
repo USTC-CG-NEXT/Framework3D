@@ -91,6 +91,8 @@ class GUI_API IWidget {
         ImColor color = ImColor(0.9f, 0.9f, 0.9f),
         int segments = 0);
 
+    void DrawFunction(const std::function<float(float)>& f, ImVec2 range, ImVec2 origin_pos);
+
    private:
     bool is_open = true;
 

@@ -18,6 +18,8 @@ bool DiffOpticsGUI::BuildUI()
 
     DrawArc({ 100, 100 }, 50, 0, 3.14, 2, ImColor(255, 0, 0, 255), 100);
 
+    DrawFunction([](float x) { return 0.1*x * x; }, { -30, 30 }, { 300, 300 });
+
     ImGui::End();
     // ImGui::ShowDemoWindow();
     return true;
