@@ -45,6 +45,8 @@ class GUI_API IWidget {
     // Give a widget ability to create another widget.
     Window* window;
     std::function<void(Window*, IWidget*)> call_back_;
+    ImDrawList* draw_list;
+    ImVec2 window_pos;
 
     virtual void FirstUseEver() const;
 
@@ -57,6 +59,37 @@ class GUI_API IWidget {
 
     bool size_changed = true;
     virtual bool Begin();
+
+   protected:
+    // Some utility functions
+
+    void DrawCircle(
+        ImVec2 center,
+        float radius,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f),
+        int segments = 0);
+
+    void DrawLine(
+        ImVec2 p1,
+        ImVec2 p2,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f));
+
+    void DrawRect(
+        ImVec2 p1,
+        ImVec2 p2,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f));
+
+    void DrawArc(
+        ImVec2 center,
+        float radius,
+        float a_min,
+        float a_max,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f),
+        int segments = 0);
 
    private:
     bool is_open = true;

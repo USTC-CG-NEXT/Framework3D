@@ -1,14 +1,59 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "GUI/widget.h"
 
 #include "RHI/DeviceManager/DeviceManager.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 bool IWidget::Begin()
 {
     FirstUseEver();
-    return ImGui::Begin(
-        GetWindowUniqueName().c_str(), &is_open, GetWindowFlag());
+
+    auto ret =
+        ImGui::Begin(GetWindowUniqueName().c_str(), &is_open, GetWindowFlag());
+    draw_list = ImGui::GetWindowDrawList();
+    window_pos = ImGui::GetWindowPos();
+    return ret;
+}
+
+void IWidget::DrawCircle(
+    ImVec2 center,
+    float radius,
+    float thickness,
+    ImColor color,
+    int segments)
+{
+    // draw a circle in the window
+    draw_list->AddCircle(
+        center + window_pos, radius, color, segments, thickness);
+}
+
+void IWidget::DrawLine(ImVec2 p1, ImVec2 p2, float thickness, ImColor color)
+{
+    // draw a line in the window
+    draw_list->AddLine(p1 + window_pos, p2 + window_pos, color, thickness);
+}
+
+void IWidget::DrawRect(ImVec2 p1, ImVec2 p2, float thickness, ImColor color)
+{
+    // draw a rectangle in the window
+    draw_list->AddRect(
+        p1 + window_pos, p2 + window_pos, color, 0, 0, thickness);
+}
+
+void IWidget::DrawArc(
+    ImVec2 center,
+    float radius,
+    float a_min,
+    float a_max,
+    float thickness,
+    ImColor color,
+    int segments)
+{
+    draw_list->PathArcTo(center + window_pos, radius, a_min, a_max, segments);
+    draw_list->PathStroke(color, false, thickness);
 }
 
 void IWidget::End()
