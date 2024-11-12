@@ -12,7 +12,7 @@ def scan_cpp_files(directories, files, pattern):
             for file in dir_files:
                 if file.endswith('.cpp'):
                     file_path = os.path.join(root, file)
-                    with open(file_path, 'r') as f:
+                    with open(file_path, 'r', encoding = 'utf-8') as f:
                         content = f.read()
                         matches = compiled_pattern.findall(content)
                         if matches:
@@ -21,7 +21,7 @@ def scan_cpp_files(directories, files, pattern):
 
     for file in files:
         if file.endswith('.cpp'):
-            with open(file, 'r') as f:
+            with open(file, 'r', encoding = 'utf-8') as f:
                 content = f.read()
                 matches = compiled_pattern.findall(content)
                 if matches:
