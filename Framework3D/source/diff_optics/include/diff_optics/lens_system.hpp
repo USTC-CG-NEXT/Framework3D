@@ -12,7 +12,7 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class LensSystemGUI;
-class Pupil;
+class Occluder;
 class LensLayer;
 class DiffOpticsGUI;
 
@@ -57,6 +57,8 @@ class LensLayer {
 
     pxr::GfVec2f center_pos;
 
+    OpticalProperty optical_property;
+
    protected:
     std::shared_ptr<LensGUIPainter> painter;
     friend class LensSystemGUI;
@@ -92,17 +94,17 @@ class NullPainter : public LensGUIPainter {
     }
 };
 
-class PupilPainter;
+class OccluderPainter;
 
-class Pupil : public LensLayer {
+class Occluder : public LensLayer {
    public:
-    explicit Pupil(float radius, float center_x, float center_y);
+    explicit Occluder(float radius, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
 
     float radius;
 };
 
-class PupilPainter : public LensGUIPainter {
+class OccluderPainter : public LensGUIPainter {
    public:
     BBox2D get_bounds(LensLayer* layer) override;
     void draw(

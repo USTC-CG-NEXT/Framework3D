@@ -10,6 +10,121 @@
 #include "pxr/base/gf/vec2f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
+OpticalProperty get_optical_property(const std::string& name)
+{
+    std::string upper_name = name;
+    std::transform(
+        upper_name.begin(), upper_name.end(), upper_name.begin(), ::toupper);
+
+    if (upper_name == "VACUUM") {
+        return OpticalProperty{ 1.0, std::numeric_limits<float>::infinity() };
+    }
+    else if (upper_name == "AIR") {
+        return OpticalProperty{ 1.000293,
+                                std::numeric_limits<float>::infinity() };
+    }
+    else if (upper_name == "OCCLUDER") {
+        return OpticalProperty{ 1.0, std::numeric_limits<float>::infinity() };
+    }
+    else if (upper_name == "F2") {
+        return OpticalProperty{ 1.620, 36.37 };
+    }
+    else if (upper_name == "F15") {
+        return OpticalProperty{ 1.60570, 37.831 };
+    }
+    else if (upper_name == "UVFS") {
+        return OpticalProperty{ 1.458, 67.82 };
+    }
+    else if (upper_name == "BK10") {
+        return OpticalProperty{ 1.49780, 66.954 };
+    }
+    else if (upper_name == "N-BAF10") {
+        return OpticalProperty{ 1.67003, 47.11 };
+    }
+    else if (upper_name == "N-BK7") {
+        return OpticalProperty{ 1.51680, 64.17 };
+    }
+    else if (upper_name == "N-SF1") {
+        return OpticalProperty{ 1.71736, 29.62 };
+    }
+    else if (upper_name == "N-SF2") {
+        return OpticalProperty{ 1.64769, 33.82 };
+    }
+    else if (upper_name == "N-SF4") {
+        return OpticalProperty{ 1.75513, 27.38 };
+    }
+    else if (upper_name == "N-SF5") {
+        return OpticalProperty{ 1.67271, 32.25 };
+    }
+    else if (upper_name == "N-SF6") {
+        return OpticalProperty{ 1.80518, 25.36 };
+    }
+    else if (upper_name == "N-SF6HT") {
+        return OpticalProperty{ 1.80518, 25.36 };
+    }
+    else if (upper_name == "N-SF8") {
+        return OpticalProperty{ 1.68894, 31.31 };
+    }
+    else if (upper_name == "N-SF10") {
+        return OpticalProperty{ 1.72828, 28.53 };
+    }
+    else if (upper_name == "N-SF11") {
+        return OpticalProperty{ 1.78472, 25.68 };
+    }
+    else if (upper_name == "SF1") {
+        return OpticalProperty{ 1.71736, 29.51 };
+    }
+    else if (upper_name == "SF2") {
+        return OpticalProperty{ 1.64769, 33.85 };
+    }
+    else if (upper_name == "SF4") {
+        return OpticalProperty{ 1.75520, 27.58 };
+    }
+    else if (upper_name == "SF5") {
+        return OpticalProperty{ 1.67270, 32.21 };
+    }
+    else if (upper_name == "SF6") {
+        return OpticalProperty{ 1.80518, 25.43 };
+    }
+    else if (upper_name == "SF18") {
+        return OpticalProperty{ 1.72150, 29.245 };
+    }
+    else if (upper_name == "BAF10") {
+        return OpticalProperty{ 1.67, 47.05 };
+    }
+    else if (upper_name == "SK1") {
+        return OpticalProperty{ 1.61030, 56.712 };
+    }
+    else if (upper_name == "SK16") {
+        return OpticalProperty{ 1.62040, 60.306 };
+    }
+    else if (upper_name == "SSK4") {
+        return OpticalProperty{ 1.61770, 55.116 };
+    }
+    else if (upper_name == "B270") {
+        return OpticalProperty{ 1.52290, 58.50 };
+    }
+    else if (upper_name == "S-NPH1") {
+        return OpticalProperty{ 1.8078, 22.76 };
+    }
+    else if (upper_name == "D-K59") {
+        return OpticalProperty{ 1.5175, 63.50 };
+    }
+    else if (upper_name == "FLINT") {
+        return OpticalProperty{ 1.6200, 36.37 };
+    }
+    else if (upper_name == "PMMA") {
+        return OpticalProperty{ 1.491756, 58.00 };
+    }
+    else if (upper_name == "POLYCARB") {
+        return OpticalProperty{ 1.585470, 30.00 };
+    }
+    else {
+        return OpticalProperty{ 1.0, 0.0 };
+    }
+}
+
 BBox2D::BBox2D() : min(1e9, 1e9), max(-1e9, -1e9)
 {
 }
@@ -68,22 +183,16 @@ NullLayer::NullLayer(float center_x, float center_y)
     painter = std::make_shared<NullPainter>();
 }
 
-void NullLayer::deserialize(const nlohmann::json& j)
+Occluder::Occluder(float radius, float x, float y)
+    : radius(radius),
+      LensLayer(x, y)
 {
+    painter = std::make_shared<OccluderPainter>();
 }
 
-Pupil::Pupil(float radius, float x, float y) : radius(radius), LensLayer(x, y)
+BBox2D OccluderPainter::get_bounds(LensLayer* layer)
 {
-    painter = std::make_shared<PupilPainter>();
-}
-
-void Pupil::deserialize(const nlohmann::json& j)
-{
-}
-
-BBox2D PupilPainter::get_bounds(LensLayer* layer)
-{
-    auto pupil = dynamic_cast<Pupil*>(layer);
+    auto pupil = dynamic_cast<Occluder*>(layer);
     auto radius = pupil->radius;
     auto center_pos = pupil->center_pos;
     return BBox2D{
@@ -92,12 +201,12 @@ BBox2D PupilPainter::get_bounds(LensLayer* layer)
     };
 }
 
-void PupilPainter::draw(
+void OccluderPainter::draw(
     DiffOpticsGUI* gui,
     LensLayer* layer,
     const pxr::GfMatrix3f& xform)
 {
-    auto pupil = dynamic_cast<Pupil*>(layer);
+    auto pupil = dynamic_cast<Occluder*>(layer);
 
     pxr::GfVec2f ep1 = { pupil->center_pos[0],
                          pupil->center_pos[1] + pupil->radius };
@@ -137,10 +246,6 @@ LensFilm::LensFilm(float d, float roc, float center_x, float center_y)
     painter = std::make_shared<LensFilmPainter>();
 }
 
-void LensFilm::deserialize(const nlohmann::json& j)
-{
-}
-
 BBox2D LensFilmPainter::get_bounds(LensLayer* layer)
 {
     auto film = dynamic_cast<LensFilm*>(layer);
@@ -167,20 +272,22 @@ void LensFilmPainter::draw(
     auto transformed_sphere_center =
         transform *
         pxr::GfVec3f(film->sphere_center[0], film->sphere_center[1], 1);
+
+    float theta_min = -film->theta_range + M_PI;
+    float theta_max = film->theta_range + M_PI;
+    if (film->radius_of_curvature < 0) {
+        theta_min = -film->theta_range;
+        theta_max = film->theta_range;
+    }
     gui->DrawArc(
         ImVec2(transformed_sphere_center[0], transformed_sphere_center[1]),
-        film->radius_of_curvature * transform[0][0],
-        -film->theta_range + M_PI,
-        film->theta_range + M_PI);
+        abs(film->radius_of_curvature) * transform[0][0],
+        theta_min,
+        theta_max);
 }
 
 LensSystem::LensSystem() : gui(std::make_unique<LensSystemGUI>(this))
 {
-}
-
-void LensSystem::deserialize(const std::string& json)
-{
-    nlohmann::json j = nlohmann::json::parse(json);
 }
 
 void LensSystemGUI::set_canvas_size(float x, float y)
@@ -224,6 +331,64 @@ void LensSystemGUI::draw(DiffOpticsGUI* gui) const
 
     for (auto& lens : lens_system->lenses) {
         lens->painter->draw(gui, lens.get(), transform);
+    }
+}
+
+void LensLayer::deserialize(const nlohmann::json& j)
+{
+    optical_property = get_optical_property(j["material"]);
+}
+
+void NullLayer::deserialize(const nlohmann::json& j)
+{
+    LensLayer::deserialize(j);
+}
+
+void Occluder::deserialize(const nlohmann::json& j)
+{
+    LensLayer::deserialize(j);
+    radius = j["diameter"].get<float>() / 2.0f;
+}
+
+void LensFilm::deserialize(const nlohmann::json& j)
+{
+    LensLayer::deserialize(j);
+    diameter = j["diameter"];
+    radius_of_curvature = j["roc"];
+    theta_range = atan(diameter / (2 * radius_of_curvature));
+    sphere_center = { center_pos[0] + radius_of_curvature, center_pos[1] };
+    if (j.contains("additional_params")) {
+        high_order_polynomial_coefficients =
+            j["additional_params"].get<std::vector<float>>();
+    }
+}
+
+void LensSystem::deserialize(const std::string& json)
+{
+    nlohmann::json j = nlohmann::json::parse(json);
+    float accumulated_distance = 0.0f;
+    for (const auto& item : j["data"]) {
+        std::shared_ptr<LensLayer> layer;
+        accumulated_distance += item["distance"].get<float>();
+        if (item["type"] == "O") {
+            layer = std::make_shared<NullLayer>(accumulated_distance, 0.0f);
+        }
+        else if (item["type"] == "A") {
+            layer = std::make_shared<Occluder>(
+                item["diameter"].get<float>() / 2.0f,
+                accumulated_distance,
+                0.0f);
+        }
+        else if (item["type"] == "S") {
+            layer = std::make_shared<LensFilm>(
+                item["diameter"].get<float>() / 2.0f,
+                item["roc"],
+                accumulated_distance,
+                0.0f);
+        }
+
+        layer->deserialize(item);
+        add_lens(layer);
     }
 }
 

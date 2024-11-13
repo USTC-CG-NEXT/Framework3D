@@ -95,13 +95,6 @@ const char* str = R"(
             "roc": -19.226275376106166,
             "diameter": 14.0,
             "material": "VACUUM"
-        },
-        {
-            "type": "I",
-            "distance": 17.42769142705,
-            "roc": 0.0,
-            "diameter": 20.664,
-            "material": "VACUUM"
         }
     ]
 }
@@ -110,8 +103,25 @@ const char* str = R"(
 
 TEST(dO_T, diff_optics)
 {
+    Window window;
     LensSystem lens_system;
 
     std::string json = std::string(str);
     lens_system.deserialize(json);
+}
+
+TEST(dO_GUI_T, diff_optics_json)
+{
+    Window window;
+
+    LensSystem lens_system;
+
+    std::string json = std::string(str);
+    lens_system.deserialize(json);
+
+    auto gui = createDiffOpticsGUI(&lens_system);
+
+    window.register_widget(std::move(gui));
+
+    window.run();
 }
