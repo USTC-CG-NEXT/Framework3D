@@ -7,6 +7,8 @@
 
 #include "api.h"
 #include "imgui.h"
+#include "io/json.hpp"
+#include "pxr/base/gf/vec2f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class LensSystemGUI;
@@ -24,11 +26,11 @@ struct BBox2D {
     // Default init to an impossible bound
     BBox2D();
 
-    BBox2D(ImVec2 min, ImVec2 max);
-    ImVec2 min;
-    ImVec2 max;
+    BBox2D(pxr::GfVec2f min, pxr::GfVec2f max);
+    pxr::GfVec2f min;
+    pxr::GfVec2f max;
 
-    ImVec2 center() const;
+    pxr::GfVec2f center() const;
 
     BBox2D operator+(const BBox2D& b) const;
 
@@ -47,18 +49,47 @@ class LensLayer {
    public:
     LensLayer(float center_x, float center_y);
     virtual ~LensLayer();
-
     virtual void EmitShader();
-
     void set_axis(float axis_pos);
-
     void set_pos(float x);
 
-    ImVec2 center_pos;
+    virtual void deserialize(const nlohmann::json& j) = 0;
+
+    pxr::GfVec2f center_pos;
 
    protected:
     std::shared_ptr<LensGUIPainter> painter;
     friend class LensSystemGUI;
+};
+
+class NullPainter;
+class NullLayer : public LensLayer {
+   public:
+    NullLayer(float center_x, float center_y);
+    void deserialize(const nlohmann::json& j) override;
+
+   private:
+    friend class NullPainter;
+};
+
+class NullPainter : public LensGUIPainter {
+   public:
+    BBox2D get_bounds(LensLayer* layer) override
+    {
+        // a box of (1,1) at the center
+        return BBox2D{
+            pxr::GfVec2f(
+                layer->center_pos[0] - 0.5, layer->center_pos[1] - 0.5),
+            pxr::GfVec2f(
+                layer->center_pos[0] + 0.5, layer->center_pos[1] + 0.5),
+        };
+    }
+    void draw(
+        DiffOpticsGUI* gui,
+        LensLayer* layer,
+        const pxr::GfMatrix3f& transform) override
+    {
+    }
 };
 
 class PupilPainter;
@@ -66,6 +97,8 @@ class PupilPainter;
 class Pupil : public LensLayer {
    public:
     explicit Pupil(float radius, float center_x, float center_y);
+    void deserialize(const nlohmann::json& j) override;
+
     float radius;
 };
 
@@ -80,23 +113,21 @@ class PupilPainter : public LensGUIPainter {
 
 class LensFilm : public LensLayer {
    public:
-    LensFilm(float d, float roc, float center_x, float center_y)
-        : LensLayer(center_x, center_y),
-          diameter(d),
-          radius_of_curvature(roc),
-          optical_property()
-    {
-    }
+    LensFilm(float d, float roc, float center_x, float center_y);
+    void deserialize(const nlohmann::json& j) override;
 
    private:
-    const bool is_spherical = true;
-
     float diameter;
     float radius_of_curvature;
+    float theta_range;
+
+    pxr::GfVec2f sphere_center;
 
     std::vector<float> high_order_polynomial_coefficients;
 
     OpticalProperty optical_property;
+
+    friend class LensFilmPainter;
 };
 
 class LensFilmPainter : public LensGUIPainter {
@@ -117,6 +148,8 @@ class LensSystem {
         lenses.push_back(lens);
     }
 
+    void deserialize(const std::string& json);
+
    private:
     std::unique_ptr<LensSystemGUI> gui;
     std::vector<std::shared_ptr<LensLayer>> lenses;
@@ -136,7 +169,7 @@ class LensSystemGUI {
     virtual void draw(DiffOpticsGUI* gui) const;
 
    private:
-    ImVec2 canvas_size;
+    pxr::GfVec2f canvas_size;
 
     LensSystem* lens_system;
 };

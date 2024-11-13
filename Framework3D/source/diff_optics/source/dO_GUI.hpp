@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GUI/window.h>
 #include <GUI/widget.h>
 #include <diff_optics/api.h>
 
