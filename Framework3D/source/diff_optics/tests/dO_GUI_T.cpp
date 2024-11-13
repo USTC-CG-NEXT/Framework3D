@@ -12,7 +12,7 @@ TEST(dO_GUI_T, diff_optics_gui)
     Window window;
 
     LensSystem lens_system;
-    lens_system.add_lens(std::make_shared<Pupil>(1.0f, 10, 300));
+    lens_system.add_lens(std::make_shared<Pupil>(0.1f, 10, 0));
     auto gui = createDiffOpticsGUI(&lens_system);
 
     window.register_widget(std::move(gui));

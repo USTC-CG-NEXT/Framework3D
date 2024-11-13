@@ -3,18 +3,20 @@
 #include <GUI/widget.h>
 #include <diff_optics/api.h>
 
+#include <memory>
+
 namespace USTC_CG {
+class LensSystemGUI;
 class LensSystem;
-}
+}  // namespace USTC_CG
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class DiffOpticsGUI : public IWidget {
    public:
-    DiffOpticsGUI(LensSystem* lens_system) : lens_system(lens_system)
-    {
-    }
+    explicit DiffOpticsGUI(LensSystem* lens_system);
     bool BuildUI() override;
 
     LensSystem* lens_system;
+    std::unique_ptr<LensSystemGUI> lens_gui;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE
