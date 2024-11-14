@@ -20,3 +20,6 @@ add_nodes(
 	DEP_LIBS usd RHI hd_USTC_CG render_nodes_facilities
 	COMPILE_DEFS NOMINMAX 
 )
+
+
+target_link_libraries(physical_lens_raygen PUBLIC diff_optics)

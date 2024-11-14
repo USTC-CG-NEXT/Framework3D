@@ -16,10 +16,23 @@ DiffOpticsGUI::DiffOpticsGUI(LensSystem* lens_system)
 
 bool DiffOpticsGUI::BuildUI()
 {
-    lens_gui->set_canvas_size(Width(), Height());
-    lens_gui->draw(this);
+    FirstUseEver();
 
-    // ImGui::ShowDemoWindow();
+    ImGui::Begin("Lens Canvas", nullptr, ImGuiWindowFlags_None);
+    draw_list = ImGui::GetWindowDrawList();
+    window_pos = ImGui::GetWindowPos();
+    lens_gui->set_canvas_size(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+    lens_gui->draw(this);
+    ImGui::End();
+
+     FirstUseEver();
+
+     ImGui::Begin("Lens Controller", nullptr, ImGuiWindowFlags_None);
+     draw_list = ImGui::GetWindowDrawList();
+     window_pos = ImGui::GetWindowPos();
+     lens_gui->control(this);
+     ImGui::End();
+
     return true;
 }
 

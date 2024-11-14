@@ -16,6 +16,16 @@ class DiffOpticsGUI : public IWidget {
    public:
     explicit DiffOpticsGUI(LensSystem* lens_system);
     bool BuildUI() override;
+    
+   protected:
+    bool Begin() override
+    {
+        return true;
+    }
+
+    void End() override
+    {
+    }
 
     LensSystem* lens_system;
     std::unique_ptr<LensSystemGUI> lens_gui;

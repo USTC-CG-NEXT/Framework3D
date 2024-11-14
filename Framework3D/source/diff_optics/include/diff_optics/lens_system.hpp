@@ -43,6 +43,14 @@ class LensGUIPainter {
     virtual BBox2D get_bounds(LensLayer*) = 0;
     virtual void
     draw(DiffOpticsGUI* gui, LensLayer*, const pxr::GfMatrix3f& transform) = 0;
+    virtual void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) = 0;
+
+    const char* UniqueUIName(const char* name)
+    {
+        static char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s##%p", name, this);
+        return buffer;
+    }
 };
 
 class LensLayer {
@@ -95,6 +103,8 @@ class NullPainter : public LensGUIPainter {
         const pxr::GfMatrix3f& transform) override
     {
     }
+
+    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
 class OccluderPainter;
@@ -119,11 +129,14 @@ class OccluderPainter : public LensGUIPainter {
         DiffOpticsGUI* gui,
         LensLayer* layer,
         const pxr::GfMatrix3f& transform) override;
+
+    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
-class LensFilm : public LensLayer {
+class CurvedLens : public LensLayer {
    public:
-    LensFilm(float d, float roc, float center_x, float center_y);
+    void update_info(float center_x, float center_y);
+    CurvedLens(float d, float roc, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
     void EmitShader(
         int id,
@@ -139,18 +152,40 @@ class LensFilm : public LensLayer {
 
     std::vector<float> high_order_polynomial_coefficients;
 
-    OpticalProperty optical_property;
-
-    friend class LensFilmPainter;
+    friend class CurvedLensPainter;
 };
 
-class LensFilmPainter : public LensGUIPainter {
+class CurvedLensPainter : public LensGUIPainter {
    public:
     BBox2D get_bounds(LensLayer* layer) override;
     void draw(
         DiffOpticsGUI* gui,
         LensLayer* layer,
         const pxr::GfMatrix3f& transform) override;
+    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
+};
+
+class FlatLens : public LensLayer {
+   public:
+    FlatLens(float d, float center_x, float center_y);
+    void deserialize(const nlohmann::json& j);
+
+    void
+    EmitShader(int id, std::string& constant_buffer, std::string& execution);
+
+   private:
+    float diameter;
+    friend class FlatLensPainter;
+};
+
+class FlatLensPainter : public LensGUIPainter {
+   public:
+    BBox2D get_bounds(LensLayer* layer) override;
+    void draw(
+        DiffOpticsGUI* gui,
+        LensLayer* layer,
+        const pxr::GfMatrix3f& transform) override;
+    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
 class LensSystem {
@@ -180,6 +215,7 @@ class LensSystemGUI {
     void set_canvas_size(float x, float y);
 
     virtual void draw(DiffOpticsGUI* gui) const;
+    void control(DiffOpticsGUI* diff_optics_gui);
 
    private:
     pxr::GfVec2f canvas_size;

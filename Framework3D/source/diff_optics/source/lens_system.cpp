@@ -186,6 +186,14 @@ NullLayer::NullLayer(float center_x, float center_y)
     painter = std::make_shared<NullPainter>();
 }
 
+void NullPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+{
+    // Slider control the center position
+
+    ImGui::SliderFloat2(
+        UniqueUIName("Center"), get->center_pos.data(), -40, 40);
+}
+
 Occluder::Occluder(float radius, float x, float y)
     : radius(radius),
       LensLayer(x, y)
@@ -238,20 +246,37 @@ void OccluderPainter::draw(
         ImVec2(tep3_2d[0], tep3_2d[1]), ImVec2(tep4_2d[0], tep4_2d[1]));
 }
 
-LensFilm::LensFilm(float d, float roc, float center_x, float center_y)
-    : LensLayer(center_x, center_y),
-      diameter(d),
-      radius_of_curvature(roc),
-      optical_property()
+void OccluderPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 {
-    theta_range = atan(diameter / (2 * radius_of_curvature));
-    sphere_center = { center_x + radius_of_curvature, center_y };
-    painter = std::make_shared<LensFilmPainter>();
+    // float sliders
+    auto occluder = dynamic_cast<Occluder*>(get);
+
+    // Slider control the center position
+    ImGui::SliderFloat2(
+        UniqueUIName("Center"), occluder->center_pos.data(), -40, 40);
+
+    ImGui::SliderFloat(UniqueUIName("Radius"), &occluder->radius, 0, 20);
 }
 
-BBox2D LensFilmPainter::get_bounds(LensLayer* layer)
+void CurvedLens::update_info(float center_x, float center_y)
 {
-    auto film = dynamic_cast<LensFilm*>(layer);
+    assert(radius_of_curvature != 0);
+    theta_range = asin(diameter / (2 * radius_of_curvature));
+    sphere_center = { center_x + radius_of_curvature, center_y };
+}
+
+CurvedLens::CurvedLens(float d, float roc, float center_x, float center_y)
+    : LensLayer(center_x, center_y),
+      diameter(d),
+      radius_of_curvature(roc)
+{
+    update_info(center_x, center_y);
+    painter = std::make_shared<CurvedLensPainter>();
+}
+
+BBox2D CurvedLensPainter::get_bounds(LensLayer* layer)
+{
+    auto film = dynamic_cast<CurvedLens*>(layer);
 
     auto roc = film->radius_of_curvature;
     auto diameter = film->diameter;
@@ -259,18 +284,18 @@ BBox2D LensFilmPainter::get_bounds(LensLayer* layer)
     auto right = film->sphere_center[0] - roc * cos(film->theta_range);
 
     return BBox2D{
-        pxr::GfVec2f(center_pos[0], center_pos[1] - diameter),
-        pxr::GfVec2f(right, center_pos[1] + diameter),
+        pxr::GfVec2f(center_pos[0], center_pos[1] - diameter / 2),
+        pxr::GfVec2f(right, center_pos[1] + diameter / 2),
     };
 }
 
-void LensFilmPainter::draw(
+void CurvedLensPainter::draw(
     DiffOpticsGUI* gui,
     LensLayer* layer,
     const pxr::GfMatrix3f& transform)
 {
     auto center_pos = layer->center_pos;
-    auto film = dynamic_cast<LensFilm*>(layer);
+    auto film = dynamic_cast<CurvedLens*>(layer);
 
     auto transformed_sphere_center =
         transform *
@@ -287,6 +312,115 @@ void LensFilmPainter::draw(
         abs(film->radius_of_curvature) * transform[0][0],
         theta_min,
         theta_max);
+}
+
+void CurvedLensPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+{
+    // float sliders
+    auto film = dynamic_cast<CurvedLens*>(get);
+
+    bool changed = false;
+
+    changed |= ImGui::SliderFloat2(
+        UniqueUIName("Center"), film->center_pos.data(), -40, 40);
+    changed |=
+        ImGui::SliderFloat(UniqueUIName("Diameter"), &film->diameter, 0, 20);
+    changed |= ImGui::SliderFloat(
+        UniqueUIName("Radius of Curvature"),
+        &film->radius_of_curvature,
+        -100,
+        100);
+
+    if (changed) {
+        film->update_info(film->center_pos[0], film->center_pos[1]);
+    }
+}
+
+FlatLens::FlatLens(float d, float center_x, float center_y)
+    : LensLayer(center_x, center_y),
+      diameter(d)
+{
+    painter = std::make_shared<FlatLensPainter>();
+}
+
+void FlatLens::deserialize(const nlohmann::json& j)
+{
+    LensLayer::deserialize(j);
+    diameter = j["diameter"];
+}
+
+void FlatLens::EmitShader(
+    int id,
+    std::string& constant_buffer,
+    std::string& execution)
+{
+    constant_buffer += indent_str(indent) + "float lens_diameter_" +
+                       std::to_string(id) + ";\n";
+    constant_buffer += indent_str(indent) + "float lens_center_pos_" +
+                       std::to_string(id) + ";\n";
+    // Optical Properties
+
+    constant_buffer += indent_str(indent) + "float lens_optical_property_" +
+                       std::to_string(id) + "_refractive_index;\n";
+    constant_buffer += indent_str(indent) + "float lens_optical_property_" +
+                       std::to_string(id) + "_abbe_number;\n";
+
+    if (id == 0) {
+    }
+    else {
+        execution +=
+            indent_str(indent) +
+            "ray = intersect_flat(ray, weight, "
+            "lens_system_data.lens_diameter_" +
+            std::to_string(id) + ", lens_system_data.lens_center_pos_" +
+            std::to_string(id) + ", lens_system_data.lens_optical_property_" +
+            std::to_string(id) +
+            "_refractive_index, "
+            "lens_system_data.lens_optical_property_" +
+            std::to_string(id) + "_abbe_number);\n";
+    }
+}
+
+BBox2D FlatLensPainter::get_bounds(LensLayer* layer)
+{
+    auto film = dynamic_cast<FlatLens*>(layer);
+    auto diameter = film->diameter;
+    auto center_pos = film->center_pos;
+    return BBox2D{
+        pxr::GfVec2f(center_pos[0], center_pos[1] - diameter / 2),
+        pxr::GfVec2f(center_pos[0] + 1, center_pos[1] + diameter / 2),
+    };
+}
+
+void FlatLensPainter::draw(
+    DiffOpticsGUI* gui,
+    LensLayer* layer,
+    const pxr::GfMatrix3f& transform)
+{
+    auto film = dynamic_cast<FlatLens*>(layer);
+
+    auto center_pos = film->center_pos;
+    auto diameter = film->diameter;
+
+    auto ep1 = pxr::GfVec2f(center_pos[0], center_pos[1] + diameter / 2);
+    auto ep2 = pxr::GfVec2f(center_pos[0], center_pos[1] - diameter / 2);
+
+    auto tep1 = transform * pxr::GfVec3f(ep1[0], ep1[1], 1);
+    auto tep2 = transform * pxr::GfVec3f(ep2[0], ep2[1], 1);
+
+    gui->DrawLine(ImVec2(tep1[0], tep1[1]), ImVec2(tep2[0], tep2[1]));
+}
+
+void FlatLensPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+{
+    // float sliders
+    auto film = dynamic_cast<FlatLens*>(get);
+
+    // Slider control the center position
+    ImGui::SliderFloat2(
+        UniqueUIName("Center"), film->center_pos.data(), -40, 40);
+
+    ImGui::SliderFloat(UniqueUIName("Diameter"), &film->diameter, 0, 20);
 }
 
 LensSystem::LensSystem() : gui(std::make_unique<LensSystemGUI>(this))
@@ -317,8 +451,9 @@ void LensSystemGUI::draw(DiffOpticsGUI* gui) const
     auto canvas_center = pxr::GfVec2f(canvas_size[0] / 2, canvas_size[1] / 2);
 
     auto scale = std::min(
-        canvas_size[0] / (bound.max[0] - bound.min[0]),
-        canvas_size[1] / (bound.max[1] - bound.min[1]));
+                     canvas_size[0] / (bound.max[0] - bound.min[0]),
+                     canvas_size[1] / (bound.max[1] - bound.min[1])) *
+                 0.85f;
 
     // create transform such that send center of bound to center of canvas, and
     // scale the bound to fit the canvas
@@ -342,6 +477,18 @@ void LensSystemGUI::draw(DiffOpticsGUI* gui) const
     }
 }
 
+void LensSystemGUI::control(DiffOpticsGUI* diff_optics_gui)
+{
+    // For each lens, give a imgui subgroup to control the lens
+
+    for (auto&& lens_layer : lens_system->lenses) {
+        if (ImGui::TreeNode(lens_layer->painter->UniqueUIName("Lens Layer"))) {
+            lens_layer->painter->control(diff_optics_gui, lens_layer.get());
+            ImGui::TreePop();
+        }
+    }
+}
+
 void LensLayer::deserialize(const nlohmann::json& j)
 {
     optical_property = get_optical_property(j["material"]);
@@ -358,7 +505,7 @@ void Occluder::deserialize(const nlohmann::json& j)
     radius = j["diameter"].get<float>() / 2.0f;
 }
 
-void LensFilm::deserialize(const nlohmann::json& j)
+void CurvedLens::deserialize(const nlohmann::json& j)
 {
     LensLayer::deserialize(j);
     diameter = j["diameter"];
@@ -387,19 +534,23 @@ void LensSystem::deserialize(const std::string& json)
                 accumulated_distance,
                 0.0f);
         }
-        else if (item["type"] == "S") {
-            layer = std::make_shared<LensFilm>(
-                item["diameter"].get<float>() / 2.0f,
+        else if (item["type"] == "S" && item["roc"].get<float>() != 0) {
+            layer = std::make_shared<CurvedLens>(
+                item["diameter"].get<float>(),
                 item["roc"],
                 accumulated_distance,
                 0.0f);
+        }
+        else if (item["type"] == "S" && item["roc"].get<float>() == 0) {
+            layer = std::make_shared<FlatLens>(
+                item["diameter"].get<float>(), accumulated_distance, 0.0f);
         }
 
         layer->deserialize(item);
         add_lens(layer);
     }
 }
-static const std::string sphere_raygen = R"(
+static const std::string sphere_intersection = R"(
 
 RayDesc intersect_sphere(
     RayDesc ray,
@@ -467,6 +618,43 @@ RayDesc intersect_sphere(
 
 )";
 
+static const std::string flat_intersection = R"(
+RayDesc intersect_flat(
+    RayDesc ray,
+    inout float3 weight,
+    float diameter,
+    float center_pos,
+    float refractive_index,
+    float abbe_number)
+{
+    float3 ray_dir = ray.Direction;
+    float3 ray_pos = ray.Origin;
+    float3 plane_center = float3(0, 0, center_pos);
+
+    // Calculate the vector from the ray origin to the plane center
+    float3 oc = ray_pos - plane_center;
+
+    // Calculate the distance to the intersection point
+    float t = dot(plane_center - ray_pos, float3(0, 0, 1)) / dot(ray_dir, float3(0, 0, 1));
+
+    // Calculate the intersection position
+    float3 intersection_pos = ray_pos + t * ray_dir;
+
+    // Calculate the normal at the intersection point
+    float3 normal = float3(0, 0, 1);
+
+    // Calculate the refracted direction using Snell's law
+    float eta = 1.0 / refractive_index;
+    float cosi = dot(-ray_dir, normal);
+    float k = 1.0 - eta * eta * (1.0 - cosi * cosi);
+    float3 refracted_dir =
+        (k < 0.0) ? float3(0.0, 0.0, 0.0)
+                  : eta * ray_dir + (eta * cosi - sqrt(k)) * normal;
+
+    return RayDesc(intersection_pos, 0, refracted_dir, 1000.f);
+}
+)";
+
 static const std::string sphere_raygen_template = R"(
     RayDesc
 )";
@@ -480,7 +668,7 @@ void Occluder::EmitShader(
                        std::to_string(id) + ";\n";
 }
 
-void LensFilm::EmitShader(
+void CurvedLens::EmitShader(
     int id,
     std::string& constant_buffer,
     std::string& execution)
@@ -535,7 +723,8 @@ std::string LensSystem::gen_slang_shader()
 #include "utils/random.slangh"
 import Utils.Math.MathHelpers;
 )";
-    std::string functions = sphere_raygen + "\n";
+    std::string functions = sphere_intersection + "\n";
+    functions += flat_intersection + "\n";
 
     indent += 4;
 
