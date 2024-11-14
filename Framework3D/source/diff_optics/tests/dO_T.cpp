@@ -4,110 +4,17 @@
 #include <diff_optics/diff_optics.hpp>
 #include <fstream>
 
+#include "../../renderer/nodes/shaders/shaders/utils/PhysicalCamInfo.h"
 #include "../../renderer/nodes/shaders/shaders/utils/ray.h"
 #include "RHI/ShaderFactory/shader.hpp"
 #include "diff_optics/lens_system.hpp"
+#include "diff_optics/lens_system_compiler.hpp"
 
 using namespace USTC_CG;
 
-const char* str = R"(
-{
-    "Originate": "US02532751-1",
-    "data": [
-        {
-            "type": "O",
-            "distance": 0.0,
-            "roc": 0.0,
-            "diameter": 0.0,
-            "material": "VACUUM"
-        },
-        {
-            "type": "S",
-            "distance": 0.0,
-            "roc": 13.354729316461547,
-            "diameter": 17.4,
-            "material": "SSK4",
-            "additional_params": [0.005, 1e-6, 1e-8, -3e-10]
-        },
-        {
-            "type": "S",
-            "distance": 2.2352,
-            "roc": 35.64148197667863,
-            "diameter": 17.4,
-            "material": "VACUUM"
-        },
-        {
-            "type": "S",
-            "distance": 0.0762,
-            "roc": 10.330017837998932,
-            "diameter": 14.0,
-            "material": "SK1"
-        },
-        {
-            "type": "S",
-            "distance": 3.1750,
-            "roc": 0.0,
-            "diameter": 14.0,
-            "material": "F15"
-        },
-        {
-            "type": "S",
-            "distance": 0.9652,
-            "roc": 6.494496063151893,
-            "diameter": 9.0,
-            "material": "VACUUM"
-        },
-        {
-            "type": "A",
-            "distance": 3.8608,
-            "roc": 0.0,
-            "diameter": 4.886,
-            "material": "OCCLUDER"
-        },
-        {
-            "type": "S",
-            "distance": 3.302,
-            "roc": -7.026950339915501,
-            "diameter": 9.0,
-            "material": "F15"
-        },
-        {
-            "type": "S",
-            "distance": 0.9652,
-            "roc": 0.0,
-            "diameter": 12.0,
-            "material": "SK16"
-        },
-        {
-            "type": "S",
-            "distance": 2.7686,
-            "roc": -9.746574604143909,
-            "diameter": 12.0,
-            "material": "VACUUM"
-        },
-        {
-            "type": "S",
-            "distance": 0.0762,
-            "roc": 69.81692521236866,
-            "diameter": 14.0,
-            "material": "SK16"
-        },
-        {
-            "type": "S",
-            "distance": 1.7526,
-            "roc": -19.226275376106166,
-            "diameter": 14.0,
-            "material": "VACUUM"
-        }
-    ]
-}
-
-)";
-
 #include "slang-cpp-types.h"
 
-
-class CPURWTexture : public IRWTexture {
+class CPURWTexture : public CPPPrelude::IRWTexture {
    public:
     CPURWTexture(unsigned width, unsigned height, unsigned format_size)
         : data(new char8_t[width * height * format_size]),
@@ -122,7 +29,7 @@ class CPURWTexture : public IRWTexture {
         delete[] data;
     }
 
-    TextureDimensions GetDimensions(int mipLevel) override
+    CPPPrelude::TextureDimensions GetDimensions(int mipLevel) override
     {
         return { width, height, 1 };
     }
@@ -133,7 +40,7 @@ class CPURWTexture : public IRWTexture {
     }
 
     void Sample(
-        SamplerState samplerState,
+        CPPPrelude::SamplerState samplerState,
         const float* loc,
         void* outData,
         size_t dataSize) override
@@ -142,7 +49,7 @@ class CPURWTexture : public IRWTexture {
     }
 
     void SampleLevel(
-        SamplerState samplerState,
+        CPPPrelude::SamplerState samplerState,
         const float* loc,
         float level,
         void* outData,
@@ -167,9 +74,15 @@ TEST(dO_T, gen_shader)
 {
     LensSystem lens_system;
 
-    std::string json = std::string(str);
+    // load from file lens.json
+    std::ifstream json_file("lens.json");
+    std::string json(
+        (std::istreambuf_iterator<char>(json_file)),
+        std::istreambuf_iterator<char>());
+
     lens_system.deserialize(json);
-    std::string shader_str = lens_system.gen_slang_shader();
+    auto [shader_str, compiled_block] =
+        LensSystemCompiler::compile(&lens_system);
 
     // Save file
     std::ofstream file("lens_shader.slang");
@@ -188,39 +101,73 @@ TEST(dO_T, gen_shader)
         reflection,
         error_string);
 
-    ComputeVaryingInput input;
+    unsigned width = 64;
+    unsigned height = 64;
+    CPPPrelude::ComputeVaryingInput input;
     input.startGroupID = { 0, 0, 0 };
-    input.endGroupID = { 1, 1, 1 };
+    input.endGroupID = { width, height, 1 };
 
     struct UniformState {
-        RWStructuredBuffer<RayInfo> rays;
-        RWTexture2D<uint> random_seeds;
+        CPPPrelude::RWStructuredBuffer<RayInfo> rays;
+        CPPPrelude::RWTexture2D<CPPPrelude::uint> random_seeds;
 
-        RWStructuredBuffer<uint2> pixel_targets;
-        uint2* size;
+        CPPPrelude::RWStructuredBuffer<CPPPrelude::uint2> pixel_targets;
+        CPPPrelude::uint2* size;
 
         void* data;
     } state;
 
-    std::vector<RayInfo> rays(1024, RayInfo());
+    std::vector<RayInfo> rays(width * height, RayInfo());
     state.rays.data = rays.data();
     state.rays.count = rays.size();
-    state.random_seeds.texture = new CPURWTexture(1024, 1024, sizeof(uint));
+    state.random_seeds.texture =
+        new CPURWTexture(width, height, sizeof(CPPPrelude::uint));
 
-    std::vector<uint2> pixel_targets(1024, 1);
+    std::vector<CPPPrelude::uint2> pixel_targets(width * height, 1);
     state.pixel_targets.data = pixel_targets.data();
     state.pixel_targets.count = pixel_targets.size();
 
-    uint2 size = { 1024, 1 };
+    CPPPrelude::uint2 size = { width, height };
     state.size = &size;
+    state.data = compiled_block.parameters.data();
 
-    std::vector<uint8_t> lens_data(lens_system.get_cb_size());
-    state.data = lens_data.data();
+    compiled_block.parameters[0] = 36;
+    compiled_block.parameters[1] = 24;
+
+    compiled_block.parameters[2] = *reinterpret_cast<float*>(&width);
+    compiled_block.parameters[3] = *reinterpret_cast<float*>(&height);
+    compiled_block.parameters[4] = 50.0f;
 
     std::cout << error_string << std::endl;
     std::cout << reflection << std::endl;
 
     program_handle->host_call(input, state);
+
+    std::vector<pxr::GfVec3f> rays_orgs;
+    for (int i = 0; i < rays.size(); ++i) {
+        rays_orgs.push_back(rays[i].Origin);
+    }
+
+    std::vector<pxr::GfVec3f> ray_dirs;
+    for (int i = 0; i < rays.size(); ++i) {
+        ray_dirs.push_back(rays[i].Direction);
+    }
+
+    // paint to a ppm image
+
+    std::ofstream file2("ray_dirs.ppm");
+
+    file2 << "P3\n" << width << " " << height << "\n255\n";
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            pxr::GfVec3f dir = ray_dirs[y * width + x];
+            int r = static_cast<int>((dir[0] + 1.0f) * 0.5f * 255.0f);
+            int g = static_cast<int>((dir[1] + 1.0f) * 0.5f * 255.0f);
+            int b = static_cast<int>((dir[2] + 1.0f) * 0.5f * 255.0f);
+            file2 << r << " " << g << " " << b << "\n";
+        }
+    }
+    file2.close();
 
     Window window;
 }

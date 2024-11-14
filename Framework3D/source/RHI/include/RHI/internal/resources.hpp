@@ -1,5 +1,6 @@
 #pragma once
 
+#define SLANG_PRELUDE_NAMESPACE CPPPrelude
 #include <wrl.h>
 
 #include <RHI/ShaderFactory/shader_reflection.hpp>
@@ -13,7 +14,6 @@
 #include "slang-com-ptr.h"
 #include "slang-cpp-prelude.h"
 #include "slang-cpp-types.h"
-
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class ShaderReflectionInfo;
 struct Program;
@@ -118,10 +118,10 @@ struct RHI_API Program : nvrhi::RefCounter<IProgram> {
     const ShaderReflectionInfo& get_reflection_info() const override;
 
     template<typename T>
-    void host_call(ComputeVaryingInput& input, T& uniform)
+    void host_call(CPPPrelude::ComputeVaryingInput& input, T& uniform)
     {
         if (library) {
-            auto func = reinterpret_cast<ComputeFunc>(
+            auto func = reinterpret_cast<CPPPrelude::ComputeFunc>(
                 library->findFuncByName("computeMain"));
             if (func) {
                 func(&input, NULL, &uniform);

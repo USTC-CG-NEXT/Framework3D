@@ -66,21 +66,13 @@ class LensLayer {
 
     virtual void deserialize(const nlohmann::json& j) = 0;
 
-    virtual unsigned get_cb_size()
-    {
-        return cb_size;
-    }
+    virtual void fill_block_data(float* ptr) = 0;
 
     pxr::GfVec2f center_pos;
 
     OpticalProperty optical_property;
 
    protected:
-    std::string emit_line(const std::string& line, unsigned cb_size_occupied);
-
-    static unsigned cb_offset;
-    unsigned cb_size;
-
     std::shared_ptr<LensGUIPainter> painter;
     friend class LensSystemGUI;
 };
@@ -90,7 +82,7 @@ class NullLayer : public LensLayer {
    public:
     NullLayer(float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
-    unsigned get_cb_size() override;
+    void fill_block_data(float* ptr) override;
 
    private:
     friend class NullPainter;
@@ -130,7 +122,7 @@ class Occluder : public LensLayer {
         std::string& constant_buffer,
         std::string& execution) override;
 
-    unsigned get_cb_size() override;
+    void fill_block_data(float* ptr) override;
 
     float radius;
 };
@@ -155,7 +147,7 @@ class SphericalLens : public LensLayer {
         int id,
         std::string& constant_buffer,
         std::string& execution) override;
-    unsigned get_cb_size() override;
+    void fill_block_data(float* ptr) override;
 
    private:
     float diameter;
@@ -181,10 +173,11 @@ class FlatLens : public LensLayer {
    public:
     FlatLens(float d, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
-    unsigned get_cb_size() override;
 
     void
     EmitShader(int id, std::string& constant_buffer, std::string& execution);
+
+    void fill_block_data(float* ptr) override;
 
    private:
     float diameter;
@@ -220,6 +213,7 @@ class LensSystem {
     std::vector<std::shared_ptr<LensLayer>> lenses;
 
     friend class LensSystemGUI;
+    friend class LensSystemCompiler;
 };
 
 class LensSystemGUI {

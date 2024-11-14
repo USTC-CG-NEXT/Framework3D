@@ -92,7 +92,7 @@ RayInfo intersect_flat(
     float3 intersection_pos = ray_pos + t * ray_dir;
 
     // Calculate the normal at the intersection point
-    float3 normal = float3(0, 0, 1);
+    float3 normal = float3(0, 0, -1);
 
     // Calculate the refracted direction using Snell's law
     float eta = 1.0 / refractive_index;
@@ -107,9 +107,22 @@ RayInfo intersect_flat(
 )";
 
 unsigned LensSystemCompiler::indent = 0;
+unsigned LensSystemCompiler::cb_offset = 0;
+unsigned LensSystemCompiler::cb_size = 0;
 
-std::string LensSystemCompiler::compile(LensSystem* lens_system)
+std::string LensSystemCompiler::emit_line(
+    const std::string& line,
+    unsigned cb_size_occupied)
 {
+    cb_size += cb_size_occupied;
+    return indent_str(indent) + line + ";\n";
+}
+
+std::tuple<std::string, CompiledDataBlock> LensSystemCompiler::compile(
+    LensSystem* lens_system)
+{
+    cb_size = 0;
+
     std::string header = R"(
 #include "utils/random.slangh"
 #include "utils/ray.h"
@@ -121,9 +134,9 @@ import Utils.Math.MathHelpers;
     indent += 4;
 
     std::string const_buffer = "struct LensSystemData\n{\n";
-    const_buffer += indent_str(indent) + "float2 film_size;\n";
-    const_buffer += indent_str(indent) + "int2 film_resolution;\n";
-    const_buffer += indent_str(indent) + "float film_distance;\n";
+    const_buffer += emit_line("float2 film_size;", 2);
+    const_buffer += emit_line("int2 film_resolution;", 2);
+    const_buffer += emit_line("float film_distance;", 1);
 
     std::string raygen_shader =
         "RayInfo raygen(int2 pixel_id, inout float weight, inout uint "
@@ -137,7 +150,8 @@ import Utils.Math.MathHelpers;
     // Sample origin on the film
     raygen_shader += indent_str(indent) +
                      "float2 film_pos = (0.5f+float2(pixel_id)) / "
-                     "float2(lens_system_data.film_resolution);\n";
+                     "float2(lens_system_data.film_resolution) * "
+                     "lens_system_data.film_size;\n";
 
     raygen_shader += indent_str(indent) +
                      "ray.Origin = float3(film_pos, "
@@ -150,12 +164,23 @@ import Utils.Math.MathHelpers;
 
     raygen_shader += indent_str(indent) + "float3 weight = 1;\n";
 
-    cb_size = 0;
+    CompiledDataBlock block;
 
     for (auto lens_layer : lens_system->lenses) {
+        block.parameter_offsets[id] = cb_size;
         lens_layer->EmitShader(id, const_buffer, raygen_shader);
-        cb_size += lens_layer->get_cb_size();
         id++;
+    }
+
+    block.parameters.resize(cb_size);
+    block.cb_size = cb_size;
+
+    for (int i = 0; i < lens_system->lenses.size(); ++i) {
+        auto lens = lens_system->lenses[i];
+
+        auto offset = block.parameter_offsets[i];
+
+        lens->fill_block_data(block.parameters.data() + offset);
     }
 
     const_buffer += "};\n";
@@ -167,7 +192,9 @@ import Utils.Math.MathHelpers;
 
     indent -= 4;
 
-    return header + functions + const_buffer + raygen_shader;
+    auto final_shader = header + functions + const_buffer + raygen_shader;
+
+    return std::make_tuple(final_shader, block);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

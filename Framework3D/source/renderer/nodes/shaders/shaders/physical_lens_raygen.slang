@@ -1,4 +1,5 @@
 
+#include "utils/PhysicalCamInfo.h"
 
 RWStructuredBuffer<RayInfo> rays;
 RWTexture2D<uint> random_seeds;
