@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RAY_H
+#define RAY_H
 
 #include "cpp_shader_macro.h"
 // Constants
@@ -23,4 +24,5 @@ RayDesc get_ray_desc(RayInfo info)
     return ray_desc;
 }
 
+#endif
 #endif

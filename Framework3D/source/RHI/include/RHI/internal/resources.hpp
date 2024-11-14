@@ -11,6 +11,8 @@
 #include "nvrhi_patch.hpp"
 #include "rhi/api.h"
 #include "slang-com-ptr.h"
+#include "slang-cpp-prelude.h"
+#include "slang-cpp-types.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class ShaderReflectionInfo;
@@ -115,10 +117,26 @@ struct RHI_API Program : nvrhi::RefCounter<IProgram> {
     }
     const ShaderReflectionInfo& get_reflection_info() const override;
 
+    template<typename T>
+    void host_call(ComputeVaryingInput& input, T& uniform)
+    {
+        if (library) {
+            auto func = reinterpret_cast<ComputeFunc>(
+                library->findFuncByName("computeMain"));
+            if (func) {
+                func(&input, NULL, &uniform);
+            }
+            else {
+                throw std::runtime_error("Function not found.");
+            }
+        }
+    }
+
    private:
     friend class ShaderFactory;
     ShaderReflectionInfo reflection_info;
     Slang::ComPtr<ISlangBlob> blob;
+    Slang::ComPtr<ISlangSharedLibrary> library;
     std::string error_string;
     ProgramDesc desc;
 };

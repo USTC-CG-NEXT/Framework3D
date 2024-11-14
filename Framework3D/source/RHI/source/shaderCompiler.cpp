@@ -50,6 +50,42 @@ SlangResult SlangShaderCompiler::addHLSLPrelude(slang::IGlobalSession* session)
     return SLANG_OK;
 }
 
+SlangResult SlangShaderCompiler::addCPPPrelude(slang::IGlobalSession* session)
+{
+    std::filesystem::path includePath = ".";
+
+    auto root = find_root(includePath);
+
+    auto prelude_name = "/SDK/slang/include/slang-cpp-prelude.h";
+    std::ostringstream prelude;
+    prelude << "#include \"" << root.generic_string() + prelude_name
+            << "\"\n\n";
+
+    // std::cerr << prelude.str() << std::endl;
+    session->setLanguagePrelude(
+        SLANG_SOURCE_LANGUAGE_CPP, prelude.str().c_str());
+    return SLANG_OK;
+}
+
+SlangResult SlangShaderCompiler::addCPPHeaderInclude(
+    SlangCompileRequest* slangRequest)
+{
+    auto unordered_dense = find_root(".") / "SDK\\unordered_dense\\include";
+    auto unordered_dense_command = "-I" + unordered_dense.generic_string();
+
+    auto prelude_path = find_root(".") / "SDK\\slang\\include";
+
+    auto prelude_command = "-I" + prelude_path.generic_string();
+
+    // Inclusion in prelude should be passed to down stream compilers.....
+    const char* args[] = { "-Xgenericcpp...",
+                           unordered_dense_command.c_str(),
+                           prelude_command.c_str(),
+                           "-X." };
+    return slangRequest->processCommandLineArguments(
+        args, sizeof(args) / sizeof(const char*));
+}
+
 SlangResult SlangShaderCompiler::addHLSLHeaderInclude(
     SlangCompileRequest* slangRequest)
 {
@@ -96,7 +132,6 @@ SlangResult SlangShaderCompiler::addOptiXHeaderInclude(
     SlangCompileRequest* slangRequest)
 {
     auto optix_path = find_root(".") / "usd/hd_USTC_CG_GL/resources/optix/";
-
     auto optix_path_name = "-I" + optix_path.generic_string();
 
     // Inclusion in prelude should be passed to down stream compilers.....

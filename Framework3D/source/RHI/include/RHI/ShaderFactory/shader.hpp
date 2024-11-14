@@ -33,6 +33,15 @@ class RHI_API ShaderFactory {
         std::string& error_string,
         const std::vector<ShaderMacro>& macro_defines = {},
         const std::string& source_code = {});
+        
+    ProgramHandle compile_cpu_executable(
+        const std::string& entryName,
+        nvrhi::ShaderType shader_type,
+        std::filesystem::path shader_path,
+        ShaderReflectionInfo& reflection_info,
+        std::string& error_string,
+        const std::vector<ShaderMacro>& macro_defines = {},
+        const std::string& source_code = {});
 
     ProgramHandle createProgram(const ProgramDesc& desc) const;
 
@@ -51,8 +60,8 @@ class RHI_API ShaderFactory {
         const std::vector<ShaderMacro>& defines,
         ShaderReflectionInfo& shader_reflection,
         Slang::ComPtr<ISlangBlob>& ppResultBlob,
-        std::string& error_string,
-        SlangCompileTarget target) const;
+        Slang::ComPtr<ISlangSharedLibrary>& ppSharedLirary,
+        std::string& error_string, SlangCompileTarget target) const;
 
     void modify_vulkan_binding_shift(nvrhi::BindingLayoutItem& item) const;
 

@@ -108,7 +108,8 @@ std::ostream& operator<<(std::ostream& os, const ShaderReflectionInfo& info)
         auto space_id = std::get<0>(binding_location.second);
         auto location_id = std::get<1>(binding_location.second);
 
-        os << "space: " << space_id << ", location: " << location_id << ", ";
+        os << "space: " << space_id << ", location: " << location_id << "; "
+           << std::endl;
     }
     return os;
 }

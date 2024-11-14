@@ -52,6 +52,7 @@ const ShaderReflectionInfo& Program::get_reflection_info() const
     return reflection_info;
 }
 
+
 ProgramDesc& ProgramDesc::set_path(const std::filesystem::path& path)
 {
     this->path = path;
@@ -128,6 +129,7 @@ Slang::ComPtr<slang::IGlobalSession> createGlobal()
     slang::createGlobalSession(globalSession.writeRef());
 
     SlangShaderCompiler::addHLSLPrelude(globalSession);
+    SlangShaderCompiler::addCPPPrelude(globalSession);
 
     return globalSession;
 }
@@ -245,7 +247,7 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
 
         auto categoryCount = parameter->getCategoryCount();
         auto category = SlangParameterCategory(
-            parameter->getCategoryByIndex(categoryCount-1));
+            parameter->getCategoryByIndex(categoryCount - 1));
 
         auto index = parameter->getBindingIndex();
         auto space = parameter->getBindingSpace(category);
@@ -362,6 +364,53 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     return shader;
 }
 
+ProgramHandle ShaderFactory::compile_cpu_executable(
+    const std::string& entryName,
+    nvrhi::ShaderType shader_type,
+    std::filesystem::path shader_path,
+    ShaderReflectionInfo& reflection_info,
+    std::string& error_string,
+    const std::vector<ShaderMacro>& macro_defines,
+    const std::string& source_code)
+{
+    ProgramDesc desc;
+
+    if (shader_path != "") {
+        desc.set_path(shader_path);
+        desc.set_entry_name(entryName);
+    }
+    for (const auto& macro_define : macro_defines) {
+        desc.define(macro_define.name, macro_define.definition);
+    }
+    desc.shaderType = shader_type;
+    desc.source_code = source_code;
+
+    ProgramHandle program_handle;
+    program_handle = ProgramHandle::Create(new Program());
+
+    program_handle->desc = desc;
+
+    SlangCompileTarget target = SLANG_SHADER_HOST_CALLABLE;
+
+    SlangCompile(
+        std::filesystem::path(shader_search_path) / desc.path,
+        desc.source_code,
+        desc.entry_name.c_str(),
+        desc.shaderType,
+        desc.get_profile().c_str(),
+        desc.macros,
+        program_handle->reflection_info,
+        program_handle->blob,
+        program_handle->library,
+        program_handle->error_string,
+        target);
+
+    reflection_info = program_handle->get_reflection_info();
+    error_string = program_handle->get_error_string();
+
+    return program_handle;
+}
+
 void ShaderFactory::SlangCompile(
     const std::filesystem::path& path,
     const std::string& sourceCode,
@@ -371,6 +420,7 @@ void ShaderFactory::SlangCompile(
     const std::vector<ShaderMacro>& defines,
     ShaderReflectionInfo& shader_reflection,
     Slang::ComPtr<ISlangBlob>& ppResultBlob,
+    Slang::ComPtr<ISlangSharedLibrary>& ppSharedLirary,
     std::string& error_string,
     SlangCompileTarget target) const
 {
@@ -419,6 +469,8 @@ void ShaderFactory::SlangCompile(
     sessionDesc.compilerOptionEntries = compiler_options.data();
     sessionDesc.compilerOptionEntryCount = (SlangInt)compiler_options.size();
     std::vector<std::string> searchPaths = { shader_search_path + "/shaders/" };
+    searchPaths.push_back("./");
+
     std::vector<const char*> slangSearchPaths;
     for (auto& path : searchPaths) {
         slangSearchPaths.push_back(path.data());
@@ -431,7 +483,10 @@ void ShaderFactory::SlangCompile(
 
     SlangCompileRequest* slangRequest = nullptr;
     result = pSlangSession->createCompileRequest(&slangRequest);
-
+    if (target == SLANG_HOST_EXECUTABLE) {
+        result = SlangShaderCompiler::addCPPHeaderInclude(slangRequest);
+        assert(result == SLANG_OK);
+    }
     int translationUnitIndex =
         slangRequest->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
 
@@ -456,6 +511,7 @@ void ShaderFactory::SlangCompile(
     }
 
     const SlangResult compileRes = slangRequest->compile();
+
     auto diagnostics = std::string(slangRequest->getDiagnosticOutput());
     if (!diagnostics.empty()) {
         log::warning(diagnostics.c_str());
@@ -469,7 +525,13 @@ void ShaderFactory::SlangCompile(
     }
 
     shader_reflection = shader_reflect(slangRequest, shaderType);
-    result = slangRequest->getTargetCodeBlob(0, ppResultBlob.writeRef());
+    if (target == SLANG_SHADER_HOST_CALLABLE) {
+        result =
+            slangRequest->getTargetHostCallable(0, ppSharedLirary.writeRef());
+    }
+    else {
+        result = slangRequest->getTargetCodeBlob(0, ppResultBlob.writeRef());
+    }
     assert(result == SLANG_OK);
 
     spDestroyCompileRequest(slangRequest);
@@ -495,6 +557,7 @@ ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
         desc.macros,
         ret->reflection_info,
         ret->blob,
+        ret->library,
         ret->error_string,
         target);
 

@@ -109,6 +109,8 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(NVAPI REQUIRED)
+set(SLANG_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/slang)
+find_package(Slang REQUIRED COMPONENTS slang slang-rt gfx)
 
 add_subdirectory(external)
 

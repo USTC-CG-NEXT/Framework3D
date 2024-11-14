@@ -258,25 +258,25 @@ void OccluderPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
     ImGui::SliderFloat(UniqueUIName("Radius"), &occluder->radius, 0, 20);
 }
 
-void CurvedLens::update_info(float center_x, float center_y)
+void SphericalLens::update_info(float center_x, float center_y)
 {
     assert(radius_of_curvature != 0);
     theta_range = asin(diameter / (2 * radius_of_curvature));
     sphere_center = { center_x + radius_of_curvature, center_y };
 }
 
-CurvedLens::CurvedLens(float d, float roc, float center_x, float center_y)
+SphericalLens::SphericalLens(float d, float roc, float center_x, float center_y)
     : LensLayer(center_x, center_y),
       diameter(d),
       radius_of_curvature(roc)
 {
     update_info(center_x, center_y);
-    painter = std::make_shared<CurvedLensPainter>();
+    painter = std::make_shared<SphericalLensPainter>();
 }
 
-BBox2D CurvedLensPainter::get_bounds(LensLayer* layer)
+BBox2D SphericalLensPainter::get_bounds(LensLayer* layer)
 {
-    auto film = dynamic_cast<CurvedLens*>(layer);
+    auto film = dynamic_cast<SphericalLens*>(layer);
 
     auto roc = film->radius_of_curvature;
     auto diameter = film->diameter;
@@ -289,13 +289,13 @@ BBox2D CurvedLensPainter::get_bounds(LensLayer* layer)
     };
 }
 
-void CurvedLensPainter::draw(
+void SphericalLensPainter::draw(
     DiffOpticsGUI* gui,
     LensLayer* layer,
     const pxr::GfMatrix3f& transform)
 {
     auto center_pos = layer->center_pos;
-    auto film = dynamic_cast<CurvedLens*>(layer);
+    auto film = dynamic_cast<SphericalLens*>(layer);
 
     auto transformed_sphere_center =
         transform *
@@ -314,10 +314,12 @@ void CurvedLensPainter::draw(
         theta_max);
 }
 
-void CurvedLensPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+void SphericalLensPainter::control(
+    DiffOpticsGUI* diff_optics_gui,
+    LensLayer* get)
 {
     // float sliders
-    auto film = dynamic_cast<CurvedLens*>(get);
+    auto film = dynamic_cast<SphericalLens*>(get);
 
     bool changed = false;
 
@@ -347,6 +349,11 @@ void FlatLens::deserialize(const nlohmann::json& j)
 {
     LensLayer::deserialize(j);
     diameter = j["diameter"];
+}
+
+unsigned FlatLens::get_cb_size()
+{
+    return 4 * sizeof(float);
 }
 
 void FlatLens::EmitShader(
@@ -494,9 +501,22 @@ void LensLayer::deserialize(const nlohmann::json& j)
     optical_property = get_optical_property(j["material"]);
 }
 
+std::string LensLayer::emit_line(
+    const std::string& line,
+    unsigned cb_size_occupied)
+{
+    cb_size += cb_size_occupied;
+    return indent_str(indent) + line + ";\n";
+}
+
 void NullLayer::deserialize(const nlohmann::json& j)
 {
     LensLayer::deserialize(j);
+}
+
+unsigned NullLayer::get_cb_size()
+{
+    return 0;
 }
 
 void Occluder::deserialize(const nlohmann::json& j)
@@ -505,17 +525,17 @@ void Occluder::deserialize(const nlohmann::json& j)
     radius = j["diameter"].get<float>() / 2.0f;
 }
 
-void CurvedLens::deserialize(const nlohmann::json& j)
+void SphericalLens::deserialize(const nlohmann::json& j)
 {
     LensLayer::deserialize(j);
     diameter = j["diameter"];
     radius_of_curvature = j["roc"];
     theta_range = atan(diameter / (2 * radius_of_curvature));
     sphere_center = { center_pos[0] + radius_of_curvature, center_pos[1] };
-    if (j.contains("additional_params")) {
-        high_order_polynomial_coefficients =
-            j["additional_params"].get<std::vector<float>>();
-    }
+    // if (j.contains("additional_params")) {
+    //     high_order_polynomial_coefficients =
+    //         j["additional_params"].get<std::vector<float>>();
+    // }
 }
 
 void LensSystem::deserialize(const std::string& json)
@@ -535,7 +555,7 @@ void LensSystem::deserialize(const std::string& json)
                 0.0f);
         }
         else if (item["type"] == "S" && item["roc"].get<float>() != 0) {
-            layer = std::make_shared<CurvedLens>(
+            layer = std::make_shared<SphericalLens>(
                 item["diameter"].get<float>(),
                 item["roc"],
                 accumulated_distance,
@@ -552,8 +572,8 @@ void LensSystem::deserialize(const std::string& json)
 }
 static const std::string sphere_intersection = R"(
 
-RayDesc intersect_sphere(
-    RayDesc ray,
+RayInfo intersect_sphere(
+    RayInfo ray,
     inout float3 weight,
     float radius,
     float center_pos,
@@ -579,7 +599,7 @@ RayDesc intersect_sphere(
     // Check if the ray intersects the sphere
     if (discriminant < 0.0) {
         // No intersection
-        return RayDesc(ray_pos, 0, ray_dir, 0.0);
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
     }
 
     // Calculate the distance to the intersection points
@@ -610,17 +630,17 @@ RayDesc intersect_sphere(
     // Check if the angle is within the allowed range
     if (angle > alpha_range) {
         // No valid intersection within the alpha range
-        return RayDesc(ray_pos, 0, ray_dir, 0.0);
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
     }
 
-    return RayDesc(intersection_pos, 0, refracted_dir, 1000.f);
+    return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
 }
 
 )";
 
 static const std::string flat_intersection = R"(
-RayDesc intersect_flat(
-    RayDesc ray,
+RayInfo intersect_flat(
+    RayInfo ray,
     inout float3 weight,
     float diameter,
     float center_pos,
@@ -651,12 +671,12 @@ RayDesc intersect_flat(
         (k < 0.0) ? float3(0.0, 0.0, 0.0)
                   : eta * ray_dir + (eta * cosi - sqrt(k)) * normal;
 
-    return RayDesc(intersection_pos, 0, refracted_dir, 1000.f);
+    return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
 }
 )";
 
 static const std::string sphere_raygen_template = R"(
-    RayDesc
+    RayInfo
 )";
 
 void Occluder::EmitShader(
@@ -666,9 +686,16 @@ void Occluder::EmitShader(
 {
     constant_buffer += indent_str(indent) + "float occluder_radius_" +
                        std::to_string(id) + ";\n";
+    constant_buffer += indent_str(indent) + "float occluder_center_pos_" +
+                       std::to_string(id) + ";\n";
 }
 
-void CurvedLens::EmitShader(
+unsigned Occluder::get_cb_size()
+{
+    return 2 * sizeof(float);
+}
+
+void SphericalLens::EmitShader(
     int id,
     std::string& constant_buffer,
     std::string& execution)
@@ -717,10 +744,16 @@ void CurvedLens::EmitShader(
     }
 }
 
+unsigned SphericalLens::get_cb_size()
+{
+    return 6 * sizeof(float);
+}
+
 std::string LensSystem::gen_slang_shader()
 {
     std::string header = R"(
 #include "utils/random.slangh"
+#include "utils/ray.h"
 import Utils.Math.MathHelpers;
 )";
     std::string functions = sphere_intersection + "\n";
@@ -734,12 +767,12 @@ import Utils.Math.MathHelpers;
     const_buffer += indent_str(indent) + "float film_distance;\n";
 
     std::string raygen_shader =
-        "RayDesc raygen(int2 pixel_id, inout float weight, inout uint seed)\n{";
+        "RayInfo raygen(int2 pixel_id, inout float weight, inout uint seed)\n{";
 
     int id = 0;
 
     raygen_shader += "\n";
-    raygen_shader += indent_str(indent) + "RayDesc ray;\n";
+    raygen_shader += indent_str(indent) + "RayInfo ray;\n";
 
     // Sample origin on the film
     raygen_shader += indent_str(indent) +
@@ -757,8 +790,11 @@ import Utils.Math.MathHelpers;
 
     raygen_shader += indent_str(indent) + "float3 weight = 1;\n";
 
+    cb_size = 0;
+
     for (auto lens_layer : lenses) {
         lens_layer->EmitShader(id, const_buffer, raygen_shader);
+        cb_size += lens_layer->get_cb_size();
         id++;
     }
 
