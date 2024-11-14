@@ -4,6 +4,7 @@
 #include <diff_optics/diff_optics.hpp>
 #include <fstream>
 
+#include "RHI/ShaderFactory/shader.hpp"
 #include "diff_optics/lens_system.hpp"
 
 using namespace USTC_CG;
@@ -108,19 +109,30 @@ TEST(dO_T, gen_shader)
 
     std::string json = std::string(str);
     lens_system.deserialize(json);
-    std::string shader = lens_system.gen_slang_shader();
-    std::cout << std::endl << shader << std::endl << std::endl;
+    std::string shader_str = lens_system.gen_slang_shader();
 
     // Save file
     std::ofstream file("lens_shader.slang");
-    file << shader;
+    file << shader_str;
     file.close();
 
-    // Call system slangc to compile it to spirv.
+    ShaderFactory shader_factory;
+    shader_factory.set_search_path("../../source/renderer/nodes/shaders");
 
-    auto rst = system("slangc -o lens_shader.spv lens_shader.slang");
+    ShaderReflectionInfo reflection;
+    std::string error_string;
+    auto shader = shader_factory.compile_shader(
+        "raygen",
+        nvrhi::ShaderType::Compute,
+        "",
+        reflection,
+        error_string,
+        {},
+        shader_str);
 
-    ASSERT_EQ(rst, 0);
+    std::cout << reflection << std::endl;
+    ASSERT_TRUE(shader);
+    shader = nullptr;
 
     Window window;
 }

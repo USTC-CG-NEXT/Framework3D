@@ -531,6 +531,10 @@ void LensFilm::EmitShader(
 
 std::string LensSystem::gen_slang_shader()
 {
+    std::string header = R"(
+#include "utils/random.slangh"
+import Utils.Math.MathHelpers;
+)";
     std::string functions = sphere_raygen + "\n";
 
     indent += 4;
@@ -578,7 +582,7 @@ std::string LensSystem::gen_slang_shader()
 
     indent -= 4;
 
-    return functions + const_buffer + raygen_shader;
+    return header + functions + const_buffer + raygen_shader;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

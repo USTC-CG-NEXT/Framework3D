@@ -99,4 +99,18 @@ ShaderReflectionInfo& ShaderReflectionInfo::operator+=(
     return *this;
 }
 
+std::ostream& operator<<(std::ostream& os, const ShaderReflectionInfo& info)
+{
+    // print binding layout using binding locations
+    for (const std::pair<const std::string, std::tuple<unsigned, unsigned>>&
+             binding_location : info.binding_locations) {
+        os << binding_location.first << " : ";
+        auto space_id = std::get<0>(binding_location.second);
+        auto location_id = std::get<1>(binding_location.second);
+
+        os << "space: " << space_id << ", location: " << location_id << ", ";
+    }
+    return os;
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE
