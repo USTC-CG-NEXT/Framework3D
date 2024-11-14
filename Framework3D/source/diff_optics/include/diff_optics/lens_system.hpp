@@ -49,7 +49,10 @@ class LensLayer {
    public:
     LensLayer(float center_x, float center_y);
     virtual ~LensLayer();
-    virtual void EmitShader();
+    virtual void
+    EmitShader(int id, std::string& constant_buffer, std::string& execution)
+    {
+    }
     void set_axis(float axis_pos);
     void set_pos(float x);
 
@@ -101,6 +104,11 @@ class Occluder : public LensLayer {
     explicit Occluder(float radius, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
 
+    void EmitShader(
+        int id,
+        std::string& constant_buffer,
+        std::string& execution) override;
+
     float radius;
 };
 
@@ -117,6 +125,10 @@ class LensFilm : public LensLayer {
    public:
     LensFilm(float d, float roc, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
+    void EmitShader(
+        int id,
+        std::string& constant_buffer,
+        std::string& execution) override;
 
    private:
     float diameter;
@@ -145,10 +157,9 @@ class LensSystem {
    public:
     LensSystem();
 
-    void add_lens(std::shared_ptr<LensLayer> lens)
-    {
-        lenses.push_back(lens);
-    }
+    void add_lens(std::shared_ptr<LensLayer> lens);
+
+    std::string gen_slang_shader();
 
     void deserialize(const std::string& json);
 

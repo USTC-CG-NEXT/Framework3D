@@ -14,3 +14,8 @@ float random_float(inout uint seed)
     float randomFloat = randomValue / 4294967296.0f;
     return randomFloat;
 }
+
+float2 random_float2(inout uint seed)
+{
+    return float2(random_float(seed), random_float(seed));
+}

@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include <diff_optics/diff_optics.hpp>
+#include <fstream>
 
 #include "diff_optics/lens_system.hpp"
 
@@ -101,27 +102,25 @@ const char* str = R"(
 
 )";
 
-TEST(dO_T, diff_optics)
+TEST(dO_T, gen_shader)
 {
-    Window window;
     LensSystem lens_system;
 
     std::string json = std::string(str);
     lens_system.deserialize(json);
-}
+    std::string shader = lens_system.gen_slang_shader();
+    std::cout << std::endl << shader << std::endl << std::endl;
 
-TEST(dO_GUI_T, diff_optics_json)
-{
+    // Save file
+    std::ofstream file("lens_shader.slang");
+    file << shader;
+    file.close();
+
+    // Call system slangc to compile it to spirv.
+
+    auto rst = system("slangc -o lens_shader.spv lens_shader.slang");
+
+    ASSERT_EQ(rst, 0);
+
     Window window;
-
-    LensSystem lens_system;
-
-    std::string json = std::string(str);
-    lens_system.deserialize(json);
-
-    auto gui = createDiffOpticsGUI(&lens_system);
-
-    window.register_widget(std::move(gui));
-
-    window.run();
 }
