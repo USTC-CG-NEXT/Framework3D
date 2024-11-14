@@ -207,8 +207,6 @@ class LensSystem {
 
     void add_lens(std::shared_ptr<LensLayer> lens);
 
-    std::string gen_slang_shader();
-
     unsigned get_cb_size() const
     {
         return cb_size;
