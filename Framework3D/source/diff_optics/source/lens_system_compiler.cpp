@@ -106,6 +106,13 @@ RayInfo intersect_flat(
 }
 )";
 
+const std::string get_relative_refractive_index = R"(
+float get_relative_refractive_index(float refract_id_last, float refract_id_this)
+{
+	return refract_id_this / refract_id_last;
+}
+)";
+
 unsigned LensSystemCompiler::indent = 0;
 unsigned LensSystemCompiler::cb_offset = 0;
 unsigned LensSystemCompiler::cb_size = 0;
@@ -130,6 +137,7 @@ import Utils.Math.MathHelpers;
 )";
     std::string functions = sphere_intersection + "\n";
     functions += flat_intersection + "\n";
+    functions += get_relative_refractive_index + "\n";
 
     indent += 4;
 

@@ -257,19 +257,19 @@ void FlatLens::EmitShader(
     else {
         execution += LensSystemCompiler::emit_line(
             std::string("float reletive_refractive_index_") +
-            std::to_string(id) +
-            +" = lens_system_data.lens_optical_property_" + std::to_string(id) +
-            "_refractive_index / " + "lens_system_data.lens_optical_property_" +
-            std::to_string(id - 1) + "_refractive_index;");
+            std::to_string(id) + " = get_relative_refractive_index(" +
+            "lens_system_data.lens_optical_property_" + std::to_string(id - 1) +
+            "_refractive_index, " + "lens_system_data.lens_optical_property_" +
+            std::to_string(id) + "_refractive_index);");
+
         execution += LensSystemCompiler::emit_line(
             "ray = intersect_flat(ray, weight, "
             "lens_system_data.lens_diameter_" +
             std::to_string(id) + ", lens_system_data.lens_center_pos_" +
-            std::to_string(id) + ", lens_system_data.lens_optical_property_" +
-            std::to_string(id) +
-            "_refractive_index, "
-            "lens_system_data.lens_optical_property_" +
-            std::to_string(id) + "_abbe_number);");
+            std::to_string(id) + ", " + "reletive_refractive_index_" +
+            std::to_string(id) + ", " +
+            "lens_system_data.lens_optical_property_" + std::to_string(id) +
+            "_abbe_number);");
     }
 }
 
@@ -466,6 +466,10 @@ void Occluder::EmitShader(
         "float occluder_radius_" + std::to_string(id), 1);
     constant_buffer += LensSystemCompiler::emit_line(
         "float occluder_center_pos_" + std::to_string(id), 1);
+    constant_buffer += LensSystemCompiler::emit_line(
+        "float occluder_optical_property_" + std::to_string(id) +
+            "_refractive_index;",
+        1);
 }
 
 void Occluder::fill_block_data(float* ptr)
@@ -518,14 +522,22 @@ void SphericalLens::EmitShader(
             "ray.Direction = normalize(sampled_point_" + std::to_string(id) +
             " - ray.Origin);");
     }
+
+    execution += LensSystemCompiler::emit_line(
+        std::string("float reletive_refractive_index_") + std::to_string(id) +
+        " = get_relative_refractive_index(" +
+        "lens_system_data.lens_optical_property_" + std::to_string(id - 1) +
+        "_refractive_index, " + "lens_system_data.lens_optical_property_" +
+        std::to_string(id) + "_refractive_index);");
+
     execution += LensSystemCompiler::emit_line(
         std::string("ray =  intersect_sphere(ray, weight, ") +
         "lens_system_data.lens_diameter_" + std::to_string(id) + ", " +
         "lens_system_data.lens_sphere_center_" + std::to_string(id) + ", " +
         "lens_system_data.lens_theta_range_" + std::to_string(id) + ", " +
-        "lens_system_data.lens_optical_property_" + std::to_string(id) +
-        "_refractive_index, " + "lens_system_data.lens_optical_property_" +
-        std::to_string(id) + "_abbe_number);");
+        "relative_refractive_index_" + std::to_string(id) + ", " +
+        +"lens_system_data.lens_optical_property_" + std::to_string(id) +
+        "_abbe_number);");
 }
 
 void SphericalLens::fill_block_data(float* ptr)
