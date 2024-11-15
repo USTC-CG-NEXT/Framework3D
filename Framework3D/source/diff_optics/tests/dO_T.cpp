@@ -82,7 +82,7 @@ TEST(dO_T, gen_shader)
 
     lens_system.deserialize(json);
     auto [shader_str, compiled_block] =
-        LensSystemCompiler::compile(&lens_system);
+        LensSystemCompiler::compile(&lens_system, true);
 
     // Save file
     std::ofstream file("lens_shader.slang");
@@ -101,8 +101,8 @@ TEST(dO_T, gen_shader)
         reflection,
         error_string);
 
-    unsigned width = 64;
-    unsigned height = 64;
+    unsigned width = 360;
+    unsigned height = 240;
     CPPPrelude::ComputeVaryingInput input;
     input.startGroupID = { 0, 0, 0 };
     input.endGroupID = { width, height, 1 };
@@ -115,6 +115,8 @@ TEST(dO_T, gen_shader)
         CPPPrelude::uint2* size;
 
         void* data;
+        CPPPrelude::RWStructuredBuffer<RayInfo> ray_visualizations[20];
+
     } state;
 
     std::vector<RayInfo> rays(width * height, RayInfo());
@@ -122,6 +124,13 @@ TEST(dO_T, gen_shader)
     state.rays.count = rays.size();
     state.random_seeds.texture =
         new CPURWTexture(width, height, sizeof(CPPPrelude::uint));
+
+    std::vector<std::vector<RayInfo>> ray_visualizations;
+    for (size_t i = 0; i < lens_system.lens_count(); i++) {
+        ray_visualizations.push_back(std::vector<RayInfo>(width * height));
+        state.ray_visualizations[i].data = ray_visualizations[i].data();
+        state.ray_visualizations[i].count = ray_visualizations[i].size();
+    }
 
     std::vector<CPPPrelude::uint2> pixel_targets(width * height, 1);
     state.pixel_targets.data = pixel_targets.data();
@@ -161,10 +170,17 @@ TEST(dO_T, gen_shader)
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             pxr::GfVec3f dir = ray_dirs[y * width + x];
-            int r = static_cast<int>((dir[0] + 1.0f) * 0.5f * 255.0f);
-            int g = static_cast<int>((dir[1] + 1.0f) * 0.5f * 255.0f);
-            int b = static_cast<int>((dir[2] + 1.0f) * 0.5f * 255.0f);
-            file2 << r << " " << g << " " << b << "\n";
+
+            if (!isnan(dir[0])) {
+                int r = static_cast<int>((dir[0] + 1.0f) * 0.5f * 255.0f);
+                int g = static_cast<int>((dir[1] + 1.0f) * 0.5f * 255.0f);
+                int b = static_cast<int>((dir[2] + 1.0f) * 0.5f * 255.0f);
+                file2 << r << " " << g << " " << b << "\n";
+            }
+            else {
+                file2 << "0 0 0"
+                      << "\n";
+            }
         }
     }
     file2.close();

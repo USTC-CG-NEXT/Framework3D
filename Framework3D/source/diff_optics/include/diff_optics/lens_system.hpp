@@ -57,10 +57,10 @@ class LensLayer {
    public:
     LensLayer(float center_x, float center_y);
     virtual ~LensLayer();
-    virtual void
-    EmitShader(int id, std::string& constant_buffer, std::string& execution)
-    {
-    }
+    virtual void EmitShader(
+        int id,
+        std::string& constant_buffer,
+        std::string& execution) = 0;
     void set_axis(float axis_pos);
     void set_pos(float x);
 
@@ -84,6 +84,8 @@ class NullLayer : public LensLayer {
     void deserialize(const nlohmann::json& j) override;
     void fill_block_data(float* ptr) override;
 
+    void
+    EmitShader(int id, std::string& constant_buffer, std::string& execution);
    private:
     friend class NullPainter;
 };
@@ -199,6 +201,11 @@ class LensSystem {
     LensSystem();
 
     void add_lens(std::shared_ptr<LensLayer> lens);
+
+    size_t lens_count() const
+    {
+        return lenses.size();
+    }
 
     unsigned get_cb_size() const
     {

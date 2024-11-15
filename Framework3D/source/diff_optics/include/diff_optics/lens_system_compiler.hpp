@@ -32,7 +32,7 @@ struct LensSystemCompiler {
     }
 
     static std::tuple<std::string, CompiledDataBlock> compile(
-        LensSystem* lens_system);
+        LensSystem* lens_system, bool require_ray_visualization);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
