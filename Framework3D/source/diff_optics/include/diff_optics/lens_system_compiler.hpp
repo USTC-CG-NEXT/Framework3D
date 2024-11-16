@@ -18,6 +18,7 @@ struct LensSystemCompiler {
 
     static const std::string sphere_intersection;
     static const std::string flat_intersection;
+    static const std::string occluder_intersection;
     static unsigned indent;
     static unsigned cb_offset;
     static unsigned cb_size;

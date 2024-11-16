@@ -261,7 +261,7 @@ void FlatLens::EmitShader(
             std::to_string(id) + "_refractive_index);");
 
         execution += LensSystemCompiler::emit_line(
-            "ray = intersect_flat(ray, weight, "
+            "next_ray = intersect_flat(ray, weight, t, "
             "lens_system_data.diameter_" +
             std::to_string(id) + ", lens_system_data.center_pos_" +
             std::to_string(id) + ", " + "relative_refractive_index_" +
@@ -479,6 +479,16 @@ void Occluder::EmitShader(
     constant_buffer += LensSystemCompiler::emit_line(
         "float optical_property_" + std::to_string(id) + "_refractive_index;",
         1);
+
+    if (id == 1) {
+        throw std::runtime_error("Not implemented");
+    }
+    else {
+        execution += LensSystemCompiler::emit_line(
+            std::string("next_ray = intersect_occluder(ray, weight, t, ") +
+            "lens_system_data.radius_" + std::to_string(id) + ", " +
+            "lens_system_data.center_pos_" + std::to_string(id) + ")");
+    }
 }
 
 void Occluder::fill_block_data(float* ptr)
@@ -514,7 +524,7 @@ void SphericalLens::EmitShader(
     if (id == 1) {
         // Sample the target points with the first lens radius, and then
         // calculate the direction based on it.
-
+        
         // suppose we can use random_float2
         execution += LensSystemCompiler::emit_line(
             "float2 seed2 = random_float2(seed);");
@@ -539,8 +549,8 @@ void SphericalLens::EmitShader(
         std::to_string(id) + "_refractive_index);");
 
     execution += LensSystemCompiler::emit_line(
-        std::string("ray =  intersect_sphere(ray, weight, ") +
-        "lens_system_data.diameter_" + std::to_string(id) + ", " +
+        std::string("next_ray =  intersect_sphere(ray, weight, t, ") +
+        "lens_system_data.radius_of_curvature_" + std::to_string(id) + ", " +
         "lens_system_data.sphere_center_" + std::to_string(id) + ", " +
         "lens_system_data.theta_range_" + std::to_string(id) + ", " +
         "relative_refractive_index_" + std::to_string(id) + ", " +
