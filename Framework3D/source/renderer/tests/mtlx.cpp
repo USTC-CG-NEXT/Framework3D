@@ -47,7 +47,8 @@ TEST(MATERIALX, shader_gen)
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     mx::DocumentPtr libraries = mx::createDocument();
     mx::loadLibraries({ "libraries" }, searchPath, libraries);
-    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, libraries);
+    mx::loadLibraries(
+        { "usd/hd_USTC_CG/resources/libraries" }, searchPath, libraries);
 
     auto str = prettyPrint(libraries);
 
@@ -158,7 +159,8 @@ TEST(GenShader, Bind_Light_Shaders)
 
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     loadLibraries({ "libraries" }, searchPath, doc);
-    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
+    mx::loadLibraries(
+        { "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
 
     mx::NodeDefPtr pointLightShader = doc->getNodeDef("ND_point_light");
     mx::NodeDefPtr spotLightShader = doc->getNodeDef("ND_spot_light");
@@ -185,19 +187,7 @@ TEST(GenShader, Bind_Light_Shaders)
         mx::HwShaderGenerator::bindLightShader(*spotLightShader, 66, context));
 }
 
-enum class SlangType { Slang400, Slang420, SlangVulkan };
-
-const std::string SlangTypeToString(SlangType e) throw()
-{
-    switch (e) {
-        case SlangType::Slang420: return "slang420_layout";
-        case SlangType::SlangVulkan: return "slang420_vulkan";
-        case SlangType::Slang400:
-        default: return "slang400";
-    }
-}
-
-static void generateSlangCode(SlangType type = SlangType::Slang400)
+static void generateSlangCode()
 {
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
 
@@ -206,27 +196,21 @@ static void generateSlangCode(SlangType type = SlangType::Slang400)
     testRootPaths.push_back(
         searchPath.find("resources/Materials/Examples/StandardSurface"));
 
-    const mx::FilePath logPath(
-        "genslang_" + SlangTypeToString(type) + "_generate_test.txt");
+    const mx::FilePath logPath(std::string("genslang_") + "generate_test.txt");
 
     bool writeShadersToDisk = true;
     USTC_CG::GenShaderUtil::SlangShaderGeneratorTester tester(
-        (type == SlangType::SlangVulkan) ? mx::VkShaderGenerator::create()
-                                         : mx::SlangShaderGenerator::create(),
+        mx::SlangShaderGenerator::create(),
         testRootPaths,
         searchPath,
         logPath,
         writeShadersToDisk);
 
-    // Add resource binding context for slang 4.20
-    if (type == SlangType::Slang420) {
-        // Set binding context to handle resource binding layouts
-        mx::SlangResourceBindingContextPtr slangresourceBinding(
-            mx::SlangResourceBindingContext::create());
-        slangresourceBinding->enableSeparateBindingLocations(true);
-        tester.addUserData(
-            mx::HW::USER_DATA_BINDING_CONTEXT, slangresourceBinding);
-    }
+    // Set binding context to handle resource binding layouts
+    mx::SlangResourceBindingContextPtr slangresourceBinding(
+        mx::SlangResourceBindingContext::create());
+    slangresourceBinding->enableSeparateBindingLocations(true);
+    tester.addUserData(mx::HW::USER_DATA_BINDING_CONTEXT, slangresourceBinding);
 
     const mx::GenOptions genOptions;
     mx::FilePath optionsFilePath =
@@ -237,17 +221,5 @@ static void generateSlangCode(SlangType type = SlangType::Slang400)
 TEST(GenShader, SLANG_ShaderGeneration)
 {
     // Generate with standard SLANG i.e version 400
-    generateSlangCode(SlangType::Slang400);
-}
-
-TEST(GenShader, SLANG_Shader_with_Layout_Generation)
-{
-    // Generate SLANG with layout i.e version 400 + layout extension
-    generateSlangCode(SlangType::Slang420);
-}
-
-TEST(GenShader, Vulkan_SLANG_Shader)
-{
-    // Generate with SLANG for Vulkan i.e. version 450
-    generateSlangCode(SlangType::SlangVulkan);
+    generateSlangCode();
 }

@@ -346,7 +346,8 @@ void checkImplementations(
         { "libraries/targets", "libraries/stdlib", "libraries/pbrlib" },
         searchPath,
         doc);
-    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
+    mx::loadLibraries(
+        { "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
 
     const std::string& target = shadergen.getTarget();
 
@@ -557,7 +558,8 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
 
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     loadLibraries({ "libraries/targets", "libraries/stdlib" }, searchPath, doc);
-    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
+    mx::loadLibraries(
+        { "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
 
     const std::string exampleName = "unique_names";
 
@@ -849,7 +851,8 @@ void ShaderGeneratorTester::setupDependentLibraries()
 
     // Load the standard libraries.
     loadLibraries({ "libraries" }, _searchPath, _dependLib, _skipLibraryFiles);
-    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, _searchPath, _dependLib);
+    mx::loadLibraries(
+        { "usd/hd_USTC_CG/resources/libraries" }, _searchPath, _dependLib);
 }
 
 LightIdMap ShaderGeneratorTester::computeLightIdMap(
@@ -1129,6 +1132,7 @@ void ShaderGeneratorTester::validate(
                                                : mx::EMPTY_STRING);
 
                         mx::FilePath path = doc->getSourceUri();
+
                         if (!path.isEmpty()) {
                             std::string testFileName = path[path.size() - 1];
                             size_t pos = testFileName.rfind('.');
@@ -1145,6 +1149,11 @@ void ShaderGeneratorTester::validate(
                                 mx::getDefaultDataSearchPath();
                             path = searchPath.isEmpty() ? mx::FilePath()
                                                         : searchPath[0];
+                        }
+
+                        path = mx::FilePath("generated_slang_shader");
+                        if (!path.exists()) {
+                            path.createDirectory();
                         }
 
                         std::vector<mx::FilePath> sourceCodePaths;
