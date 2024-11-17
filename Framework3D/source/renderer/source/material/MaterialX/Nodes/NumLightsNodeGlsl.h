@@ -6,7 +6,7 @@
 #ifndef MATERIALX_NUMLIGHTSNODEGLSL_H
 #define MATERIALX_NUMLIGHTSNODEGLSL_H
 
-#include "GlslShaderGenerator.h"
+#include "../GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

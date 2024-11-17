@@ -6,7 +6,7 @@
 #ifndef MATERIALX_LIGHTNODEGLSL_H
 #define MATERIALX_LIGHTNODEGLSL_H
 
-#include "GlslShaderGenerator.h"
+#include "../GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

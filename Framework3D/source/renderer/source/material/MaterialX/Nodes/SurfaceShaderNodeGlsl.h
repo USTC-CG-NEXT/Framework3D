@@ -6,7 +6,7 @@
 #ifndef MATERIALX_SURFACESHADERNODEGLSL_H
 #define MATERIALX_SURFACESHADERNODEGLSL_H
 
-#include "Export.h"
+#include "../Export.h"
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
 MATERIALX_NAMESPACE_BEGIN

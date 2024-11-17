@@ -4,7 +4,7 @@
 //
 
 #include "HeightToNormalNodeGlsl.h"
-#include "GlslShaderGenerator.h"
+#include "../GlslShaderGenerator.h"
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/GenContext.h>

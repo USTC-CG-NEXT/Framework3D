@@ -6,7 +6,7 @@
 #ifndef MATERIALX_HEIGHTTONORMALNODEGLSL_H
 #define MATERIALX_HEIGHTTONORMALNODEGLSL_H
 
-#include "Export.h"
+#include "../Export.h"
 
 #include <MaterialXGenShader/Nodes/ConvolutionNode.h>
 

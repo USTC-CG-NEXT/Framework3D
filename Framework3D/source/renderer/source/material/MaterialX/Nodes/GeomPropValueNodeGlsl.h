@@ -6,7 +6,7 @@
 #ifndef MATERIALX_GEOMPROPVALUENODEGLSL_H
 #define MATERIALX_GEOMPROPVALUENODEGLSL_H
 
-#include "GlslShaderGenerator.h"
+#include "../GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

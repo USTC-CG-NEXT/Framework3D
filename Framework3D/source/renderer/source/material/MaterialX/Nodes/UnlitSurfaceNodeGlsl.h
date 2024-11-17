@@ -6,8 +6,8 @@
 #ifndef MATERIALX_UNLITSURFACENODEGLSL_H
 #define MATERIALX_UNLITSURFACENODEGLSL_H
 
-#include "Export.h"
-#include "GlslShaderGenerator.h"
+#include "../Export.h"
+#include "../GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

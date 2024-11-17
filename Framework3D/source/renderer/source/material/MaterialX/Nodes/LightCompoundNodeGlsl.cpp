@@ -4,7 +4,7 @@
 //
 
 #include "LightCompoundNodeGlsl.h"
-#include "GlslShaderGenerator.h"
+#include "../GlslShaderGenerator.h"
 
 #include <MaterialXGenShader/Util.h>
 

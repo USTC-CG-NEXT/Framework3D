@@ -4,7 +4,7 @@
 //
 
 #include "SurfaceShaderNodeGlsl.h"
-#include "GlslShaderGenerator.h"
+#include "../GlslShaderGenerator.h"
 
 #include <MaterialXGenShader/Shader.h>
 

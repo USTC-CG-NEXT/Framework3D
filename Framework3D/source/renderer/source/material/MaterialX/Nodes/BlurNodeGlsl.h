@@ -6,7 +6,7 @@
 #ifndef MATERIALX_BLURNODEGLSL_H
 #define MATERIALX_BLURNODEGLSL_H
 
-#include "Export.h"
+#include "../Export.h"
 
 #include <MaterialXGenShader/Nodes/BlurNode.h>
 

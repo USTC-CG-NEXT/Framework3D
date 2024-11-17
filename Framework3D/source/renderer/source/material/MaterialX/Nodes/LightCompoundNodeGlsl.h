@@ -6,7 +6,7 @@
 #ifndef MATERIALX_LIGHTCOMPOUNDNODEGLSL_H
 #define MATERIALX_LIGHTCOMPOUNDNODEGLSL_H
 
-#include "Export.h"
+#include "../Export.h"
 
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Shader.h>

@@ -6,7 +6,7 @@
 #ifndef MATERIALX_GEOMCOLORNODEGLSL_H
 #define MATERIALX_GEOMCOLORNODEGLSL_H
 
-#include "GlslShaderGenerator.h"
+#include "../GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
