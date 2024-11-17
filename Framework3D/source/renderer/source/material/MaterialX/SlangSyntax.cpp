@@ -9,16 +9,15 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-namespace
-{
+namespace {
 
 // Since SLANG doesn't support strings we use integers instead.
 // TODO: Support options strings by converting to a corresponding enum integer
-class SlangStringTypeSyntax : public StringTypeSyntax
-{
-  public:
-    SlangStringTypeSyntax() :
-        StringTypeSyntax("int", "0", "0") { }
+class SlangStringTypeSyntax : public StringTypeSyntax {
+   public:
+    SlangStringTypeSyntax() : StringTypeSyntax("int", "0", "0")
+    {
+    }
 
     string getValue(const Value& /*value*/, bool /*uniform*/) const override
     {
@@ -26,34 +25,33 @@ class SlangStringTypeSyntax : public StringTypeSyntax
     }
 };
 
-class SlangArrayTypeSyntax : public ScalarTypeSyntax
-{
-  public:
-    SlangArrayTypeSyntax(const string& name) :
-        ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
+class SlangArrayTypeSyntax : public ScalarTypeSyntax {
+   public:
+    SlangArrayTypeSyntax(const string& name)
+        : ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
     {
     }
 
     string getValue(const Value& value, bool /*uniform*/) const override
     {
         size_t arraySize = getSize(value);
-        if (arraySize > 0)
-        {
-            return _name + "[" + std::to_string(arraySize) + "](" + value.getValueString() + ")";
+        if (arraySize > 0) {
+            return _name + "[" + std::to_string(arraySize) + "](" +
+                   value.getValueString() + ")";
         }
         return EMPTY_STRING;
     }
 
     string getValue(const StringVec& values, bool /*uniform*/) const override
     {
-        if (values.empty())
-        {
-            throw ExceptionShaderGenError("No values given to construct an array value");
+        if (values.empty()) {
+            throw ExceptionShaderGenError(
+                "No values given to construct an array value");
         }
 
-        string result = _name + "[" + std::to_string(values.size()) + "](" + values[0];
-        for (size_t i = 1; i < values.size(); ++i)
-        {
+        string result =
+            _name + "[" + std::to_string(values.size()) + "](" + values[0];
+        for (size_t i = 1; i < values.size(); ++i) {
             result += ", " + values[i];
         }
         result += ")";
@@ -61,19 +59,18 @@ class SlangArrayTypeSyntax : public ScalarTypeSyntax
         return result;
     }
 
-  protected:
+   protected:
     virtual size_t getSize(const Value& value) const = 0;
 };
 
-class SlangFloatArrayTypeSyntax : public SlangArrayTypeSyntax
-{
-  public:
-    explicit SlangFloatArrayTypeSyntax(const string& name) :
-        SlangArrayTypeSyntax(name)
+class SlangFloatArrayTypeSyntax : public SlangArrayTypeSyntax {
+   public:
+    explicit SlangFloatArrayTypeSyntax(const string& name)
+        : SlangArrayTypeSyntax(name)
     {
     }
 
-  protected:
+   protected:
     size_t getSize(const Value& value) const override
     {
         vector<float> valueArray = value.asA<vector<float>>();
@@ -81,15 +78,14 @@ class SlangFloatArrayTypeSyntax : public SlangArrayTypeSyntax
     }
 };
 
-class SlangIntegerArrayTypeSyntax : public SlangArrayTypeSyntax
-{
-  public:
-    explicit SlangIntegerArrayTypeSyntax(const string& name) :
-        SlangArrayTypeSyntax(name)
+class SlangIntegerArrayTypeSyntax : public SlangArrayTypeSyntax {
+   public:
+    explicit SlangIntegerArrayTypeSyntax(const string& name)
+        : SlangArrayTypeSyntax(name)
     {
     }
 
-  protected:
+   protected:
     size_t getSize(const Value& value) const override
     {
         vector<int> valueArray = value.asA<vector<int>>();
@@ -97,7 +93,7 @@ class SlangIntegerArrayTypeSyntax : public SlangArrayTypeSyntax
     }
 };
 
-} // anonymous namespace
+}  // anonymous namespace
 
 const string SlangSyntax::INPUT_QUALIFIER = "in";
 const string SlangSyntax::OUTPUT_QUALIFIER = "out";
@@ -116,48 +112,189 @@ const StringVec SlangSyntax::VEC4_MEMBERS = { ".x", ".y", ".z", ".w" };
 SlangSyntax::SlangSyntax()
 {
     // Add in all reserved words and keywords in SLANG
-    registerReservedWords(
-        { "centroid", "flat", "smooth", "noperspective", "patch", "sample",
-          "break", "continue", "do", "for", "while", "switch", "case", "default",
-          "if", "else,", "subroutine", "in", "out", "inout",
-          "float", "double", "int", "void", "bool", "true", "false",
-          "invariant", "discard", "return",
-          "mat2", "mat3", "mat4", "dmat2", "dmat3", "dmat4",
-          "mat2x2", "mat2x3", "mat2x4", "dmat2x2", "dmat2x3", "dmat2x4",
-          "mat3x2", "mat3x3", "mat3x4", "dmat3x2", "dmat3x3", "dmat3x4",
-          "mat4x2", "mat4x3", "mat4x4", "dmat4x2", "dmat4x3", "dmat4x4",
-          "vec2", "vec3", "vec4", "ivec2", "ivec3", "ivec4", "bvec2", "bvec3", "bvec4", "dvec2", "dvec3", "dvec4",
-          "uint", "uvec2", "uvec3", "uvec4",
-          "lowp", "mediump", "highp", "precision",
-          "sampler1D", "sampler2D", "sampler3D", "samplerCube",
-          "sampler1DShadow", "sampler2DShadow", "samplerCubeShadow",
-          "sampler1DArray", "sampler2DArray",
-          "sampler1DArrayShadow", "sampler2DArrayShadow",
-          "isampler1D", "isampler2D", "isampler3D", "isamplerCube",
-          "isampler1DArray", "isampler2DArray",
-          "usampler1D", "usampler2D", "usampler3D", "usamplerCube",
-          "usampler1DArray", "usampler2DArray",
-          "sampler2DRect", "sampler2DRectShadow", "isampler2DRect", "usampler2DRect",
-          "samplerBuffer", "isamplerBuffer", "usamplerBuffer",
-          "sampler2DMS", "isampler2DMS", "usampler2DMS",
-          "sampler2DMSArray", "isampler2DMSArray", "usampler2DMSArray",
-          "samplerCubeArray", "samplerCubeArrayShadow", "isamplerCubeArray", "usamplerCubeArray",
-          "common", "partition", "active", "asm",
-          "struct", "class", "union", "enum", "typedef", "template", "this", "packed", "goto",
-          "inline", "noinline", "volatile", "public", "static", "extern", "external", "interface",
-          "long", "short", "half", "fixed", "unsigned", "superp", "input", "output",
-          "hvec2", "hvec3", "hvec4", "fvec2", "fvec3", "fvec4",
-          "sampler3DRect", "filter",
-          "image1D", "image2D", "image3D", "imageCube",
-          "iimage1D", "iimage2D", "iimage3D", "iimageCube",
-          "uimage1D", "uimage2D", "uimage3D", "uimageCube",
-          "image1DArray", "image2DArray",
-          "iimage1DArray", "iimage2DArray", "uimage1DArray", "uimage2DArray",
-          "image1DShadow", "image2DShadow",
-          "image1DArrayShadow", "image2DArrayShadow",
-          "imageBuffer", "iimageBuffer", "uimageBuffer",
-          "sizeof", "cast", "namespace", "using", "row_major",
-          "mix", "sampler" });
+    registerReservedWords({ "centroid",
+                            "flat",
+                            "smooth",
+                            "noperspective",
+                            "patch",
+                            "sample",
+                            "break",
+                            "continue",
+                            "do",
+                            "for",
+                            "while",
+                            "switch",
+                            "case",
+                            "default",
+                            "if",
+                            "else,",
+                            "subroutine",
+                            "in",
+                            "out",
+                            "inout",
+                            "float",
+                            "double",
+                            "int",
+                            "void",
+                            "bool",
+                            "true",
+                            "false",
+                            "invariant",
+                            "discard",
+                            "return",
+                            "mat2",
+                            "mat3",
+                            "mat4",
+                            "dmat2",
+                            "dmat3",
+                            "dmat4",
+                            "mat2x2",
+                            "mat2x3",
+                            "mat2x4",
+                            "dmat2x2",
+                            "dmat2x3",
+                            "dmat2x4",
+                            "mat3x2",
+                            "mat3x3",
+                            "mat3x4",
+                            "dmat3x2",
+                            "dmat3x3",
+                            "dmat3x4",
+                            "mat4x2",
+                            "mat4x3",
+                            "mat4x4",
+                            "dmat4x2",
+                            "dmat4x3",
+                            "dmat4x4",
+                            "float2",
+                            "float3",
+                            "float4",
+                            "ifloat2",
+                            "ifloat3",
+                            "ifloat4",
+                            "bfloat2",
+                            "bfloat3",
+                            "bfloat4",
+                            "dfloat2",
+                            "dfloat3",
+                            "dfloat4",
+                            "uint",
+                            "ufloat2",
+                            "ufloat3",
+                            "ufloat4",
+                            "lowp",
+                            "mediump",
+                            "highp",
+                            "precision",
+                            "sampler1D",
+                            "sampler2D",
+                            "sampler3D",
+                            "samplerCube",
+                            "sampler1DShadow",
+                            "sampler2DShadow",
+                            "samplerCubeShadow",
+                            "sampler1DArray",
+                            "sampler2DArray",
+                            "sampler1DArrayShadow",
+                            "sampler2DArrayShadow",
+                            "isampler1D",
+                            "isampler2D",
+                            "isampler3D",
+                            "isamplerCube",
+                            "isampler1DArray",
+                            "isampler2DArray",
+                            "usampler1D",
+                            "usampler2D",
+                            "usampler3D",
+                            "usamplerCube",
+                            "usampler1DArray",
+                            "usampler2DArray",
+                            "sampler2DRect",
+                            "sampler2DRectShadow",
+                            "isampler2DRect",
+                            "usampler2DRect",
+                            "samplerBuffer",
+                            "isamplerBuffer",
+                            "usamplerBuffer",
+                            "sampler2DMS",
+                            "isampler2DMS",
+                            "usampler2DMS",
+                            "sampler2DMSArray",
+                            "isampler2DMSArray",
+                            "usampler2DMSArray",
+                            "samplerCubeArray",
+                            "samplerCubeArrayShadow",
+                            "isamplerCubeArray",
+                            "usamplerCubeArray",
+                            "common",
+                            "partition",
+                            "active",
+                            "asm",
+                            "struct",
+                            "class",
+                            "union",
+                            "enum",
+                            "typedef",
+                            "template",
+                            "this",
+                            "packed",
+                            "goto",
+                            "inline",
+                            "noinline",
+                            "volatile",
+                            "public",
+                            "static",
+                            "extern",
+                            "external",
+                            "interface",
+                            "long",
+                            "short",
+                            "half",
+                            "fixed",
+                            "unsigned",
+                            "superp",
+                            "input",
+                            "output",
+                            "hfloat2",
+                            "hfloat3",
+                            "hfloat4",
+                            "ffloat2",
+                            "ffloat3",
+                            "ffloat4",
+                            "sampler3DRect",
+                            "filter",
+                            "image1D",
+                            "image2D",
+                            "image3D",
+                            "imageCube",
+                            "iimage1D",
+                            "iimage2D",
+                            "iimage3D",
+                            "iimageCube",
+                            "uimage1D",
+                            "uimage2D",
+                            "uimage3D",
+                            "uimageCube",
+                            "image1DArray",
+                            "image2DArray",
+                            "iimage1DArray",
+                            "iimage2DArray",
+                            "uimage1DArray",
+                            "uimage2DArray",
+                            "image1DShadow",
+                            "image2DShadow",
+                            "image1DArrayShadow",
+                            "image2DArrayShadow",
+                            "imageBuffer",
+                            "iimageBuffer",
+                            "uimageBuffer",
+                            "sizeof",
+                            "cast",
+                            "namespace",
+                            "using",
+                            "row_major",
+                            "mix",
+                            "sampler" });
 
     // Register restricted tokens in SLANG
     StringMap tokens;
@@ -172,42 +309,28 @@ SlangSyntax::SlangSyntax()
     //
 
     registerTypeSyntax(
-        Type::FLOAT,
-        std::make_shared<ScalarTypeSyntax>(
-            "float",
-            "0.0",
-            "0.0"));
+        Type::FLOAT, std::make_shared<ScalarTypeSyntax>("float", "0.0", "0.0"));
 
     registerTypeSyntax(
-        Type::FLOATARRAY,
-        std::make_shared<SlangFloatArrayTypeSyntax>(
-            "float"));
+        Type::FLOATARRAY, std::make_shared<SlangFloatArrayTypeSyntax>("float"));
 
     registerTypeSyntax(
-        Type::INTEGER,
-        std::make_shared<ScalarTypeSyntax>(
-            "int",
-            "0",
-            "0"));
+        Type::INTEGER, std::make_shared<ScalarTypeSyntax>("int", "0", "0"));
 
     registerTypeSyntax(
         Type::INTEGERARRAY,
-        std::make_shared<SlangIntegerArrayTypeSyntax>(
-            "int"));
+        std::make_shared<SlangIntegerArrayTypeSyntax>("int"));
 
     registerTypeSyntax(
         Type::BOOLEAN,
-        std::make_shared<ScalarTypeSyntax>(
-            "bool",
-            "false",
-            "false"));
+        std::make_shared<ScalarTypeSyntax>("bool", "false", "false"));
 
     registerTypeSyntax(
         Type::COLOR3,
         std::make_shared<AggregateTypeSyntax>(
-            "vec3",
-            "vec3(0.0)",
-            "vec3(0.0)",
+            "float3",
+            "float3(0.0)",
+            "float3(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             VEC3_MEMBERS));
@@ -215,9 +338,9 @@ SlangSyntax::SlangSyntax()
     registerTypeSyntax(
         Type::COLOR4,
         std::make_shared<AggregateTypeSyntax>(
-            "vec4",
-            "vec4(0.0)",
-            "vec4(0.0)",
+            "float4",
+            "float4(0.0)",
+            "float4(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             VEC4_MEMBERS));
@@ -225,9 +348,9 @@ SlangSyntax::SlangSyntax()
     registerTypeSyntax(
         Type::VECTOR2,
         std::make_shared<AggregateTypeSyntax>(
-            "vec2",
-            "vec2(0.0)",
-            "vec2(0.0)",
+            "float2",
+            "float2(0.0)",
+            "float2(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             VEC2_MEMBERS));
@@ -235,9 +358,9 @@ SlangSyntax::SlangSyntax()
     registerTypeSyntax(
         Type::VECTOR3,
         std::make_shared<AggregateTypeSyntax>(
-            "vec3",
-            "vec3(0.0)",
-            "vec3(0.0)",
+            "float3",
+            "float3(0.0)",
+            "float3(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             VEC3_MEMBERS));
@@ -245,9 +368,9 @@ SlangSyntax::SlangSyntax()
     registerTypeSyntax(
         Type::VECTOR4,
         std::make_shared<AggregateTypeSyntax>(
-            "vec4",
-            "vec4(0.0)",
-            "vec4(0.0)",
+            "float4",
+            "float4(0.0)",
+            "float4(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             VEC4_MEMBERS));
@@ -255,94 +378,81 @@ SlangSyntax::SlangSyntax()
     registerTypeSyntax(
         Type::MATRIX33,
         std::make_shared<AggregateTypeSyntax>(
-            "mat3",
-            "mat3(1.0)",
-            "mat3(1.0)"));
+            "mat3", "mat3(1.0)", "mat3(1.0)"));
 
     registerTypeSyntax(
         Type::MATRIX44,
         std::make_shared<AggregateTypeSyntax>(
-            "mat4",
-            "mat4(1.0)",
-            "mat4(1.0)"));
+            "mat4", "mat4(1.0)", "mat4(1.0)"));
 
-    registerTypeSyntax(
-        Type::STRING,
-        std::make_shared<SlangStringTypeSyntax>());
+    registerTypeSyntax(Type::STRING, std::make_shared<SlangStringTypeSyntax>());
 
     registerTypeSyntax(
         Type::FILENAME,
         std::make_shared<ScalarTypeSyntax>(
-            "sampler2D",
-            EMPTY_STRING,
-            EMPTY_STRING));
+            "sampler2D", EMPTY_STRING, EMPTY_STRING));
 
     registerTypeSyntax(
         Type::BSDF,
         std::make_shared<AggregateTypeSyntax>(
             "BSDF",
-            "BSDF(vec3(0.0),vec3(1.0), 0.0, 0.0)",
+            "BSDF(float3(0.0),float3(1.0), 0.0, 0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
-            "struct BSDF { vec3 response; vec3 throughput; float thickness; float ior; };"));
+            "struct BSDF { float3 response; float3 throughput; float "
+            "thickness; float ior; };"));
 
     registerTypeSyntax(
         Type::EDF,
         std::make_shared<AggregateTypeSyntax>(
-            "EDF",
-            "EDF(0.0)",
-            "EDF(0.0)",
-            "vec3",
-            "#define EDF vec3"));
+            "EDF", "EDF(0.0)", "EDF(0.0)", "float3", "#define EDF float3"));
 
     registerTypeSyntax(
         Type::VDF,
         std::make_shared<AggregateTypeSyntax>(
-            "BSDF",
-            "BSDF(vec3(0.0),vec3(1.0), 0.0, 0.0)",
-            EMPTY_STRING));
+            "BSDF", "BSDF(float3(0.0),float3(1.0), 0.0, 0.0)", EMPTY_STRING));
 
     registerTypeSyntax(
         Type::SURFACESHADER,
         std::make_shared<AggregateTypeSyntax>(
             "surfaceshader",
-            "surfaceshader(vec3(0.0),vec3(0.0))",
+            "surfaceshader(float3(0.0),float3(0.0))",
             EMPTY_STRING,
             EMPTY_STRING,
-            "struct surfaceshader { vec3 color; vec3 transparency; };"));
+            "struct surfaceshader { float3 color; float3 transparency; };"));
 
     registerTypeSyntax(
         Type::VOLUMESHADER,
         std::make_shared<AggregateTypeSyntax>(
             "volumeshader",
-            "volumeshader(vec3(0.0),vec3(0.0))",
+            "volumeshader(float3(0.0),float3(0.0))",
             EMPTY_STRING,
             EMPTY_STRING,
-            "struct volumeshader { vec3 color; vec3 transparency; };"));
+            "struct volumeshader { float3 color; float3 transparency; };"));
 
     registerTypeSyntax(
         Type::DISPLACEMENTSHADER,
         std::make_shared<AggregateTypeSyntax>(
             "displacementshader",
-            "displacementshader(vec3(0.0),1.0)",
+            "displacementshader(float3(0.0),1.0)",
             EMPTY_STRING,
             EMPTY_STRING,
-            "struct displacementshader { vec3 offset; float scale; };"));
+            "struct displacementshader { float3 offset; float scale; };"));
 
     registerTypeSyntax(
         Type::LIGHTSHADER,
         std::make_shared<AggregateTypeSyntax>(
             "lightshader",
-            "lightshader(vec3(0.0),vec3(0.0))",
+            "lightshader(float3(0.0),float3(0.0))",
             EMPTY_STRING,
             EMPTY_STRING,
-            "struct lightshader { vec3 intensity; vec3 direction; };"));
+            "struct lightshader { float3 intensity; float3 direction; };"));
 
     registerTypeSyntax(
         Type::MATERIAL,
         std::make_shared<AggregateTypeSyntax>(
             "material",
-            "material(vec3(0.0),vec3(0.0))",
+            "material(float3(0.0),float3(0.0))",
             EMPTY_STRING,
             "surfaceshader",
             "#define material surfaceshader"));
@@ -353,19 +463,21 @@ bool SlangSyntax::typeSupported(const TypeDesc* type) const
     return type != Type::STRING;
 }
 
-bool SlangSyntax::remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames, std::pair<const TypeDesc*, ValuePtr>& result) const
+bool SlangSyntax::remapEnumeration(
+    const string& value,
+    const TypeDesc* type,
+    const string& enumNames,
+    std::pair<const TypeDesc*, ValuePtr>& result) const
 {
     // Early out if not an enum input.
-    if (enumNames.empty())
-    {
+    if (enumNames.empty()) {
         return false;
     }
 
     // Don't convert already supported types
     // or filenames and arrays.
-    if (typeSupported(type) ||
-        *type == *Type::FILENAME || (type && type->isArray()))
-    {
+    if (typeSupported(type) || *type == *Type::FILENAME ||
+        (type && type->isArray())) {
         return false;
     }
 
@@ -375,19 +487,20 @@ bool SlangSyntax::remapEnumeration(const string& value, const TypeDesc* type, co
     result.second = nullptr;
 
     // Try remapping to an enum value.
-    if (!value.empty())
-    {
+    if (!value.empty()) {
         StringVec valueElemEnumsVec = splitString(enumNames, ",");
-        for (size_t i = 0; i < valueElemEnumsVec.size(); i++)
-        {
+        for (size_t i = 0; i < valueElemEnumsVec.size(); i++) {
             valueElemEnumsVec[i] = trimSpaces(valueElemEnumsVec[i]);
         }
-        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
-        if (pos == valueElemEnumsVec.end())
-        {
-            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input.");
+        auto pos = std::find(
+            valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
+        if (pos == valueElemEnumsVec.end()) {
+            throw ExceptionShaderGenError(
+                "Given value '" + value +
+                "' is not a valid enum value for input.");
         }
-        const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+        const int index =
+            static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
         result.second = Value::createValue<int>(index);
     }
 

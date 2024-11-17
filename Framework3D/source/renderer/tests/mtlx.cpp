@@ -128,7 +128,7 @@ TEST(GenShader, Syntax_Check)
     ASSERT_TRUE(value == "int[7](1, 2, 3, 4, 5, 6, 7)");
 }
 
-TEST(GenShader, GLSL_Implementation)
+TEST(GenShader, SLANG_Implementation)
 {
     mx::GenContext context(mx::SlangShaderGenerator::create());
 
@@ -138,7 +138,7 @@ TEST(GenShader, GLSL_Implementation)
         context, generatorSkipNodeTypes, generatorSkipNodeDefs, 47);
 }
 
-TEST(GenShader, GLSL_Unique_Names)
+TEST(GenShader, SLANG_Unique_Names)
 {
     mx::GenContext context(mx::SlangShaderGenerator::create());
     context.registerSourceCodeSearchPath(mx::getDefaultDataSearchPath());
@@ -222,20 +222,20 @@ static void generateSlangCode(SlangType type = SlangType::Slang400)
     tester.validate(genOptions, optionsFilePath);
 }
 
-TEST(GenShader, GLSL_ShaderGeneration)
+TEST(GenShader, SLANG_ShaderGeneration)
 {
-    // Generate with standard GLSL i.e version 400
+    // Generate with standard SLANG i.e version 400
     generateSlangCode(SlangType::Slang400);
 }
 
-TEST(GenShader, GLSL_Shader_with_Layout_Generation)
+TEST(GenShader, SLANG_Shader_with_Layout_Generation)
 {
-    // Generate GLSL with layout i.e version 400 + layout extension
+    // Generate SLANG with layout i.e version 400 + layout extension
     generateSlangCode(SlangType::Slang420);
 }
 
-TEST(GenShader, Vulkan_GLSL_Shader)
+TEST(GenShader, Vulkan_SLANG_Shader)
 {
-    // Generate with GLSL for Vulkan i.e. version 450
+    // Generate with SLANG for Vulkan i.e. version 450
     generateSlangCode(SlangType::SlangVulkan);
 }
