@@ -33,6 +33,9 @@ class HD_USTC_CG_API SlangShaderGenerator : public HwShaderGenerator
     /// Return a unique identifier for the target this generator is for
     const string& getTarget() const override { return TARGET; }
 
+    /// Return the version string for the SLANG version this generator is for
+    virtual const string& getVersion() const { return VERSION; }
+
     /// Emit a shader variable.
     void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext& context, ShaderStage& stage,
                                  bool assignValue = true) const override;
@@ -47,6 +50,9 @@ class HD_USTC_CG_API SlangShaderGenerator : public HwShaderGenerator
   public:
     /// Unique identifier for this generator target
     static const string TARGET;
+
+    /// Version string for the generator target
+    static const string VERSION;
 
   protected:
     virtual void emitVertexStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const;
