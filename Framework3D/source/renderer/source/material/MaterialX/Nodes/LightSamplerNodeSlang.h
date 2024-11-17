@@ -3,18 +3,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_LIGHTSAMPLERNODEGLSL_H
-#define MATERIALX_LIGHTSAMPLERNODEGLSL_H
+#ifndef MATERIALX_LIGHTSAMPLERNODESLANG_H
+#define MATERIALX_LIGHTSAMPLERNODESLANG_H
 
-#include "../GlslShaderGenerator.h"
+#include "../SlangShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Utility node for sampling lights for GLSL.
-class HD_USTC_CG_API LightSamplerNodeGlsl : public GlslImplementation
+/// Utility node for sampling lights for SLANG.
+class HD_USTC_CG_API LightSamplerNodeSlang : public SlangImplementation
 {
   public:
-    LightSamplerNodeGlsl();
+    LightSamplerNodeSlang();
 
     static ShaderNodeImplPtr create();
 

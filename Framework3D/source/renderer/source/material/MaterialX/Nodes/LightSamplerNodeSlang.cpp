@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "LightSamplerNodeGlsl.h"
+#include "LightSamplerNodeSlang.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -14,17 +14,17 @@ const string SAMPLE_LIGHTS_FUNC_SIGNATURE = "void sampleLightSource(LightData li
 
 } // anonymous namespace
 
-LightSamplerNodeGlsl::LightSamplerNodeGlsl()
+LightSamplerNodeSlang::LightSamplerNodeSlang()
 {
     _hash = std::hash<string>{}(SAMPLE_LIGHTS_FUNC_SIGNATURE);
 }
 
-ShaderNodeImplPtr LightSamplerNodeGlsl::create()
+ShaderNodeImplPtr LightSamplerNodeSlang::create()
 {
-    return std::make_shared<LightSamplerNodeGlsl>();
+    return std::make_shared<LightSamplerNodeSlang>();
 }
 
-void LightSamplerNodeGlsl::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void LightSamplerNodeSlang::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {

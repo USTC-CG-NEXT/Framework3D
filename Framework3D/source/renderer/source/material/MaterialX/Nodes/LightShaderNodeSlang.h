@@ -3,20 +3,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_LIGHTSHADERNODEGLSL_H
-#define MATERIALX_LIGHTSHADERNODEGLSL_H
+#ifndef MATERIALX_LIGHTSHADERNODESLANG_H
+#define MATERIALX_LIGHTSHADERNODESLANG_H
 
-#include "../GlslShaderGenerator.h"
+#include "../SlangShaderGenerator.h"
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// LightShader node implementation for GLSL
+/// LightShader node implementation for SLANG
 /// Used for all light shaders implemented in source code.
-class HD_USTC_CG_API LightShaderNodeGlsl : public SourceCodeNode
+class HD_USTC_CG_API LightShaderNodeSlang : public SourceCodeNode
 {
   public:
-    LightShaderNodeGlsl();
+    LightShaderNodeSlang();
 
     static ShaderNodeImplPtr create();
 

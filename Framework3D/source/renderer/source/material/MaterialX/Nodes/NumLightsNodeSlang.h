@@ -3,18 +3,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_NUMLIGHTSNODEGLSL_H
-#define MATERIALX_NUMLIGHTSNODEGLSL_H
+#ifndef MATERIALX_NUMLIGHTSNODESLANG_H
+#define MATERIALX_NUMLIGHTSNODESLANG_H
 
-#include "../GlslShaderGenerator.h"
+#include "../SlangShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Utility node for getting number of active lights for GLSL.
-class HD_USTC_CG_API NumLightsNodeGlsl : public GlslImplementation
+/// Utility node for getting number of active lights for SLANG.
+class HD_USTC_CG_API NumLightsNodeSlang : public SlangImplementation
 {
   public:
-    NumLightsNodeGlsl();
+    NumLightsNodeSlang();
 
     static ShaderNodeImplPtr create();
 

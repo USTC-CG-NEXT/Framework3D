@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_LIGHTCOMPOUNDNODEGLSL_H
-#define MATERIALX_LIGHTCOMPOUNDNODEGLSL_H
+#ifndef MATERIALX_LIGHTCOMPOUNDNODESLANG_H
+#define MATERIALX_LIGHTCOMPOUNDNODESLANG_H
 
 #include "../Export.h"
 
@@ -14,13 +14,13 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-class GlslShaderGenerator;
+class SlangShaderGenerator;
 
-/// LightCompound node implementation for GLSL
-class HD_USTC_CG_API LightCompoundNodeGlsl : public CompoundNode
+/// LightCompound node implementation for SLANG
+class HD_USTC_CG_API LightCompoundNodeSlang : public CompoundNode
 {
   public:
-    LightCompoundNodeGlsl();
+    LightCompoundNodeSlang();
 
     static ShaderNodeImplPtr create();
 

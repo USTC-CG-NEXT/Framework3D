@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_BLURNODEGLSL_H
-#define MATERIALX_BLURNODEGLSL_H
+#ifndef MATERIALX_BLURNODESLANG_H
+#define MATERIALX_BLURNODESLANG_H
 
 #include "../Export.h"
 
@@ -12,8 +12,8 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Blur node implementation for GLSL
-class HD_USTC_CG_API BlurNodeGlsl : public BlurNode
+/// Blur node implementation for SLANG
+class HD_USTC_CG_API BlurNodeSlang : public BlurNode
 {
   public:
     static ShaderNodeImplPtr create();

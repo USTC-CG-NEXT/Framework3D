@@ -3,16 +3,16 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_UNLITSURFACENODEGLSL_H
-#define MATERIALX_UNLITSURFACENODEGLSL_H
+#ifndef MATERIALX_UNLITSURFACENODESLANG_H
+#define MATERIALX_UNLITSURFACENODESLANG_H
 
 #include "../Export.h"
-#include "../GlslShaderGenerator.h"
+#include "../SlangShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Unlit surface node implementation for GLSL
-class HD_USTC_CG_API UnlitSurfaceNodeGlsl : public GlslImplementation
+/// Unlit surface node implementation for SLANG
+class HD_USTC_CG_API UnlitSurfaceNodeSlang : public SlangImplementation
 {
   public:
     static ShaderNodeImplPtr create();

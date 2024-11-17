@@ -3,19 +3,19 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_SURFACENODEGLSL_H
-#define MATERIALX_SURFACENODEGLSL_H
+#ifndef MATERIALX_SURFACENODESLANG_H
+#define MATERIALX_SURFACENODESLANG_H
 
 #include "../Export.h"
-#include "../GlslShaderGenerator.h"
+#include "../SlangShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Surface node implementation for GLSL
-class HD_USTC_CG_API SurfaceNodeGlsl : public GlslImplementation
+/// Surface node implementation for SLANG
+class HD_USTC_CG_API SurfaceNodeSlang : public SlangImplementation
 {
   public:
-    SurfaceNodeGlsl();
+    SurfaceNodeSlang();
 
     static ShaderNodeImplPtr create();
 

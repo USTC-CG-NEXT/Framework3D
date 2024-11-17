@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "BlurNodeGlsl.h"
+#include "BlurNodeSlang.h"
 
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderNode.h>
@@ -12,15 +12,15 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-ShaderNodeImplPtr BlurNodeGlsl::create()
+ShaderNodeImplPtr BlurNodeSlang::create()
 {
-    return std::make_shared<BlurNodeGlsl>();
+    return std::make_shared<BlurNodeSlang>();
 }
 
-void BlurNodeGlsl::emitSamplingFunctionDefinition(const ShaderNode& /*node*/, GenContext& context, ShaderStage& stage) const
+void BlurNodeSlang::emitSamplingFunctionDefinition(const ShaderNode& /*node*/, GenContext& context, ShaderStage& stage) const
 {
     const ShaderGenerator& shadergen = context.getShaderGenerator();
-    shadergen.emitLibraryInclude("stdlib/genglsl/lib/mx_sampling.glsl", context, stage);
+    shadergen.emitLibraryInclude("stdlib/genslang/lib/mx_sampling.slang", context, stage);
     shadergen.emitLineBreak(stage);
 }
 

@@ -7,14 +7,14 @@
 #define MATERIALX_VKSYNTAX_H
 
 /// @file
-/// Vulkan GLSL syntax class
+/// Vulkan SLANG syntax class
 
-#include "GlslSyntax.h"
+#include "SlangSyntax.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Syntax class for Vulkan GLSL
-class HD_USTC_CG_API VkSyntax : public GlslSyntax
+/// Syntax class for Vulkan SLANG
+class HD_USTC_CG_API VkSyntax : public SlangSyntax
 {
   public:
     VkSyntax();

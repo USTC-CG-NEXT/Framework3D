@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "LightNodeGlsl.h"
+#include "LightNodeSlang.h"
 
 #include <MaterialXGenShader/Shader.h>
 
@@ -20,7 +20,7 @@ const string LIGHT_DIRECTION_CALCULATION =
 
 } // anonymous namespace
 
-LightNodeGlsl::LightNodeGlsl() :
+LightNodeSlang::LightNodeSlang() :
     _callEmission(HwShaderGenerator::ClosureContextType::EMISSION)
 {
     // Emission context
@@ -28,12 +28,12 @@ LightNodeGlsl::LightNodeGlsl() :
     _callEmission.addArgument(Type::EDF, ClosureContext::Argument(Type::VECTOR3, "-L"));
 }
 
-ShaderNodeImplPtr LightNodeGlsl::create()
+ShaderNodeImplPtr LightNodeSlang::create()
 {
-    return std::make_shared<LightNodeGlsl>();
+    return std::make_shared<LightNodeSlang>();
 }
 
-void LightNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
+void LightNodeSlang::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
 {
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
 
@@ -43,15 +43,15 @@ void LightNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Shad
     lightUniforms.add(Type::FLOAT, "exposure", Value::createValue<float>(0.0f));
     lightUniforms.add(Type::VECTOR3, "direction", Value::createValue<Vector3>(Vector3(0.0f, 1.0f, 0.0f)));
 
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
     shadergen.addStageLightingUniforms(context, ps);
 }
 
-void LightNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void LightNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
-        const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+        const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
         shadergen.emitBlock(LIGHT_DIRECTION_CALCULATION, FilePath(), context, stage);
         shadergen.emitLineBreak(stage);

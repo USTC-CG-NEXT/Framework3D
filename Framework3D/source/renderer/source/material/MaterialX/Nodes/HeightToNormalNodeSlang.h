@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_HEIGHTTONORMALNODEGLSL_H
-#define MATERIALX_HEIGHTTONORMALNODEGLSL_H
+#ifndef MATERIALX_HEIGHTTONORMALNODESLANG_H
+#define MATERIALX_HEIGHTTONORMALNODESLANG_H
 
 #include "../Export.h"
 
@@ -12,8 +12,8 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// HeightToNormal node implementation for GLSL
-class HD_USTC_CG_API HeightToNormalNodeGlsl : public ConvolutionNode
+/// HeightToNormal node implementation for SLANG
+class HD_USTC_CG_API HeightToNormalNodeSlang : public ConvolutionNode
 {
   public:
     static ShaderNodeImplPtr create();

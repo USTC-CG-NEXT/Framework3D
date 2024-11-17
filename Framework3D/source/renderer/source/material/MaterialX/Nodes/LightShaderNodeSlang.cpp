@@ -3,28 +3,28 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "LightShaderNodeGlsl.h"
+#include "LightShaderNodeSlang.h"
 
 #include <MaterialXGenShader/Shader.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-LightShaderNodeGlsl::LightShaderNodeGlsl() :
+LightShaderNodeSlang::LightShaderNodeSlang() :
     _lightUniforms(HW::LIGHT_DATA, EMPTY_STRING)
 {
 }
 
-ShaderNodeImplPtr LightShaderNodeGlsl::create()
+ShaderNodeImplPtr LightShaderNodeSlang::create()
 {
-    return std::make_shared<LightShaderNodeGlsl>();
+    return std::make_shared<LightShaderNodeSlang>();
 }
 
-const string& LightShaderNodeGlsl::getTarget() const
+const string& LightShaderNodeSlang::getTarget() const
 {
-    return GlslShaderGenerator::TARGET;
+    return SlangShaderGenerator::TARGET;
 }
 
-void LightShaderNodeGlsl::initialize(const InterfaceElement& element, GenContext& context)
+void LightShaderNodeSlang::initialize(const InterfaceElement& element, GenContext& context)
 {
     SourceCodeNode::initialize(element, context);
 
@@ -48,7 +48,7 @@ void LightShaderNodeGlsl::initialize(const InterfaceElement& element, GenContext
     }
 }
 
-void LightShaderNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
+void LightShaderNodeSlang::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
 {
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
 
@@ -60,11 +60,11 @@ void LightShaderNodeGlsl::createVariables(const ShaderNode&, GenContext& context
         lightData.add(u->getType(), u->getName());
     }
 
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
     shadergen.addStageLightingUniforms(context, ps);
 }
 
-void LightShaderNodeGlsl::emitFunctionCall(const ShaderNode&, GenContext& context, ShaderStage& stage) const
+void LightShaderNodeSlang::emitFunctionCall(const ShaderNode&, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {

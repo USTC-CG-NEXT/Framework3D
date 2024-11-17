@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "GlslSyntax.h"
+#include "SlangSyntax.h"
 
 #include <MaterialXGenShader/ShaderGenerator.h>
 
@@ -12,12 +12,12 @@ MATERIALX_NAMESPACE_BEGIN
 namespace
 {
 
-// Since GLSL doesn't support strings we use integers instead.
+// Since SLANG doesn't support strings we use integers instead.
 // TODO: Support options strings by converting to a corresponding enum integer
-class GlslStringTypeSyntax : public StringTypeSyntax
+class SlangStringTypeSyntax : public StringTypeSyntax
 {
   public:
-    GlslStringTypeSyntax() :
+    SlangStringTypeSyntax() :
         StringTypeSyntax("int", "0", "0") { }
 
     string getValue(const Value& /*value*/, bool /*uniform*/) const override
@@ -26,10 +26,10 @@ class GlslStringTypeSyntax : public StringTypeSyntax
     }
 };
 
-class GlslArrayTypeSyntax : public ScalarTypeSyntax
+class SlangArrayTypeSyntax : public ScalarTypeSyntax
 {
   public:
-    GlslArrayTypeSyntax(const string& name) :
+    SlangArrayTypeSyntax(const string& name) :
         ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
     {
     }
@@ -65,11 +65,11 @@ class GlslArrayTypeSyntax : public ScalarTypeSyntax
     virtual size_t getSize(const Value& value) const = 0;
 };
 
-class GlslFloatArrayTypeSyntax : public GlslArrayTypeSyntax
+class SlangFloatArrayTypeSyntax : public SlangArrayTypeSyntax
 {
   public:
-    explicit GlslFloatArrayTypeSyntax(const string& name) :
-        GlslArrayTypeSyntax(name)
+    explicit SlangFloatArrayTypeSyntax(const string& name) :
+        SlangArrayTypeSyntax(name)
     {
     }
 
@@ -81,11 +81,11 @@ class GlslFloatArrayTypeSyntax : public GlslArrayTypeSyntax
     }
 };
 
-class GlslIntegerArrayTypeSyntax : public GlslArrayTypeSyntax
+class SlangIntegerArrayTypeSyntax : public SlangArrayTypeSyntax
 {
   public:
-    explicit GlslIntegerArrayTypeSyntax(const string& name) :
-        GlslArrayTypeSyntax(name)
+    explicit SlangIntegerArrayTypeSyntax(const string& name) :
+        SlangArrayTypeSyntax(name)
     {
     }
 
@@ -99,23 +99,23 @@ class GlslIntegerArrayTypeSyntax : public GlslArrayTypeSyntax
 
 } // anonymous namespace
 
-const string GlslSyntax::INPUT_QUALIFIER = "in";
-const string GlslSyntax::OUTPUT_QUALIFIER = "out";
-const string GlslSyntax::UNIFORM_QUALIFIER = "uniform";
-const string GlslSyntax::CONSTANT_QUALIFIER = "const";
-const string GlslSyntax::FLAT_QUALIFIER = "flat";
-const string GlslSyntax::SOURCE_FILE_EXTENSION = ".glsl";
-const StringVec GlslSyntax::VEC2_MEMBERS = { ".x", ".y" };
-const StringVec GlslSyntax::VEC3_MEMBERS = { ".x", ".y", ".z" };
-const StringVec GlslSyntax::VEC4_MEMBERS = { ".x", ".y", ".z", ".w" };
+const string SlangSyntax::INPUT_QUALIFIER = "in";
+const string SlangSyntax::OUTPUT_QUALIFIER = "out";
+const string SlangSyntax::UNIFORM_QUALIFIER = "uniform";
+const string SlangSyntax::CONSTANT_QUALIFIER = "const";
+const string SlangSyntax::FLAT_QUALIFIER = "flat";
+const string SlangSyntax::SOURCE_FILE_EXTENSION = ".slang";
+const StringVec SlangSyntax::VEC2_MEMBERS = { ".x", ".y" };
+const StringVec SlangSyntax::VEC3_MEMBERS = { ".x", ".y", ".z" };
+const StringVec SlangSyntax::VEC4_MEMBERS = { ".x", ".y", ".z", ".w" };
 
 //
-// GlslSyntax methods
+// SlangSyntax methods
 //
 
-GlslSyntax::GlslSyntax()
+SlangSyntax::SlangSyntax()
 {
-    // Add in all reserved words and keywords in GLSL
+    // Add in all reserved words and keywords in SLANG
     registerReservedWords(
         { "centroid", "flat", "smooth", "noperspective", "patch", "sample",
           "break", "continue", "do", "for", "while", "switch", "case", "default",
@@ -159,7 +159,7 @@ GlslSyntax::GlslSyntax()
           "sizeof", "cast", "namespace", "using", "row_major",
           "mix", "sampler" });
 
-    // Register restricted tokens in GLSL
+    // Register restricted tokens in SLANG
     StringMap tokens;
     tokens["__"] = "_";
     tokens["gl_"] = "gll";
@@ -180,7 +180,7 @@ GlslSyntax::GlslSyntax()
 
     registerTypeSyntax(
         Type::FLOATARRAY,
-        std::make_shared<GlslFloatArrayTypeSyntax>(
+        std::make_shared<SlangFloatArrayTypeSyntax>(
             "float"));
 
     registerTypeSyntax(
@@ -192,7 +192,7 @@ GlslSyntax::GlslSyntax()
 
     registerTypeSyntax(
         Type::INTEGERARRAY,
-        std::make_shared<GlslIntegerArrayTypeSyntax>(
+        std::make_shared<SlangIntegerArrayTypeSyntax>(
             "int"));
 
     registerTypeSyntax(
@@ -268,7 +268,7 @@ GlslSyntax::GlslSyntax()
 
     registerTypeSyntax(
         Type::STRING,
-        std::make_shared<GlslStringTypeSyntax>());
+        std::make_shared<SlangStringTypeSyntax>());
 
     registerTypeSyntax(
         Type::FILENAME,
@@ -348,12 +348,12 @@ GlslSyntax::GlslSyntax()
             "#define material surfaceshader"));
 }
 
-bool GlslSyntax::typeSupported(const TypeDesc* type) const
+bool SlangSyntax::typeSupported(const TypeDesc* type) const
 {
     return type != Type::STRING;
 }
 
-bool GlslSyntax::remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames, std::pair<const TypeDesc*, ValuePtr>& result) const
+bool SlangSyntax::remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames, std::pair<const TypeDesc*, ValuePtr>& result) const
 {
     // Early out if not an enum input.
     if (enumNames.empty())
@@ -369,7 +369,7 @@ bool GlslSyntax::remapEnumeration(const string& value, const TypeDesc* type, con
         return false;
     }
 
-    // For GLSL we always convert to integer,
+    // For SLANG we always convert to integer,
     // with the integer value being an index into the enumeration.
     result.first = Type::INTEGER;
     result.second = nullptr;

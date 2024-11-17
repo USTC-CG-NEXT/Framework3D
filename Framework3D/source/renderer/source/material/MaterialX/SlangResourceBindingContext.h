@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_GLSLRESOURCEBINDING_H
-#define MATERIALX_GLSLRESOURCEBINDING_H
+#ifndef MATERIALX_SLANGRESOURCEBINDING_H
+#define MATERIALX_SLANGRESOURCEBINDING_H
 
 /// @file
-/// GLSL resource binding context
+/// SLANG resource binding context
 
 #include "Export.h"
 
@@ -15,20 +15,20 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Shared pointer to a GlslResourceBindingContext
-using GlslResourceBindingContextPtr = shared_ptr<class GlslResourceBindingContext>;
+/// Shared pointer to a SlangResourceBindingContext
+using SlangResourceBindingContextPtr = shared_ptr<class SlangResourceBindingContext>;
 
-/// @class GlslResourceBindingContext
-/// Class representing a resource binding for Glsl shader resources.
-class HD_USTC_CG_API GlslResourceBindingContext : public HwResourceBindingContext
+/// @class SlangResourceBindingContext
+/// Class representing a resource binding for Slang shader resources.
+class HD_USTC_CG_API SlangResourceBindingContext : public HwResourceBindingContext
 {
   public:
-    GlslResourceBindingContext(size_t uniformBindingLocation, size_t samplerBindingLocation);
+    SlangResourceBindingContext(size_t uniformBindingLocation, size_t samplerBindingLocation);
 
-    static GlslResourceBindingContextPtr create(
+    static SlangResourceBindingContextPtr create(
         size_t uniformBindingLocation = 0, size_t samplerBindingLocation = 0)
     {
-        return std::make_shared<GlslResourceBindingContext>(
+        return std::make_shared<SlangResourceBindingContext>(
             uniformBindingLocation, samplerBindingLocation);
     }
 

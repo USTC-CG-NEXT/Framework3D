@@ -3,29 +3,29 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "SurfaceShaderNodeGlsl.h"
-#include "../GlslShaderGenerator.h"
+#include "SurfaceShaderNodeSlang.h"
+#include "../SlangShaderGenerator.h"
 
 #include <MaterialXGenShader/Shader.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-ShaderNodeImplPtr SurfaceShaderNodeGlsl::create()
+ShaderNodeImplPtr SurfaceShaderNodeSlang::create()
 {
-    return std::make_shared<SurfaceShaderNodeGlsl>();
+    return std::make_shared<SurfaceShaderNodeSlang>();
 }
 
-const string& SurfaceShaderNodeGlsl::getTarget() const
+const string& SurfaceShaderNodeSlang::getTarget() const
 {
-    return GlslShaderGenerator::TARGET;
+    return SlangShaderGenerator::TARGET;
 }
 
-void SurfaceShaderNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
+void SurfaceShaderNodeSlang::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
 {
     // TODO:
     // The surface shader needs position, view position and light sources. We should solve this by adding some
     // dependency mechanism so this implementation can be set to depend on the HwPositionNode,
-    // HwViewDirectionNode and LightNodeGlsl nodes instead? This is where the MaterialX attribute "internalgeomprops"
+    // HwViewDirectionNode and LightNodeSlang nodes instead? This is where the MaterialX attribute "internalgeomprops"
     // is needed.
     //
     ShaderStage& vs = shader.getStage(Stage::VERTEX);
@@ -36,13 +36,13 @@ void SurfaceShaderNodeGlsl::createVariables(const ShaderNode&, GenContext& conte
 
     addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, HW::T_VIEW_POSITION, ps);
 
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
     shadergen.addStageLightingUniforms(context, ps);
 }
 
-void SurfaceShaderNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void SurfaceShaderNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
     DEFINE_SHADER_STAGE(stage, Stage::VERTEX)
     {

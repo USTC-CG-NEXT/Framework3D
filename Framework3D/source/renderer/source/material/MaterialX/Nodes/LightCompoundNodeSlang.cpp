@@ -3,29 +3,29 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "LightCompoundNodeGlsl.h"
-#include "../GlslShaderGenerator.h"
+#include "LightCompoundNodeSlang.h"
+#include "../SlangShaderGenerator.h"
 
 #include <MaterialXGenShader/Util.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-LightCompoundNodeGlsl::LightCompoundNodeGlsl() :
+LightCompoundNodeSlang::LightCompoundNodeSlang() :
     _lightUniforms(HW::LIGHT_DATA, EMPTY_STRING)
 {
 }
 
-ShaderNodeImplPtr LightCompoundNodeGlsl::create()
+ShaderNodeImplPtr LightCompoundNodeSlang::create()
 {
-    return std::make_shared<LightCompoundNodeGlsl>();
+    return std::make_shared<LightCompoundNodeSlang>();
 }
 
-const string& LightCompoundNodeGlsl::getTarget() const
+const string& LightCompoundNodeSlang::getTarget() const
 {
-    return GlslShaderGenerator::TARGET;
+    return SlangShaderGenerator::TARGET;
 }
 
-void LightCompoundNodeGlsl::initialize(const InterfaceElement& element, GenContext& context)
+void LightCompoundNodeSlang::initialize(const InterfaceElement& element, GenContext& context)
 {
     CompoundNode::initialize(element, context);
 
@@ -38,7 +38,7 @@ void LightCompoundNodeGlsl::initialize(const InterfaceElement& element, GenConte
     }
 }
 
-void LightCompoundNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
+void LightCompoundNodeSlang::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
 {
     // Create variables for all child nodes
     for (ShaderNode* childNode : _rootGraph->getNodes())
@@ -56,15 +56,15 @@ void LightCompoundNodeGlsl::createVariables(const ShaderNode&, GenContext& conte
         lightData.add(u->getSelf());
     }
 
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
     shadergen.addStageLightingUniforms(context, ps);
 }
 
-void LightCompoundNodeGlsl::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void LightCompoundNodeSlang::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
-        const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+        const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
         // Emit functions for all child nodes
         shadergen.emitFunctionDefinitions(*_rootGraph, context, stage);
@@ -87,9 +87,9 @@ void LightCompoundNodeGlsl::emitFunctionDefinition(const ShaderNode& node, GenCo
     }
 }
 
-void LightCompoundNodeGlsl::emitFunctionDefinition(ClosureContext* cct, GenContext& context, ShaderStage& stage) const
+void LightCompoundNodeSlang::emitFunctionDefinition(ClosureContext* cct, GenContext& context, ShaderStage& stage) const
 {
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
     // Emit function signature
     if (cct)
@@ -126,7 +126,7 @@ void LightCompoundNodeGlsl::emitFunctionDefinition(ClosureContext* cct, GenConte
     shadergen.emitFunctionBodyEnd(*_rootGraph, context, stage);
 }
 
-void LightCompoundNodeGlsl::emitFunctionCall(const ShaderNode&, GenContext& context, ShaderStage& stage) const
+void LightCompoundNodeSlang::emitFunctionCall(const ShaderNode&, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {

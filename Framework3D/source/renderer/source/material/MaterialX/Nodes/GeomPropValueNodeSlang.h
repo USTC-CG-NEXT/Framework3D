@@ -3,15 +3,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_GEOMPROPVALUENODEGLSL_H
-#define MATERIALX_GEOMPROPVALUENODEGLSL_H
+#ifndef MATERIALX_GEOMPROPVALUENODESLANG_H
+#define MATERIALX_GEOMPROPVALUENODESLANG_H
 
-#include "../GlslShaderGenerator.h"
+#include "../SlangShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// GeomPropValue node implementation for GLSL
-class HD_USTC_CG_API GeomPropValueNodeGlsl : public GlslImplementation
+/// GeomPropValue node implementation for SLANG
+class HD_USTC_CG_API GeomPropValueNodeSlang : public SlangImplementation
 {
   public:
     static ShaderNodeImplPtr create();
@@ -23,8 +23,8 @@ class HD_USTC_CG_API GeomPropValueNodeGlsl : public GlslImplementation
     bool isEditable(const ShaderInput& /*input*/) const override { return false; }
 };
 
-/// GeomPropValue node non-implementation for GLSL
-class HD_USTC_CG_API GeomPropValueNodeGlslAsUniform : public GlslImplementation
+/// GeomPropValue node non-implementation for SLANG
+class HD_USTC_CG_API GeomPropValueNodeSlangAsUniform : public SlangImplementation
 {
   public:
     static ShaderNodeImplPtr create();

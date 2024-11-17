@@ -299,7 +299,7 @@ namespace {
     const std::string& getFileExtensionForTarget(const std::string& target)
     {
         static const std::unordered_map<std::string, std::string>
-            _fileExtensions = { { "genglsl", "glsl" },
+            _fileExtensions = { { "genslang", "slang" },
                                 { "genosl", "osl" },
                                 { "genmdl", "mdl" } };
         auto it = _fileExtensions.find(target);
@@ -1409,11 +1409,11 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     return false;
 }
 
-class GlslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester {
+class SlangShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester {
    public:
     using ParentClass = GenShaderUtil::ShaderGeneratorTester;
 
-    GlslShaderGeneratorTester(
+    SlangShaderGeneratorTester(
         mx::ShaderGeneratorPtr shaderGenerator,
         const mx::FilePathVec& testRootPaths,
         const mx::FileSearchPath& searchPath,
@@ -1467,10 +1467,10 @@ class GlslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester {
                       "IM_dot_",
                       "IM_geompropvalue_boolean",
                       "IM_geompropvalue_string",
-                      "IM_light_genglsl",
-                      "IM_point_light_genglsl",
-                      "IM_spot_light_genglsl",
-                      "IM_directional_light_genglsl",
+                      "IM_light_genslang",
+                      "IM_point_light_genslang",
+                      "IM_spot_light_genslang",
+                      "IM_directional_light_genslang",
                       "IM_angle",
                       "volumematerial",
                       "ND_volumematerial" };

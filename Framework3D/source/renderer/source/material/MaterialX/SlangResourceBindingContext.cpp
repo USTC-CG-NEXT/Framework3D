@@ -3,14 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "GlslResourceBindingContext.h"
+#include "SlangResourceBindingContext.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 //
-// GlslResourceBindingContext
+// SlangResourceBindingContext
 //
-GlslResourceBindingContext::GlslResourceBindingContext(
+SlangResourceBindingContext::SlangResourceBindingContext(
     size_t uniformBindingLocation, size_t samplerBindingLocation) :
     _hwInitUniformBindLocation(uniformBindingLocation),
     _hwInitSamplerBindLocation(samplerBindingLocation)
@@ -18,7 +18,7 @@ GlslResourceBindingContext::GlslResourceBindingContext(
     _requiredExtensions.insert("GL_ARB_shading_language_420pack");
 }
 
-void GlslResourceBindingContext::initialize()
+void SlangResourceBindingContext::initialize()
 {
     // Reset bind location counter.
     _hwUniformBindLocation = _hwInitUniformBindLocation;
@@ -27,7 +27,7 @@ void GlslResourceBindingContext::initialize()
     _hwSamplerBindLocation = _hwInitSamplerBindLocation;
 }
 
-void GlslResourceBindingContext::emitDirectives(GenContext& context, ShaderStage& stage)
+void SlangResourceBindingContext::emitDirectives(GenContext& context, ShaderStage& stage)
 {
     const ShaderGenerator& generator = context.getShaderGenerator();
 
@@ -56,7 +56,7 @@ void GlslResourceBindingContext::emitDirectives(GenContext& context, ShaderStage
     }
 }
 
-void GlslResourceBindingContext::emitResourceBindings(GenContext& context, const VariableBlock& uniforms, ShaderStage& stage)
+void SlangResourceBindingContext::emitResourceBindings(GenContext& context, const VariableBlock& uniforms, ShaderStage& stage)
 {
     const ShaderGenerator& generator = context.getShaderGenerator();
     const Syntax& syntax = generator.getSyntax();
@@ -104,14 +104,14 @@ void GlslResourceBindingContext::emitResourceBindings(GenContext& context, const
     generator.emitLineBreak(stage);
 }
 
-void GlslResourceBindingContext::emitStructuredResourceBindings(GenContext& context, const VariableBlock& uniforms,
+void SlangResourceBindingContext::emitStructuredResourceBindings(GenContext& context, const VariableBlock& uniforms,
                                                                 ShaderStage& stage, const std::string& structInstanceName,
                                                                 const std::string& arraySuffix)
 {
     const ShaderGenerator& generator = context.getShaderGenerator();
     const Syntax& syntax = generator.getSyntax();
 
-    // Glsl structures need to be aligned. We make a best effort to base align struct members and add
+    // Slang structures need to be aligned. We make a best effort to base align struct members and add
     // padding if required.
     // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_uniform_buffer_object.txt
 

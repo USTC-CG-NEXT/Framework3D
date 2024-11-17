@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "NumLightsNodeGlsl.h"
+#include "NumLightsNodeSlang.h"
 
 #include <MaterialXGenShader/Shader.h>
 
@@ -16,17 +16,17 @@ const string NUM_LIGHTS_FUNC_SIGNATURE = "int numActiveLightSources()";
 
 } // anonymous namespace
 
-NumLightsNodeGlsl::NumLightsNodeGlsl()
+NumLightsNodeSlang::NumLightsNodeSlang()
 {
     _hash = std::hash<string>{}(NUM_LIGHTS_FUNC_SIGNATURE);
 }
 
-ShaderNodeImplPtr NumLightsNodeGlsl::create()
+ShaderNodeImplPtr NumLightsNodeSlang::create()
 {
-    return std::make_shared<NumLightsNodeGlsl>();
+    return std::make_shared<NumLightsNodeSlang>();
 }
 
-void NumLightsNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader& shader) const
+void NumLightsNodeSlang::createVariables(const ShaderNode&, GenContext&, Shader& shader) const
 {
     // Create uniform for number of active light sources
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
@@ -34,7 +34,7 @@ void NumLightsNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader& 
     numActiveLights->setValue(Value::createValue<int>(0));
 }
 
-void NumLightsNodeGlsl::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void NumLightsNodeSlang::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {

@@ -8,11 +8,11 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-const string VkShaderGenerator::TARGET = "genglsl";
+const string VkShaderGenerator::TARGET = "genslang";
 const string VkShaderGenerator::VERSION = "450";
 
 VkShaderGenerator::VkShaderGenerator() :
-    GlslShaderGenerator()
+    SlangShaderGenerator()
 {
     _syntax = VkSyntax::create();
     // Add in Vulkan specific keywords

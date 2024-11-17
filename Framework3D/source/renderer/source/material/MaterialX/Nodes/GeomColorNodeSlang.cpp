@@ -3,18 +3,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "GeomColorNodeGlsl.h"
+#include "GeomColorNodeSlang.h"
 
 #include <MaterialXGenShader/Shader.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-ShaderNodeImplPtr GeomColorNodeGlsl::create()
+ShaderNodeImplPtr GeomColorNodeSlang::create()
 {
-    return std::make_shared<GeomColorNodeGlsl>();
+    return std::make_shared<GeomColorNodeSlang>();
 }
 
-void GeomColorNodeGlsl::createVariables(const ShaderNode& node, GenContext&, Shader& shader) const
+void GeomColorNodeSlang::createVariables(const ShaderNode& node, GenContext&, Shader& shader) const
 {
     const ShaderInput* indexInput = node.getInput(INDEX);
     const string index = indexInput ? indexInput->getValue()->getValueString() : "0";
@@ -25,9 +25,9 @@ void GeomColorNodeGlsl::createVariables(const ShaderNode& node, GenContext&, Sha
     addStageConnector(HW::VERTEX_DATA, Type::COLOR4, HW::T_COLOR + "_" + index, vs, ps);
 }
 
-void GeomColorNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void GeomColorNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
     const ShaderOutput* output = node.getOutput();
     const ShaderInput* indexInput = node.getInput(INDEX);

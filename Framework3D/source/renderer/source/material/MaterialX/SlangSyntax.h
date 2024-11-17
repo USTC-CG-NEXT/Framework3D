@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_GLSL_SYNTAX_H
-#define MATERIALX_GLSL_SYNTAX_H
+#ifndef MATERIALX_SLANG_SYNTAX_H
+#define MATERIALX_SLANG_SYNTAX_H
 
 /// @file
-/// GLSL syntax class
+/// SLANG syntax class
 
 #include "Export.h"
 
@@ -15,13 +15,13 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-/// Syntax class for GLSL (OpenGL Shading Language)
-class HD_USTC_CG_API GlslSyntax : public Syntax
+/// Syntax class for SLANG (OpenGL Shading Language)
+class HD_USTC_CG_API SlangSyntax : public Syntax
 {
   public:
-    GlslSyntax();
+    SlangSyntax();
 
-    static SyntaxPtr create() { return std::make_shared<GlslSyntax>(); }
+    static SyntaxPtr create() { return std::make_shared<SlangSyntax>(); }
 
     const string& getInputQualifier() const override { return INPUT_QUALIFIER; }
     const string& getOutputQualifier() const override { return OUTPUT_QUALIFIER; }

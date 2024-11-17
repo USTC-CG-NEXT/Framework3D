@@ -7,9 +7,9 @@
 #define MATERIALX_VKSHADERGENERATOR_H
 
 /// @file
-/// Vulkan GLSL shader generator
+/// Vulkan SLANG shader generator
 
-#include "GlslShaderGenerator.h"
+#include "SlangShaderGenerator.h"
 #include "VkResourceBindingContext.h"
 
 MATERIALX_NAMESPACE_BEGIN
@@ -17,8 +17,8 @@ MATERIALX_NAMESPACE_BEGIN
 using VkShaderGeneratorPtr = shared_ptr<class VkShaderGenerator>;
 
 /// @class VkShaderGenerator
-/// A Vulkan GLSL shader generator
-class HD_USTC_CG_API VkShaderGenerator : public GlslShaderGenerator
+/// A Vulkan SLANG shader generator
+class HD_USTC_CG_API VkShaderGenerator : public SlangShaderGenerator
 {
   public:
     VkShaderGenerator();
@@ -28,7 +28,7 @@ class HD_USTC_CG_API VkShaderGenerator : public GlslShaderGenerator
     /// Return a unique identifier for the target this generator is for
     const string& getTarget() const override { return TARGET; }
 
-    /// Return the version string for the GLSL version this generator is for
+    /// Return the version string for the SLANG version this generator is for
     const string& getVersion() const override { return VERSION; }
 
     string getVertexDataPrefix(const VariableBlock& vertexData) const override;

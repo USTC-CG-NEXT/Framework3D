@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_GLSLSHADERGENERATOR_H
-#define MATERIALX_GLSLSHADERGENERATOR_H
+#ifndef MATERIALX_SLANGSHADERGENERATOR_H
+#define MATERIALX_SLANGSHADERGENERATOR_H
 
 /// @file
-/// GLSL shader generator
+/// SLANG shader generator
 
 #include "Export.h"
 
@@ -15,16 +15,16 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-using GlslShaderGeneratorPtr = shared_ptr<class GlslShaderGenerator>;
+using SlangShaderGeneratorPtr = shared_ptr<class SlangShaderGenerator>;
 
-/// Base class for GLSL (OpenGL Shading Language) code generation.
-/// A generator for a specific GLSL target should be derived from this class.
-class HD_USTC_CG_API GlslShaderGenerator : public HwShaderGenerator
+/// Base class for SLANG (OpenGL Shading Language) code generation.
+/// A generator for a specific SLANG target should be derived from this class.
+class HD_USTC_CG_API SlangShaderGenerator : public HwShaderGenerator
 {
   public:
-    GlslShaderGenerator();
+    SlangShaderGenerator();
 
-    static ShaderGeneratorPtr create() { return std::make_shared<GlslShaderGenerator>(); }
+    static ShaderGeneratorPtr create() { return std::make_shared<SlangShaderGenerator>(); }
 
     /// Generate a shader starting from the given element, translating
     /// the element and all dependencies upstream into shader code.
@@ -33,7 +33,7 @@ class HD_USTC_CG_API GlslShaderGenerator : public HwShaderGenerator
     /// Return a unique identifier for the target this generator is for
     const string& getTarget() const override { return TARGET; }
 
-    /// Return the version string for the GLSL version this generator is for
+    /// Return the version string for the SLANG version this generator is for
     virtual const string& getVersion() const { return VERSION; }
 
     /// Emit a shader variable.
@@ -87,14 +87,14 @@ class HD_USTC_CG_API GlslShaderGenerator : public HwShaderGenerator
     vector<ShaderNodePtr> _lightSamplingNodes;
 };
 
-/// Base class for common GLSL node implementations
-class HD_USTC_CG_API GlslImplementation : public HwImplementation
+/// Base class for common SLANG node implementations
+class HD_USTC_CG_API SlangImplementation : public HwImplementation
 {
   public:
     const string& getTarget() const override;
 
   protected:
-    GlslImplementation() { }
+    SlangImplementation() { }
 };
 
 MATERIALX_NAMESPACE_END

@@ -3,20 +3,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "GlslShaderGenerator.h"
+#include "SlangShaderGenerator.h"
 
-#include "GlslSyntax.h"
-#include "Nodes/GeomColorNodeGlsl.h"
-#include "Nodes/GeomPropValueNodeGlsl.h"
-#include "Nodes/SurfaceNodeGlsl.h"
-#include "Nodes/UnlitSurfaceNodeGlsl.h"
-#include "Nodes/LightNodeGlsl.h"
-#include "Nodes/LightCompoundNodeGlsl.h"
-#include "Nodes/LightShaderNodeGlsl.h"
-#include "Nodes/HeightToNormalNodeGlsl.h"
-#include "Nodes/LightSamplerNodeGlsl.h"
-#include "Nodes/NumLightsNodeGlsl.h"
-#include "Nodes/BlurNodeGlsl.h"
+#include "SlangSyntax.h"
+#include "Nodes/GeomColorNodeSlang.h"
+#include "Nodes/GeomPropValueNodeSlang.h"
+#include "Nodes/SurfaceNodeSlang.h"
+#include "Nodes/UnlitSurfaceNodeSlang.h"
+#include "Nodes/LightNodeSlang.h"
+#include "Nodes/LightCompoundNodeSlang.h"
+#include "Nodes/LightShaderNodeSlang.h"
+#include "Nodes/HeightToNormalNodeSlang.h"
+#include "Nodes/LightSamplerNodeSlang.h"
+#include "Nodes/NumLightsNodeSlang.h"
+#include "Nodes/BlurNodeSlang.h"
 
 #include <MaterialXGenShader/Nodes/MaterialNode.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
@@ -42,15 +42,15 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-const string GlslShaderGenerator::TARGET = "genglsl";
-const string GlslShaderGenerator::VERSION = "400";
+const string SlangShaderGenerator::TARGET = "genslang";
+const string SlangShaderGenerator::VERSION = "400";
 
 //
-// GlslShaderGenerator methods
+// SlangShaderGenerator methods
 //
 
-GlslShaderGenerator::GlslShaderGenerator() :
-    HwShaderGenerator(GlslSyntax::create())
+SlangShaderGenerator::SlangShaderGenerator() :
+    HwShaderGenerator(SlangSyntax::create())
 {
     //
     // Register all custom node implementation classes
@@ -61,222 +61,222 @@ GlslShaderGenerator::GlslShaderGenerator() :
     // <!-- <switch> -->
     elementNames = {
         // <!-- 'which' type : float -->
-        "IM_switch_float_" + GlslShaderGenerator::TARGET,
-        "IM_switch_color3_" + GlslShaderGenerator::TARGET,
-        "IM_switch_color4_" + GlslShaderGenerator::TARGET,
-        "IM_switch_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_switch_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_switch_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_switch_float_" + SlangShaderGenerator::TARGET,
+        "IM_switch_color3_" + SlangShaderGenerator::TARGET,
+        "IM_switch_color4_" + SlangShaderGenerator::TARGET,
+        "IM_switch_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_switch_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_switch_vector4_" + SlangShaderGenerator::TARGET,
 
         // <!-- 'which' type : integer -->
-        "IM_switch_floatI_" + GlslShaderGenerator::TARGET,
-        "IM_switch_color3I_" + GlslShaderGenerator::TARGET,
-        "IM_switch_color4I_" + GlslShaderGenerator::TARGET,
-        "IM_switch_vector2I_" + GlslShaderGenerator::TARGET,
-        "IM_switch_vector3I_" + GlslShaderGenerator::TARGET,
-        "IM_switch_vector4I_" + GlslShaderGenerator::TARGET,
+        "IM_switch_floatI_" + SlangShaderGenerator::TARGET,
+        "IM_switch_color3I_" + SlangShaderGenerator::TARGET,
+        "IM_switch_color4I_" + SlangShaderGenerator::TARGET,
+        "IM_switch_vector2I_" + SlangShaderGenerator::TARGET,
+        "IM_switch_vector3I_" + SlangShaderGenerator::TARGET,
+        "IM_switch_vector4I_" + SlangShaderGenerator::TARGET,
     };
     registerImplementation(elementNames, SwitchNode::create);
 
     // <!-- <swizzle> -->
     elementNames = {
         // <!-- from type : float -->
-        "IM_swizzle_float_color3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_float_color4_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_float_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_float_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_float_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_swizzle_float_color3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_float_color4_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_float_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_float_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_float_vector4_" + SlangShaderGenerator::TARGET,
 
         // <!-- from type : color3 -->
-        "IM_swizzle_color3_float_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color3_color3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color3_color4_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color3_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color3_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color3_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_swizzle_color3_float_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color3_color3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color3_color4_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color3_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color3_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color3_vector4_" + SlangShaderGenerator::TARGET,
 
         // <!-- from type : color4 -->
-        "IM_swizzle_color4_float_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color4_color3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color4_color4_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color4_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color4_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_color4_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_swizzle_color4_float_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color4_color3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color4_color4_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color4_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color4_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_color4_vector4_" + SlangShaderGenerator::TARGET,
 
         // <!-- from type : vector2 -->
-        "IM_swizzle_vector2_float_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector2_color3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector2_color4_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector2_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector2_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector2_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_swizzle_vector2_float_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector2_color3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector2_color4_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector2_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector2_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector2_vector4_" + SlangShaderGenerator::TARGET,
 
         // <!-- from type : vector3 -->
-        "IM_swizzle_vector3_float_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector3_color3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector3_color4_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector3_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector3_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector3_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_swizzle_vector3_float_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector3_color3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector3_color4_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector3_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector3_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector3_vector4_" + SlangShaderGenerator::TARGET,
 
         // <!-- from type : vector4 -->
-        "IM_swizzle_vector4_float_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector4_color3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector4_color4_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector4_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector4_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_swizzle_vector4_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_swizzle_vector4_float_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector4_color3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector4_color4_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector4_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector4_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_swizzle_vector4_vector4_" + SlangShaderGenerator::TARGET,
     };
     registerImplementation(elementNames, SwizzleNode::create);
 
     // <!-- <convert> -->
     elementNames = {
-        "IM_convert_float_color3_" + GlslShaderGenerator::TARGET,
-        "IM_convert_float_color4_" + GlslShaderGenerator::TARGET,
-        "IM_convert_float_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_convert_float_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_convert_float_vector4_" + GlslShaderGenerator::TARGET,
-        "IM_convert_vector2_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_convert_vector3_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_convert_vector3_color3_" + GlslShaderGenerator::TARGET,
-        "IM_convert_vector3_vector4_" + GlslShaderGenerator::TARGET,
-        "IM_convert_vector4_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_convert_vector4_color4_" + GlslShaderGenerator::TARGET,
-        "IM_convert_color3_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_convert_color4_vector4_" + GlslShaderGenerator::TARGET,
-        "IM_convert_color3_color4_" + GlslShaderGenerator::TARGET,
-        "IM_convert_color4_color3_" + GlslShaderGenerator::TARGET,
-        "IM_convert_boolean_float_" + GlslShaderGenerator::TARGET,
-        "IM_convert_integer_float_" + GlslShaderGenerator::TARGET,
+        "IM_convert_float_color3_" + SlangShaderGenerator::TARGET,
+        "IM_convert_float_color4_" + SlangShaderGenerator::TARGET,
+        "IM_convert_float_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_convert_float_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_convert_float_vector4_" + SlangShaderGenerator::TARGET,
+        "IM_convert_vector2_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_convert_vector3_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_convert_vector3_color3_" + SlangShaderGenerator::TARGET,
+        "IM_convert_vector3_vector4_" + SlangShaderGenerator::TARGET,
+        "IM_convert_vector4_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_convert_vector4_color4_" + SlangShaderGenerator::TARGET,
+        "IM_convert_color3_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_convert_color4_vector4_" + SlangShaderGenerator::TARGET,
+        "IM_convert_color3_color4_" + SlangShaderGenerator::TARGET,
+        "IM_convert_color4_color3_" + SlangShaderGenerator::TARGET,
+        "IM_convert_boolean_float_" + SlangShaderGenerator::TARGET,
+        "IM_convert_integer_float_" + SlangShaderGenerator::TARGET,
     };
     registerImplementation(elementNames, ConvertNode::create);
 
     // <!-- <combine> -->
     elementNames = {
-        "IM_combine2_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_combine2_color4CF_" + GlslShaderGenerator::TARGET,
-        "IM_combine2_vector4VF_" + GlslShaderGenerator::TARGET,
-        "IM_combine2_vector4VV_" + GlslShaderGenerator::TARGET,
-        "IM_combine3_color3_" + GlslShaderGenerator::TARGET,
-        "IM_combine3_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_combine4_color4_" + GlslShaderGenerator::TARGET,
-        "IM_combine4_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_combine2_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_combine2_color4CF_" + SlangShaderGenerator::TARGET,
+        "IM_combine2_vector4VF_" + SlangShaderGenerator::TARGET,
+        "IM_combine2_vector4VV_" + SlangShaderGenerator::TARGET,
+        "IM_combine3_color3_" + SlangShaderGenerator::TARGET,
+        "IM_combine3_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_combine4_color4_" + SlangShaderGenerator::TARGET,
+        "IM_combine4_vector4_" + SlangShaderGenerator::TARGET,
     };
     registerImplementation(elementNames, CombineNode::create);
 
     // <!-- <position> -->
-    registerImplementation("IM_position_vector3_" + GlslShaderGenerator::TARGET, HwPositionNode::create);
+    registerImplementation("IM_position_vector3_" + SlangShaderGenerator::TARGET, HwPositionNode::create);
     // <!-- <normal> -->
-    registerImplementation("IM_normal_vector3_" + GlslShaderGenerator::TARGET, HwNormalNode::create);
+    registerImplementation("IM_normal_vector3_" + SlangShaderGenerator::TARGET, HwNormalNode::create);
     // <!-- <tangent> -->
-    registerImplementation("IM_tangent_vector3_" + GlslShaderGenerator::TARGET, HwTangentNode::create);
+    registerImplementation("IM_tangent_vector3_" + SlangShaderGenerator::TARGET, HwTangentNode::create);
     // <!-- <bitangent> -->
-    registerImplementation("IM_bitangent_vector3_" + GlslShaderGenerator::TARGET, HwBitangentNode::create);
+    registerImplementation("IM_bitangent_vector3_" + SlangShaderGenerator::TARGET, HwBitangentNode::create);
     // <!-- <texcoord> -->
-    registerImplementation("IM_texcoord_vector2_" + GlslShaderGenerator::TARGET, HwTexCoordNode::create);
-    registerImplementation("IM_texcoord_vector3_" + GlslShaderGenerator::TARGET, HwTexCoordNode::create);
+    registerImplementation("IM_texcoord_vector2_" + SlangShaderGenerator::TARGET, HwTexCoordNode::create);
+    registerImplementation("IM_texcoord_vector3_" + SlangShaderGenerator::TARGET, HwTexCoordNode::create);
     // <!-- <geomcolor> -->
-    registerImplementation("IM_geomcolor_float_" + GlslShaderGenerator::TARGET, GeomColorNodeGlsl::create);
-    registerImplementation("IM_geomcolor_color3_" + GlslShaderGenerator::TARGET, GeomColorNodeGlsl::create);
-    registerImplementation("IM_geomcolor_color4_" + GlslShaderGenerator::TARGET, GeomColorNodeGlsl::create);
+    registerImplementation("IM_geomcolor_float_" + SlangShaderGenerator::TARGET, GeomColorNodeSlang::create);
+    registerImplementation("IM_geomcolor_color3_" + SlangShaderGenerator::TARGET, GeomColorNodeSlang::create);
+    registerImplementation("IM_geomcolor_color4_" + SlangShaderGenerator::TARGET, GeomColorNodeSlang::create);
     // <!-- <geompropvalue> -->
     elementNames = {
-        "IM_geompropvalue_integer_" + GlslShaderGenerator::TARGET,
-        "IM_geompropvalue_float_" + GlslShaderGenerator::TARGET,
-        "IM_geompropvalue_color3_" + GlslShaderGenerator::TARGET,
-        "IM_geompropvalue_color4_" + GlslShaderGenerator::TARGET,
-        "IM_geompropvalue_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_geompropvalue_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_geompropvalue_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_geompropvalue_integer_" + SlangShaderGenerator::TARGET,
+        "IM_geompropvalue_float_" + SlangShaderGenerator::TARGET,
+        "IM_geompropvalue_color3_" + SlangShaderGenerator::TARGET,
+        "IM_geompropvalue_color4_" + SlangShaderGenerator::TARGET,
+        "IM_geompropvalue_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_geompropvalue_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_geompropvalue_vector4_" + SlangShaderGenerator::TARGET,
     };
-    registerImplementation(elementNames, GeomPropValueNodeGlsl::create);
-    registerImplementation("IM_geompropvalue_boolean_" + GlslShaderGenerator::TARGET, GeomPropValueNodeGlslAsUniform::create);
-    registerImplementation("IM_geompropvalue_string_" + GlslShaderGenerator::TARGET, GeomPropValueNodeGlslAsUniform::create);
+    registerImplementation(elementNames, GeomPropValueNodeSlang::create);
+    registerImplementation("IM_geompropvalue_boolean_" + SlangShaderGenerator::TARGET, GeomPropValueNodeSlangAsUniform::create);
+    registerImplementation("IM_geompropvalue_string_" + SlangShaderGenerator::TARGET, GeomPropValueNodeSlangAsUniform::create);
 
     // <!-- <frame> -->
-    registerImplementation("IM_frame_float_" + GlslShaderGenerator::TARGET, HwFrameNode::create);
+    registerImplementation("IM_frame_float_" + SlangShaderGenerator::TARGET, HwFrameNode::create);
     // <!-- <time> -->
-    registerImplementation("IM_time_float_" + GlslShaderGenerator::TARGET, HwTimeNode::create);
+    registerImplementation("IM_time_float_" + SlangShaderGenerator::TARGET, HwTimeNode::create);
     // <!-- <viewdirection> -->
-    registerImplementation("IM_viewdirection_vector3_" + GlslShaderGenerator::TARGET, HwViewDirectionNode::create);
+    registerImplementation("IM_viewdirection_vector3_" + SlangShaderGenerator::TARGET, HwViewDirectionNode::create);
 
     // <!-- <surface> -->
-    registerImplementation("IM_surface_" + GlslShaderGenerator::TARGET, SurfaceNodeGlsl::create);
-    registerImplementation("IM_surface_unlit_" + GlslShaderGenerator::TARGET, UnlitSurfaceNodeGlsl::create);
+    registerImplementation("IM_surface_" + SlangShaderGenerator::TARGET, SurfaceNodeSlang::create);
+    registerImplementation("IM_surface_unlit_" + SlangShaderGenerator::TARGET, UnlitSurfaceNodeSlang::create);
 
     // <!-- <light> -->
-    registerImplementation("IM_light_" + GlslShaderGenerator::TARGET, LightNodeGlsl::create);
+    registerImplementation("IM_light_" + SlangShaderGenerator::TARGET, LightNodeSlang::create);
 
     // <!-- <point_light> -->
-    registerImplementation("IM_point_light_" + GlslShaderGenerator::TARGET, LightShaderNodeGlsl::create);
+    registerImplementation("IM_point_light_" + SlangShaderGenerator::TARGET, LightShaderNodeSlang::create);
     // <!-- <directional_light> -->
-    registerImplementation("IM_directional_light_" + GlslShaderGenerator::TARGET, LightShaderNodeGlsl::create);
+    registerImplementation("IM_directional_light_" + SlangShaderGenerator::TARGET, LightShaderNodeSlang::create);
     // <!-- <spot_light> -->
-    registerImplementation("IM_spot_light_" + GlslShaderGenerator::TARGET, LightShaderNodeGlsl::create);
+    registerImplementation("IM_spot_light_" + SlangShaderGenerator::TARGET, LightShaderNodeSlang::create);
 
     // <!-- <heighttonormal> -->
-    registerImplementation("IM_heighttonormal_vector3_" + GlslShaderGenerator::TARGET, HeightToNormalNodeGlsl::create);
+    registerImplementation("IM_heighttonormal_vector3_" + SlangShaderGenerator::TARGET, HeightToNormalNodeSlang::create);
 
     // <!-- <blur> -->
     elementNames = {
-        "IM_blur_float_" + GlslShaderGenerator::TARGET,
-        "IM_blur_color3_" + GlslShaderGenerator::TARGET,
-        "IM_blur_color4_" + GlslShaderGenerator::TARGET,
-        "IM_blur_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_blur_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_blur_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_blur_float_" + SlangShaderGenerator::TARGET,
+        "IM_blur_color3_" + SlangShaderGenerator::TARGET,
+        "IM_blur_color4_" + SlangShaderGenerator::TARGET,
+        "IM_blur_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_blur_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_blur_vector4_" + SlangShaderGenerator::TARGET,
     };
-    registerImplementation(elementNames, BlurNodeGlsl::create);
+    registerImplementation(elementNames, BlurNodeSlang::create);
 
     // <!-- <ND_transformpoint> ->
-    registerImplementation("IM_transformpoint_vector3_" + GlslShaderGenerator::TARGET, HwTransformPointNode::create);
+    registerImplementation("IM_transformpoint_vector3_" + SlangShaderGenerator::TARGET, HwTransformPointNode::create);
 
     // <!-- <ND_transformvector> ->
-    registerImplementation("IM_transformvector_vector3_" + GlslShaderGenerator::TARGET, HwTransformVectorNode::create);
+    registerImplementation("IM_transformvector_vector3_" + SlangShaderGenerator::TARGET, HwTransformVectorNode::create);
 
     // <!-- <ND_transformnormal> ->
-    registerImplementation("IM_transformnormal_vector3_" + GlslShaderGenerator::TARGET, HwTransformNormalNode::create);
+    registerImplementation("IM_transformnormal_vector3_" + SlangShaderGenerator::TARGET, HwTransformNormalNode::create);
 
     // <!-- <image> -->
     elementNames = {
-        "IM_image_float_" + GlslShaderGenerator::TARGET,
-        "IM_image_color3_" + GlslShaderGenerator::TARGET,
-        "IM_image_color4_" + GlslShaderGenerator::TARGET,
-        "IM_image_vector2_" + GlslShaderGenerator::TARGET,
-        "IM_image_vector3_" + GlslShaderGenerator::TARGET,
-        "IM_image_vector4_" + GlslShaderGenerator::TARGET,
+        "IM_image_float_" + SlangShaderGenerator::TARGET,
+        "IM_image_color3_" + SlangShaderGenerator::TARGET,
+        "IM_image_color4_" + SlangShaderGenerator::TARGET,
+        "IM_image_vector2_" + SlangShaderGenerator::TARGET,
+        "IM_image_vector3_" + SlangShaderGenerator::TARGET,
+        "IM_image_vector4_" + SlangShaderGenerator::TARGET,
     };
     registerImplementation(elementNames, HwImageNode::create);
 
     // <!-- <layer> -->
-    registerImplementation("IM_layer_bsdf_" + GlslShaderGenerator::TARGET, ClosureLayerNode::create);
-    registerImplementation("IM_layer_vdf_" + GlslShaderGenerator::TARGET, ClosureLayerNode::create);
+    registerImplementation("IM_layer_bsdf_" + SlangShaderGenerator::TARGET, ClosureLayerNode::create);
+    registerImplementation("IM_layer_vdf_" + SlangShaderGenerator::TARGET, ClosureLayerNode::create);
     // <!-- <mix> -->
-    registerImplementation("IM_mix_bsdf_" + GlslShaderGenerator::TARGET, ClosureMixNode::create);
-    registerImplementation("IM_mix_edf_" + GlslShaderGenerator::TARGET, ClosureMixNode::create);
+    registerImplementation("IM_mix_bsdf_" + SlangShaderGenerator::TARGET, ClosureMixNode::create);
+    registerImplementation("IM_mix_edf_" + SlangShaderGenerator::TARGET, ClosureMixNode::create);
     // <!-- <add> -->
-    registerImplementation("IM_add_bsdf_" + GlslShaderGenerator::TARGET, ClosureAddNode::create);
-    registerImplementation("IM_add_edf_" + GlslShaderGenerator::TARGET, ClosureAddNode::create);
+    registerImplementation("IM_add_bsdf_" + SlangShaderGenerator::TARGET, ClosureAddNode::create);
+    registerImplementation("IM_add_edf_" + SlangShaderGenerator::TARGET, ClosureAddNode::create);
     // <!-- <multiply> -->
     elementNames = {
-        "IM_multiply_bsdfC_" + GlslShaderGenerator::TARGET,
-        "IM_multiply_bsdfF_" + GlslShaderGenerator::TARGET,
-        "IM_multiply_edfC_" + GlslShaderGenerator::TARGET,
-        "IM_multiply_edfF_" + GlslShaderGenerator::TARGET,
+        "IM_multiply_bsdfC_" + SlangShaderGenerator::TARGET,
+        "IM_multiply_bsdfF_" + SlangShaderGenerator::TARGET,
+        "IM_multiply_edfC_" + SlangShaderGenerator::TARGET,
+        "IM_multiply_edfF_" + SlangShaderGenerator::TARGET,
     };
     registerImplementation(elementNames, ClosureMultiplyNode::create);
 
     // <!-- <thin_film> -->
-    registerImplementation("IM_thin_film_bsdf_" + GlslShaderGenerator::TARGET, NopNode::create);
+    registerImplementation("IM_thin_film_bsdf_" + SlangShaderGenerator::TARGET, NopNode::create);
 
     // <!-- <surfacematerial> -->
-    registerImplementation("IM_surfacematerial_" + GlslShaderGenerator::TARGET, MaterialNode::create);
+    registerImplementation("IM_surfacematerial_" + SlangShaderGenerator::TARGET, MaterialNode::create);
 
-    _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "numActiveLightSources", NumLightsNodeGlsl::create()));
-    _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "sampleLightSource", LightSamplerNodeGlsl::create()));
+    _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "numActiveLightSources", NumLightsNodeSlang::create()));
+    _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "sampleLightSource", LightSamplerNodeSlang::create()));
 }
 
-ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
+ShaderPtr SlangShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
     ShaderPtr shader = createShader(name, element, context);
 
@@ -303,7 +303,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, 
     return shader;
 }
 
-void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
 {
     HwResourceBindingContextPtr resourceBindingCtx = getResourceBindingContext(context);
 
@@ -344,20 +344,20 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     emitFunctionBodyEnd(graph, context, stage);
 }
 
-void GlslShaderGenerator::emitSpecularEnvironment(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitSpecularEnvironment(GenContext& context, ShaderStage& stage) const
 {
     int specularMethod = context.getOptions().hwSpecularEnvironmentMethod;
     if (specularMethod == SPECULAR_ENVIRONMENT_FIS)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_environment_fis.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_environment_fis.slang", context, stage);
     }
     else if (specularMethod == SPECULAR_ENVIRONMENT_PREFILTER)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_environment_prefilter.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_environment_prefilter.slang", context, stage);
     }
     else if (specularMethod == SPECULAR_ENVIRONMENT_NONE)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_environment_none.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_environment_none.slang", context, stage);
     }
     else
     {
@@ -366,16 +366,16 @@ void GlslShaderGenerator::emitSpecularEnvironment(GenContext& context, ShaderSta
     emitLineBreak(stage);
 }
 
-void GlslShaderGenerator::emitTransmissionRender(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitTransmissionRender(GenContext& context, ShaderStage& stage) const
 {
     int transmissionMethod = context.getOptions().hwTransmissionRenderMethod;
     if (transmissionMethod == TRANSMISSION_REFRACTION)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_transmission_refract.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_transmission_refract.slang", context, stage);
     }
     else if (transmissionMethod == TRANSMISSION_OPACITY)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_transmission_opacity.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_transmission_opacity.slang", context, stage);
     }
     else
     {
@@ -384,12 +384,12 @@ void GlslShaderGenerator::emitTransmissionRender(GenContext& context, ShaderStag
     emitLineBreak(stage);
 }
 
-void GlslShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
+void SlangShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
 {
     emitLine("#version " + getVersion(), stage, false);
 }
 
-void GlslShaderGenerator::emitConstants(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitConstants(GenContext& context, ShaderStage& stage) const
 {
     const VariableBlock& constants = stage.getConstantBlock();
     if (!constants.empty())
@@ -399,7 +399,7 @@ void GlslShaderGenerator::emitConstants(GenContext& context, ShaderStage& stage)
     }
 }
 
-void GlslShaderGenerator::emitUniforms(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitUniforms(GenContext& context, ShaderStage& stage) const
 {
     for (const auto& it : stage.getUniformBlocks())
     {
@@ -423,7 +423,7 @@ void GlslShaderGenerator::emitUniforms(GenContext& context, ShaderStage& stage) 
     }
 }
 
-void GlslShaderGenerator::emitLightData(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitLightData(GenContext& context, ShaderStage& stage) const
 {
     const VariableBlock& lightData = stage.getUniformBlock(HW::LIGHT_DATA);
     const string structArraySuffix = "[" + HW::LIGHT_DATA_MAX_LIGHT_SOURCES + "]";
@@ -446,7 +446,7 @@ void GlslShaderGenerator::emitLightData(GenContext& context, ShaderStage& stage)
     emitLineBreak(stage);
 }
 
-void GlslShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::VERTEX)
     {
@@ -475,7 +475,7 @@ void GlslShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage) co
     }
 }
 
-void GlslShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::VERTEX)
     {
@@ -501,17 +501,17 @@ void GlslShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage) c
     }
 }
 
-HwResourceBindingContextPtr GlslShaderGenerator::getResourceBindingContext(GenContext& context) const
+HwResourceBindingContextPtr SlangShaderGenerator::getResourceBindingContext(GenContext& context) const
 {
     return context.getUserData<HwResourceBindingContext>(HW::USER_DATA_BINDING_CONTEXT);
 }
 
-string GlslShaderGenerator::getVertexDataPrefix(const VariableBlock& vertexData) const
+string SlangShaderGenerator::getVertexDataPrefix(const VariableBlock& vertexData) const
 {
     return vertexData.getInstance() + ".";
 }
 
-bool GlslShaderGenerator::requiresLighting(const ShaderGraph& graph) const
+bool SlangShaderGenerator::requiresLighting(const ShaderGraph& graph) const
 {
     const bool isBsdf = graph.hasClassification(ShaderNode::Classification::BSDF);
     const bool isLitSurfaceShader = graph.hasClassification(ShaderNode::Classification::SHADER) &&
@@ -520,7 +520,7 @@ bool GlslShaderGenerator::requiresLighting(const ShaderGraph& graph) const
     return isBsdf || isLitSurfaceShader;
 }
 
-void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
 {
     HwResourceBindingContextPtr resourceBindingCtx = getResourceBindingContext(context);
 
@@ -549,7 +549,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     emitOutputs(context, stage);
 
     // Add common math functions
-    emitLibraryInclude("stdlib/genglsl/lib/mx_math.glsl", context, stage);
+    emitLibraryInclude("stdlib/genslang/lib/mx_math.slang", context, stage);
     emitLineBreak(stage);
 
     // Determine whether lighting is required
@@ -584,20 +584,20 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
                      context.getOptions().hwWriteDepthMoments;
     if (shadowing)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_shadow.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_shadow.slang", context, stage);
     }
 
     // Emit directional albedo table code.
     if (context.getOptions().hwWriteAlbedoTable)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_generate_albedo_table.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_generate_albedo_table.slang", context, stage);
         emitLineBreak(stage);
     }
 
     // Emit environment prefiltering code
     if (context.getOptions().hwWriteEnvPrefilter)
     {
-        emitLibraryInclude("pbrlib/genglsl/lib/mx_generate_prefilter_env.glsl", context, stage);
+        emitLibraryInclude("pbrlib/genslang/lib/mx_generate_prefilter_env.slang", context, stage);
         emitLineBreak(stage);
     }
 
@@ -605,17 +605,17 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     // depending on the vertical flip flag.
     if (context.getOptions().fileTextureVerticalFlip)
     {
-        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "mx_transform_uv_vflip.glsl";
+        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "mx_transform_uv_vflip.slang";
     }
     else
     {
-        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "mx_transform_uv.glsl";
+        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "mx_transform_uv.slang";
     }
 
     // Emit uv transform code globally if needed.
     if (context.getOptions().hwAmbientOcclusion)
     {
-        emitLibraryInclude("stdlib/genglsl/lib/" + _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV], context, stage);
+        emitLibraryInclude("stdlib/genslang/lib/" + _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV], context, stage);
     }
 
     emitLightFunctionDefinitions(graph, context, stage);
@@ -743,7 +743,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     emitFunctionBodyEnd(graph, context, stage);
 }
 
-void GlslShaderGenerator::emitLightFunctionDefinitions(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitLightFunctionDefinitions(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
@@ -772,7 +772,7 @@ void GlslShaderGenerator::emitLightFunctionDefinitions(const ShaderGraph& graph,
     }
 }
 
-void GlslShaderGenerator::toVec4(const TypeDesc* type, string& variable)
+void SlangShaderGenerator::toVec4(const TypeDesc* type, string& variable)
 {
     if (type->isFloat3())
     {
@@ -797,11 +797,11 @@ void GlslShaderGenerator::toVec4(const TypeDesc* type, string& variable)
     }
 }
 
-void GlslShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, const string& qualifier,
+void SlangShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, const string& qualifier,
                                                   GenContext&, ShaderStage& stage,
                                                   bool assignValue) const
 {
-    // A file texture input needs special handling on GLSL
+    // A file texture input needs special handling on SLANG
     if (*variable->getType() == *Type::FILENAME)
     {
         // Samplers must always be uniforms
@@ -815,7 +815,7 @@ void GlslShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, co
         // input to pixel stage. The only way to get these is with geompropvalue_integer nodes.
         if (qualifier.empty() && *variable->getType() == *Type::INTEGER && !assignValue && variable->getName().rfind(HW::T_IN_GEOMPROP, 0) == 0)
         {
-            str += GlslSyntax::FLAT_QUALIFIER + " ";
+            str += SlangSyntax::FLAT_QUALIFIER + " ";
         }
         str += _syntax->getTypeName(variable->getType()) + " " + variable->getVariable();
 
@@ -842,7 +842,7 @@ void GlslShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, co
     }
 }
 
-ShaderNodeImplPtr GlslShaderGenerator::getImplementation(const NodeDef& nodedef, GenContext& context) const
+ShaderNodeImplPtr SlangShaderGenerator::getImplementation(const NodeDef& nodedef, GenContext& context) const
 {
     InterfaceElementPtr implElement = nodedef.getImplementation(getTarget());
     if (!implElement)
@@ -872,7 +872,7 @@ ShaderNodeImplPtr GlslShaderGenerator::getImplementation(const NodeDef& nodedef,
         // Use a compound implementation.
         if (*outputType == *Type::LIGHTSHADER)
         {
-            impl = LightCompoundNodeGlsl::create();
+            impl = LightCompoundNodeSlang::create();
         }
         else if (outputType->isClosure())
         {
@@ -913,9 +913,9 @@ ShaderNodeImplPtr GlslShaderGenerator::getImplementation(const NodeDef& nodedef,
     return impl;
 }
 
-const string& GlslImplementation::getTarget() const
+const string& SlangImplementation::getTarget() const
 {
-    return GlslShaderGenerator::TARGET;
+    return SlangShaderGenerator::TARGET;
 }
 
 MATERIALX_NAMESPACE_END

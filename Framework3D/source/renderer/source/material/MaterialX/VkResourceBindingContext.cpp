@@ -98,7 +98,7 @@ void VkResourceBindingContext::emitStructuredResourceBindings(GenContext& contex
     const ShaderGenerator& generator = context.getShaderGenerator();
     const Syntax& syntax = generator.getSyntax();
 
-    // Glsl structures need to be aligned. We make a best effort to base align struct members and add
+    // Slang structures need to be aligned. We make a best effort to base align struct members and add
     // padding if required.
     // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_uniform_buffer_object.txt
 

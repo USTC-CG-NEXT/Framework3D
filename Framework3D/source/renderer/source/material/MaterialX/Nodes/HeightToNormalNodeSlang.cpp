@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "HeightToNormalNodeGlsl.h"
-#include "../GlslShaderGenerator.h"
+#include "HeightToNormalNodeSlang.h"
+#include "../SlangShaderGenerator.h"
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/GenContext.h>
@@ -28,17 +28,17 @@ const float filterOffset = 0.0;
 
 } // anonymous namespace
 
-ShaderNodeImplPtr HeightToNormalNodeGlsl::create()
+ShaderNodeImplPtr HeightToNormalNodeSlang::create()
 {
-    return std::make_shared<HeightToNormalNodeGlsl>();
+    return std::make_shared<HeightToNormalNodeSlang>();
 }
 
-void HeightToNormalNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader&) const
+void HeightToNormalNodeSlang::createVariables(const ShaderNode&, GenContext&, Shader&) const
 {
     // Default filter kernels from ConvolutionNode are not used by this derived class.
 }
 
-void HeightToNormalNodeGlsl::computeSampleOffsetStrings(const string& sampleSizeName, const string& offsetTypeString,
+void HeightToNormalNodeSlang::computeSampleOffsetStrings(const string& sampleSizeName, const string& offsetTypeString,
                                                         unsigned int, StringVec& offsetStrings) const
 {
     // Build a 3x3 grid of samples that are offset by the provided sample size
@@ -51,24 +51,24 @@ void HeightToNormalNodeGlsl::computeSampleOffsetStrings(const string& sampleSize
     }
 }
 
-bool HeightToNormalNodeGlsl::acceptsInputType(const TypeDesc* type) const
+bool HeightToNormalNodeSlang::acceptsInputType(const TypeDesc* type) const
 {
     // Only support inputs which are float scalar
     return (*type == *Type::FLOAT && type->isScalar());
 }
 
-void HeightToNormalNodeGlsl::emitFunctionDefinition(const ShaderNode&, GenContext& context, ShaderStage& stage) const
+void HeightToNormalNodeSlang::emitFunctionDefinition(const ShaderNode&, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
         // Emit sampling functions
         const ShaderGenerator& shadergen = context.getShaderGenerator();
-        shadergen.emitLibraryInclude("stdlib/genglsl/lib/mx_sampling.glsl", context, stage);
+        shadergen.emitLibraryInclude("stdlib/genslang/lib/mx_sampling.slang", context, stage);
         shadergen.emitLineBreak(stage);
     }
 }
 
-void HeightToNormalNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void HeightToNormalNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
@@ -111,9 +111,9 @@ void HeightToNormalNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext
     }
 }
 
-const string& HeightToNormalNodeGlsl::getTarget() const
+const string& HeightToNormalNodeSlang::getTarget() const
 {
-    return GlslShaderGenerator::TARGET;
+    return SlangShaderGenerator::TARGET;
 }
 
 MATERIALX_NAMESPACE_END

@@ -3,15 +3,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "SurfaceNodeGlsl.h"
-#include "../GlslShaderGenerator.h"
+#include "SurfaceNodeSlang.h"
+#include "../SlangShaderGenerator.h"
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/GenContext.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-SurfaceNodeGlsl::SurfaceNodeGlsl() :
+SurfaceNodeSlang::SurfaceNodeSlang() :
     _callReflection(HwShaderGenerator::ClosureContextType::REFLECTION),
     _callTransmission(HwShaderGenerator::ClosureContextType::TRANSMISSION),
     _callIndirect(HwShaderGenerator::ClosureContextType::INDIRECT),
@@ -36,17 +36,17 @@ SurfaceNodeGlsl::SurfaceNodeGlsl() :
     _callEmission.addArgument(Type::EDF, ClosureContext::Argument(Type::VECTOR3, HW::DIR_V));
 }
 
-ShaderNodeImplPtr SurfaceNodeGlsl::create()
+ShaderNodeImplPtr SurfaceNodeSlang::create()
 {
-    return std::make_shared<SurfaceNodeGlsl>();
+    return std::make_shared<SurfaceNodeSlang>();
 }
 
-void SurfaceNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
+void SurfaceNodeSlang::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
 {
     // TODO:
     // The surface shader needs position, normal, view position and light sources. We should solve this by adding some
     // dependency mechanism so this implementation can be set to depend on the HwPositionNode, HwNormalNode
-    // HwViewDirectionNode and LightNodeGlsl nodes instead? This is where the MaterialX attribute "internalgeomprops"
+    // HwViewDirectionNode and LightNodeSlang nodes instead? This is where the MaterialX attribute "internalgeomprops"
     // is needed.
     //
     ShaderStage& vs = shader.getStage(Stage::VERTEX);
@@ -61,13 +61,13 @@ void SurfaceNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Sh
 
     addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, HW::T_VIEW_POSITION, ps);
 
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
     shadergen.addStageLightingUniforms(context, ps);
 }
 
-void SurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void SurfaceNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
     DEFINE_SHADER_STAGE(stage, Stage::VERTEX)
     {
@@ -227,14 +227,14 @@ void SurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& conte
     }
 }
 
-void SurfaceNodeGlsl::emitLightLoop(const ShaderNode& node, GenContext& context, ShaderStage& stage, const string& outColor) const
+void SurfaceNodeSlang::emitLightLoop(const ShaderNode& node, GenContext& context, ShaderStage& stage, const string& outColor) const
 {
     //
     // Generate Light loop if requested
     //
     if (context.getOptions().hwMaxActiveLightSources > 0)
     {
-        const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+        const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
         const VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
         const string prefix = shadergen.getVertexDataPrefix(vertexData);
 

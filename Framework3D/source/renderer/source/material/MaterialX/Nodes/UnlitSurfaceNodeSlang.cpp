@@ -3,21 +3,21 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "UnlitSurfaceNodeGlsl.h"
+#include "UnlitSurfaceNodeSlang.h"
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/GenContext.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-ShaderNodeImplPtr UnlitSurfaceNodeGlsl::create()
+ShaderNodeImplPtr UnlitSurfaceNodeSlang::create()
 {
-    return std::make_shared<UnlitSurfaceNodeGlsl>();
+    return std::make_shared<UnlitSurfaceNodeSlang>();
 }
 
-void UnlitSurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void UnlitSurfaceNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {

@@ -8,12 +8,12 @@
 
 #include <fstream>
 
-#include "../source/material/MaterialX/GlslResourceBindingContext.h"
-#include "../source/material/MaterialX/GlslShaderGenerator.h"
-#include "../source/material/MaterialX/GlslSyntax.h"
+#include "../source/material/MaterialX/SlangResourceBindingContext.h"
+#include "../source/material/MaterialX/SlangShaderGenerator.h"
+#include "../source/material/MaterialX/SlangSyntax.h"
 #include "../source/material/MaterialX/VkResourceBindingContext.h"
 #include "../source/material/MaterialX/VkShaderGenerator.h"
-#include "glsl_tester.hpp"
+#include "slang_tester.hpp"
 
 namespace mx = MaterialX;
 
@@ -54,7 +54,7 @@ TEST(MATERIALX, shader_gen)
     outFile << str;
     outFile.close();
     using namespace mx;
-    mx::GenContext context(mx::GlslShaderGenerator::create());
+    mx::GenContext context(mx::SlangShaderGenerator::create());
 
     context.registerSourceCodeSearchPath(searchPath);
     checkPixelDependencies(libraries, context);
@@ -62,11 +62,11 @@ TEST(MATERIALX, shader_gen)
 
 TEST(GenShader, Syntax_Check)
 {
-    mx::SyntaxPtr syntax = mx::GlslSyntax::create();
+    mx::SyntaxPtr syntax = mx::SlangSyntax::create();
 
     ASSERT_TRUE(syntax->getTypeName(mx::Type::FLOAT) == "float");
-    ASSERT_TRUE(syntax->getTypeName(mx::Type::COLOR3) == "vec3");
-    ASSERT_TRUE(syntax->getTypeName(mx::Type::VECTOR3) == "vec3");
+    ASSERT_TRUE(syntax->getTypeName(mx::Type::COLOR3) == "float3");
+    ASSERT_TRUE(syntax->getTypeName(mx::Type::VECTOR3) == "float3");
 
     ASSERT_TRUE(syntax->getTypeName(mx::Type::BSDF) == "BSDF");
     ASSERT_TRUE(syntax->getOutputTypeName(mx::Type::BSDF) == "out BSDF");
@@ -78,13 +78,13 @@ TEST(GenShader, Syntax_Check)
     value = syntax->getDefaultValue(mx::Type::FLOAT);
     ASSERT_TRUE(value == "0.0");
     value = syntax->getDefaultValue(mx::Type::COLOR3);
-    ASSERT_TRUE(value == "vec3(0.0)");
+    ASSERT_TRUE(value == "float3(0.0)");
     value = syntax->getDefaultValue(mx::Type::COLOR3, true);
-    ASSERT_TRUE(value == "vec3(0.0)");
+    ASSERT_TRUE(value == "float3(0.0)");
     value = syntax->getDefaultValue(mx::Type::COLOR4);
-    ASSERT_TRUE(value == "vec4(0.0)");
+    ASSERT_TRUE(value == "float4(0.0)");
     value = syntax->getDefaultValue(mx::Type::COLOR4, true);
-    ASSERT_TRUE(value == "vec4(0.0)");
+    ASSERT_TRUE(value == "float4(0.0)");
     value = syntax->getDefaultValue(mx::Type::FLOATARRAY, true);
     ASSERT_TRUE(value.empty());
     value = syntax->getDefaultValue(mx::Type::INTEGERARRAY, true);
@@ -99,16 +99,16 @@ TEST(GenShader, Syntax_Check)
     mx::ValuePtr color3Value =
         mx::Value::createValue<mx::Color3>(mx::Color3(1.0f, 2.0f, 3.0f));
     value = syntax->getValue(mx::Type::COLOR3, *color3Value);
-    ASSERT_TRUE(value == "vec3(1.0, 2.0, 3.0)");
+    ASSERT_TRUE(value == "float3(1.0, 2.0, 3.0)");
     value = syntax->getValue(mx::Type::COLOR3, *color3Value, true);
-    ASSERT_TRUE(value == "vec3(1.0, 2.0, 3.0)");
+    ASSERT_TRUE(value == "float3(1.0, 2.0, 3.0)");
 
     mx::ValuePtr color4Value =
         mx::Value::createValue<mx::Color4>(mx::Color4(1.0f, 2.0f, 3.0f, 4.0f));
     value = syntax->getValue(mx::Type::COLOR4, *color4Value);
-    ASSERT_TRUE(value == "vec4(1.0, 2.0, 3.0, 4.0)");
+    ASSERT_TRUE(value == "float4(1.0, 2.0, 3.0, 4.0)");
     value = syntax->getValue(mx::Type::COLOR4, *color4Value, true);
-    ASSERT_TRUE(value == "vec4(1.0, 2.0, 3.0, 4.0)");
+    ASSERT_TRUE(value == "float4(1.0, 2.0, 3.0, 4.0)");
 
     std::vector<float> floatArray = {
         0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f
@@ -127,7 +127,7 @@ TEST(GenShader, Syntax_Check)
 
 TEST(GenShader, GLSL_Implementation)
 {
-    mx::GenContext context(mx::GlslShaderGenerator::create());
+    mx::GenContext context(mx::SlangShaderGenerator::create());
 
     mx::StringSet generatorSkipNodeTypes;
     mx::StringSet generatorSkipNodeDefs;
@@ -137,7 +137,7 @@ TEST(GenShader, GLSL_Implementation)
 
 TEST(GenShader, GLSL_Unique_Names)
 {
-    mx::GenContext context(mx::GlslShaderGenerator::create());
+    mx::GenContext context(mx::SlangShaderGenerator::create());
     context.registerSourceCodeSearchPath(mx::getDefaultDataSearchPath());
     USTC_CG::GenShaderUtil::testUniqueNames(context, mx::Stage::PIXEL);
 }
@@ -154,7 +154,7 @@ TEST(GenShader, Bind_Light_Shaders)
     ASSERT_TRUE(pointLightShader != nullptr);
     ASSERT_TRUE(spotLightShader != nullptr);
 
-    mx::GenContext context(mx::GlslShaderGenerator::create());
+    mx::GenContext context(mx::SlangShaderGenerator::create());
     context.registerSourceCodeSearchPath(searchPath);
 
     mx::HwShaderGenerator::bindLightShader(*pointLightShader, 42, context);
@@ -170,19 +170,19 @@ TEST(GenShader, Bind_Light_Shaders)
         mx::HwShaderGenerator::bindLightShader(*spotLightShader, 66, context));
 }
 
-enum class GlslType { Glsl400, Glsl420, GlslVulkan };
+enum class SlangType { Slang400, Slang420, SlangVulkan };
 
-const std::string GlslTypeToString(GlslType e) throw()
+const std::string SlangTypeToString(SlangType e) throw()
 {
     switch (e) {
-        case GlslType::Glsl420: return "glsl420_layout";
-        case GlslType::GlslVulkan: return "glsl420_vulkan";
-        case GlslType::Glsl400:
-        default: return "glsl400";
+        case SlangType::Slang420: return "slang420_layout";
+        case SlangType::SlangVulkan: return "slang420_vulkan";
+        case SlangType::Slang400:
+        default: return "slang400";
     }
 }
 
-static void generateGlslCode(GlslType type = GlslType::Glsl400)
+static void generateSlangCode(SlangType type = SlangType::Slang400)
 {
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
 
@@ -192,25 +192,25 @@ static void generateGlslCode(GlslType type = GlslType::Glsl400)
         searchPath.find("resources/Materials/Examples/StandardSurface"));
 
     const mx::FilePath logPath(
-        "genglsl_" + GlslTypeToString(type) + "_generate_test.txt");
+        "genslang_" + SlangTypeToString(type) + "_generate_test.txt");
 
     bool writeShadersToDisk = false;
-    USTC_CG::GenShaderUtil::GlslShaderGeneratorTester tester(
-        (type == GlslType::GlslVulkan) ? mx::VkShaderGenerator::create()
-                                       : mx::GlslShaderGenerator::create(),
+    USTC_CG::GenShaderUtil::SlangShaderGeneratorTester tester(
+        (type == SlangType::SlangVulkan) ? mx::VkShaderGenerator::create()
+                                         : mx::SlangShaderGenerator::create(),
         testRootPaths,
         searchPath,
         logPath,
         writeShadersToDisk);
 
-    // Add resource binding context for glsl 4.20
-    if (type == GlslType::Glsl420) {
+    // Add resource binding context for slang 4.20
+    if (type == SlangType::Slang420) {
         // Set binding context to handle resource binding layouts
-        mx::GlslResourceBindingContextPtr glslresourceBinding(
-            mx::GlslResourceBindingContext::create());
-        glslresourceBinding->enableSeparateBindingLocations(true);
+        mx::SlangResourceBindingContextPtr slangresourceBinding(
+            mx::SlangResourceBindingContext::create());
+        slangresourceBinding->enableSeparateBindingLocations(true);
         tester.addUserData(
-            mx::HW::USER_DATA_BINDING_CONTEXT, glslresourceBinding);
+            mx::HW::USER_DATA_BINDING_CONTEXT, slangresourceBinding);
     }
 
     const mx::GenOptions genOptions;
@@ -222,17 +222,17 @@ static void generateGlslCode(GlslType type = GlslType::Glsl400)
 TEST(GenShader, GLSL_ShaderGeneration)
 {
     // Generate with standard GLSL i.e version 400
-    generateGlslCode(GlslType::Glsl400);
+    generateSlangCode(SlangType::Slang400);
 }
 
 TEST(GenShader, GLSL_Shader_with_Layout_Generation)
 {
     // Generate GLSL with layout i.e version 400 + layout extension
-    generateGlslCode(GlslType::Glsl420);
+    generateSlangCode(SlangType::Slang420);
 }
 
 TEST(GenShader, Vulkan_GLSL_Shader)
 {
     // Generate with GLSL for Vulkan i.e. version 450
-    generateGlslCode(GlslType::GlslVulkan);
+    generateSlangCode(SlangType::SlangVulkan);
 }

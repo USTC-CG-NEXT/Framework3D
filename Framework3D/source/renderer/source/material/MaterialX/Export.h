@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#ifndef MATERIALX_GENGLSL_EXPORT_H
-#define MATERIALX_GENGLSL_EXPORT_H
+#ifndef MATERIALX_GENSLANG_EXPORT_H
+#define MATERIALX_GENSLANG_EXPORT_H
 
 #include "../../api.h"
 

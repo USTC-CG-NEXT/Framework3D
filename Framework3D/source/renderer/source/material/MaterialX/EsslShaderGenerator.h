@@ -9,7 +9,7 @@
 /// @file
 /// ESSL shader generator
 
-#include "GlslShaderGenerator.h"
+#include "SlangShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -17,7 +17,7 @@ using EsslShaderGeneratorPtr = shared_ptr<class EsslShaderGenerator>;
 
 /// @class EsslShaderGenerator
 /// An ESSL (OpenGL ES Shading Language) shader generator
-class HD_USTC_CG_API EsslShaderGenerator : public GlslShaderGenerator
+class HD_USTC_CG_API EsslShaderGenerator : public SlangShaderGenerator
 {
   public:
     EsslShaderGenerator();

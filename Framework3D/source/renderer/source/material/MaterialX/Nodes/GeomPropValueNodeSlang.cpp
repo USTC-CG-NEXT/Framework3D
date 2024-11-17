@@ -3,18 +3,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "GeomPropValueNodeGlsl.h"
+#include "GeomPropValueNodeSlang.h"
 
 #include <MaterialXGenShader/Shader.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-ShaderNodeImplPtr GeomPropValueNodeGlsl::create()
+ShaderNodeImplPtr GeomPropValueNodeSlang::create()
 {
-    return std::make_shared<GeomPropValueNodeGlsl>();
+    return std::make_shared<GeomPropValueNodeSlang>();
 }
 
-void GeomPropValueNodeGlsl::createVariables(const ShaderNode& node, GenContext&, Shader& shader) const
+void GeomPropValueNodeSlang::createVariables(const ShaderNode& node, GenContext&, Shader& shader) const
 {
     const ShaderInput* geomPropInput = node.getInput(GEOMPROP);
     if (!geomPropInput || !geomPropInput->getValue())
@@ -31,9 +31,9 @@ void GeomPropValueNodeGlsl::createVariables(const ShaderNode& node, GenContext&,
     addStageConnector(HW::VERTEX_DATA, output->getType(), HW::T_IN_GEOMPROP + "_" + geomProp, vs, ps);
 }
 
-void GeomPropValueNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void GeomPropValueNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const SlangShaderGenerator& shadergen = static_cast<const SlangShaderGenerator&>(context.getShaderGenerator());
 
     const ShaderInput* geomPropInput = node.getInput(GEOMPROP);
     if (!geomPropInput)
@@ -67,12 +67,12 @@ void GeomPropValueNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext&
     }
 }
 
-ShaderNodeImplPtr GeomPropValueNodeGlslAsUniform::create()
+ShaderNodeImplPtr GeomPropValueNodeSlangAsUniform::create()
 {
-    return std::make_shared<GeomPropValueNodeGlslAsUniform>();
+    return std::make_shared<GeomPropValueNodeSlangAsUniform>();
 }
 
-void GeomPropValueNodeGlslAsUniform::createVariables(const ShaderNode& node, GenContext&, Shader& shader) const
+void GeomPropValueNodeSlangAsUniform::createVariables(const ShaderNode& node, GenContext&, Shader& shader) const
 {
     const ShaderInput* geomPropInput = node.getInput(GEOMPROP);
     if (!geomPropInput || !geomPropInput->getValue())
@@ -85,7 +85,7 @@ void GeomPropValueNodeGlslAsUniform::createVariables(const ShaderNode& node, Gen
     uniform->setPath(geomPropInput->getPath());
 }
 
-void GeomPropValueNodeGlslAsUniform::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void GeomPropValueNodeSlangAsUniform::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {

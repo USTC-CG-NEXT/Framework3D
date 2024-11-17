@@ -7,7 +7,7 @@
 #define MATERIALX_VKRESOURCEBINDING_H
 
 /// @file
-/// Vulkan GLSL resource binding context
+/// Vulkan SLANG resource binding context
 
 #include "Export.h"
 
@@ -19,7 +19,7 @@ MATERIALX_NAMESPACE_BEGIN
 using VkResourceBindingContextPtr = shared_ptr<class VkResourceBindingContext>;
 
 /// @class VkResourceBindingContext
-/// Class representing a resource binding for Vulkan Glsl shader resources.
+/// Class representing a resource binding for Vulkan Slang shader resources.
 class HD_USTC_CG_API VkResourceBindingContext : public HwResourceBindingContext
 {
   public:
