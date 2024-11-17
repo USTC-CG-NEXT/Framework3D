@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/Nodes/BlurNodeGlsl.h>
+#include "BlurNodeGlsl.h"
 
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderNode.h>

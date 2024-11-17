@@ -6,12 +6,12 @@
 #ifndef MATERIALX_LIGHTNODEGLSL_H
 #define MATERIALX_LIGHTNODEGLSL_H
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// Light node implementation for GLSL
-class MX_GENGLSL_API LightNodeGlsl : public GlslImplementation
+class HD_USTC_CG_API LightNodeGlsl : public GlslImplementation
 {
   public:
     LightNodeGlsl();

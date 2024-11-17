@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/GlslResourceBindingContext.h>
+#include "GlslResourceBindingContext.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

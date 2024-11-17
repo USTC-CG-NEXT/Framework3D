@@ -9,7 +9,7 @@
 /// @file
 /// GLSL shader generator
 
-#include <MaterialXGenGlsl/Export.h>
+#include "Export.h"
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
 
@@ -19,7 +19,7 @@ using GlslShaderGeneratorPtr = shared_ptr<class GlslShaderGenerator>;
 
 /// Base class for GLSL (OpenGL Shading Language) code generation.
 /// A generator for a specific GLSL target should be derived from this class.
-class MX_GENGLSL_API GlslShaderGenerator : public HwShaderGenerator
+class HD_USTC_CG_API GlslShaderGenerator : public HwShaderGenerator
 {
   public:
     GlslShaderGenerator();
@@ -88,7 +88,7 @@ class MX_GENGLSL_API GlslShaderGenerator : public HwShaderGenerator
 };
 
 /// Base class for common GLSL node implementations
-class MX_GENGLSL_API GlslImplementation : public HwImplementation
+class HD_USTC_CG_API GlslImplementation : public HwImplementation
 {
   public:
     const string& getTarget() const override;

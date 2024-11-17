@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/Nodes/SurfaceNodeGlsl.h>
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "SurfaceNodeGlsl.h"
+#include "GlslShaderGenerator.h"
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/GenContext.h>

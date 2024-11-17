@@ -3,20 +3,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "GlslShaderGenerator.h"
 
-#include <MaterialXGenGlsl/GlslSyntax.h>
-#include <MaterialXGenGlsl/Nodes/GeomColorNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/GeomPropValueNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/SurfaceNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/UnlitSurfaceNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/LightNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/LightCompoundNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/LightShaderNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/HeightToNormalNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/LightSamplerNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/NumLightsNodeGlsl.h>
-#include <MaterialXGenGlsl/Nodes/BlurNodeGlsl.h>
+#include "GlslSyntax.h"
+#include "Nodes/GeomColorNodeGlsl.h"
+#include "Nodes/GeomPropValueNodeGlsl.h"
+#include "Nodes/SurfaceNodeGlsl.h"
+#include "Nodes/UnlitSurfaceNodeGlsl.h"
+#include "Nodes/LightNodeGlsl.h"
+#include "Nodes/LightCompoundNodeGlsl.h"
+#include "Nodes/LightShaderNodeGlsl.h"
+#include "Nodes/HeightToNormalNodeGlsl.h"
+#include "Nodes/LightSamplerNodeGlsl.h"
+#include "Nodes/NumLightsNodeGlsl.h"
+#include "Nodes/BlurNodeGlsl.h"
 
 #include <MaterialXGenShader/Nodes/MaterialNode.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>

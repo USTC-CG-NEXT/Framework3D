@@ -9,14 +9,14 @@
 /// @file
 /// GLSL syntax class
 
-#include <MaterialXGenGlsl/Export.h>
+#include "Export.h"
 
 #include <MaterialXGenShader/Syntax.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// Syntax class for GLSL (OpenGL Shading Language)
-class MX_GENGLSL_API GlslSyntax : public Syntax
+class HD_USTC_CG_API GlslSyntax : public Syntax
 {
   public:
     GlslSyntax();

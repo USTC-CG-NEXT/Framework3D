@@ -6,14 +6,14 @@
 #ifndef MATERIALX_HEIGHTTONORMALNODEGLSL_H
 #define MATERIALX_HEIGHTTONORMALNODEGLSL_H
 
-#include <MaterialXGenGlsl/Export.h>
+#include "Export.h"
 
 #include <MaterialXGenShader/Nodes/ConvolutionNode.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// HeightToNormal node implementation for GLSL
-class MX_GENGLSL_API HeightToNormalNodeGlsl : public ConvolutionNode
+class HD_USTC_CG_API HeightToNormalNodeGlsl : public ConvolutionNode
 {
   public:
     static ShaderNodeImplPtr create();

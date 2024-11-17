@@ -6,12 +6,12 @@
 #ifndef MATERIALX_GEOMPROPVALUENODEGLSL_H
 #define MATERIALX_GEOMPROPVALUENODEGLSL_H
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// GeomPropValue node implementation for GLSL
-class MX_GENGLSL_API GeomPropValueNodeGlsl : public GlslImplementation
+class HD_USTC_CG_API GeomPropValueNodeGlsl : public GlslImplementation
 {
   public:
     static ShaderNodeImplPtr create();
@@ -24,7 +24,7 @@ class MX_GENGLSL_API GeomPropValueNodeGlsl : public GlslImplementation
 };
 
 /// GeomPropValue node non-implementation for GLSL
-class MX_GENGLSL_API GeomPropValueNodeGlslAsUniform : public GlslImplementation
+class HD_USTC_CG_API GeomPropValueNodeGlslAsUniform : public GlslImplementation
 {
   public:
     static ShaderNodeImplPtr create();

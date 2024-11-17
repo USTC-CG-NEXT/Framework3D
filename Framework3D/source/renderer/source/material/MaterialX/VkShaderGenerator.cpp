@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/VkShaderGenerator.h>
-#include <MaterialXGenGlsl/VkSyntax.h>
+#include "VkShaderGenerator.h"
+#include "VkSyntax.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

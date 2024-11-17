@@ -6,12 +6,12 @@
 #ifndef MATERIALX_LIGHTSAMPLERNODEGLSL_H
 #define MATERIALX_LIGHTSAMPLERNODEGLSL_H
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// Utility node for sampling lights for GLSL.
-class MX_GENGLSL_API LightSamplerNodeGlsl : public GlslImplementation
+class HD_USTC_CG_API LightSamplerNodeGlsl : public GlslImplementation
 {
   public:
     LightSamplerNodeGlsl();

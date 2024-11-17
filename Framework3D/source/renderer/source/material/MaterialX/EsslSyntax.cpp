@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/EsslSyntax.h>
+#include "EsslSyntax.h"
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>

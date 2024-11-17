@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/VkResourceBindingContext.h>
+#include "VkResourceBindingContext.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

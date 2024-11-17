@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/Nodes/NumLightsNodeGlsl.h>
+#include "NumLightsNodeGlsl.h"
 
 #include <MaterialXGenShader/Shader.h>
 

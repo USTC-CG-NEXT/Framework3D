@@ -9,12 +9,12 @@
 /// @file
 /// ESSL syntax class
 
-#include <MaterialXGenGlsl/GlslSyntax.h>
+#include "GlslSyntax.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// Syntax class for ESSL (OpenGL ES Shading Language)
-class MX_GENGLSL_API EsslSyntax : public GlslSyntax
+class HD_USTC_CG_API EsslSyntax : public GlslSyntax
 {
   public:
     EsslSyntax();

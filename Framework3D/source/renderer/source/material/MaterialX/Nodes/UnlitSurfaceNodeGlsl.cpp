@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/Nodes/UnlitSurfaceNodeGlsl.h>
+#include "UnlitSurfaceNodeGlsl.h"
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/GenContext.h>

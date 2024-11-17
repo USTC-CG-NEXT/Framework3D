@@ -9,8 +9,8 @@
 /// @file
 /// Vulkan GLSL shader generator
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
-#include <MaterialXGenGlsl/VkResourceBindingContext.h>
+#include "GlslShaderGenerator.h"
+#include "VkResourceBindingContext.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -18,7 +18,7 @@ using VkShaderGeneratorPtr = shared_ptr<class VkShaderGenerator>;
 
 /// @class VkShaderGenerator
 /// A Vulkan GLSL shader generator
-class MX_GENGLSL_API VkShaderGenerator : public GlslShaderGenerator
+class HD_USTC_CG_API VkShaderGenerator : public GlslShaderGenerator
 {
   public:
     VkShaderGenerator();

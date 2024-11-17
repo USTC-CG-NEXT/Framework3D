@@ -9,12 +9,12 @@
 /// @file
 /// Vulkan GLSL syntax class
 
-#include <MaterialXGenGlsl/GlslSyntax.h>
+#include "GlslSyntax.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// Syntax class for Vulkan GLSL
-class MX_GENGLSL_API VkSyntax : public GlslSyntax
+class HD_USTC_CG_API VkSyntax : public GlslSyntax
 {
   public:
     VkSyntax();

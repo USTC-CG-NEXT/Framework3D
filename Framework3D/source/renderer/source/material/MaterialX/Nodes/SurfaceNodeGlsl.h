@@ -6,13 +6,13 @@
 #ifndef MATERIALX_SURFACENODEGLSL_H
 #define MATERIALX_SURFACENODEGLSL_H
 
-#include <MaterialXGenGlsl/Export.h>
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "Export.h"
+#include "GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// Surface node implementation for GLSL
-class MX_GENGLSL_API SurfaceNodeGlsl : public GlslImplementation
+class HD_USTC_CG_API SurfaceNodeGlsl : public GlslImplementation
 {
   public:
     SurfaceNodeGlsl();

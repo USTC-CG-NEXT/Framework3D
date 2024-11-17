@@ -9,7 +9,7 @@
 /// @file
 /// GLSL resource binding context
 
-#include <MaterialXGenGlsl/Export.h>
+#include "Export.h"
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
 
@@ -20,7 +20,7 @@ using GlslResourceBindingContextPtr = shared_ptr<class GlslResourceBindingContex
 
 /// @class GlslResourceBindingContext
 /// Class representing a resource binding for Glsl shader resources.
-class MX_GENGLSL_API GlslResourceBindingContext : public HwResourceBindingContext
+class HD_USTC_CG_API GlslResourceBindingContext : public HwResourceBindingContext
 {
   public:
     GlslResourceBindingContext(size_t uniformBindingLocation, size_t samplerBindingLocation);

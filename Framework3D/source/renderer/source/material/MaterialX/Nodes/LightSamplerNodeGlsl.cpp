@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <MaterialXGenGlsl/Nodes/LightSamplerNodeGlsl.h>
+#include "LightSamplerNodeGlsl.h"
 
 MATERIALX_NAMESPACE_BEGIN
 

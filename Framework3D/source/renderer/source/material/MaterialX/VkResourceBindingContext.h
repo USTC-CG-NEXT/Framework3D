@@ -9,7 +9,7 @@
 /// @file
 /// Vulkan GLSL resource binding context
 
-#include <MaterialXGenGlsl/Export.h>
+#include "Export.h"
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
 
@@ -20,7 +20,7 @@ using VkResourceBindingContextPtr = shared_ptr<class VkResourceBindingContext>;
 
 /// @class VkResourceBindingContext
 /// Class representing a resource binding for Vulkan Glsl shader resources.
-class MX_GENGLSL_API VkResourceBindingContext : public HwResourceBindingContext
+class HD_USTC_CG_API VkResourceBindingContext : public HwResourceBindingContext
 {
   public:
     VkResourceBindingContext(size_t uniformBindingLocation);

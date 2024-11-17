@@ -6,14 +6,14 @@
 #ifndef MATERIALX_LIGHTSHADERNODEGLSL_H
 #define MATERIALX_LIGHTSHADERNODEGLSL_H
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "GlslShaderGenerator.h"
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// LightShader node implementation for GLSL
 /// Used for all light shaders implemented in source code.
-class MX_GENGLSL_API LightShaderNodeGlsl : public SourceCodeNode
+class HD_USTC_CG_API LightShaderNodeGlsl : public SourceCodeNode
 {
   public:
     LightShaderNodeGlsl();

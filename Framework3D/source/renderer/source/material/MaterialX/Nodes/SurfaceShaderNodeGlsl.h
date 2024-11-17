@@ -6,14 +6,14 @@
 #ifndef MATERIALX_SURFACESHADERNODEGLSL_H
 #define MATERIALX_SURFACESHADERNODEGLSL_H
 
-#include <MaterialXGenGlsl/Export.h>
+#include "Export.h"
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// SurfaceShader node implementation for GLSL
 /// Used for all surface shaders implemented in source code.
-class MX_GENGLSL_API SurfaceShaderNodeGlsl : public SourceCodeNode
+class HD_USTC_CG_API SurfaceShaderNodeGlsl : public SourceCodeNode
 {
   public:
     static ShaderNodeImplPtr create();

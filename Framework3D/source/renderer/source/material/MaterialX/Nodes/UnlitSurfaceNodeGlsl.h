@@ -6,13 +6,13 @@
 #ifndef MATERIALX_UNLITSURFACENODEGLSL_H
 #define MATERIALX_UNLITSURFACENODEGLSL_H
 
-#include <MaterialXGenGlsl/Export.h>
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include "Export.h"
+#include "GlslShaderGenerator.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
 /// Unlit surface node implementation for GLSL
-class MX_GENGLSL_API UnlitSurfaceNodeGlsl : public GlslImplementation
+class HD_USTC_CG_API UnlitSurfaceNodeGlsl : public GlslImplementation
 {
   public:
     static ShaderNodeImplPtr create();

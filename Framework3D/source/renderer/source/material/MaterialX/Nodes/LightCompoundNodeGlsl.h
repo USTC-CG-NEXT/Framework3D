@@ -6,7 +6,7 @@
 #ifndef MATERIALX_LIGHTCOMPOUNDNODEGLSL_H
 #define MATERIALX_LIGHTCOMPOUNDNODEGLSL_H
 
-#include <MaterialXGenGlsl/Export.h>
+#include "Export.h"
 
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Shader.h>
@@ -17,7 +17,7 @@ MATERIALX_NAMESPACE_BEGIN
 class GlslShaderGenerator;
 
 /// LightCompound node implementation for GLSL
-class MX_GENGLSL_API LightCompoundNodeGlsl : public CompoundNode
+class HD_USTC_CG_API LightCompoundNodeGlsl : public CompoundNode
 {
   public:
     LightCompoundNodeGlsl();
