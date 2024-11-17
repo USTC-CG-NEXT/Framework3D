@@ -25,16 +25,16 @@ struct GraphicsRenderState {
     }
 };
 
-class RenderContext : public GPUContext {
+class GraphicsContext : public GPUContext {
    public:
-    explicit RenderContext(ResourceAllocator& r, ProgramVars& vars);
-    ~RenderContext() override;
+    explicit GraphicsContext(ResourceAllocator& r, ProgramVars& vars);
+    ~GraphicsContext() override;
 
-    RenderContext& set_render_target(
+    GraphicsContext& set_render_target(
         unsigned i,
         const nvrhi::TextureHandle& texture);
 
-    RenderContext& set_depth_stencil_target(
+    GraphicsContext& set_depth_stencil_target(
         const nvrhi::TextureHandle& texture);
 
     void draw(
@@ -53,10 +53,10 @@ class RenderContext : public GPUContext {
         int32_t baseVertexLocation = 0,
         uint32_t startInstanceLocation = 0);
 
-    RenderContext& finish_setting_frame_buffer();
-    RenderContext& set_viewport(pxr::GfVec2f size);
+    GraphicsContext& finish_setting_frame_buffer();
+    GraphicsContext& set_viewport(pxr::GfVec2f size);
 
-    RenderContext& add_vertex_buffer_desc(
+    GraphicsContext& add_vertex_buffer_desc(
         std::string name,
         uint32_t bufferIndex = 0,
         nvrhi::Format format = nvrhi::Format::UNKNOWN,
@@ -65,7 +65,7 @@ class RenderContext : public GPUContext {
         uint32_t offset = 0,
         bool isInstanced = false);
 
-    RenderContext& finish_setting_pso();
+    GraphicsContext& finish_setting_pso();
     void begin() override;
 
    private:

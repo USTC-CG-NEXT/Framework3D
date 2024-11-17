@@ -1,4 +1,4 @@
-#include "render_context.hpp"
+#include "graphics_context.hpp"
 
 #include "nvrhi/utils.h"
 #include "pxr/base/gf/vec2f.h"
@@ -6,7 +6,7 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-RenderContext::RenderContext(
+GraphicsContext::GraphicsContext(
     ResourceAllocator& resource_allocator,
     ProgramVars& vars)
     : GPUContext(resource_allocator, vars)
@@ -31,7 +31,7 @@ RenderContext::RenderContext(
     }
 }
 
-RenderContext::~RenderContext()
+GraphicsContext::~GraphicsContext()
 {
     resource_allocator_.destroy(framebuffer_);
     resource_allocator_.destroy(graphics_pipeline);
@@ -39,7 +39,7 @@ RenderContext::~RenderContext()
     resource_allocator_.destroy(ps_shader);
 }
 
-RenderContext& RenderContext::set_render_target(
+GraphicsContext& GraphicsContext::set_render_target(
     unsigned i,
     const TextureHandle& texture)
 {
@@ -53,14 +53,14 @@ RenderContext& RenderContext::set_render_target(
     return *this;
 }
 
-RenderContext& RenderContext::set_depth_stencil_target(
+GraphicsContext& GraphicsContext::set_depth_stencil_target(
     const nvrhi::TextureHandle& texture)
 {
     framebuffer_desc_.depthAttachment.texture = texture;
     return *this;
 }
 
-void RenderContext::draw(
+void GraphicsContext::draw(
     const GraphicsRenderState& state,
     const ProgramVars& program_vars,
     uint32_t indexCount,
@@ -77,7 +77,7 @@ void RenderContext::draw(
         0);
 }
 
-void RenderContext::draw_instanced(
+void GraphicsContext::draw_instanced(
     const GraphicsRenderState& state,
     const ProgramVars& program_vars,
     uint32_t indexCount,
@@ -107,7 +107,7 @@ void RenderContext::draw_instanced(
     commandList_->drawIndexed(args);
 }
 
-RenderContext& RenderContext::finish_setting_frame_buffer()
+GraphicsContext& GraphicsContext::finish_setting_frame_buffer()
 {
     if (framebuffer_) {
         resource_allocator_.destroy(framebuffer_);
@@ -119,7 +119,7 @@ RenderContext& RenderContext::finish_setting_frame_buffer()
     return *this;
 }
 
-RenderContext& RenderContext::set_viewport(pxr::GfVec2f size)
+GraphicsContext& GraphicsContext::set_viewport(pxr::GfVec2f size)
 {
     viewport.scissorRects.resize(1);
     viewport.scissorRects[0].maxX = size[0];
@@ -131,7 +131,7 @@ RenderContext& RenderContext::set_viewport(pxr::GfVec2f size)
     return *this;
 }
 
-RenderContext& RenderContext::add_vertex_buffer_desc(
+GraphicsContext& GraphicsContext::add_vertex_buffer_desc(
     std::string name,
     uint32_t bufferIndex,
     nvrhi::Format format,
@@ -156,7 +156,7 @@ RenderContext& RenderContext::add_vertex_buffer_desc(
     return *this;
 }
 
-RenderContext& RenderContext::finish_setting_pso()
+GraphicsContext& GraphicsContext::finish_setting_pso()
 {
     input_layout = resource_allocator_.device->createInputLayout(
         vertex_attributes_.data(), vertex_attributes_.size(), vs_shader);
@@ -189,7 +189,7 @@ RenderContext& RenderContext::finish_setting_pso()
     return *this;
 }
 
-void RenderContext::begin()
+void GraphicsContext::begin()
 {
     commandList_->open();
     commandList_->clearDepthStencilTexture(

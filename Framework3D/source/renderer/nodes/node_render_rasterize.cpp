@@ -4,8 +4,8 @@
 #include "pxr/imaging/hd/tokens.h"
 #include "pxr/imaging/hgiGL/computeCmds.h"
 #include "render_node_base.h"
+#include "renderer/graphics_context.hpp"
 #include "renderer/program_vars.hpp"
-#include "renderer/render_context.hpp"
 
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(rasterize)
@@ -58,7 +58,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
     program_vars["viewConstant"] = view_cb;
 
-    RenderContext context(resource_allocator, program_vars);
+    GraphicsContext context(resource_allocator, program_vars);
     context.set_render_target(0, output_position)
         .set_render_target(1, output_texcoords)
         .set_render_target(2, output_diffuse_color)

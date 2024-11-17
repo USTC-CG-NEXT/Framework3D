@@ -4,7 +4,7 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "renderer/program_vars.hpp"
-#include "renderer/render_context.hpp"
+#include "renderer/graphics_context.hpp"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(render_instances_at_transforms)
 {
@@ -59,7 +59,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
     auto size = camera->dataWindow.GetSize();
 
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
-    RenderContext context(resource_allocator, program_vars);
+    GraphicsContext context(resource_allocator, program_vars);
 
     context.set_render_target(0, output_texture)
         .set_render_target(1, texcoord_texture)
