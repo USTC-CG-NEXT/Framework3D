@@ -32,13 +32,13 @@
     <input name="default" type="color4" implname="default_value" />
   </implementation>
   <implementation name="IM_image_vector2_genslang" nodedef="ND_image_vector2" file="mx_image_vector2.slang" function="mx_image_vector2" target="genslang">
-    <input name="default" type="vector2" implname="default_value" />
+    <input name="default" type="floattor2" implname="default_value" />
   </implementation>
   <implementation name="IM_image_vector3_genslang" nodedef="ND_image_vector3" file="mx_image_vector3.slang" function="mx_image_vector3" target="genslang">
-    <input name="default" type="vector3" implname="default_value" />
+    <input name="default" type="floattor3" implname="default_value" />
   </implementation>
   <implementation name="IM_image_vector4_genslang" nodedef="ND_image_vector4" file="mx_image_vector4.slang" function="mx_image_vector4" target="genslang">
-    <input name="default" type="vector4" implname="default_value" />
+    <input name="default" type="floattor4" implname="default_value" />
   </implementation>
 
   <!-- <normalmap> -->
@@ -314,15 +314,15 @@
   <!-- <power> -->
   <implementation name="IM_power_float_genslang" nodedef="ND_power_float" target="genslang" sourcecode="pow({{in1}}, {{in2}})" />
   <implementation name="IM_power_color3_genslang" nodedef="ND_power_color3" target="genslang" sourcecode="pow({{in1}}, {{in2}})" />
-  <implementation name="IM_power_color3FA_genslang" nodedef="ND_power_color3FA" target="genslang" sourcecode="pow({{in1}}, vec3({{in2}}))" />
+  <implementation name="IM_power_color3FA_genslang" nodedef="ND_power_color3FA" target="genslang" sourcecode="pow({{in1}}, float3({{in2}}))" />
   <implementation name="IM_power_color4_genslang" nodedef="ND_power_color4" target="genslang" sourcecode="pow({{in1}}, {{in2}})" />
-  <implementation name="IM_power_color4FA_genslang" nodedef="ND_power_color4FA" target="genslang" sourcecode="pow({{in1}}, vec4({{in2}}))" />
+  <implementation name="IM_power_color4FA_genslang" nodedef="ND_power_color4FA" target="genslang" sourcecode="pow({{in1}}, float4({{in2}}))" />
   <implementation name="IM_power_vector2_genslang" nodedef="ND_power_vector2" target="genslang" sourcecode="pow({{in1}}, {{in2}})" />
-  <implementation name="IM_power_vector2FA_genslang" nodedef="ND_power_vector2FA" target="genslang" sourcecode="pow({{in1}}, vec2({{in2}}))" />
+  <implementation name="IM_power_vector2FA_genslang" nodedef="ND_power_vector2FA" target="genslang" sourcecode="pow({{in1}}, float2({{in2}}))" />
   <implementation name="IM_power_vector3_genslang" nodedef="ND_power_vector3" target="genslang" sourcecode="pow({{in1}}, {{in2}})" />
-  <implementation name="IM_power_vector3FA_genslang" nodedef="ND_power_vector3FA" target="genslang" sourcecode="pow({{in1}}, vec3({{in2}}))" />
+  <implementation name="IM_power_vector3FA_genslang" nodedef="ND_power_vector3FA" target="genslang" sourcecode="pow({{in1}}, float3({{in2}}))" />
   <implementation name="IM_power_vector4_genslang" nodedef="ND_power_vector4" target="genslang" sourcecode="pow({{in1}}, {{in2}})" />
-  <implementation name="IM_power_vector4FA_genslang" nodedef="ND_power_vector4FA" target="genslang" sourcecode="pow({{in1}}, vec4({{in2}}))" />
+  <implementation name="IM_power_vector4FA_genslang" nodedef="ND_power_vector4FA" target="genslang" sourcecode="pow({{in1}}, float4({{in2}}))" />
 
   <!-- <sin>, <cos>, <tan>, <asin>, <acos>, <atan2> -->
   <implementation name="IM_sin_float_genslang" nodedef="ND_sin_float" target="genslang" sourcecode="sin({{in}})" />
@@ -553,7 +553,7 @@
   <implementation name="IM_mask_color4_genslang" nodedef="ND_mask_color4" target="genslang" sourcecode="({{bg}}*{{fg}}.a  * {{mix}}) + ({{bg}} * (1.0-{{mix}}));" />
 
   <!-- <matte> -->
-  <implementation name="IM_matte_color4_genslang" nodedef="ND_matte_color4" target="genslang" sourcecode="vec4( {{fg}}.xyz*{{fg}}.w + {{bg}}.xyz*(1.0-{{fg}}.w), {{fg}}.w + ({{bg}}.w*(1.0-{{fg}}.w)) ) * {{mix}} + ({{bg}} * (1.0-{{mix}}));" />
+  <implementation name="IM_matte_color4_genslang" nodedef="ND_matte_color4" target="genslang" sourcecode="float4( {{fg}}.xyz*{{fg}}.w + {{bg}}.xyz*(1.0-{{fg}}.w), {{fg}}.w + ({{bg}}.w*(1.0-{{fg}}.w)) ) * {{mix}} + ({{bg}} * (1.0-{{mix}}));" />
 
   <!-- <out> -->
   <implementation name="IM_out_color4_genslang" nodedef="ND_out_color4" target="genslang" sourcecode="({{fg}}*(1.0-{{bg}}.a)  * {{mix}}) + ({{bg}} * (1.0-{{mix}}));" />
@@ -699,21 +699,21 @@
   <implementation name="IM_swizzle_color4_vector2_genslang" nodedef="ND_swizzle_color4_vector2" target="genslang" />
   <implementation name="IM_swizzle_color4_vector3_genslang" nodedef="ND_swizzle_color4_vector3" target="genslang" />
   <implementation name="IM_swizzle_color4_vector4_genslang" nodedef="ND_swizzle_color4_vector4" target="genslang" />
-  <!-- from type: vector2 -->
+  <!-- from type: floattor2 -->
   <implementation name="IM_swizzle_vector2_float_genslang" nodedef="ND_swizzle_vector2_float" target="genslang" />
   <implementation name="IM_swizzle_vector2_color3_genslang" nodedef="ND_swizzle_vector2_color3" target="genslang" />
   <implementation name="IM_swizzle_vector2_color4_genslang" nodedef="ND_swizzle_vector2_color4" target="genslang" />
   <implementation name="IM_swizzle_vector2_vector2_genslang" nodedef="ND_swizzle_vector2_vector2" target="genslang" />
   <implementation name="IM_swizzle_vector2_vector3_genslang" nodedef="ND_swizzle_vector2_vector3" target="genslang" />
   <implementation name="IM_swizzle_vector2_vector4_genslang" nodedef="ND_swizzle_vector2_vector4" target="genslang" />
-  <!-- from type: vector3 -->
+  <!-- from type: floattor3 -->
   <implementation name="IM_swizzle_vector3_float_genslang" nodedef="ND_swizzle_vector3_float" target="genslang" />
   <implementation name="IM_swizzle_vector3_color3_genslang" nodedef="ND_swizzle_vector3_color3" target="genslang" />
   <implementation name="IM_swizzle_vector3_color4_genslang" nodedef="ND_swizzle_vector3_color4" target="genslang" />
   <implementation name="IM_swizzle_vector3_vector2_genslang" nodedef="ND_swizzle_vector3_vector2" target="genslang" />
   <implementation name="IM_swizzle_vector3_vector3_genslang" nodedef="ND_swizzle_vector3_vector3" target="genslang" />
   <implementation name="IM_swizzle_vector3_vector4_genslang" nodedef="ND_swizzle_vector3_vector4" target="genslang" />
-  <!-- from type: vector4 -->
+  <!-- from type: floattor4 -->
   <implementation name="IM_swizzle_vector4_float_genslang" nodedef="ND_swizzle_vector4_float" target="genslang" />
   <implementation name="IM_swizzle_vector4_color3_genslang" nodedef="ND_swizzle_vector4_color3" target="genslang" />
   <implementation name="IM_swizzle_vector4_color4_genslang" nodedef="ND_swizzle_vector4_color4" target="genslang" />

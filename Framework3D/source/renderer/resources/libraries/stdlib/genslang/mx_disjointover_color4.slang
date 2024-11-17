@@ -1,4 +1,4 @@
-void mx_disjointover_color4(vec4 fg, vec4 bg, float mixval, out vec4 result)
+void mx_disjointover_color4(float4 fg, float4 bg, float mixval, out float4 result)
 {
     float summedAlpha = fg.w + bg.w;
 
@@ -10,7 +10,7 @@ void mx_disjointover_color4(vec4 fg, vec4 bg, float mixval, out vec4 result)
     {
         if (abs(bg.w) < M_FLOAT_EPS)
         {
-            result.xyz = vec3(0.0);
+            result.xyz = float3(0.0);
         }
         else
         {

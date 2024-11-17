@@ -1,11 +1,11 @@
 #include "mx_microfacet_specular.slang"
 
-vec3 mx_environment_radiance(vec3 N, vec3 V, vec3 X, vec2 roughness, int distribution, FresnelData fd)
+float3 mx_environment_radiance(float3 N, float3 V, float3 X, float2 roughness, int distribution, FresnelData fd)
 {
-    return vec3(0.0);
+    return float3(0.0);
 }
 
-vec3 mx_environment_irradiance(vec3 N)
+float3 mx_environment_irradiance(float3 N)
 {
-    return vec3(0.0);
+    return float3(0.0);
 }

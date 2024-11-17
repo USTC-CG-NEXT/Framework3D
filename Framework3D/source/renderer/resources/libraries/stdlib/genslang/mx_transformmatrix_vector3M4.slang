@@ -1,5 +1,5 @@
-void mx_transformmatrix_vector3M4(vec3 val, mat4 transform, out vec3 result)
+void mx_transformmatrix_vector3M4(float3 val, mat4 transform, out float3 result)
 {
-  vec4 res = transform * vec4(val, 1.0);
+  float4 res = transform * float4(val, 1.0);
   result = res.xyz;
 }

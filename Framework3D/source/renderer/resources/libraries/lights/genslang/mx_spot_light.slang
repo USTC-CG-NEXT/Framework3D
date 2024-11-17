@@ -1,4 +1,4 @@
-void mx_spot_light(LightData light, vec3 position, out lightshader result)
+void mx_spot_light(LightData light, float3 position, out lightshader result)
 {
     result.direction = light.position - position;
     float distance = length(result.direction) + M_FLOAT_EPS;

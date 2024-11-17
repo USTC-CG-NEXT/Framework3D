@@ -1,4 +1,4 @@
-mat4 mx_rotationMatrix(vec3 axis, float angle)
+mat4 mx_rotationMatrix(float3 axis, float angle)
 {
     axis = normalize(axis);
     float s = sin(angle);
@@ -11,9 +11,9 @@ mat4 mx_rotationMatrix(vec3 axis, float angle)
                 0.0,                                0.0,                                0.0,                                1.0);
 }
 
-void mx_rotate_vector3(vec3 _in, float amount, vec3 axis, out vec3 result)
+void mx_rotate_vector3(float3 _in, float amount, float3 axis, out float3 result)
 {
     float rotationRadians = radians(amount);
     mat4 m = mx_rotationMatrix(axis, rotationRadians);
-    result = (m * vec4(_in, 1.0)).xyz;
+    result = (m * float4(_in, 1.0)).xyz;
 }

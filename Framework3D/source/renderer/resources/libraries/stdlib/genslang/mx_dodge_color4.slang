@@ -1,6 +1,6 @@
 #include "mx_dodge_float.slang"
 
-void mx_dodge_color4(vec4 fg , vec4 bg , float mixval, out vec4 result)
+void mx_dodge_color4(float4 fg , float4 bg , float mixval, out float4 result)
 {
     mx_dodge_float(fg.x, bg.x, mixval, result.x);
     mx_dodge_float(fg.y, bg.y, mixval, result.y);

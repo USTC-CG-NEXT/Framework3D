@@ -1,8 +1,8 @@
 #include "lib/mx_microfacet_diffuse.slang"
 
-void mx_burley_diffuse_bsdf_reflection(vec3 L, vec3 V, vec3 P, float occlusion, float weight, vec3 color, float roughness, vec3 normal, inout BSDF bsdf)
+void mx_burley_diffuse_bsdf_reflection(float3 L, float3 V, float3 P, float occlusion, float weight, float3 color, float roughness, float3 normal, inout BSDF bsdf)
 {
-    bsdf.throughput = vec3(0.0);
+    bsdf.throughput = float3(0.0);
 
     if (weight < M_FLOAT_EPS)
     {
@@ -17,9 +17,9 @@ void mx_burley_diffuse_bsdf_reflection(vec3 L, vec3 V, vec3 P, float occlusion, 
     bsdf.response *= mx_burley_diffuse(L, V, normal, NdotL, roughness);
 }
 
-void mx_burley_diffuse_bsdf_indirect(vec3 V, float weight, vec3 color, float roughness, vec3 normal, inout BSDF bsdf)
+void mx_burley_diffuse_bsdf_indirect(float3 V, float weight, float3 color, float roughness, float3 normal, inout BSDF bsdf)
 {
-    bsdf.throughput = vec3(0.0);
+    bsdf.throughput = float3(0.0);
 
     if (weight < M_FLOAT_EPS)
     {
@@ -30,7 +30,7 @@ void mx_burley_diffuse_bsdf_indirect(vec3 V, float weight, vec3 color, float rou
 
     float NdotV = clamp(dot(normal, V), M_FLOAT_EPS, 1.0);
 
-    vec3 Li = mx_environment_irradiance(normal) *
+    float3 Li = mx_environment_irradiance(normal) *
               mx_burley_diffuse_dir_albedo(NdotV, roughness);
     bsdf.response = Li * color * weight;
 }

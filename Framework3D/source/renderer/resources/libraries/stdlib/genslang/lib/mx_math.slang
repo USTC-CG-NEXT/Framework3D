@@ -5,12 +5,12 @@ float mx_square(float x)
     return x*x;
 }
 
-vec2 mx_square(vec2 x)
+float2 mx_square(float2 x)
 {
     return x*x;
 }
 
-vec3 mx_square(vec3 x)
+float3 mx_square(float3 x)
 {
     return x*x;
 }

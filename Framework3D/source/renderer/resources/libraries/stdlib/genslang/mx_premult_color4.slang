@@ -1,4 +1,4 @@
-void mx_premult_color4(vec4 _in, out vec4 result)
+void mx_premult_color4(float4 _in, out float4 result)
 {
-    result = vec4(_in.rgb * _in.a, _in.a);
+    result = float4(_in.rgb * _in.a, _in.a);
 }

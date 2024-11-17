@@ -1,6 +1,6 @@
 #include "mx_burn_float.slang"
 
-void mx_burn_color4(vec4 fg, vec4 bg, float mixval, out vec4 result)
+void mx_burn_color4(float4 fg, float4 bg, float mixval, out float4 result)
 {
     mx_burn_float(fg.x, bg.x, mixval, result.x);
     mx_burn_float(fg.y, bg.y, mixval, result.y);

@@ -1,5 +1,5 @@
 // https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-8-summed-area-variance-shadow-maps
-float mx_variance_shadow_occlusion(vec2 moments, float fragmentDepth)
+float mx_variance_shadow_occlusion(float2 moments, float fragmentDepth)
 {
     const float MIN_VARIANCE = 0.00001;
 
@@ -16,8 +16,8 @@ float mx_variance_shadow_occlusion(vec2 moments, float fragmentDepth)
     return max(p, pMax);
 }
 
-vec2 mx_compute_depth_moments()
+float2 mx_compute_depth_moments()
 {
     float depth = gl_FragCoord.z;
-    return vec2(depth, mx_square(depth));
+    return float2(depth, mx_square(depth));
 }

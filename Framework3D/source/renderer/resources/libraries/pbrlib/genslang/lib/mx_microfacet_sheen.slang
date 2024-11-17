@@ -27,12 +27,12 @@ float mx_imageworks_sheen_brdf(float NdotL, float NdotV, float NdotH, float roug
 // Rational quadratic fit to Monte Carlo data for Imageworks sheen directional albedo.
 float mx_imageworks_sheen_dir_albedo_analytic(float NdotV, float roughness)
 {
-    vec2 r = vec2(13.67300, 1.0) +
-             vec2(-68.78018, 61.57746) * NdotV +
-             vec2(799.08825, 442.78211) * roughness +
-             vec2(-905.00061, 2597.49308) * NdotV * roughness +
-             vec2(60.28956, 121.81241) * mx_square(NdotV) +
-             vec2(1086.96473, 3045.55075) * mx_square(roughness);
+    float2 r = float2(13.67300, 1.0) +
+             float2(-68.78018, 61.57746) * NdotV +
+             float2(799.08825, 442.78211) * roughness +
+             float2(-905.00061, 2597.49308) * NdotV * roughness +
+             float2(60.28956, 121.81241) * mx_square(NdotV) +
+             float2(1086.96473, 3045.55075) * mx_square(roughness);
     return r.x / r.y;
 }
 
@@ -41,7 +41,7 @@ float mx_imageworks_sheen_dir_albedo_table_lookup(float NdotV, float roughness)
 #if DIRECTIONAL_ALBEDO_METHOD == 1
     if (textureSize($albedoTable, 0).x > 1)
     {
-        return texture($albedoTable, vec2(NdotV, roughness)).b;
+        return texture($albedoTable, float2(NdotV, roughness)).b;
     }
 #endif
     return 0.0;
@@ -50,17 +50,17 @@ float mx_imageworks_sheen_dir_albedo_table_lookup(float NdotV, float roughness)
 float mx_imageworks_sheen_dir_albedo_monte_carlo(float NdotV, float roughness)
 {
     NdotV = clamp(NdotV, M_FLOAT_EPS, 1.0);
-    vec3 V = vec3(sqrt(1.0f - mx_square(NdotV)), 0, NdotV);
+    float3 V = float3(sqrt(1.0f - mx_square(NdotV)), 0, NdotV);
 
     float radiance = 0.0;
     const int SAMPLE_COUNT = 64;
     for (int i = 0; i < SAMPLE_COUNT; i++)
     {
-        vec2 Xi = mx_spherical_fibonacci(i, SAMPLE_COUNT);
+        float2 Xi = mx_spherical_fibonacci(i, SAMPLE_COUNT);
 
-        // Compute the incoming light direction and half vector.
-        vec3 L = mx_uniform_sample_hemisphere(Xi);
-        vec3 H = normalize(L + V);
+        // Compute the incoming light direction and half floattor.
+        float3 L = mx_uniform_sample_hemisphere(Xi);
+        float3 H = normalize(L + V);
         
         // Compute dot products for this sample.
         float NdotL = clamp(L.z, M_FLOAT_EPS, 1.0);

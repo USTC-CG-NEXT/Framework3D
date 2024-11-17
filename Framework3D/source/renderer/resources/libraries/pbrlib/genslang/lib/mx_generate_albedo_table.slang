@@ -1,10 +1,10 @@
 #include "mx_microfacet_sheen.slang"
 #include "mx_microfacet_specular.slang"
 
-vec3 mx_generate_dir_albedo_table()
+float3 mx_generate_dir_albedo_table()
 {
-    vec2 uv = gl_FragCoord.xy / $albedoTableSize;
-    vec2 ggxDirAlbedo = mx_ggx_dir_albedo(uv.x, uv.y, vec3(1, 0, 0), vec3(0, 1, 0)).xy;
+    float2 uv = gl_FragCoord.xy / $albedoTableSize;
+    float2 ggxDirAlbedo = mx_ggx_dir_albedo(uv.x, uv.y, float3(1, 0, 0), float3(0, 1, 0)).xy;
     float sheenDirAlbedo = mx_imageworks_sheen_dir_albedo(uv.x, uv.y);
-    return vec3(ggxDirAlbedo, sheenDirAlbedo);
+    return float3(ggxDirAlbedo, sheenDirAlbedo);
 }

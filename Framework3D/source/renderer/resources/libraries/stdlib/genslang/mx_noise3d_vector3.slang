@@ -1,7 +1,7 @@
 #include "lib/mx_noise.slang"
 
-void mx_noise3d_vector3(vec3 amplitude, float pivot, vec3 position, out vec3 result)
+void mx_noise3d_vector3(float3 amplitude, float pivot, float3 position, out float3 result)
 {
-    vec3 value = mx_perlin_noise_vec3(position);
+    float3 value = mx_perlin_noise_vec3(position);
     result = value * amplitude + pivot;
 }

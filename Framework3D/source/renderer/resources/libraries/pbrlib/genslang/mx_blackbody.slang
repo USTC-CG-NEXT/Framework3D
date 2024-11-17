@@ -3,7 +3,7 @@ const mat3 XYZ_to_RGB = mat3( 3.2406, -0.9689, 0.0557,
                              -1.5372, 1.8758, -0.2040,
                              -0.4986, 0.0415, 1.0570);
 
-void mx_blackbody(float temperatureKelvin, out vec3 colorValue)
+void mx_blackbody(float temperatureKelvin, out float3 colorValue)
 {
     float xc, yc;
     float t, t2, t3, xc2, xc3;
@@ -37,12 +37,12 @@ void mx_blackbody(float temperatureKelvin, out vec3 colorValue)
     }
 
     if (yc <= 0.0) {  // avoid division by zero
-      colorValue = vec3(1.0);
+      colorValue = float3(1.0);
       return;
     }
 
-    vec3 XYZ = vec3(xc / yc, 1.0, (1.0 - xc - yc) / yc);
+    float3 XYZ = float3(xc / yc, 1.0, (1.0 - xc - yc) / yc);
 
     colorValue = XYZ_to_RGB * XYZ;
-    colorValue = max(colorValue, vec3(0.0));
+    colorValue = max(colorValue, float3(0.0));
 }

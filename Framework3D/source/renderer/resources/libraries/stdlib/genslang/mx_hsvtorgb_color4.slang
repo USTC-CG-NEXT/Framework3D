@@ -1,6 +1,6 @@
 #include "lib/mx_hsv.slang"
 
-void mx_hsvtorgb_color4(vec4 _in, out vec4 result)
+void mx_hsvtorgb_color4(float4 _in, out float4 result)
 {
-    result = vec4(mx_hsvtorgb(_in.rgb), 1.0);
+    result = float4(mx_hsvtorgb(_in.rgb), 1.0);
 }

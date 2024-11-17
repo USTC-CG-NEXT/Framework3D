@@ -1,8 +1,8 @@
 // We fake diffuse transmission by using diffuse reflection from the opposite side.
 // So this BTDF is really a BRDF.
-void mx_translucent_bsdf_reflection(vec3 L, vec3 V, vec3 P, float occlusion, float weight, vec3 color, vec3 normal, inout BSDF bsdf)
+void mx_translucent_bsdf_reflection(float3 L, float3 V, float3 P, float occlusion, float weight, float3 color, float3 normal, inout BSDF bsdf)
 {
-    bsdf.throughput = vec3(0.0);
+    bsdf.throughput = float3(0.0);
 
     // Invert normal since we're transmitting light from the other side
     float NdotL = dot(L, -normal);
@@ -14,9 +14,9 @@ void mx_translucent_bsdf_reflection(vec3 L, vec3 V, vec3 P, float occlusion, flo
     bsdf.response = color * weight * NdotL * M_PI_INV;
 }
 
-void mx_translucent_bsdf_indirect(vec3 V, float weight, vec3 color, vec3 normal, inout BSDF bsdf)
+void mx_translucent_bsdf_indirect(float3 V, float weight, float3 color, float3 normal, inout BSDF bsdf)
 {
-    bsdf.throughput = vec3(0.0);
+    bsdf.throughput = float3(0.0);
 
     if (weight < M_FLOAT_EPS)
     {
@@ -24,6 +24,6 @@ void mx_translucent_bsdf_indirect(vec3 V, float weight, vec3 color, vec3 normal,
     }
 
     // Invert normal since we're transmitting light from the other side
-    vec3 Li = mx_environment_irradiance(-normal);
+    float3 Li = mx_environment_irradiance(-normal);
     bsdf.response = Li * color * weight;
 }

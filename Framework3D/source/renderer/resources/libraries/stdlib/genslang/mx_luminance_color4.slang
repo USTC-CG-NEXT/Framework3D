@@ -1,4 +1,4 @@
-void mx_luminance_color4(vec4 _in, vec3 lumacoeffs, out vec4 result)
+void mx_luminance_color4(float4 _in, float3 lumacoeffs, out float4 result)
 {
-    result = vec4(vec3(dot(_in.rgb, lumacoeffs)), _in.a);
+    result = float4(float3(dot(_in.rgb, lumacoeffs)), _in.a);
 }

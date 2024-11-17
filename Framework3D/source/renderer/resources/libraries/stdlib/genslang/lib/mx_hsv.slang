@@ -37,12 +37,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ------------------------------------------------------------------------
 */
 
-vec3 mx_hsvtorgb(vec3 hsv)
+float3 mx_hsvtorgb(float3 hsv)
 {
     // Reference for this technique: Foley & van Dam
     float h = hsv.x; float s = hsv.y; float v = hsv.z;
     if (s < 0.0001f) {
-      return vec3 (v, v, v);
+      return float3 (v, v, v);
     } else {
         h = 6.0f * (h - floor(h));  // expand to [0..6)
         int hi = int(trunc(h));
@@ -51,21 +51,21 @@ vec3 mx_hsvtorgb(vec3 hsv)
         float q = v * (1.0f-s*f);
         float t = v * (1.0f-s*(1.0f-f));
         if (hi == 0)
-            return vec3 (v, t, p);
+            return float3 (v, t, p);
         else if (hi == 1)
-            return vec3 (q, v, p);
+            return float3 (q, v, p);
         else if (hi == 2)
-            return vec3 (p, v, t);
+            return float3 (p, v, t);
         else if (hi == 3)
-            return vec3 (p, q, v);
+            return float3 (p, q, v);
         else if (hi == 4)
-            return vec3 (t, p, v);
-        return vec3 (v, p, q);
+            return float3 (t, p, v);
+        return float3 (v, p, q);
     }
 }
 
 
-vec3 mx_rgbtohsv(vec3 c)
+float3 mx_rgbtohsv(float3 c)
 {
     // See Foley & van Dam
     float r = c.x; float g = c.y; float b = c.z;
@@ -87,5 +87,5 @@ vec3 mx_rgbtohsv(vec3 c)
         if (h < 0.0f)
             h += 1.0f;
     }
-    return vec3(h, s, v);
+    return float3(h, s, v);
 }

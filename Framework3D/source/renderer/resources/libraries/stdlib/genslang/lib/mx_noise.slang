@@ -66,7 +66,7 @@ float mx_bilerp(float v0, float v1, float v2, float v3, float s, float t)
     float s1 = 1.0 - s;
     return (1.0 - t) * (v0*s1 + v1*s) + t * (v2*s1 + v3*s);
 }
-vec3 mx_bilerp(vec3 v0, vec3 v1, vec3 v2, vec3 v3, float s, float t)
+float3 mx_bilerp(float3 v0, float3 v1, float3 v2, float3 v3, float s, float t)
 {
     float s1 = 1.0 - s;
     return (1.0 - t) * (v0*s1 + v1*s) + t * (v2*s1 + v3*s);
@@ -79,7 +79,7 @@ float mx_trilerp(float v0, float v1, float v2, float v3, float v4, float v5, flo
     return (r1*(t1*(v0*s1 + v1*s) + t*(v2*s1 + v3*s)) +
             r*(t1*(v4*s1 + v5*s) + t*(v6*s1 + v7*s)));
 }
-vec3 mx_trilerp(vec3 v0, vec3 v1, vec3 v2, vec3 v3, vec3 v4, vec3 v5, vec3 v6, vec3 v7, float s, float t, float r)
+float3 mx_trilerp(float3 v0, float3 v1, float3 v2, float3 v3, float3 v4, float3 v5, float3 v6, float3 v7, float s, float t, float r)
 {
     float s1 = 1.0 - s;
     float t1 = 1.0 - t;
@@ -89,7 +89,7 @@ vec3 mx_trilerp(vec3 v0, vec3 v1, vec3 v2, vec3 v3, vec3 v4, vec3 v5, vec3 v6, v
 }
 
 // 2 and 3 dimensional gradient functions - perform a dot product against a
-// randomly chosen vector. Note that the gradient vector is not normalized, but
+// randomly chosen floattor. Note that the gradient floattor is not normalized, but
 // this only affects the overal "scale" of the result, so we simply account for
 // the scale by multiplying in the corresponding "perlin" function.
 float mx_gradient_float(uint hash, float x, float y)
@@ -103,19 +103,19 @@ float mx_gradient_float(uint hash, float x, float y)
 }
 float mx_gradient_float(uint hash, float x, float y, float z)
 {
-    // use vectors pointing to the edges of the cube
+    // use floattors pointing to the edges of the cube
     uint h = hash & 15u;
     float u = mx_select(h<8u, x, y);
     float v = mx_select(h<4u, y, mx_select((h==12u)||(h==14u), x, z));
     return mx_negate_if(u, bool(h&1u)) + mx_negate_if(v, bool(h&2u));
 }
-vec3 mx_gradient_vec3(uvec3 hash, float x, float y)
+float3 mx_gradient_vec3(uvec3 hash, float x, float y)
 {
-    return vec3(mx_gradient_float(hash.x, x, y), mx_gradient_float(hash.y, x, y), mx_gradient_float(hash.z, x, y));
+    return float3(mx_gradient_float(hash.x, x, y), mx_gradient_float(hash.y, x, y), mx_gradient_float(hash.z, x, y));
 }
-vec3 mx_gradient_vec3(uvec3 hash, float x, float y, float z)
+float3 mx_gradient_vec3(uvec3 hash, float x, float y, float z)
 {
-    return vec3(mx_gradient_float(hash.x, x, y, z), mx_gradient_float(hash.y, x, y, z), mx_gradient_float(hash.z, x, y, z));
+    return float3(mx_gradient_float(hash.x, x, y, z), mx_gradient_float(hash.y, x, y, z), mx_gradient_float(hash.z, x, y, z));
 }
 // Scaling factors to normalize the result of gradients above.
 // These factors were experimentally calculated to be:
@@ -123,8 +123,8 @@ vec3 mx_gradient_vec3(uvec3 hash, float x, float y, float z)
 //    3D:   0.9820
 float mx_gradient_scale2d(float v) { return 0.6616 * v; }
 float mx_gradient_scale3d(float v) { return 0.9820 * v; }
-vec3 mx_gradient_scale2d(vec3 v) { return 0.6616 * v; }
-vec3 mx_gradient_scale3d(vec3 v) { return 0.9820 * v; }
+float3 mx_gradient_scale2d(float3 v) { return 0.6616 * v; }
+float3 mx_gradient_scale3d(float3 v) { return 0.9820 * v; }
 
 /// Bitwise circular rotation left by k bits (for 32 bit unsigned integers)
 uint mx_rotl32(uint x, int k)
@@ -246,7 +246,7 @@ uvec3 mx_hash_vec3(int x, int y, int z)
     return result;
 }
 
-float mx_perlin_noise_float(vec2 p)
+float mx_perlin_noise_float(float2 p)
 {
     int X, Y;
     float fx = mx_floorfrac(p.x, X);
@@ -262,7 +262,7 @@ float mx_perlin_noise_float(vec2 p)
     return mx_gradient_scale2d(result);
 }
 
-float mx_perlin_noise_float(vec3 p)
+float mx_perlin_noise_float(float3 p)
 {
     int X, Y, Z;
     float fx = mx_floorfrac(p.x, X);
@@ -284,14 +284,14 @@ float mx_perlin_noise_float(vec3 p)
     return mx_gradient_scale3d(result);
 }
 
-vec3 mx_perlin_noise_vec3(vec2 p)
+float3 mx_perlin_noise_vec3(float2 p)
 {
     int X, Y;
     float fx = mx_floorfrac(p.x, X);
     float fy = mx_floorfrac(p.y, Y);
     float u = mx_fade(fx);
     float v = mx_fade(fy);
-    vec3 result = mx_bilerp(
+    float3 result = mx_bilerp(
         mx_gradient_vec3(mx_hash_vec3(X  , Y  ), fx    , fy     ),
         mx_gradient_vec3(mx_hash_vec3(X+1, Y  ), fx-1.0, fy     ),
         mx_gradient_vec3(mx_hash_vec3(X  , Y+1), fx    , fy-1.0),
@@ -300,7 +300,7 @@ vec3 mx_perlin_noise_vec3(vec2 p)
     return mx_gradient_scale2d(result);
 }
 
-vec3 mx_perlin_noise_vec3(vec3 p)
+float3 mx_perlin_noise_vec3(float3 p)
 {
     int X, Y, Z;
     float fx = mx_floorfrac(p.x, X);
@@ -309,7 +309,7 @@ vec3 mx_perlin_noise_vec3(vec3 p)
     float u = mx_fade(fx);
     float v = mx_fade(fy);
     float w = mx_fade(fz);
-    vec3 result = mx_trilerp(
+    float3 result = mx_trilerp(
         mx_gradient_vec3(mx_hash_vec3(X  , Y  , Z  ), fx    , fy    , fz     ),
         mx_gradient_vec3(mx_hash_vec3(X+1, Y  , Z  ), fx-1.0, fy    , fz     ),
         mx_gradient_vec3(mx_hash_vec3(X  , Y+1, Z  ), fx    , fy-1.0, fz     ),
@@ -328,14 +328,14 @@ float mx_cell_noise_float(float p)
     return mx_bits_to_01(mx_hash_int(ix));
 }
 
-float mx_cell_noise_float(vec2 p)
+float mx_cell_noise_float(float2 p)
 {
     int ix = mx_floor(p.x);
     int iy = mx_floor(p.y);
     return mx_bits_to_01(mx_hash_int(ix, iy));
 }
 
-float mx_cell_noise_float(vec3 p)
+float mx_cell_noise_float(float3 p)
 {
     int ix = mx_floor(p.x);
     int iy = mx_floor(p.y);
@@ -343,7 +343,7 @@ float mx_cell_noise_float(vec3 p)
     return mx_bits_to_01(mx_hash_int(ix, iy, iz));
 }
 
-float mx_cell_noise_float(vec4 p)
+float mx_cell_noise_float(float4 p)
 {
     int ix = mx_floor(p.x);
     int iy = mx_floor(p.y);
@@ -352,53 +352,53 @@ float mx_cell_noise_float(vec4 p)
     return mx_bits_to_01(mx_hash_int(ix, iy, iz, iw));
 }
 
-vec3 mx_cell_noise_vec3(float p)
+float3 mx_cell_noise_vec3(float p)
 {
     int ix = mx_floor(p);
-    return vec3(
+    return float3(
             mx_bits_to_01(mx_hash_int(ix, 0)),
             mx_bits_to_01(mx_hash_int(ix, 1)),
             mx_bits_to_01(mx_hash_int(ix, 2))
     );
 }
 
-vec3 mx_cell_noise_vec3(vec2 p)
+float3 mx_cell_noise_vec3(float2 p)
 {
     int ix = mx_floor(p.x);
     int iy = mx_floor(p.y);
-    return vec3(
+    return float3(
             mx_bits_to_01(mx_hash_int(ix, iy, 0)),
             mx_bits_to_01(mx_hash_int(ix, iy, 1)),
             mx_bits_to_01(mx_hash_int(ix, iy, 2))
     );
 }
 
-vec3 mx_cell_noise_vec3(vec3 p)
+float3 mx_cell_noise_vec3(float3 p)
 {
     int ix = mx_floor(p.x);
     int iy = mx_floor(p.y);
     int iz = mx_floor(p.z);
-    return vec3(
+    return float3(
             mx_bits_to_01(mx_hash_int(ix, iy, iz, 0)),
             mx_bits_to_01(mx_hash_int(ix, iy, iz, 1)),
             mx_bits_to_01(mx_hash_int(ix, iy, iz, 2))
     );
 }
 
-vec3 mx_cell_noise_vec3(vec4 p)
+float3 mx_cell_noise_vec3(float4 p)
 {
     int ix = mx_floor(p.x);
     int iy = mx_floor(p.y);
     int iz = mx_floor(p.z);
     int iw = mx_floor(p.w);
-    return vec3(
+    return float3(
             mx_bits_to_01(mx_hash_int(ix, iy, iz, iw, 0)),
             mx_bits_to_01(mx_hash_int(ix, iy, iz, iw, 1)),
             mx_bits_to_01(mx_hash_int(ix, iy, iz, iw, 2))
     );
 }
 
-float mx_fractal_noise_float(vec3 p, int octaves, float lacunarity, float diminish)
+float mx_fractal_noise_float(float3 p, int octaves, float lacunarity, float diminish)
 {
     float result = 0.0;
     float amplitude = 1.0;
@@ -411,9 +411,9 @@ float mx_fractal_noise_float(vec3 p, int octaves, float lacunarity, float dimini
     return result;
 }
 
-vec3 mx_fractal_noise_vec3(vec3 p, int octaves, float lacunarity, float diminish)
+float3 mx_fractal_noise_vec3(float3 p, int octaves, float lacunarity, float diminish)
 {
-    vec3 result = vec3(0.0);
+    float3 result = float3(0.0);
     float amplitude = 1.0;
     for (int i = 0;  i < octaves; ++i)
     {
@@ -424,30 +424,30 @@ vec3 mx_fractal_noise_vec3(vec3 p, int octaves, float lacunarity, float diminish
     return result;
 }
 
-vec2 mx_fractal_noise_vec2(vec3 p, int octaves, float lacunarity, float diminish)
+float2 mx_fractal_noise_vec2(float3 p, int octaves, float lacunarity, float diminish)
 {
-    return vec2(mx_fractal_noise_float(p, octaves, lacunarity, diminish),
-                mx_fractal_noise_float(p+vec3(19, 193, 17), octaves, lacunarity, diminish));
+    return float2(mx_fractal_noise_float(p, octaves, lacunarity, diminish),
+                mx_fractal_noise_float(p+float3(19, 193, 17), octaves, lacunarity, diminish));
 }
 
-vec4 mx_fractal_noise_vec4(vec3 p, int octaves, float lacunarity, float diminish)
+float4 mx_fractal_noise_vec4(float3 p, int octaves, float lacunarity, float diminish)
 {
-    vec3  c = mx_fractal_noise_vec3(p, octaves, lacunarity, diminish);
-    float f = mx_fractal_noise_float(p+vec3(19, 193, 17), octaves, lacunarity, diminish);
-    return vec4(c, f);
+    float3  c = mx_fractal_noise_vec3(p, octaves, lacunarity, diminish);
+    float f = mx_fractal_noise_float(p+float3(19, 193, 17), octaves, lacunarity, diminish);
+    return float4(c, f);
 }
 
-float mx_worley_distance(vec2 p, int x, int y, int xoff, int yoff, float jitter, int metric)
+float mx_worley_distance(float2 p, int x, int y, int xoff, int yoff, float jitter, int metric)
 {
-    vec3  tmp = mx_cell_noise_vec3(vec2(x+xoff, y+yoff));
-    vec2  off = vec2(tmp.x, tmp.y);
+    float3  tmp = mx_cell_noise_vec3(float2(x+xoff, y+yoff));
+    float2  off = float2(tmp.x, tmp.y);
 
     off -= 0.5f;
     off *= jitter;
     off += 0.5f;
 
-    vec2 cellpos = vec2(float(x), float(y)) + off;
-    vec2 diff = cellpos - p;
+    float2 cellpos = float2(float(x), float(y)) + off;
+    float2 diff = cellpos - p;
     if (metric == 2)
         return abs(diff.x) + abs(diff.y);       // Manhattan distance
     if (metric == 3)
@@ -456,16 +456,16 @@ float mx_worley_distance(vec2 p, int x, int y, int xoff, int yoff, float jitter,
     return dot(diff, diff);
 }
 
-float mx_worley_distance(vec3 p, int x, int y, int z, int xoff, int yoff, int zoff, float jitter, int metric)
+float mx_worley_distance(float3 p, int x, int y, int z, int xoff, int yoff, int zoff, float jitter, int metric)
 {
-    vec3  off = mx_cell_noise_vec3(vec3(x+xoff, y+yoff, z+zoff));
+    float3  off = mx_cell_noise_vec3(float3(x+xoff, y+yoff, z+zoff));
 
     off -= 0.5f;
     off *= jitter;
     off += 0.5f;
 
-    vec3 cellpos = vec3(float(x), float(y), float(z)) + off;
-    vec3 diff = cellpos - p;
+    float3 cellpos = float3(float(x), float(y), float(z)) + off;
+    float3 diff = cellpos - p;
     if (metric == 2)
         return abs(diff.x) + abs(diff.y) + abs(diff.z); // Manhattan distance
     if (metric == 3)
@@ -474,10 +474,10 @@ float mx_worley_distance(vec3 p, int x, int y, int z, int xoff, int yoff, int zo
     return dot(diff, diff);
 }
 
-float mx_worley_noise_float(vec2 p, float jitter, int metric)
+float mx_worley_noise_float(float2 p, float jitter, int metric)
 {
     int X, Y;
-    vec2 localpos = vec2(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y));
+    float2 localpos = float2(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y));
     float sqdist = 1e6f;        // Some big number for jitter > 1 (not all GPUs may be IEEE)
     for (int x = -1; x <= 1; ++x)
     {
@@ -492,11 +492,11 @@ float mx_worley_noise_float(vec2 p, float jitter, int metric)
     return sqdist;
 }
 
-vec2 mx_worley_noise_vec2(vec2 p, float jitter, int metric)
+float2 mx_worley_noise_vec2(float2 p, float jitter, int metric)
 {
     int X, Y;
-    vec2 localpos = vec2(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y));
-    vec2 sqdist = vec2(1e6f, 1e6f);
+    float2 localpos = float2(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y));
+    float2 sqdist = float2(1e6f, 1e6f);
     for (int x = -1; x <= 1; ++x)
     {
         for (int y = -1; y <= 1; ++y)
@@ -518,11 +518,11 @@ vec2 mx_worley_noise_vec2(vec2 p, float jitter, int metric)
     return sqdist;
 }
 
-vec3 mx_worley_noise_vec3(vec2 p, float jitter, int metric)
+float3 mx_worley_noise_vec3(float2 p, float jitter, int metric)
 {
     int X, Y;
-    vec2 localpos = vec2(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y));
-    vec3 sqdist = vec3(1e6f, 1e6f, 1e6f);
+    float2 localpos = float2(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y));
+    float3 sqdist = float3(1e6f, 1e6f, 1e6f);
     for (int x = -1; x <= 1; ++x)
     {
         for (int y = -1; y <= 1; ++y)
@@ -550,10 +550,10 @@ vec3 mx_worley_noise_vec3(vec2 p, float jitter, int metric)
     return sqdist;
 }
 
-float mx_worley_noise_float(vec3 p, float jitter, int metric)
+float mx_worley_noise_float(float3 p, float jitter, int metric)
 {
     int X, Y, Z;
-    vec3 localpos = vec3(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y), mx_floorfrac(p.z, Z));
+    float3 localpos = float3(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y), mx_floorfrac(p.z, Z));
     float sqdist = 1e6f;
     for (int x = -1; x <= 1; ++x)
     {
@@ -571,11 +571,11 @@ float mx_worley_noise_float(vec3 p, float jitter, int metric)
     return sqdist;
 }
 
-vec2 mx_worley_noise_vec2(vec3 p, float jitter, int metric)
+float2 mx_worley_noise_vec2(float3 p, float jitter, int metric)
 {
     int X, Y, Z;
-    vec3 localpos = vec3(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y), mx_floorfrac(p.z, Z));
-    vec2 sqdist = vec2(1e6f, 1e6f);
+    float3 localpos = float3(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y), mx_floorfrac(p.z, Z));
+    float2 sqdist = float2(1e6f, 1e6f);
     for (int x = -1; x <= 1; ++x)
     {
         for (int y = -1; y <= 1; ++y)
@@ -600,11 +600,11 @@ vec2 mx_worley_noise_vec2(vec3 p, float jitter, int metric)
     return sqdist;
 }
 
-vec3 mx_worley_noise_vec3(vec3 p, float jitter, int metric)
+float3 mx_worley_noise_vec3(float3 p, float jitter, int metric)
 {
     int X, Y, Z;
-    vec3 localpos = vec3(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y), mx_floorfrac(p.z, Z));
-    vec3 sqdist = vec3(1e6f, 1e6f, 1e6f);
+    float3 localpos = float3(mx_floorfrac(p.x, X), mx_floorfrac(p.y, Y), mx_floorfrac(p.z, Z));
+    float3 sqdist = float3(1e6f, 1e6f, 1e6f);
     for (int x = -1; x <= 1; ++x)
     {
         for (int y = -1; y <= 1; ++y)

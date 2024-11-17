@@ -1,6 +1,6 @@
 #include "mx_aastep.slang"
 
-void mx_splittb_vector4(vec4 valuet, vec4 valueb, float center, vec2 texcoord, out vec4 result)
+void mx_splittb_vector4(float4 valuet, float4 valueb, float center, float2 texcoord, out float4 result)
 {
     result = mix(valuet, valueb, mx_aastep(center, texcoord.y));
 }

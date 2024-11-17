@@ -1,4 +1,4 @@
-void mx_roughness_anisotropy(float roughness, float anisotropy, out vec2 result)
+void mx_roughness_anisotropy(float roughness, float anisotropy, out float2 result)
 {
     float roughness_sqr = clamp(roughness*roughness, M_FLOAT_EPS, 1.0);
     if (anisotropy > 0.0)

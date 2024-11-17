@@ -1,4 +1,4 @@
-void mx_roughness_dual(vec2 roughness, out vec2 result)
+void mx_roughness_dual(float2 roughness, out float2 result)
 {
     if (roughness.y < 0.0)
     {
