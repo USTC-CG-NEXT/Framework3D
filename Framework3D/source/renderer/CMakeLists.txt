@@ -1,7 +1,7 @@
 USTC_CG_ADD_LIB(
 	hd_USTC_CG
 	SHARED
-	PRIVATE_LIBS usd Logger RHI hdx nodes_system
+	PRIVATE_LIBS usd Logger RHI hdx nodes_system usdMtlx
 	COMPILE_DEFS
 		NOMINMAX USTC_CG_DIRECT_VK_DISPLAY
 	USD_RESOURCE_DIRS resources nodes/shaders
