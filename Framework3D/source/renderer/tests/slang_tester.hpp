@@ -346,6 +346,7 @@ void checkImplementations(
         { "libraries/targets", "libraries/stdlib", "libraries/pbrlib" },
         searchPath,
         doc);
+    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
 
     const std::string& target = shadergen.getTarget();
 
@@ -556,6 +557,7 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
 
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     loadLibraries({ "libraries/targets", "libraries/stdlib" }, searchPath, doc);
+    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
 
     const std::string exampleName = "unique_names";
 
@@ -847,6 +849,7 @@ void ShaderGeneratorTester::setupDependentLibraries()
 
     // Load the standard libraries.
     loadLibraries({ "libraries" }, _searchPath, _dependLib, _skipLibraryFiles);
+    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, _searchPath, _dependLib);
 }
 
 LightIdMap ShaderGeneratorTester::computeLightIdMap(
@@ -978,6 +981,9 @@ void ShaderGeneratorTester::validate(
     mx::GenContext context(_shaderGenerator);
     context.getOptions() = generateOptions;
     context.registerSourceCodeSearchPath(_searchPath);
+    auto searchPath = mx::getDefaultDataSearchPath();
+    searchPath.append(mx::FileSearchPath("usd/hd_USTC_CG/resources"));
+    context.registerSourceCodeSearchPath(searchPath);
 
     // Register shader metadata defined in the libraries.
     _shaderGenerator->registerShaderMetadata(_dependLib, context);

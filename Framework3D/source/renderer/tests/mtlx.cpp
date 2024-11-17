@@ -47,7 +47,7 @@ TEST(MATERIALX, shader_gen)
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     mx::DocumentPtr libraries = mx::createDocument();
     mx::loadLibraries({ "libraries" }, searchPath, libraries);
-    mx::loadLibraries({ "usd/hd_USTC_CG/resources/" }, searchPath, libraries);
+    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, libraries);
 
     auto str = prettyPrint(libraries);
 
@@ -58,7 +58,7 @@ TEST(MATERIALX, shader_gen)
     mx::GenContext context(mx::SlangShaderGenerator::create());
 
     context.registerSourceCodeSearchPath(searchPath);
-    searchPath.append(FileSearchPath("usd/hd_USTC_CG/resources/"));
+    searchPath.append(FileSearchPath("usd/hd_USTC_CG/resources"));
     context.registerSourceCodeSearchPath(searchPath);
     checkPixelDependencies(libraries, context);
 }
@@ -132,6 +132,10 @@ TEST(GenShader, SLANG_Implementation)
 {
     mx::GenContext context(mx::SlangShaderGenerator::create());
 
+    auto searchPath = mx::getDefaultDataSearchPath();
+    searchPath.append(mx::FileSearchPath("usd/hd_USTC_CG/resources"));
+    context.registerSourceCodeSearchPath(searchPath);
+
     mx::StringSet generatorSkipNodeTypes;
     mx::StringSet generatorSkipNodeDefs;
     USTC_CG::GenShaderUtil::checkImplementations(
@@ -142,6 +146,9 @@ TEST(GenShader, SLANG_Unique_Names)
 {
     mx::GenContext context(mx::SlangShaderGenerator::create());
     context.registerSourceCodeSearchPath(mx::getDefaultDataSearchPath());
+    auto searchPath = mx::getDefaultDataSearchPath();
+    searchPath.append(mx::FileSearchPath("usd/hd_USTC_CG/resources"));
+    context.registerSourceCodeSearchPath(searchPath);
     USTC_CG::GenShaderUtil::testUniqueNames(context, mx::Stage::PIXEL);
 }
 
@@ -151,6 +158,7 @@ TEST(GenShader, Bind_Light_Shaders)
 
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     loadLibraries({ "libraries" }, searchPath, doc);
+    mx::loadLibraries({ "usd/hd_USTC_CG/resources/libraries" }, searchPath, doc);
 
     mx::NodeDefPtr pointLightShader = doc->getNodeDef("ND_point_light");
     mx::NodeDefPtr spotLightShader = doc->getNodeDef("ND_spot_light");
@@ -158,6 +166,10 @@ TEST(GenShader, Bind_Light_Shaders)
     ASSERT_TRUE(spotLightShader != nullptr);
 
     mx::GenContext context(mx::SlangShaderGenerator::create());
+    context.registerSourceCodeSearchPath(searchPath);
+
+    searchPath = mx::getDefaultDataSearchPath();
+    searchPath.append(mx::FileSearchPath("usd/hd_USTC_CG/resources"));
     context.registerSourceCodeSearchPath(searchPath);
 
     mx::HwShaderGenerator::bindLightShader(*pointLightShader, 42, context);
@@ -197,7 +209,7 @@ static void generateSlangCode(SlangType type = SlangType::Slang400)
     const mx::FilePath logPath(
         "genslang_" + SlangTypeToString(type) + "_generate_test.txt");
 
-    bool writeShadersToDisk = false;
+    bool writeShadersToDisk = true;
     USTC_CG::GenShaderUtil::SlangShaderGeneratorTester tester(
         (type == SlangType::SlangVulkan) ? mx::VkShaderGenerator::create()
                                          : mx::SlangShaderGenerator::create(),
@@ -218,7 +230,7 @@ static void generateSlangCode(SlangType type = SlangType::Slang400)
 
     const mx::GenOptions genOptions;
     mx::FilePath optionsFilePath =
-        searchPath.find("resources/Materials/TestSuite/_options.mtlx");
+        searchPath.find("usd/hd_USTC_CG/resources/test_options.mtlx");
     tester.validate(genOptions, optionsFilePath);
 }
 
