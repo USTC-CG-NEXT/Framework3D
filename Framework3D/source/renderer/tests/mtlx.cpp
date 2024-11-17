@@ -47,6 +47,7 @@ TEST(MATERIALX, shader_gen)
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     mx::DocumentPtr libraries = mx::createDocument();
     mx::loadLibraries({ "libraries" }, searchPath, libraries);
+    mx::loadLibraries({ "usd/hd_USTC_CG/resources/" }, searchPath, libraries);
 
     auto str = prettyPrint(libraries);
 
@@ -56,6 +57,8 @@ TEST(MATERIALX, shader_gen)
     using namespace mx;
     mx::GenContext context(mx::SlangShaderGenerator::create());
 
+    context.registerSourceCodeSearchPath(searchPath);
+    searchPath.append(FileSearchPath("usd/hd_USTC_CG/resources/"));
     context.registerSourceCodeSearchPath(searchPath);
     checkPixelDependencies(libraries, context);
 }

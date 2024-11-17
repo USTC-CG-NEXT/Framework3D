@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<materialx version="1.38">
+
+  <!-- <oren_nayar_diffuse_bsdf> -->
+  <implementation name="IM_oren_nayar_diffuse_bsdf_genslang" nodedef="ND_oren_nayar_diffuse_bsdf" file="mx_oren_nayar_diffuse_bsdf.slang" function="mx_oren_nayar_diffuse_bsdf" target="genslang" />
+
+  <!-- <burley_diffuse_bsdf> -->
+  <implementation name="IM_burley_diffuse_bsdf_genslang" nodedef="ND_burley_diffuse_bsdf" file="mx_burley_diffuse_bsdf.slang" function="mx_burley_diffuse_bsdf" target="genslang" />
+
+  <!-- <translucent_bsdf> -->
+  <implementation name="IM_translucent_bsdf_genslang" nodedef="ND_translucent_bsdf" file="mx_translucent_bsdf.slang" function="mx_translucent_bsdf" target="genslang" />
+
+  <!-- <dielectric_bsdf> -->
+  <implementation name="IM_dielectric_bsdf_genslang" nodedef="ND_dielectric_bsdf" file="mx_dielectric_bsdf.slang" function="mx_dielectric_bsdf" target="genslang" />
+
+  <!-- <conductor_bsdf> -->
+  <implementation name="IM_conductor_bsdf_genslang" nodedef="ND_conductor_bsdf" file="mx_conductor_bsdf.slang" function="mx_conductor_bsdf" target="genslang" />
+
+  <!-- <generalized_schlick_bsdf> -->
+  <implementation name="IM_generalized_schlick_bsdf_genslang" nodedef="ND_generalized_schlick_bsdf" file="mx_generalized_schlick_bsdf.slang" function="mx_generalized_schlick_bsdf" target="genslang" />
+
+  <!-- <subsurface_bsdf> -->
+  <implementation name="IM_subsurface_bsdf_genslang" nodedef="ND_subsurface_bsdf" file="mx_subsurface_bsdf.slang" function="mx_subsurface_bsdf" target="genslang" />
+
+  <!-- <sheen_bsdf> -->
+  <implementation name="IM_sheen_bsdf_genslang" nodedef="ND_sheen_bsdf" file="mx_sheen_bsdf.slang" function="mx_sheen_bsdf" target="genslang" />
+
+  <!-- <anisotropic_vdf> -->
+  <implementation name="IM_anisotropic_vdf_genslang" nodedef="ND_anisotropic_vdf" file="mx_anisotropic_vdf.slang" function="mx_anisotropic_vdf" target="genslang" />
+
+  <!-- <thin_film_bsdf> -->
+  <implementation name="IM_thin_film_bsdf_genslang" nodedef="ND_thin_film_bsdf" target="genslang" />
+
+  <!-- <layer> -->
+  <implementation name="IM_layer_bsdf_genslang" nodedef="ND_layer_bsdf" target="genslang" />
+  <implementation name="IM_layer_vdf_genslang" nodedef="ND_layer_vdf" target="genslang" />
+
+  <!-- <mix> -->
+  <implementation name="IM_mix_bsdf_genslang" nodedef="ND_mix_bsdf" target="genslang" />
+  <implementation name="IM_mix_edf_genslang" nodedef="ND_mix_edf" target="genslang" />
+
+  <!-- <add> -->
+  <implementation name="IM_add_bsdf_genslang" nodedef="ND_add_bsdf" target="genslang" />
+  <implementation name="IM_add_edf_genslang" nodedef="ND_add_edf" target="genslang" />
+
+  <!-- <multiply> -->
+  <implementation name="IM_multiply_bsdfC_genslang" nodedef="ND_multiply_bsdfC" target="genslang" />
+  <implementation name="IM_multiply_bsdfF_genslang" nodedef="ND_multiply_bsdfF" target="genslang" />
+  <implementation name="IM_multiply_edfC_genslang" nodedef="ND_multiply_edfC" target="genslang" />
+  <implementation name="IM_multiply_edfF_genslang" nodedef="ND_multiply_edfF" target="genslang" />
+
+  <!-- <uniform_edf> -->
+  <implementation name="IM_uniform_edf_genslang" nodedef="ND_uniform_edf" file="mx_uniform_edf.slang" function="mx_uniform_edf" target="genslang" />
+
+  <!-- <generalized_schlick_edf> -->
+  <implementation name="IM_generalized_schlick_edf_genslang" nodedef="ND_generalized_schlick_edf" file="mx_generalized_schlick_edf.slang" function="mx_generalized_schlick_edf" target="genslang" />
+
+  <!-- <surface> -->
+  <implementation name="IM_surface_genslang" nodedef="ND_surface" target="genslang" />
+
+  <!-- <displacement> -->
+  <implementation name="IM_displacement_float_genslang" nodedef="ND_displacement_float" file="mx_displacement_float.slang" function="mx_displacement_float" target="genslang" />
+  <implementation name="IM_displacement_vector3_genslang" nodedef="ND_displacement_vector3" file="mx_displacement_vector3.slang" function="mx_displacement_vector3" target="genslang" />
+
+  <!-- <light> -->
+  <implementation name="IM_light_genslang" nodedef="ND_light" target="genslang" />
+
+  <!-- <roughness_anisotropy> -->
+  <implementation name="IM_roughness_anisotropy_genslang" nodedef="ND_roughness_anisotropy" file="mx_roughness_anisotropy.slang" function="mx_roughness_anisotropy" target="genslang" />
+
+  <!-- <roughness_dual> -->
+  <implementation name="IM_roughness_dual_genslang" nodedef="ND_roughness_dual" file="mx_roughness_dual.slang" function="mx_roughness_dual" target="genslang" />
+
+  <!-- <artistic_ior> -->
+  <implementation name="IM_artistic_ior_genslang" nodedef="ND_artistic_ior" file="mx_artistic_ior.slang" function="mx_artistic_ior" target="genslang" />
+
+  <!-- <blackbody> -->
+  <implementation name="IM_blackbody_genslang" nodedef="ND_blackbody" file="mx_blackbody.slang" function="mx_blackbody" target="genslang" />
+
+</materialx>
