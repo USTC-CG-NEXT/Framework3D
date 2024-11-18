@@ -15,7 +15,7 @@ float3x3 mx_orthonormal_basis(float3 N)
 // Return the alpha associated with the given mip level in a prefiltered environment.
 float mx_latlong_lod_to_alpha(float lod)
 {
-    float lodBias = lod / float($envRadianceMips - 1);
+    float lodBias = lod / float(u_envRadianceMips - 1);
     return (lodBias < 0.5) ? mx_square(lodBias) : 2.0 * (lodBias - 0.375);
 }
 
@@ -39,10 +39,10 @@ float3 mx_generate_prefilter_env()
     float NdotV = 1.0;
 
     // Compute derived properties.
-    float2 uv = gl_FragCoord.xy * pow(2.0, $envPrefilterMip) / float2(textureSize($envRadiance, 0));
+    float2 uv = gl_FragCoord.xy * pow(2.0, u_envPrefilterMip) / float2(textureSize(u_envRadiance, 0));
     float3 worldN = mx_latlong_map_projection_inverse(uv);
     float3x3 tangentToWorld = mx_orthonormal_basis(worldN);
-    float alpha = mx_latlong_lod_to_alpha(float($envPrefilterMip));
+    float alpha = mx_latlong_lod_to_alpha(float(u_envPrefilterMip));
     float G1V = mx_ggx_smith_G1(NdotV, alpha);
 
     // Integrate the LD term for the given environment and alpha.
@@ -66,8 +66,8 @@ float3 mx_generate_prefilter_env()
         // Sample the environment light from the given direction.
         float3 Lw = tangentToWorld * L;
         float pdf = mx_ggx_NDF(H, float2(alpha)) * G1V / (4.0 * NdotV);
-        float lod = mx_latlong_compute_lod(Lw, pdf, float($envRadianceMips - 1), envRadianceSamples);
-        float3 sampleColor = mx_latlong_map_lookup(Lw, $envMatrix, lod, $envRadiance);
+        float lod = mx_latlong_compute_lod(Lw, pdf, float(u_envRadianceMips - 1), envRadianceSamples);
+        float3 sampleColor = mx_latlong_map_lookup(Lw, u_envMatrix, lod, u_envRadiance);
 
         // Add the radiance contribution of this sample.
         radiance += G * sampleColor;

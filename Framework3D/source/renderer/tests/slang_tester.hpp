@@ -173,6 +173,7 @@ class ShaderGeneratorTester {
           _logFilePath(logFilePath),
           _writeShadersToDisk(writeShadersToDisk)
     {
+        _shaderFactory.set_search_path("usd/hd_USTC_CG/resources/libraries");
     }
 
     ~ShaderGeneratorTester()

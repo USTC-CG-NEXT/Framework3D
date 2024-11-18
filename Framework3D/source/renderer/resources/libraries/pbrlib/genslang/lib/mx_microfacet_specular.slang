@@ -130,9 +130,9 @@ float3 mx_ggx_dir_albedo_analytic(float NdotV, float alpha, float3 F0, float3 F9
 float3 mx_ggx_dir_albedo_table_lookup(float NdotV, float alpha, float3 F0, float3 F90)
 {
 #if DIRECTIONAL_ALBEDO_METHOD == 1
-    if (textureSize($albedoTable, 0).x > 1)
+    if (textureSize(u_albedoTable, 0).x > 1)
     {
-        float2 AB = texture($albedoTable, float2(NdotV, alpha)).rg;
+        float2 AB = texture(u_albedoTable, float2(NdotV, alpha)).rg;
         return F0 * AB.x + F90 * AB.y;
     }
 #endif

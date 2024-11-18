@@ -6,7 +6,7 @@ float3 mx_surface_transmission(float3 N, float3 V, float3 X, float2 alpha, int d
     // environment map refraction, ignoring any scene geometry that might
     // be visible through the surface.
     fd.refraction = true;
-    if ($refractionTwoSided)
+    if (u_refractionTwoSided)
     {
         tint = mx_square(tint);
     }

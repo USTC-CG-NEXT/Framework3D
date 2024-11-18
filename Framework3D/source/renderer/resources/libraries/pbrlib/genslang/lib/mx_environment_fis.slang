@@ -18,7 +18,7 @@ float3 mx_environment_radiance(float3 N, float3 V, float3 X, float2 alpha, int d
     // Integrate outgoing radiance using filtered importance sampling.
     // http://cgg.mff.cuni.cz/~jaroslav/papers/2008-egsr-fis/2008-egsr-fis-final-embedded.pdf
     float3 radiance = float3(0.0);
-    int envRadianceSamples = $envRadianceSamples;
+    int envRadianceSamples = u_envRadianceSamples;
     for (int i = 0; i < envRadianceSamples; i++)
     {
         float2 Xi = mx_spherical_fibonacci(i, envRadianceSamples);
@@ -34,8 +34,8 @@ float3 mx_environment_radiance(float3 N, float3 V, float3 X, float2 alpha, int d
         // Sample the environment light from the given direction.
         float3 Lw = tangentToWorld * L;
         float pdf = mx_ggx_NDF(H, alpha) * G1V / (4.0 * NdotV);
-        float lod = mx_latlong_compute_lod(Lw, pdf, float($envRadianceMips - 1), envRadianceSamples);
-        float3 sampleColor = mx_latlong_map_lookup(Lw, $envMatrix, lod, $envRadiance);
+        float lod = mx_latlong_compute_lod(Lw, pdf, float(u_envRadianceMips - 1), envRadianceSamples);
+        float3 sampleColor = mx_latlong_map_lookup(Lw, u_envMatrix, lod, u_envRadiance);
 
         // Compute the Fresnel term.
         float3 F = mx_compute_fresnel(VdotH, fd);
@@ -59,11 +59,11 @@ float3 mx_environment_radiance(float3 N, float3 V, float3 X, float2 alpha, int d
     radiance /= G1V * float(envRadianceSamples);
 
     // Return the final radiance.
-    return radiance * $envLightIntensity;
+    return radiance * u_envLightIntensity;
 }
 
 float3 mx_environment_irradiance(float3 N)
 {
-    float3 Li = mx_latlong_map_lookup(N, $envMatrix, 0.0, $envIrradiance);
-    return Li * $envLightIntensity;
+    float3 Li = mx_latlong_map_lookup(N, u_envMatrix, 0.0, u_envIrradiance);
+    return Li * u_envLightIntensity;
 }

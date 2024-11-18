@@ -1129,10 +1129,22 @@ void SlangShaderGenerator::emitBlock(
             size_t endQuote = line.find_last_of(QUOTE);
             if (startQuote != string::npos && endQuote != string::npos &&
                 endQuote > startQuote) {
+                FilePath sourceFilePath = sourceFilename.getParentPath();
+                FilePath relativePath;
+
+                while (sourceFilePath.getBaseName() != "libraries") {
+                    relativePath =
+                        FilePath(sourceFilePath[sourceFilePath.size() - 1]) /
+                        relativePath;
+
+                    sourceFilePath = sourceFilePath.getParentPath();
+                }
+
                 size_t length = (endQuote - startQuote) - 1;
                 if (length) {
                     const string filename = line.substr(startQuote + 1, length);
-                    emitLibraryInclude(filename, context, stage);
+                    emitLibraryInclude(
+                        relativePath.asString() + filename, context, stage);
                 }
             }
         }

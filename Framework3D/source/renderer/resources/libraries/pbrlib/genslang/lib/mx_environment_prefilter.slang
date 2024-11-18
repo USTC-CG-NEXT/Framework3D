@@ -4,7 +4,7 @@
 float mx_latlong_alpha_to_lod(float alpha)
 {
     float lodBias = (alpha < 0.25) ? sqrt(alpha) : 0.5 * alpha + 0.375;
-    return lodBias * float($envRadianceMips - 1);
+    return lodBias * float(u_envRadianceMips - 1);
 }
 
 float3 mx_environment_radiance(float3 N, float3 V, float3 X, float2 alpha, int distribution, FresnelData fd)
@@ -19,12 +19,12 @@ float3 mx_environment_radiance(float3 N, float3 V, float3 X, float2 alpha, int d
     float G = mx_ggx_smith_G2(NdotV, NdotV, avgAlpha);
     float3 FG = fd.refraction ? float3(1.0) - (F * G) : F * G;
 
-    float3 Li = mx_latlong_map_lookup(L, $envMatrix, mx_latlong_alpha_to_lod(avgAlpha), $envRadiance);
-    return Li * FG * $envLightIntensity;
+    float3 Li = mx_latlong_map_lookup(L, u_envMatrix, mx_latlong_alpha_to_lod(avgAlpha), u_envRadiance);
+    return Li * FG * u_envLightIntensity;
 }
 
 float3 mx_environment_irradiance(float3 N)
 {
-    float3 Li = mx_latlong_map_lookup(N, $envMatrix, 0.0, $envIrradiance);
-    return Li * $envLightIntensity;
+    float3 Li = mx_latlong_map_lookup(N, u_envMatrix, 0.0, u_envIrradiance);
+    return Li * u_envLightIntensity;
 }

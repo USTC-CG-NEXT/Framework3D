@@ -18,7 +18,7 @@ void Hd_USTC_CG_Camera::Sync(
 
     projMatrix = GfMatrix4f(this->ComputeProjectionMatrix());
     inverseProjMatrix = projMatrix.GetInverse();
-
+     
     inverseViewMatrix = GfMatrix4f(GetTransform());
     viewMatrix = inverseViewMatrix.GetInverse();
 }

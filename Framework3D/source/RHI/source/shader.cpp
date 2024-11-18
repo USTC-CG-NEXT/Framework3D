@@ -467,7 +467,7 @@ void ShaderFactory::SlangCompile(
     sessionDesc.targetCount = 1;
     sessionDesc.compilerOptionEntries = compiler_options.data();
     sessionDesc.compilerOptionEntryCount = (SlangInt)compiler_options.size();
-    std::vector<std::string> searchPaths = { shader_search_path + "/shaders/" };
+    std::vector<std::string> searchPaths = { shader_search_path };
     searchPaths.push_back("./");
 
     std::vector<const char*> slangSearchPaths;
@@ -548,7 +548,7 @@ ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const
                                                            : SLANG_DXIL;
 
     SlangCompile(
-        std::filesystem::path(shader_search_path) / desc.path,
+        desc.path,
         desc.source_code,
         desc.entry_name.c_str(),
         desc.shaderType,
