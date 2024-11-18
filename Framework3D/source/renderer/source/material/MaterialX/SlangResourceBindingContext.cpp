@@ -74,10 +74,10 @@ void SlangResourceBindingContext::emitResourceBindings(
     }
     if (hasValueUniforms) {
         generator.emitLine(
-            "layout (std140, binding=" +
-                std::to_string(_hwUniformBindLocation++) + ") " +
-                syntax.getUniformQualifier() + " " + uniforms.getName() + "_" +
-                stage.getName(),
+
+            syntax.getUniformQualifier() + " " + uniforms.getName() + "_" +
+                stage.getName() + ": register(b" +
+                std::to_string(_hwUniformBindLocation++) + ") ",
             stage,
             false);
         generator.emitScopeBegin(stage);

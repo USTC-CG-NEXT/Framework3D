@@ -468,7 +468,6 @@ void SlangShaderGenerator::emitTransmissionRender(
 
 void SlangShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
 {
-    emitLine("#version " + getVersion(), stage, false);
 }
 
 void SlangShaderGenerator::emitConstants(

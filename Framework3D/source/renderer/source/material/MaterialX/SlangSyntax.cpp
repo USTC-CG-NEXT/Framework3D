@@ -97,7 +97,7 @@ class SlangIntegerArrayTypeSyntax : public SlangArrayTypeSyntax {
 
 const string SlangSyntax::INPUT_QUALIFIER = "in";
 const string SlangSyntax::OUTPUT_QUALIFIER = "out";
-const string SlangSyntax::UNIFORM_QUALIFIER = "uniform";
+const string SlangSyntax::UNIFORM_QUALIFIER = "cbuffer";
 const string SlangSyntax::CONSTANT_QUALIFIER = "const";
 const string SlangSyntax::FLAT_QUALIFIER = "flat";
 const string SlangSyntax::SOURCE_FILE_EXTENSION = ".slang";

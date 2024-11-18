@@ -52,7 +52,6 @@ const ShaderReflectionInfo& Program::get_reflection_info() const
     return reflection_info;
 }
 
-
 ProgramDesc& ProgramDesc::set_path(const std::filesystem::path& path)
 {
     this->path = path;
