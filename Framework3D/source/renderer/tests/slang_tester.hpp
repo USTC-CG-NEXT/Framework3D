@@ -253,7 +253,8 @@ class ShaderGeneratorTester {
 
     // Compile generated source code. Default implementation does nothing.
     virtual void compileSource(
-        const std::vector<mx::FilePath>& /*sourceCodePaths*/){};
+        const std::vector<mx::FilePath>& /*sourceCodePaths*/);
+    ;
 
    protected:
     // Check to see that all implementations have been tested for a given
@@ -693,6 +694,25 @@ void shaderGenPerformanceTest(mx::GenContext& context)
 
         ASSERT_TRUE(shader != nullptr);
         ASSERT_TRUE(shader->getSourceCode(mx::Stage::PIXEL).length() > 0);
+    }
+}
+
+inline void ShaderGeneratorTester::compileSource(
+    const std::vector<mx::FilePath>& paths)
+{
+    ShaderReflectionInfo reflection_info;
+    std::string error_string;
+    for (int i = 0; i < paths.size(); ++i) {
+        auto shader = _shaderFactory.compile_shader(
+            "main",
+            i == 0 ? nvrhi::ShaderType::Vertex : nvrhi::ShaderType::Pixel,
+            paths[i].asString(),
+            reflection_info,
+            error_string);
+
+        if (!error_string.empty()) {
+            assert(false);
+        }
     }
 }
 
@@ -1424,24 +1444,6 @@ inline void ShaderGeneratorTester::validate_shader_compile(
                         _logFile,
                         _testStages,
                         sourceCode);
-
-                    ShaderReflectionInfo reflection_info;
-                    std::string error_string;
-                    for (int i = 0; i < sourceCode.size(); ++i) {
-                        auto shader = _shaderFactory.compile_shader(
-                            "main",
-                            i == 0 ? nvrhi::ShaderType::Vertex
-                                   : nvrhi::ShaderType::Pixel,
-                            {},
-                            reflection_info,
-                            error_string,
-                            {},
-                            sourceCode[i]);
-
-                        if (!error_string.empty()) {
-                            assert(false);
-                        }
-                    }
 
                     // Record implementations tested
                     if (options.checkImplCount) {
