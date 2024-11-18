@@ -5,40 +5,40 @@
 
 #include "SlangShaderGenerator.h"
 
-#include "SlangSyntax.h"
-#include "Nodes/GeomColorNodeSlang.h"
-#include "Nodes/GeomPropValueNodeSlang.h"
-#include "Nodes/SurfaceNodeSlang.h"
-#include "Nodes/UnlitSurfaceNodeSlang.h"
-#include "Nodes/LightNodeSlang.h"
-#include "Nodes/LightCompoundNodeSlang.h"
-#include "Nodes/LightShaderNodeSlang.h"
-#include "Nodes/HeightToNormalNodeSlang.h"
-#include "Nodes/LightSamplerNodeSlang.h"
-#include "Nodes/NumLightsNodeSlang.h"
-#include "Nodes/BlurNodeSlang.h"
-
-#include <MaterialXGenShader/Nodes/MaterialNode.h>
-#include <MaterialXGenShader/Nodes/SwizzleNode.h>
-#include <MaterialXGenShader/Nodes/ConvertNode.h>
-#include <MaterialXGenShader/Nodes/CombineNode.h>
-#include <MaterialXGenShader/Nodes/SwitchNode.h>
-#include <MaterialXGenShader/Nodes/HwImageNode.h>
-#include <MaterialXGenShader/Nodes/HwTexCoordNode.h>
-#include <MaterialXGenShader/Nodes/HwTransformNode.h>
-#include <MaterialXGenShader/Nodes/HwPositionNode.h>
-#include <MaterialXGenShader/Nodes/HwNormalNode.h>
-#include <MaterialXGenShader/Nodes/HwTangentNode.h>
-#include <MaterialXGenShader/Nodes/HwBitangentNode.h>
-#include <MaterialXGenShader/Nodes/HwFrameNode.h>
-#include <MaterialXGenShader/Nodes/HwTimeNode.h>
-#include <MaterialXGenShader/Nodes/HwViewDirectionNode.h>
-#include <MaterialXGenShader/Nodes/ClosureSourceCodeNode.h>
+#include <MaterialXGenShader/Nodes/ClosureAddNode.h>
 #include <MaterialXGenShader/Nodes/ClosureCompoundNode.h>
 #include <MaterialXGenShader/Nodes/ClosureLayerNode.h>
 #include <MaterialXGenShader/Nodes/ClosureMixNode.h>
-#include <MaterialXGenShader/Nodes/ClosureAddNode.h>
 #include <MaterialXGenShader/Nodes/ClosureMultiplyNode.h>
+#include <MaterialXGenShader/Nodes/ClosureSourceCodeNode.h>
+#include <MaterialXGenShader/Nodes/CombineNode.h>
+#include <MaterialXGenShader/Nodes/ConvertNode.h>
+#include <MaterialXGenShader/Nodes/HwBitangentNode.h>
+#include <MaterialXGenShader/Nodes/HwFrameNode.h>
+#include <MaterialXGenShader/Nodes/HwImageNode.h>
+#include <MaterialXGenShader/Nodes/HwNormalNode.h>
+#include <MaterialXGenShader/Nodes/HwPositionNode.h>
+#include <MaterialXGenShader/Nodes/HwTangentNode.h>
+#include <MaterialXGenShader/Nodes/HwTexCoordNode.h>
+#include <MaterialXGenShader/Nodes/HwTimeNode.h>
+#include <MaterialXGenShader/Nodes/HwTransformNode.h>
+#include <MaterialXGenShader/Nodes/HwViewDirectionNode.h>
+#include <MaterialXGenShader/Nodes/MaterialNode.h>
+#include <MaterialXGenShader/Nodes/SwitchNode.h>
+#include <MaterialXGenShader/Nodes/SwizzleNode.h>
+
+#include "Nodes/BlurNodeSlang.h"
+#include "Nodes/GeomColorNodeSlang.h"
+#include "Nodes/GeomPropValueNodeSlang.h"
+#include "Nodes/HeightToNormalNodeSlang.h"
+#include "Nodes/LightCompoundNodeSlang.h"
+#include "Nodes/LightNodeSlang.h"
+#include "Nodes/LightSamplerNodeSlang.h"
+#include "Nodes/LightShaderNodeSlang.h"
+#include "Nodes/NumLightsNodeSlang.h"
+#include "Nodes/SurfaceNodeSlang.h"
+#include "Nodes/UnlitSurfaceNodeSlang.h"
+#include "SlangSyntax.h"
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -49,8 +49,8 @@ const string SlangShaderGenerator::VERSION = "400";
 // SlangShaderGenerator methods
 //
 
-SlangShaderGenerator::SlangShaderGenerator() :
-    HwShaderGenerator(SlangSyntax::create())
+SlangShaderGenerator::SlangShaderGenerator()
+    : HwShaderGenerator(SlangSyntax::create())
 {
     //
     // Register all custom node implementation classes
@@ -165,20 +165,38 @@ SlangShaderGenerator::SlangShaderGenerator() :
     registerImplementation(elementNames, CombineNode::create);
 
     // <!-- <position> -->
-    registerImplementation("IM_position_vector3_" + SlangShaderGenerator::TARGET, HwPositionNode::create);
+    registerImplementation(
+        "IM_position_vector3_" + SlangShaderGenerator::TARGET,
+        HwPositionNode::create);
     // <!-- <normal> -->
-    registerImplementation("IM_normal_vector3_" + SlangShaderGenerator::TARGET, HwNormalNode::create);
+    registerImplementation(
+        "IM_normal_vector3_" + SlangShaderGenerator::TARGET,
+        HwNormalNode::create);
     // <!-- <tangent> -->
-    registerImplementation("IM_tangent_vector3_" + SlangShaderGenerator::TARGET, HwTangentNode::create);
+    registerImplementation(
+        "IM_tangent_vector3_" + SlangShaderGenerator::TARGET,
+        HwTangentNode::create);
     // <!-- <bitangent> -->
-    registerImplementation("IM_bitangent_vector3_" + SlangShaderGenerator::TARGET, HwBitangentNode::create);
+    registerImplementation(
+        "IM_bitangent_vector3_" + SlangShaderGenerator::TARGET,
+        HwBitangentNode::create);
     // <!-- <texcoord> -->
-    registerImplementation("IM_texcoord_vector2_" + SlangShaderGenerator::TARGET, HwTexCoordNode::create);
-    registerImplementation("IM_texcoord_vector3_" + SlangShaderGenerator::TARGET, HwTexCoordNode::create);
+    registerImplementation(
+        "IM_texcoord_vector2_" + SlangShaderGenerator::TARGET,
+        HwTexCoordNode::create);
+    registerImplementation(
+        "IM_texcoord_vector3_" + SlangShaderGenerator::TARGET,
+        HwTexCoordNode::create);
     // <!-- <geomcolor> -->
-    registerImplementation("IM_geomcolor_float_" + SlangShaderGenerator::TARGET, GeomColorNodeSlang::create);
-    registerImplementation("IM_geomcolor_color3_" + SlangShaderGenerator::TARGET, GeomColorNodeSlang::create);
-    registerImplementation("IM_geomcolor_color4_" + SlangShaderGenerator::TARGET, GeomColorNodeSlang::create);
+    registerImplementation(
+        "IM_geomcolor_float_" + SlangShaderGenerator::TARGET,
+        GeomColorNodeSlang::create);
+    registerImplementation(
+        "IM_geomcolor_color3_" + SlangShaderGenerator::TARGET,
+        GeomColorNodeSlang::create);
+    registerImplementation(
+        "IM_geomcolor_color4_" + SlangShaderGenerator::TARGET,
+        GeomColorNodeSlang::create);
     // <!-- <geompropvalue> -->
     elementNames = {
         "IM_geompropvalue_integer_" + SlangShaderGenerator::TARGET,
@@ -190,32 +208,52 @@ SlangShaderGenerator::SlangShaderGenerator() :
         "IM_geompropvalue_vector4_" + SlangShaderGenerator::TARGET,
     };
     registerImplementation(elementNames, GeomPropValueNodeSlang::create);
-    registerImplementation("IM_geompropvalue_boolean_" + SlangShaderGenerator::TARGET, GeomPropValueNodeSlangAsUniform::create);
-    registerImplementation("IM_geompropvalue_string_" + SlangShaderGenerator::TARGET, GeomPropValueNodeSlangAsUniform::create);
+    registerImplementation(
+        "IM_geompropvalue_boolean_" + SlangShaderGenerator::TARGET,
+        GeomPropValueNodeSlangAsUniform::create);
+    registerImplementation(
+        "IM_geompropvalue_string_" + SlangShaderGenerator::TARGET,
+        GeomPropValueNodeSlangAsUniform::create);
 
     // <!-- <frame> -->
-    registerImplementation("IM_frame_float_" + SlangShaderGenerator::TARGET, HwFrameNode::create);
+    registerImplementation(
+        "IM_frame_float_" + SlangShaderGenerator::TARGET, HwFrameNode::create);
     // <!-- <time> -->
-    registerImplementation("IM_time_float_" + SlangShaderGenerator::TARGET, HwTimeNode::create);
+    registerImplementation(
+        "IM_time_float_" + SlangShaderGenerator::TARGET, HwTimeNode::create);
     // <!-- <viewdirection> -->
-    registerImplementation("IM_viewdirection_vector3_" + SlangShaderGenerator::TARGET, HwViewDirectionNode::create);
+    registerImplementation(
+        "IM_viewdirection_vector3_" + SlangShaderGenerator::TARGET,
+        HwViewDirectionNode::create);
 
     // <!-- <surface> -->
-    registerImplementation("IM_surface_" + SlangShaderGenerator::TARGET, SurfaceNodeSlang::create);
-    registerImplementation("IM_surface_unlit_" + SlangShaderGenerator::TARGET, UnlitSurfaceNodeSlang::create);
+    registerImplementation(
+        "IM_surface_" + SlangShaderGenerator::TARGET, SurfaceNodeSlang::create);
+    registerImplementation(
+        "IM_surface_unlit_" + SlangShaderGenerator::TARGET,
+        UnlitSurfaceNodeSlang::create);
 
     // <!-- <light> -->
-    registerImplementation("IM_light_" + SlangShaderGenerator::TARGET, LightNodeSlang::create);
+    registerImplementation(
+        "IM_light_" + SlangShaderGenerator::TARGET, LightNodeSlang::create);
 
     // <!-- <point_light> -->
-    registerImplementation("IM_point_light_" + SlangShaderGenerator::TARGET, LightShaderNodeSlang::create);
+    registerImplementation(
+        "IM_point_light_" + SlangShaderGenerator::TARGET,
+        LightShaderNodeSlang::create);
     // <!-- <directional_light> -->
-    registerImplementation("IM_directional_light_" + SlangShaderGenerator::TARGET, LightShaderNodeSlang::create);
+    registerImplementation(
+        "IM_directional_light_" + SlangShaderGenerator::TARGET,
+        LightShaderNodeSlang::create);
     // <!-- <spot_light> -->
-    registerImplementation("IM_spot_light_" + SlangShaderGenerator::TARGET, LightShaderNodeSlang::create);
+    registerImplementation(
+        "IM_spot_light_" + SlangShaderGenerator::TARGET,
+        LightShaderNodeSlang::create);
 
     // <!-- <heighttonormal> -->
-    registerImplementation("IM_heighttonormal_vector3_" + SlangShaderGenerator::TARGET, HeightToNormalNodeSlang::create);
+    registerImplementation(
+        "IM_heighttonormal_vector3_" + SlangShaderGenerator::TARGET,
+        HeightToNormalNodeSlang::create);
 
     // <!-- <blur> -->
     elementNames = {
@@ -229,13 +267,19 @@ SlangShaderGenerator::SlangShaderGenerator() :
     registerImplementation(elementNames, BlurNodeSlang::create);
 
     // <!-- <ND_transformpoint> ->
-    registerImplementation("IM_transformpoint_vector3_" + SlangShaderGenerator::TARGET, HwTransformPointNode::create);
+    registerImplementation(
+        "IM_transformpoint_vector3_" + SlangShaderGenerator::TARGET,
+        HwTransformPointNode::create);
 
     // <!-- <ND_transformvector> ->
-    registerImplementation("IM_transformvector_vector3_" + SlangShaderGenerator::TARGET, HwTransformVectorNode::create);
+    registerImplementation(
+        "IM_transformvector_vector3_" + SlangShaderGenerator::TARGET,
+        HwTransformVectorNode::create);
 
     // <!-- <ND_transformnormal> ->
-    registerImplementation("IM_transformnormal_vector3_" + SlangShaderGenerator::TARGET, HwTransformNormalNode::create);
+    registerImplementation(
+        "IM_transformnormal_vector3_" + SlangShaderGenerator::TARGET,
+        HwTransformNormalNode::create);
 
     // <!-- <image> -->
     elementNames = {
@@ -249,14 +293,22 @@ SlangShaderGenerator::SlangShaderGenerator() :
     registerImplementation(elementNames, HwImageNode::create);
 
     // <!-- <layer> -->
-    registerImplementation("IM_layer_bsdf_" + SlangShaderGenerator::TARGET, ClosureLayerNode::create);
-    registerImplementation("IM_layer_vdf_" + SlangShaderGenerator::TARGET, ClosureLayerNode::create);
+    registerImplementation(
+        "IM_layer_bsdf_" + SlangShaderGenerator::TARGET,
+        ClosureLayerNode::create);
+    registerImplementation(
+        "IM_layer_vdf_" + SlangShaderGenerator::TARGET,
+        ClosureLayerNode::create);
     // <!-- <mix> -->
-    registerImplementation("IM_mix_bsdf_" + SlangShaderGenerator::TARGET, ClosureMixNode::create);
-    registerImplementation("IM_mix_edf_" + SlangShaderGenerator::TARGET, ClosureMixNode::create);
+    registerImplementation(
+        "IM_mix_bsdf_" + SlangShaderGenerator::TARGET, ClosureMixNode::create);
+    registerImplementation(
+        "IM_mix_edf_" + SlangShaderGenerator::TARGET, ClosureMixNode::create);
     // <!-- <add> -->
-    registerImplementation("IM_add_bsdf_" + SlangShaderGenerator::TARGET, ClosureAddNode::create);
-    registerImplementation("IM_add_edf_" + SlangShaderGenerator::TARGET, ClosureAddNode::create);
+    registerImplementation(
+        "IM_add_bsdf_" + SlangShaderGenerator::TARGET, ClosureAddNode::create);
+    registerImplementation(
+        "IM_add_edf_" + SlangShaderGenerator::TARGET, ClosureAddNode::create);
     // <!-- <multiply> -->
     elementNames = {
         "IM_multiply_bsdfC_" + SlangShaderGenerator::TARGET,
@@ -267,16 +319,24 @@ SlangShaderGenerator::SlangShaderGenerator() :
     registerImplementation(elementNames, ClosureMultiplyNode::create);
 
     // <!-- <thin_film> -->
-    registerImplementation("IM_thin_film_bsdf_" + SlangShaderGenerator::TARGET, NopNode::create);
+    registerImplementation(
+        "IM_thin_film_bsdf_" + SlangShaderGenerator::TARGET, NopNode::create);
 
     // <!-- <surfacematerial> -->
-    registerImplementation("IM_surfacematerial_" + SlangShaderGenerator::TARGET, MaterialNode::create);
+    registerImplementation(
+        "IM_surfacematerial_" + SlangShaderGenerator::TARGET,
+        MaterialNode::create);
 
-    _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "numActiveLightSources", NumLightsNodeSlang::create()));
-    _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "sampleLightSource", LightSamplerNodeSlang::create()));
+    _lightSamplingNodes.push_back(ShaderNode::create(
+        nullptr, "numActiveLightSources", NumLightsNodeSlang::create()));
+    _lightSamplingNodes.push_back(ShaderNode::create(
+        nullptr, "sampleLightSource", LightSamplerNodeSlang::create()));
 }
 
-ShaderPtr SlangShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
+ShaderPtr SlangShaderGenerator::generate(
+    const string& name,
+    ElementPtr element,
+    GenContext& context) const
 {
     ShaderPtr shader = createShader(name, element, context);
 
@@ -284,9 +344,9 @@ ShaderPtr SlangShaderGenerator::generate(const string& name, ElementPtr element,
     ScopedFloatFormatting fmt(Value::FloatFormatFixed);
 
     // Make sure we initialize/reset the binding context before generation.
-    HwResourceBindingContextPtr resourceBindingCtx = getResourceBindingContext(context);
-    if (resourceBindingCtx)
-    {
+    HwResourceBindingContextPtr resourceBindingCtx =
+        getResourceBindingContext(context);
+    if (resourceBindingCtx) {
         resourceBindingCtx->initialize();
     }
 
@@ -303,13 +363,16 @@ ShaderPtr SlangShaderGenerator::generate(const string& name, ElementPtr element,
     return shader;
 }
 
-void SlangShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitVertexStage(
+    const ShaderGraph& graph,
+    GenContext& context,
+    ShaderStage& stage) const
 {
-    HwResourceBindingContextPtr resourceBindingCtx = getResourceBindingContext(context);
+    HwResourceBindingContextPtr resourceBindingCtx =
+        getResourceBindingContext(context);
 
     emitDirectives(context, stage);
-    if (resourceBindingCtx)
-    {
+    if (resourceBindingCtx) {
         resourceBindingCtx->emitDirectives(context, stage);
     }
     emitLineBreak(stage);
@@ -332,54 +395,70 @@ void SlangShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext&
     setFunctionName("main", stage);
     emitLine("void main()", stage, false);
     emitFunctionBodyBegin(graph, context, stage);
-    emitLine("vec4 hPositionWorld = " + HW::T_WORLD_MATRIX + " * vec4(" + HW::T_IN_POSITION + ", 1.0)", stage);
-    emitLine("gl_Position = " + HW::T_VIEW_PROJECTION_MATRIX + " * hPositionWorld", stage);
+    emitLine(
+        "float4 hPositionWorld = " + HW::T_WORLD_MATRIX + " * float4(" +
+            HW::T_IN_POSITION + ", 1.0)",
+        stage);
+    emitLine(
+        "gl_Position = " + HW::T_VIEW_PROJECTION_MATRIX + " * hPositionWorld",
+        stage);
 
     // Emit all function calls in order
-    for (const ShaderNode* node : graph.getNodes())
-    {
+    for (const ShaderNode* node : graph.getNodes()) {
         emitFunctionCall(*node, context, stage);
     }
 
     emitFunctionBodyEnd(graph, context, stage);
 }
 
-void SlangShaderGenerator::emitSpecularEnvironment(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitSpecularEnvironment(
+    GenContext& context,
+    ShaderStage& stage) const
 {
     int specularMethod = context.getOptions().hwSpecularEnvironmentMethod;
-    if (specularMethod == SPECULAR_ENVIRONMENT_FIS)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_environment_fis.slang", context, stage);
+    if (specularMethod == SPECULAR_ENVIRONMENT_FIS) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_environment_fis.slang", context, stage);
     }
-    else if (specularMethod == SPECULAR_ENVIRONMENT_PREFILTER)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_environment_prefilter.slang", context, stage);
+    else if (specularMethod == SPECULAR_ENVIRONMENT_PREFILTER) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_environment_prefilter.slang",
+            context,
+            stage);
     }
-    else if (specularMethod == SPECULAR_ENVIRONMENT_NONE)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_environment_none.slang", context, stage);
+    else if (specularMethod == SPECULAR_ENVIRONMENT_NONE) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_environment_none.slang", context, stage);
     }
-    else
-    {
-        throw ExceptionShaderGenError("Invalid hardware specular environment method specified: '" + std::to_string(specularMethod) + "'");
+    else {
+        throw ExceptionShaderGenError(
+            "Invalid hardware specular environment method specified: '" +
+            std::to_string(specularMethod) + "'");
     }
     emitLineBreak(stage);
 }
 
-void SlangShaderGenerator::emitTransmissionRender(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitTransmissionRender(
+    GenContext& context,
+    ShaderStage& stage) const
 {
     int transmissionMethod = context.getOptions().hwTransmissionRenderMethod;
-    if (transmissionMethod == TRANSMISSION_REFRACTION)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_transmission_refract.slang", context, stage);
+    if (transmissionMethod == TRANSMISSION_REFRACTION) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_transmission_refract.slang",
+            context,
+            stage);
     }
-    else if (transmissionMethod == TRANSMISSION_OPACITY)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_transmission_opacity.slang", context, stage);
+    else if (transmissionMethod == TRANSMISSION_OPACITY) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_transmission_opacity.slang",
+            context,
+            stage);
     }
-    else
-    {
-        throw ExceptionShaderGenError("Invalid transmission render specified: '" + std::to_string(transmissionMethod) + "'");
+    else {
+        throw ExceptionShaderGenError(
+            "Invalid transmission render specified: '" +
+            std::to_string(transmissionMethod) + "'");
     }
     emitLineBreak(stage);
 }
@@ -389,72 +468,95 @@ void SlangShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
     emitLine("#version " + getVersion(), stage, false);
 }
 
-void SlangShaderGenerator::emitConstants(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitConstants(
+    GenContext& context,
+    ShaderStage& stage) const
 {
     const VariableBlock& constants = stage.getConstantBlock();
-    if (!constants.empty())
-    {
-        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), Syntax::SEMICOLON, context, stage);
+    if (!constants.empty()) {
+        emitVariableDeclarations(
+            constants,
+            _syntax->getConstantQualifier(),
+            Syntax::SEMICOLON,
+            context,
+            stage);
         emitLineBreak(stage);
     }
 }
 
-void SlangShaderGenerator::emitUniforms(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitUniforms(GenContext& context, ShaderStage& stage)
+    const
 {
-    for (const auto& it : stage.getUniformBlocks())
-    {
+    for (const auto& it : stage.getUniformBlocks()) {
         const VariableBlock& uniforms = *it.second;
 
         // Skip light uniforms as they are handled separately
-        if (!uniforms.empty() && uniforms.getName() != HW::LIGHT_DATA)
-        {
+        if (!uniforms.empty() && uniforms.getName() != HW::LIGHT_DATA) {
             emitComment("Uniform block: " + uniforms.getName(), stage);
-            HwResourceBindingContextPtr resourceBindingCtx = getResourceBindingContext(context);
-            if (resourceBindingCtx)
-            {
-                resourceBindingCtx->emitResourceBindings(context, uniforms, stage);
+            HwResourceBindingContextPtr resourceBindingCtx =
+                getResourceBindingContext(context);
+            if (resourceBindingCtx) {
+                resourceBindingCtx->emitResourceBindings(
+                    context, uniforms, stage);
             }
-            else
-            {
-                emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), Syntax::SEMICOLON, context, stage);
+            else {
+                emitVariableDeclarations(
+                    uniforms,
+                    _syntax->getUniformQualifier(),
+                    Syntax::SEMICOLON,
+                    context,
+                    stage);
                 emitLineBreak(stage);
             }
         }
     }
 }
 
-void SlangShaderGenerator::emitLightData(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitLightData(
+    GenContext& context,
+    ShaderStage& stage) const
 {
     const VariableBlock& lightData = stage.getUniformBlock(HW::LIGHT_DATA);
-    const string structArraySuffix = "[" + HW::LIGHT_DATA_MAX_LIGHT_SOURCES + "]";
+    const string structArraySuffix =
+        "[" + HW::LIGHT_DATA_MAX_LIGHT_SOURCES + "]";
     const string structName = lightData.getInstance();
-    HwResourceBindingContextPtr resourceBindingCtx = getResourceBindingContext(context);
-    if (resourceBindingCtx)
-    {
+    HwResourceBindingContextPtr resourceBindingCtx =
+        getResourceBindingContext(context);
+    if (resourceBindingCtx) {
         resourceBindingCtx->emitStructuredResourceBindings(
             context, lightData, stage, structName, structArraySuffix);
     }
-    else
-    {
+    else {
         emitLine("struct " + lightData.getName(), stage, false);
         emitScopeBegin(stage);
-        emitVariableDeclarations(lightData, EMPTY_STRING, Syntax::SEMICOLON, context, stage, false);
+        emitVariableDeclarations(
+            lightData, EMPTY_STRING, Syntax::SEMICOLON, context, stage, false);
         emitScopeEnd(stage, true);
         emitLineBreak(stage);
-        emitLine("uniform " + lightData.getName() + " " + structName + structArraySuffix, stage);
+        emitLine(
+            "uniform " + lightData.getName() + " " + structName +
+                structArraySuffix,
+            stage);
     }
     emitLineBreak(stage);
 }
 
-void SlangShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage)
+    const
 {
     DEFINE_SHADER_STAGE(stage, Stage::VERTEX)
     {
-        const VariableBlock& vertexInputs = stage.getInputBlock(HW::VERTEX_INPUTS);
-        if (!vertexInputs.empty())
-        {
+        const VariableBlock& vertexInputs =
+            stage.getInputBlock(HW::VERTEX_INPUTS);
+        if (!vertexInputs.empty()) {
             emitComment("Inputs block: " + vertexInputs.getName(), stage);
-            emitVariableDeclarations(vertexInputs, _syntax->getInputQualifier(), Syntax::SEMICOLON, context, stage, false);
+            emitVariableDeclarations(
+                vertexInputs,
+                _syntax->getInputQualifier(),
+                Syntax::SEMICOLON,
+                context,
+                stage,
+                false);
             emitLineBreak(stage);
         }
     }
@@ -462,31 +564,44 @@ void SlangShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage) c
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
         const VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        if (!vertexData.empty())
-        {
+        if (!vertexData.empty()) {
             emitLine("in " + vertexData.getName(), stage, false);
             emitScopeBegin(stage);
-            emitVariableDeclarations(vertexData, EMPTY_STRING, Syntax::SEMICOLON, context, stage, false);
+            emitVariableDeclarations(
+                vertexData,
+                EMPTY_STRING,
+                Syntax::SEMICOLON,
+                context,
+                stage,
+                false);
             emitScopeEnd(stage, false, false);
-            emitString(" " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
+            emitString(
+                " " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
             emitLineBreak(stage);
             emitLineBreak(stage);
         }
     }
 }
 
-void SlangShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage)
+    const
 {
     DEFINE_SHADER_STAGE(stage, Stage::VERTEX)
     {
         const VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        if (!vertexData.empty())
-        {
+        if (!vertexData.empty()) {
             emitLine("out " + vertexData.getName(), stage, false);
             emitScopeBegin(stage);
-            emitVariableDeclarations(vertexData, EMPTY_STRING, Syntax::SEMICOLON, context, stage, false);
+            emitVariableDeclarations(
+                vertexData,
+                EMPTY_STRING,
+                Syntax::SEMICOLON,
+                context,
+                stage,
+                false);
             emitScopeEnd(stage, false, false);
-            emitString(" " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
+            emitString(
+                " " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
             emitLineBreak(stage);
             emitLineBreak(stage);
         }
@@ -496,38 +611,52 @@ void SlangShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage) 
     {
         emitComment("Pixel shader outputs", stage);
         const VariableBlock& outputs = stage.getOutputBlock(HW::PIXEL_OUTPUTS);
-        emitVariableDeclarations(outputs, _syntax->getOutputQualifier(), Syntax::SEMICOLON, context, stage, false);
+        emitVariableDeclarations(
+            outputs,
+            _syntax->getOutputQualifier(),
+            Syntax::SEMICOLON,
+            context,
+            stage,
+            false);
         emitLineBreak(stage);
     }
 }
 
-HwResourceBindingContextPtr SlangShaderGenerator::getResourceBindingContext(GenContext& context) const
+HwResourceBindingContextPtr SlangShaderGenerator::getResourceBindingContext(
+    GenContext& context) const
 {
-    return context.getUserData<HwResourceBindingContext>(HW::USER_DATA_BINDING_CONTEXT);
+    return context.getUserData<HwResourceBindingContext>(
+        HW::USER_DATA_BINDING_CONTEXT);
 }
 
-string SlangShaderGenerator::getVertexDataPrefix(const VariableBlock& vertexData) const
+string SlangShaderGenerator::getVertexDataPrefix(
+    const VariableBlock& vertexData) const
 {
     return vertexData.getInstance() + ".";
 }
 
 bool SlangShaderGenerator::requiresLighting(const ShaderGraph& graph) const
 {
-    const bool isBsdf = graph.hasClassification(ShaderNode::Classification::BSDF);
-    const bool isLitSurfaceShader = graph.hasClassification(ShaderNode::Classification::SHADER) &&
-                                    graph.hasClassification(ShaderNode::Classification::SURFACE) &&
-                                    !graph.hasClassification(ShaderNode::Classification::UNLIT);
+    const bool isBsdf =
+        graph.hasClassification(ShaderNode::Classification::BSDF);
+    const bool isLitSurfaceShader =
+        graph.hasClassification(ShaderNode::Classification::SHADER) &&
+        graph.hasClassification(ShaderNode::Classification::SURFACE) &&
+        !graph.hasClassification(ShaderNode::Classification::UNLIT);
     return isBsdf || isLitSurfaceShader;
 }
 
-void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitPixelStage(
+    const ShaderGraph& graph,
+    GenContext& context,
+    ShaderStage& stage) const
 {
-    HwResourceBindingContextPtr resourceBindingCtx = getResourceBindingContext(context);
+    HwResourceBindingContextPtr resourceBindingCtx =
+        getResourceBindingContext(context);
 
     // Add directives
     emitDirectives(context, stage);
-    if (resourceBindingCtx)
-    {
+    if (resourceBindingCtx) {
         resourceBindingCtx->emitDirectives(context, stage);
     }
     emitLineBreak(stage);
@@ -544,8 +673,9 @@ void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     // Add vertex data inputs block
     emitInputs(context, stage);
 
-    // Add the pixel shader output. This needs to be a vec4 for rendering
-    // and upstream connection will be converted to vec4 if needed in emitFinalOutput()
+    // Add the pixel shader output. This needs to be a float4 for rendering
+    // and upstream connection will be converted to float4 if needed in
+    // emitFinalOutput()
     emitOutputs(context, stage);
 
     // Add common math functions
@@ -556,25 +686,32 @@ void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     bool lighting = requiresLighting(graph);
 
     // Define directional albedo approach
-    if (lighting || context.getOptions().hwWriteAlbedoTable || context.getOptions().hwWriteEnvPrefilter)
-    {
-        emitLine("#define DIRECTIONAL_ALBEDO_METHOD " + std::to_string(int(context.getOptions().hwDirectionalAlbedoMethod)), stage, false);
+    if (lighting || context.getOptions().hwWriteAlbedoTable ||
+        context.getOptions().hwWriteEnvPrefilter) {
+        emitLine(
+            "#define DIRECTIONAL_ALBEDO_METHOD " +
+                std::to_string(
+                    int(context.getOptions().hwDirectionalAlbedoMethod)),
+            stage,
+            false);
         emitLineBreak(stage);
     }
 
     // Add lighting support
-    if (lighting)
-    {
-        if (context.getOptions().hwMaxActiveLightSources > 0)
-        {
-            const unsigned int maxLights = std::max(1u, context.getOptions().hwMaxActiveLightSources);
-            emitLine("#define " + HW::LIGHT_DATA_MAX_LIGHT_SOURCES + " " + std::to_string(maxLights), stage, false);
+    if (lighting) {
+        if (context.getOptions().hwMaxActiveLightSources > 0) {
+            const unsigned int maxLights =
+                std::max(1u, context.getOptions().hwMaxActiveLightSources);
+            emitLine(
+                "#define " + HW::LIGHT_DATA_MAX_LIGHT_SOURCES + " " +
+                    std::to_string(maxLights),
+                stage,
+                false);
         }
         emitSpecularEnvironment(context, stage);
         emitTransmissionRender(context, stage);
 
-        if (context.getOptions().hwMaxActiveLightSources > 0)
-        {
+        if (context.getOptions().hwMaxActiveLightSources > 0) {
             emitLightData(context, stage);
         }
     }
@@ -582,40 +719,47 @@ void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     // Add shadowing support
     bool shadowing = (lighting && context.getOptions().hwShadowMap) ||
                      context.getOptions().hwWriteDepthMoments;
-    if (shadowing)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_shadow.slang", context, stage);
+    if (shadowing) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_shadow.slang", context, stage);
     }
 
     // Emit directional albedo table code.
-    if (context.getOptions().hwWriteAlbedoTable)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_generate_albedo_table.slang", context, stage);
+    if (context.getOptions().hwWriteAlbedoTable) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_generate_albedo_table.slang",
+            context,
+            stage);
         emitLineBreak(stage);
     }
 
     // Emit environment prefiltering code
-    if (context.getOptions().hwWriteEnvPrefilter)
-    {
-        emitLibraryInclude("pbrlib/genslang/lib/mx_generate_prefilter_env.slang", context, stage);
+    if (context.getOptions().hwWriteEnvPrefilter) {
+        emitLibraryInclude(
+            "pbrlib/genslang/lib/mx_generate_prefilter_env.slang",
+            context,
+            stage);
         emitLineBreak(stage);
     }
 
     // Set the include file to use for uv transformations,
     // depending on the vertical flip flag.
-    if (context.getOptions().fileTextureVerticalFlip)
-    {
-        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "mx_transform_uv_vflip.slang";
+    if (context.getOptions().fileTextureVerticalFlip) {
+        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] =
+            "mx_transform_uv_vflip.slang";
     }
-    else
-    {
-        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "mx_transform_uv.slang";
+    else {
+        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] =
+            "mx_transform_uv.slang";
     }
 
     // Emit uv transform code globally if needed.
-    if (context.getOptions().hwAmbientOcclusion)
-    {
-        emitLibraryInclude("stdlib/genslang/lib/" + _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV], context, stage);
+    if (context.getOptions().hwAmbientOcclusion) {
+        emitLibraryInclude(
+            "stdlib/genslang/lib/" +
+                _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV],
+            context,
+            stage);
     }
 
     emitLightFunctionDefinitions(graph, context, stage);
@@ -631,54 +775,62 @@ void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     emitFunctionBodyBegin(graph, context, stage);
 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE) &&
-        !graph.hasClassification(ShaderNode::Classification::SHADER))
-    {
+        !graph.hasClassification(ShaderNode::Classification::SHADER)) {
         // Handle the case where the graph is a direct closure.
         // We don't support rendering closures without attaching
         // to a surface shader, so just output black.
-        emitLine(outputSocket->getVariable() + " = vec4(0.0, 0.0, 0.0, 1.0)", stage);
+        emitLine(
+            outputSocket->getVariable() + " = float4(0.0, 0.0, 0.0, 1.0)",
+            stage);
     }
-    else if (context.getOptions().hwWriteDepthMoments)
-    {
-        emitLine(outputSocket->getVariable() + " = vec4(mx_compute_depth_moments(), 0.0, 1.0)", stage);
+    else if (context.getOptions().hwWriteDepthMoments) {
+        emitLine(
+            outputSocket->getVariable() +
+                " = float4(mx_compute_depth_moments(), 0.0, 1.0)",
+            stage);
     }
-    else if (context.getOptions().hwWriteAlbedoTable)
-    {
-        emitLine(outputSocket->getVariable() + " = vec4(mx_generate_dir_albedo_table(), 1.0)", stage);
+    else if (context.getOptions().hwWriteAlbedoTable) {
+        emitLine(
+            outputSocket->getVariable() +
+                " = float4(mx_generate_dir_albedo_table(), 1.0)",
+            stage);
     }
-    else if (context.getOptions().hwWriteEnvPrefilter)
-    {
-        emitLine(outputSocket->getVariable() + " = vec4(mx_generate_prefilter_env(), 1.0)", stage);
+    else if (context.getOptions().hwWriteEnvPrefilter) {
+        emitLine(
+            outputSocket->getVariable() +
+                " = float4(mx_generate_prefilter_env(), 1.0)",
+            stage);
     }
-    else
-    {
+    else {
         // Add all function calls.
         //
         // Surface shaders need special handling.
-        if (graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE))
-        {
+        if (graph.hasClassification(
+                ShaderNode::Classification::SHADER |
+                ShaderNode::Classification::SURFACE)) {
             // Emit all texturing nodes. These are inputs to any
             // closure/shader nodes and need to be emitted first.
-            emitFunctionCalls(graph, context, stage, ShaderNode::Classification::TEXTURE);
+            emitFunctionCalls(
+                graph, context, stage, ShaderNode::Classification::TEXTURE);
 
             // Emit function calls for "root" closure/shader nodes.
-            // These will internally emit function calls for any dependent closure nodes upstream.
-            for (ShaderGraphOutputSocket* socket : graph.getOutputSockets())
-            {
-                if (socket->getConnection())
-                {
-                    const ShaderNode* upstream = socket->getConnection()->getNode();
+            // These will internally emit function calls for any dependent
+            // closure nodes upstream.
+            for (ShaderGraphOutputSocket* socket : graph.getOutputSockets()) {
+                if (socket->getConnection()) {
+                    const ShaderNode* upstream =
+                        socket->getConnection()->getNode();
                     if (upstream->getParent() == &graph &&
-                        (upstream->hasClassification(ShaderNode::Classification::CLOSURE) ||
-                         upstream->hasClassification(ShaderNode::Classification::SHADER)))
-                    {
+                        (upstream->hasClassification(
+                             ShaderNode::Classification::CLOSURE) ||
+                         upstream->hasClassification(
+                             ShaderNode::Classification::SHADER))) {
                         emitFunctionCall(*upstream, context, stage);
                     }
                 }
             }
         }
-        else
-        {
+        else {
             // No surface shader graph so just generate all
             // function calls in order.
             emitFunctionCalls(graph, context, stage);
@@ -686,55 +838,69 @@ void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
 
         // Emit final output
         const ShaderOutput* outputConnection = outputSocket->getConnection();
-        if (outputConnection)
-        {
+        if (outputConnection) {
             string finalOutput = outputConnection->getVariable();
             const string& channels = outputSocket->getChannels();
-            if (!channels.empty())
-            {
-                finalOutput = _syntax->getSwizzledVariable(finalOutput, outputConnection->getType(), channels, outputSocket->getType());
+            if (!channels.empty()) {
+                finalOutput = _syntax->getSwizzledVariable(
+                    finalOutput,
+                    outputConnection->getType(),
+                    channels,
+                    outputSocket->getType());
             }
 
-            if (graph.hasClassification(ShaderNode::Classification::SURFACE))
-            {
-                if (context.getOptions().hwTransparency)
-                {
-                    emitLine("float outAlpha = clamp(1.0 - dot(" + finalOutput + ".transparency, vec3(0.3333)), 0.0, 1.0)", stage);
-                    emitLine(outputSocket->getVariable() + " = vec4(" + finalOutput + ".color, outAlpha)", stage);
-                    emitLine("if (outAlpha < " + HW::T_ALPHA_THRESHOLD + ")", stage, false);
+            if (graph.hasClassification(ShaderNode::Classification::SURFACE)) {
+                if (context.getOptions().hwTransparency) {
+                    emitLine(
+                        "float outAlpha = clamp(1.0 - dot(" + finalOutput +
+                            ".transparency, vec3(0.3333)), 0.0, 1.0)",
+                        stage);
+                    emitLine(
+                        outputSocket->getVariable() + " = float4(" +
+                            finalOutput + ".color, outAlpha)",
+                        stage);
+                    emitLine(
+                        "if (outAlpha < " + HW::T_ALPHA_THRESHOLD + ")",
+                        stage,
+                        false);
                     emitScopeBegin(stage);
                     emitLine("discard", stage);
                     emitScopeEnd(stage);
                 }
-                else
-                {
-                    emitLine(outputSocket->getVariable() + " = vec4(" + finalOutput + ".color, 1.0)", stage);
+                else {
+                    emitLine(
+                        outputSocket->getVariable() + " = float4(" +
+                            finalOutput + ".color, 1.0)",
+                        stage);
                 }
             }
-            else
-            {
-                if (!outputSocket->getType()->isFloat4())
-                {
+            else {
+                if (!outputSocket->getType()->isFloat4()) {
                     toVec4(outputSocket->getType(), finalOutput);
                 }
-                emitLine(outputSocket->getVariable() + " = " + finalOutput, stage);
+                emitLine(
+                    outputSocket->getVariable() + " = " + finalOutput, stage);
             }
         }
-        else
-        {
-            string outputValue = outputSocket->getValue() ?
-                                 _syntax->getValue(outputSocket->getType(), *outputSocket->getValue()) :
-                                 _syntax->getDefaultValue(outputSocket->getType());
-            if (!outputSocket->getType()->isFloat4())
-            {
+        else {
+            string outputValue =
+                outputSocket->getValue()
+                    ? _syntax->getValue(
+                          outputSocket->getType(), *outputSocket->getValue())
+                    : _syntax->getDefaultValue(outputSocket->getType());
+            if (!outputSocket->getType()->isFloat4()) {
                 string finalOutput = outputSocket->getVariable() + "_tmp";
-                emitLine(_syntax->getTypeName(outputSocket->getType()) + " " + finalOutput + " = " + outputValue, stage);
+                emitLine(
+                    _syntax->getTypeName(outputSocket->getType()) + " " +
+                        finalOutput + " = " + outputValue,
+                    stage);
                 toVec4(outputSocket->getType(), finalOutput);
-                emitLine(outputSocket->getVariable() + " = " + finalOutput, stage);
+                emitLine(
+                    outputSocket->getVariable() + " = " + finalOutput, stage);
             }
-            else
-            {
-                emitLine(outputSocket->getVariable() + " = " + outputValue, stage);
+            else {
+                emitLine(
+                    outputSocket->getVariable() + " = " + outputValue, stage);
             }
         }
     }
@@ -743,28 +909,31 @@ void SlangShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     emitFunctionBodyEnd(graph, context, stage);
 }
 
-void SlangShaderGenerator::emitLightFunctionDefinitions(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
+void SlangShaderGenerator::emitLightFunctionDefinitions(
+    const ShaderGraph& graph,
+    GenContext& context,
+    ShaderStage& stage) const
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
         // Emit Light functions if requested
-        if (requiresLighting(graph) && context.getOptions().hwMaxActiveLightSources > 0)
-        {
+        if (requiresLighting(graph) &&
+            context.getOptions().hwMaxActiveLightSources > 0) {
             // For surface shaders we need light shaders
-            if (graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE))
-            {
+            if (graph.hasClassification(
+                    ShaderNode::Classification::SHADER |
+                    ShaderNode::Classification::SURFACE)) {
                 // Emit functions for all bound light shaders
-                HwLightShadersPtr lightShaders = context.getUserData<HwLightShaders>(HW::USER_DATA_LIGHT_SHADERS);
-                if (lightShaders)
-                {
-                    for (const auto& it : lightShaders->get())
-                    {
+                HwLightShadersPtr lightShaders =
+                    context.getUserData<HwLightShaders>(
+                        HW::USER_DATA_LIGHT_SHADERS);
+                if (lightShaders) {
+                    for (const auto& it : lightShaders->get()) {
                         emitFunctionDefinition(*it.second, context, stage);
                     }
                 }
                 // Emit functions for light sampling
-                for (const auto& it : _lightSamplingNodes)
-                {
+                for (const auto& it : _lightSamplingNodes) {
                     emitFunctionDefinition(*it, context, stage);
                 }
             }
@@ -774,67 +943,67 @@ void SlangShaderGenerator::emitLightFunctionDefinitions(const ShaderGraph& graph
 
 void SlangShaderGenerator::toVec4(const TypeDesc* type, string& variable)
 {
-    if (type->isFloat3())
-    {
-        variable = "vec4(" + variable + ", 1.0)";
+    if (type->isFloat3()) {
+        variable = "float4(" + variable + ", 1.0)";
     }
-    else if (type->isFloat2())
-    {
-        variable = "vec4(" + variable + ", 0.0, 1.0)";
+    else if (type->isFloat2()) {
+        variable = "float4(" + variable + ", 0.0, 1.0)";
     }
-    else if (*type == *Type::FLOAT || *type == *Type::INTEGER)
-    {
-        variable = "vec4(" + variable + ", " + variable + ", " + variable + ", 1.0)";
+    else if (*type == *Type::FLOAT || *type == *Type::INTEGER) {
+        variable =
+            "float4(" + variable + ", " + variable + ", " + variable + ", 1.0)";
     }
-    else if (*type == *Type::BSDF || *type == *Type::EDF)
-    {
-        variable = "vec4(" + variable + ", 1.0)";
+    else if (*type == *Type::BSDF || *type == *Type::EDF) {
+        variable = "float4(" + variable + ", 1.0)";
     }
-    else
-    {
+    else {
         // Can't understand other types. Just return black.
-        variable = "vec4(0.0, 0.0, 0.0, 1.0)";
+        variable = "float4(0.0, 0.0, 0.0, 1.0)";
     }
 }
 
-void SlangShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, const string& qualifier,
-                                                  GenContext&, ShaderStage& stage,
-                                                  bool assignValue) const
+void SlangShaderGenerator::emitVariableDeclaration(
+    const ShaderPort* variable,
+    const string& qualifier,
+    GenContext&,
+    ShaderStage& stage,
+    bool assignValue) const
 {
     // A file texture input needs special handling on SLANG
-    if (*variable->getType() == *Type::FILENAME)
-    {
+    if (*variable->getType() == *Type::FILENAME) {
         // Samplers must always be uniforms
         string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
         emitString(str + "sampler2D " + variable->getVariable(), stage);
     }
-    else
-    {
+    else {
         string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
-        // Varying parameters of type int must be flat qualified on output from vertex stage and
-        // input to pixel stage. The only way to get these is with geompropvalue_integer nodes.
-        if (qualifier.empty() && *variable->getType() == *Type::INTEGER && !assignValue && variable->getName().rfind(HW::T_IN_GEOMPROP, 0) == 0)
-        {
+        // Varying parameters of type int must be flat qualified on output from
+        // vertex stage and input to pixel stage. The only way to get these is
+        // with geompropvalue_integer nodes.
+        if (qualifier.empty() && *variable->getType() == *Type::INTEGER &&
+            !assignValue &&
+            variable->getName().rfind(HW::T_IN_GEOMPROP, 0) == 0) {
             str += SlangSyntax::FLAT_QUALIFIER + " ";
         }
-        str += _syntax->getTypeName(variable->getType()) + " " + variable->getVariable();
+        str += _syntax->getTypeName(variable->getType()) + " " +
+               variable->getVariable();
 
         // If an array we need an array qualifier (suffix) for the variable name
-        if (variable->getType()->isArray() && variable->getValue())
-        {
-            str += _syntax->getArrayVariableSuffix(variable->getType(), *variable->getValue());
+        if (variable->getType()->isArray() && variable->getValue()) {
+            str += _syntax->getArrayVariableSuffix(
+                variable->getType(), *variable->getValue());
         }
 
-        if (!variable->getSemantic().empty())
-        {
+        if (!variable->getSemantic().empty()) {
             str += " : " + variable->getSemantic();
         }
 
-        if (assignValue)
-        {
-            const string valueStr = (variable->getValue() ?
-                                    _syntax->getValue(variable->getType(), *variable->getValue(), true) :
-                                    _syntax->getDefaultValue(variable->getType(), true));
+        if (assignValue) {
+            const string valueStr =
+                (variable->getValue()
+                     ? _syntax->getValue(
+                           variable->getType(), *variable->getValue(), true)
+                     : _syntax->getDefaultValue(variable->getType(), true));
             str += valueStr.empty() ? EMPTY_STRING : " = " + valueStr;
         }
 
@@ -842,11 +1011,12 @@ void SlangShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, c
     }
 }
 
-ShaderNodeImplPtr SlangShaderGenerator::getImplementation(const NodeDef& nodedef, GenContext& context) const
+ShaderNodeImplPtr SlangShaderGenerator::getImplementation(
+    const NodeDef& nodedef,
+    GenContext& context) const
 {
     InterfaceElementPtr implElement = nodedef.getImplementation(getTarget());
-    if (!implElement)
-    {
+    if (!implElement) {
         return nullptr;
     }
 
@@ -854,54 +1024,44 @@ ShaderNodeImplPtr SlangShaderGenerator::getImplementation(const NodeDef& nodedef
 
     // Check if it's created and cached already.
     ShaderNodeImplPtr impl = context.findNodeImplementation(name);
-    if (impl)
-    {
+    if (impl) {
         return impl;
     }
 
     vector<OutputPtr> outputs = nodedef.getActiveOutputs();
-    if (outputs.empty())
-    {
-        throw ExceptionShaderGenError("NodeDef '" + nodedef.getName() + "' has no outputs defined");
+    if (outputs.empty()) {
+        throw ExceptionShaderGenError(
+            "NodeDef '" + nodedef.getName() + "' has no outputs defined");
     }
 
     const TypeDesc* outputType = TypeDesc::get(outputs[0]->getType());
 
-    if (implElement->isA<NodeGraph>())
-    {
+    if (implElement->isA<NodeGraph>()) {
         // Use a compound implementation.
-        if (*outputType == *Type::LIGHTSHADER)
-        {
+        if (*outputType == *Type::LIGHTSHADER) {
             impl = LightCompoundNodeSlang::create();
         }
-        else if (outputType->isClosure())
-        {
+        else if (outputType->isClosure()) {
             impl = ClosureCompoundNode::create();
         }
-        else
-        {
+        else {
             impl = CompoundNode::create();
         }
     }
-    else if (implElement->isA<Implementation>())
-    {
+    else if (implElement->isA<Implementation>()) {
         // Try creating a new in the factory.
         impl = _implFactory.create(name);
-        if (!impl)
-        {
+        if (!impl) {
             // Fall back to source code implementation.
-            if (outputType->isClosure())
-            {
+            if (outputType->isClosure()) {
                 impl = ClosureSourceCodeNode::create();
             }
-            else
-            {
+            else {
                 impl = SourceCodeNode::create();
             }
         }
     }
-    if (!impl)
-    {
+    if (!impl) {
         return nullptr;
     }
 

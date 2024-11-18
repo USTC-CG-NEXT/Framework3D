@@ -18,6 +18,7 @@
 #include <random>
 
 #include "Logger/Logger.h"
+#include "RHI/ShaderFactory/shader.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 #include <iostream>
@@ -243,6 +244,10 @@ class ShaderGeneratorTester {
         const mx::GenOptions& generateOptions,
         const std::string& optionsFilePath);
 
+    void validate_shader_compile(
+        const mx::GenOptions& generateOptions,
+        const std::string& optionsFilePath);
+
     // Allow the tester to alter the document, e.g., by flattening file names.
     virtual void preprocessDocument(mx::DocumentPtr doc){};
 
@@ -269,6 +274,8 @@ class ShaderGeneratorTester {
     // Unit system
     mx::UnitSystemPtr _unitSystem;
     std::string _defaultDistanceUnit;
+
+    ShaderFactory _shaderFactory;
 
     mx::DocumentPtr _dependLib;
 
@@ -1222,7 +1229,335 @@ void ShaderGeneratorTester::validate(
     }
 }
 
-void TestSuiteOptions::print(std::ostream& output) const
+inline void ShaderGeneratorTester::validate_shader_compile(
+    const mx::GenOptions& generateOptions,
+    const std::string& optionsFilePath)
+{
+    // Start logging
+    _logFile.open(_logFilePath);
+
+    // Check for an option file
+    TestSuiteOptions options;
+    if (!options.readOptions(optionsFilePath)) {
+        _logFile << "Cannot read options file: " << optionsFilePath
+                 << ". Skipping test." << std::endl;
+        _logFile.close();
+        return;
+    }
+    // Test has been turned off so just do nothing.
+    if (!runTest(options)) {
+        _logFile << "Target: " << _targetString
+                 << " not set to run. Skipping test." << std::endl;
+        _logFile.close();
+        return;
+    }
+    options.print(_logFile);
+
+    // Add files to override the files in the test suite to be examined.
+    mx::StringSet overrideFiles;
+    for (const auto& filterFile : options.overrideFiles) {
+        overrideFiles.insert(filterFile);
+    }
+
+    // Dependent library setup
+    setupDependentLibraries();
+    addColorManagement();
+    addUnitSystem();
+
+    // Test suite setup
+    addSkipFiles();
+
+    // Generation setup
+    setTestStages();
+
+    // Load in all documents to test
+    mx::StringVec errorLog;
+    for (const auto& testRoot : _testRootPaths) {
+        mx::loadDocuments(
+            testRoot,
+            _searchPath,
+            _skipFiles,
+            overrideFiles,
+            _documents,
+            _documentPaths,
+            nullptr,
+            &errorLog);
+    }
+    ASSERT_TRUE(errorLog.empty());
+    for (const auto& error : errorLog) {
+        _logFile << error << std::endl;
+    }
+
+    // Scan each document for renderable elements and check code generation
+    //
+    // Map to replace "/" in Element path names with "_".
+    mx::StringMap pathMap;
+    pathMap["/"] = "_";
+
+    // Add nodedefs to skip when testing
+    addSkipNodeDefs();
+
+    // Create our context
+    mx::GenContext context(_shaderGenerator);
+    context.getOptions() = generateOptions;
+    context.registerSourceCodeSearchPath(_searchPath);
+    auto searchPath = mx::getDefaultDataSearchPath();
+    searchPath.append(mx::FileSearchPath("usd/hd_USTC_CG/resources"));
+    context.registerSourceCodeSearchPath(searchPath);
+
+    // Register shader metadata defined in the libraries.
+    _shaderGenerator->registerShaderMetadata(_dependLib, context);
+
+    // Define working unit if required
+    if (context.getOptions().targetDistanceUnit.empty()) {
+        context.getOptions().targetDistanceUnit = _defaultDistanceUnit;
+    }
+
+    // Check if a binding context has been set.
+    bool bindingContextUsed =
+        _userData.count(mx::HW::USER_DATA_BINDING_CONTEXT) > 0;
+
+    // Map to remove invalid names for files when writing to disk
+    mx::StringMap filenameRemap;
+    filenameRemap[":"] = "_";
+
+    size_t documentIndex = 0;
+    for (const auto& doc : _documents) {
+        // Apply optional preprocessing.
+        preprocessDocument(doc);
+        _shaderGenerator->registerShaderMetadata(doc, context);
+
+        // For each new file clear the implementation cache.
+        // Since the new file might contain implementations with names
+        // colliding with implementations in previous test cases.
+        context.clearNodeImplementations();
+
+        // Set user data
+        context.clearUserData();
+        for (auto it : _userData) {
+            context.pushUserData(it.first, it.second);
+        }
+
+        // Add in dependent libraries
+        bool importedLibrary = false;
+        try {
+            doc->importLibrary(_dependLib);
+            importedLibrary = true;
+        }
+        catch (mx::Exception& e) {
+            _logFile << "Failed to import library into file: "
+                     << _documentPaths[documentIndex] << ". Error: " << e.what()
+                     << std::endl;
+            ASSERT_TRUE(importedLibrary);
+            continue;
+        }
+
+        // Find and register lights
+        findLights(doc, _lights);
+        registerLights(doc, _lights, context);
+
+        // Find elements to render in the document
+        std::vector<mx::TypedElementPtr> elements;
+        try {
+            elements = mx::findRenderableElements(doc);
+        }
+        catch (mx::Exception& e) {
+            _logFile << "Renderables search errors: " << e.what() << std::endl;
+        }
+
+        if (!elements.empty()) {
+            _logFile << "MTLX Filename :" << _documentPaths[documentIndex]
+                     << ". Elements tested: " << std::to_string(elements.size())
+                     << std::endl;
+            documentIndex++;
+        }
+
+        // Perform document validation
+        std::string message;
+        bool docValid = doc->validate(&message);
+        if (!docValid) {
+            std::string msg =
+                "Document is invalid: [" + doc->getSourceUri() + "] " + message;
+            _logFile << msg;
+            log::warning(msg.c_str());
+        }
+        ASSERT_TRUE(docValid);
+
+        // Traverse the renderable elements and run the validation step
+        int missingNodeDefs = 0;
+        int missingImplementations = 0;
+        int codeGenerationFailures = 0;
+        for (const auto& element : elements) {
+            const std::string namePath(element->getNamePath());
+            mx::OutputPtr output = element->asA<mx::Output>();
+            mx::NodePtr outputNode = element->asA<mx::Node>();
+            if (output) {
+                outputNode = output->getConnectedNode();
+            }
+
+            mx::NodeDefPtr nodeDef = outputNode->getNodeDef();
+            if (nodeDef) {
+                // Allow to skip nodedefs to test if specified
+                const std::string nodeDefName = nodeDef->getName();
+                if (_skipNodeDefs.count(nodeDefName)) {
+                    _logFile << ">> Skipped testing nodedef: " << nodeDefName
+                             << std::endl;
+                    continue;
+                }
+
+                mx::string elementName =
+                    mx::replaceSubstrings(namePath, pathMap);
+                elementName = mx::createValidName(elementName);
+                elementName = mx::replaceSubstrings(elementName, filenameRemap);
+
+                mx::InterfaceElementPtr impl =
+                    nodeDef->getImplementation(_shaderGenerator->getTarget());
+                if (impl) {
+                    _logFile << "------------ Run validation with element: "
+                             << namePath << "------------" << std::endl;
+
+                    mx::StringVec sourceCode;
+                    const bool generatedCode = generateCode(
+                        context,
+                        elementName,
+                        element,
+                        _logFile,
+                        _testStages,
+                        sourceCode);
+
+                    ShaderReflectionInfo reflection_info;
+                    std::string error_string;
+                    for (int i = 0; i < sourceCode.size(); ++i) {
+                        auto shader = _shaderFactory.compile_shader(
+                            "main",
+                            i == 0 ? nvrhi::ShaderType::Vertex
+                                   : nvrhi::ShaderType::Pixel,
+                            {},
+                            reflection_info,
+                            error_string,
+                            {},
+                            sourceCode[i]);
+
+                        if (!error_string.empty()) {
+                            assert(false);
+                        }
+                    }
+
+                    // Record implementations tested
+                    if (options.checkImplCount) {
+                        context.getNodeImplementationNames(
+                            _usedImplementations);
+                        mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
+                        mx::InterfaceElementPtr nodeGraphImpl =
+                            nodeGraph ? nodeGraph->getImplementation()
+                                      : nullptr;
+                        _usedImplementations.insert(
+                            nodeGraphImpl ? nodeGraphImpl->getName()
+                                          : impl->getName());
+                    }
+
+                    if (!generatedCode) {
+                        _logFile << ">> Failed to generate code for nodedef: "
+                                 << nodeDefName << std::endl;
+                        codeGenerationFailures++;
+                    }
+                    else if (_writeShadersToDisk && sourceCode.size()) {
+                        const std::string elementNameSuffix(
+                            bindingContextUsed ? LAYOUT_SUFFIX
+                                               : mx::EMPTY_STRING);
+
+                        mx::FilePath path = doc->getSourceUri();
+
+                        if (!path.isEmpty()) {
+                            std::string testFileName = path[path.size() - 1];
+                            size_t pos = testFileName.rfind('.');
+                            if (pos != std::string::npos)
+                                testFileName = testFileName.substr(0, pos);
+
+                            path = path.getParentPath() / testFileName;
+                            if (!path.exists()) {
+                                path.createDirectory();
+                            }
+                        }
+                        else {
+                            mx::FileSearchPath searchPath =
+                                mx::getDefaultDataSearchPath();
+                            path = searchPath.isEmpty() ? mx::FilePath()
+                                                        : searchPath[0];
+                        }
+
+                        path = mx::FilePath("generated_slang_shader");
+                        if (!path.exists()) {
+                            path.createDirectory();
+                        }
+
+                        std::vector<mx::FilePath> sourceCodePaths;
+                        if (sourceCode.size() > 1) {
+                            for (size_t i = 0; i < sourceCode.size(); ++i) {
+                                const mx::FilePath filename =
+                                    path / (elementName + elementNameSuffix +
+                                            "." + _testStages[i] + "." +
+                                            getFileExtensionForTarget(
+                                                _shaderGenerator->getTarget()));
+                                sourceCodePaths.push_back(filename);
+                                std::ofstream file(filename.asString());
+                                _logFile << "Write source code: "
+                                         << filename.asString() << std::endl;
+                                file << sourceCode[i];
+                                file.close();
+                            }
+                        }
+                        else {
+                            path = path / (elementName + "." +
+                                           _shaderGenerator->getTarget() + "." +
+                                           getFileExtensionForTarget(
+                                               _shaderGenerator->getTarget()));
+                            sourceCodePaths.push_back(path);
+                            std::ofstream file(path.asString());
+                            _logFile << "Write source code: " << path.asString()
+                                     << std::endl;
+                            std::cout
+                                << "Write source code: " << path.asString()
+                                << std::endl;
+                            file << sourceCode[0];
+                            file.close();
+                        }
+
+                        // Run compile test
+                        compileSource(sourceCodePaths);
+                    }
+                }
+                else {
+                    _logFile << ">> Failed to find implementation for nodedef: "
+                             << nodeDefName << std::endl;
+                    missingImplementations++;
+                }
+            }
+            else {
+                _logFile << ">> Failed to find nodedef for: " << namePath
+                         << std::endl;
+                missingNodeDefs++;
+            }
+        }
+
+        ASSERT_TRUE(missingNodeDefs == 0);
+        ASSERT_TRUE(missingImplementations == 0);
+        ASSERT_TRUE(codeGenerationFailures == 0);
+    }
+
+    if (options.checkImplCount) {
+        _logFile << "---------------------------------------------------"
+                 << std::endl;
+        checkImplementationUsage(_usedImplementations, context, _logFile);
+    }
+
+    // End logging
+    if (_logFile.is_open()) {
+        _logFile.close();
+    }
+}
+
+inline void TestSuiteOptions::print(std::ostream& output) const
 {
     output << "Render Test Options:" << std::endl;
     output << "\tOverride Files: { ";
@@ -1268,7 +1603,7 @@ void TestSuiteOptions::print(std::ostream& output) const
            << std::endl;
 }
 
-bool TestSuiteOptions::readOptions(const std::string& optionFile)
+inline bool TestSuiteOptions::readOptions(const std::string& optionFile)
 {
     // These strings should make the input names defined in the
     // GenShaderUtil::TestSuiteOptions nodedef in test suite file _options.mtlx

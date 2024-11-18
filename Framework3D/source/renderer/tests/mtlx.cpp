@@ -215,10 +215,11 @@ static void generateSlangCode()
     const mx::GenOptions genOptions;
     mx::FilePath optionsFilePath =
         searchPath.find("usd/hd_USTC_CG/resources/test_options.mtlx");
-    tester.validate(genOptions, optionsFilePath);
+    tester.validate_shader_compile(genOptions, optionsFilePath);
 }
 
-TEST(GenShader, SLANG_ShaderGeneration)
+//TEST(GenShader, SLANG_ShaderGeneration)
+int main()
 {
     // Generate with standard SLANG i.e version 400
     generateSlangCode();
