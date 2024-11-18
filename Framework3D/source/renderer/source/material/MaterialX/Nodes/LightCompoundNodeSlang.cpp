@@ -97,11 +97,11 @@ void LightCompoundNodeSlang::emitFunctionDefinition(ClosureContext* cct, GenCont
         // Use the first output for classifying node type for the closure context.
         // This is only relevent for closures, and they only have a single output.
         const TypeDesc* nodeType = _rootGraph->getOutputSocket()->getType();
-        shadergen.emitLine("void " + _functionName + cct->getSuffix(nodeType) + "(LightData light, vec3 position, out lightshader result)", stage, false);
+        shadergen.emitLine("void " + _functionName + cct->getSuffix(nodeType) + "(LightData light, float3 position, out lightshader result)", stage, false);
     }
     else
     {
-        shadergen.emitLine("void " + _functionName + "(LightData light, vec3 position, out lightshader result)", stage, false);
+        shadergen.emitLine("void " + _functionName + "(LightData light, float3 position, out lightshader result)", stage, false);
     }
 
     shadergen.emitFunctionBodyBegin(*_rootGraph, context, stage);

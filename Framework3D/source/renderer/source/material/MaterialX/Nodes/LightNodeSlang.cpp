@@ -13,7 +13,7 @@ namespace
 {
 
 const string LIGHT_DIRECTION_CALCULATION =
-    "vec3 L = light.position - position;\n"
+    "float3 L = light.position - position;\n"
     "float distance = length(L);\n"
     "L /= distance;\n"
     "result.direction = L;\n";
@@ -89,7 +89,7 @@ void LightNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext& contex
         }
         else
         {
-            shadergen.emitLine("result.intensity = vec3(0.0)", stage);
+            shadergen.emitLine("result.intensity = float3(0.0)", stage);
         }
     }
 }

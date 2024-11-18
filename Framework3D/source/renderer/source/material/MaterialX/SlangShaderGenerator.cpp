@@ -853,7 +853,7 @@ void SlangShaderGenerator::emitPixelStage(
                 if (context.getOptions().hwTransparency) {
                     emitLine(
                         "float outAlpha = clamp(1.0 - dot(" + finalOutput +
-                            ".transparency, vec3(0.3333)), 0.0, 1.0)",
+                            ".transparency, float3(0.3333)), 0.0, 1.0)",
                         stage);
                     emitLine(
                         outputSocket->getVariable() + " = float4(" +
