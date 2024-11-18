@@ -35,9 +35,9 @@ void TangentNodeSlang::emitFunctionCall(
             if (!tangent->isEmitted()) {
                 tangent->setEmitted();
                 shadergen.emitLine(
-                    prefix + tangent->getVariable() + " = normalize((" +
-                        HW::T_WORLD_MATRIX + " * vec4(" + HW::T_IN_TANGENT +
-                        ", 0.0)).xyz)",
+                    prefix + tangent->getVariable() + " = normalize((mul(" +
+                        HW::T_WORLD_MATRIX + ", float4(" + HW::T_IN_TANGENT +
+                        ", 0.0))).xyz)",
                     stage);
             }
         }

@@ -35,7 +35,7 @@
   <implementation name="IM_layer_bsdf_genslang" nodedef="ND_layer_bsdf" target="genslang" />
   <implementation name="IM_layer_vdf_genslang" nodedef="ND_layer_vdf" target="genslang" />
 
-  <!-- <mix> -->
+  <!-- <lerp> -->
   <implementation name="IM_mix_bsdf_genslang" nodedef="ND_mix_bsdf" target="genslang" />
   <implementation name="IM_mix_edf_genslang" nodedef="ND_mix_edf" target="genslang" />
 

@@ -36,12 +36,12 @@
 #include "Nodes/LightNodeSlang.h"
 #include "Nodes/LightSamplerNodeSlang.h"
 #include "Nodes/LightShaderNodeSlang.h"
+#include "Nodes/NormalNodeSlang.h"
 #include "Nodes/NumLightsNodeSlang.h"
 #include "Nodes/SurfaceNodeSlang.h"
 #include "Nodes/TangentNodeSlang.h"
 #include "Nodes/UnlitSurfaceNodeSlang.h"
 #include "SlangSyntax.h"
-#include "Nodes/NormalNodeSlang.h"
 
 MATERIALX_NAMESPACE_BEGIN
 const string SlangShaderGenerator::TARGET = "genslang";
@@ -301,7 +301,7 @@ SlangShaderGenerator::SlangShaderGenerator()
     registerImplementation(
         "IM_layer_vdf_" + SlangShaderGenerator::TARGET,
         ClosureLayerNode::create);
-    // <!-- <mix> -->
+    // <!-- <lerp> -->
     registerImplementation(
         "IM_mix_bsdf_" + SlangShaderGenerator::TARGET, ClosureMixNode::create);
     registerImplementation(
@@ -572,7 +572,7 @@ void SlangShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage)
     {
         const VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
         if (!vertexData.empty()) {
-            emitLine("in " + vertexData.getName(), stage, false);
+            emitLine("struct " + vertexData.getName(), stage, false);
             emitScopeBegin(stage);
             emitVariableDeclarations(
                 vertexData,
@@ -582,8 +582,7 @@ void SlangShaderGenerator::emitInputs(GenContext& context, ShaderStage& stage)
                 stage,
                 false);
             emitScopeEnd(stage, false, false);
-            emitString(
-                " " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
+            emitString(Syntax::SEMICOLON, stage);
             emitLineBreak(stage);
             emitLineBreak(stage);
         }
@@ -615,16 +614,16 @@ void SlangShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage)
 
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
-        emitComment("Pixel shader outputs", stage);
+        // emitComment("Pixel shader outputs", stage);
         const VariableBlock& outputs = stage.getOutputBlock(HW::PIXEL_OUTPUTS);
-        emitVariableDeclarations(
-            outputs,
-            _syntax->getOutputQualifier(),
-            Syntax::SEMICOLON,
-            context,
-            stage,
-            false);
-        emitLineBreak(stage);
+        // emitVariableDeclarations(
+        //     outputs,
+        //     _syntax->getOutputQualifier(),
+        //     Syntax::SEMICOLON,
+        //     context,
+        //     stage,
+        //     false);
+        // emitLineBreak(stage);
     }
 }
 
@@ -777,7 +776,25 @@ void SlangShaderGenerator::emitPixelStage(
 
     // Add main function
     setFunctionName("main", stage);
-    emitLine("void main()", stage, false);
+
+    const VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+
+    emitLine("void main(", stage, false);
+
+    const VariableBlock& outputs = stage.getOutputBlock(HW::PIXEL_OUTPUTS);
+    emitVariableDeclarations(
+        outputs,
+        _syntax->getOutputQualifier(),
+        Syntax::COMMA,
+        context,
+        stage,
+        false);
+
+    emitLine(
+        "in " + vertexData.getName() + " " + vertexData.getInstance() + ")",
+        stage,
+        false);
+
     emitFunctionBodyBegin(graph, context, stage);
 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE) &&
@@ -979,7 +996,7 @@ void SlangShaderGenerator::emitVariableDeclaration(
     if (*variable->getType() == *Type::FILENAME) {
         // Samplers must always be uniforms
         string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
-        emitString(str + "sampler2D " + variable->getVariable(), stage);
+        emitString(str + "Sampler2D " + variable->getVariable(), stage);
     }
     else {
         string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";

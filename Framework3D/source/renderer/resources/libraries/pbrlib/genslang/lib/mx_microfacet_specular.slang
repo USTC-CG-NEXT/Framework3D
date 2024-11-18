@@ -590,7 +590,7 @@ float2 mx_latlong_projection(float3 dir)
     return float2(longitude, latitude);
 }
 
-float3 mx_latlong_map_lookup(float3 dir, float4x4 transform, float lod, sampler2D envSampler)
+float3 mx_latlong_map_lookup(float3 dir, float4x4 transform, float lod, Sampler2D envSampler)
 {
     float3 envDir = normalize((transform * float4(dir,0.0)).xyz);
     float2 uv = mx_latlong_projection(envDir);

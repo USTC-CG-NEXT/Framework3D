@@ -41,7 +41,7 @@ void UnlitSurfaceNodeSlang::emitFunctionCall(const ShaderNode& node, GenContext&
         const ShaderInput* opacity = node.getInput("opacity");
         const string surfaceOpacity = shadergen.getUpstreamResult(opacity, context);
         shadergen.emitLine(outColor + " *= " + surfaceOpacity, stage);
-        shadergen.emitLine(outTransparency + " = mix(float3(1.0), " + outTransparency + ", " + surfaceOpacity + ")", stage);
+        shadergen.emitLine(outTransparency + " = lerp(float3(1.0), " + outTransparency + ", " + surfaceOpacity + ")", stage);
     }
 }
 

@@ -16,7 +16,6 @@ SlangResourceBindingContext::SlangResourceBindingContext(
     : _hwInitUniformBindLocation(uniformBindingLocation),
       _hwInitSamplerBindLocation(samplerBindingLocation)
 {
-    _requiredExtensions.insert("GL_ARB_shading_language_420pack");
 }
 
 void SlangResourceBindingContext::initialize()
@@ -97,13 +96,13 @@ void SlangResourceBindingContext::emitResourceBindings(
     // layout bindings
     for (auto uniform : uniforms.getVariableOrder()) {
         if (*uniform->getType() == *Type::FILENAME) {
-            generator.emitString(
-                "layout (binding=" +
-                    std::to_string(
-                        _separateBindingLocation ? _hwUniformBindLocation++
-                                                 : _hwSamplerBindLocation++) +
-                    ") " + syntax.getUniformQualifier() + " ",
-                stage);
+            //generator.emitString(
+            //    "layout (binding=" +
+            //        std::to_string(
+            //            _separateBindingLocation ? _hwUniformBindLocation++
+            //                                     : _hwSamplerBindLocation++) +
+            //        ") " + syntax.getUniformQualifier() + " ",
+            //    stage);
             generator.emitVariableDeclaration(
                 uniform, EMPTY_STRING, context, stage, false);
             generator.emitLineEnd(stage, true);

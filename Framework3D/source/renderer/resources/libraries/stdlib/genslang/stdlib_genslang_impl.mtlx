@@ -572,17 +572,17 @@
   <implementation name="IM_outside_color4_genslang" nodedef="ND_outside_color4" target="genslang" sourcecode="{{in}} * (1.0 - {{mask}})" />
 
   <!-- <mix> -->
-  <implementation name="IM_mix_float_genslang" nodedef="ND_mix_float" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_color3_genslang" nodedef="ND_mix_color3" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_color3_color3_genslang" nodedef="ND_mix_color3_color3" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_color4_genslang" nodedef="ND_mix_color4" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_color4_color4_genslang" nodedef="ND_mix_color4_color4" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_vector2_genslang" nodedef="ND_mix_vector2" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_vector2_vector2_genslang" nodedef="ND_mix_vector2_vector2" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_vector3_genslang" nodedef="ND_mix_vector3" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_vector3_vector3_genslang" nodedef="ND_mix_vector3_vector3" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_vector4_genslang" nodedef="ND_mix_vector4" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
-  <implementation name="IM_mix_vector4_vector4_genslang" nodedef="ND_mix_vector4_vector4" target="genslang" sourcecode="mix({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_float_genslang" nodedef="ND_mix_float" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_color3_genslang" nodedef="ND_mix_color3" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_color3_color3_genslang" nodedef="ND_mix_color3_color3" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_color4_genslang" nodedef="ND_mix_color4" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_color4_color4_genslang" nodedef="ND_mix_color4_color4" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_vector2_genslang" nodedef="ND_mix_vector2" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_vector2_vector2_genslang" nodedef="ND_mix_vector2_vector2" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_vector3_genslang" nodedef="ND_mix_vector3" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_vector3_vector3_genslang" nodedef="ND_mix_vector3_vector3" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_vector4_genslang" nodedef="ND_mix_vector4" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
+  <implementation name="IM_mix_vector4_vector4_genslang" nodedef="ND_mix_vector4_vector4" target="genslang" sourcecode="lerp({{bg}}, {{fg}}, {{mix}})" />
   <implementation name="IM_mix_surfaceshader_genslang" nodedef="ND_mix_surfaceshader" function="mx_mix_surfaceshader" file="mx_mix_surfaceshader.slang" target="genslang" />
 
   <!-- ======================================================================== -->

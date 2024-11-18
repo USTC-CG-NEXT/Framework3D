@@ -28,25 +28,25 @@ float mx_fresnel_schlick(float cosTheta, float F0, float F90)
 {
     float x = clamp(1.0 - cosTheta, 0.0, 1.0);
     float x5 = mx_pow5(x);
-    return mix(F0, F90, x5);
+    return lerp(F0, F90, x5);
 }
 float3 mx_fresnel_schlick(float cosTheta, float3 F0, float3 F90)
 {
     float x = clamp(1.0 - cosTheta, 0.0, 1.0);
     float x5 = mx_pow5(x);
-    return mix(F0, F90, x5);
+    return lerp(F0, F90, x5);
 }
 
 // Generalized Schlick Fresnel with a variable exponent
 float mx_fresnel_schlick(float cosTheta, float F0, float F90, float exponent)
 {
     float x = clamp(1.0 - cosTheta, 0.0, 1.0);
-    return mix(F0, F90, pow(x, exponent));
+    return lerp(F0, F90, pow(x, exponent));
 }
 float3 mx_fresnel_schlick(float cosTheta, float3 F0, float3 F90, float exponent)
 {
     float x = clamp(1.0 - cosTheta, 0.0, 1.0);
-    return mix(F0, F90, pow(x, exponent));
+    return lerp(F0, F90, pow(x, exponent));
 }
 
 // Enforce that the given normal is forward-facing from the specified view direction.

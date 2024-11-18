@@ -37,7 +37,7 @@ float mx_burley_diffuse_dir_albedo(float NdotV, float roughness)
     float x = NdotV;
     float fit0 = 0.97619 - 0.488095 * mx_pow5(1.0 - x);
     float fit1 = 1.55754 + (-2.02221 + (2.56283 - 1.06244 * x) * x) * x;
-    return mix(fit0, fit1, roughness);
+    return lerp(fit0, fit1, roughness);
 }
 
 // Evaluate the Burley diffusion profile for the given distance and diffusion shape.

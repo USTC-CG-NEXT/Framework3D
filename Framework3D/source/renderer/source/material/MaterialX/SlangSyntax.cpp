@@ -187,7 +187,7 @@ SlangSyntax::SlangSyntax()
                             "highp",
                             "precision",
                             "sampler1D",
-                            "sampler2D",
+                            "Sampler2D",
                             "sampler3D",
                             "samplerCube",
                             "sampler1DShadow",
@@ -293,7 +293,7 @@ SlangSyntax::SlangSyntax()
                             "namespace",
                             "using",
                             "row_major",
-                            "mix",
+                            "lerp",
                             "sampler" });
 
     // Register restricted tokens in SLANG
@@ -390,7 +390,7 @@ SlangSyntax::SlangSyntax()
     registerTypeSyntax(
         Type::FILENAME,
         std::make_shared<ScalarTypeSyntax>(
-            "sampler2D", EMPTY_STRING, EMPTY_STRING));
+            "Sampler2D", EMPTY_STRING, EMPTY_STRING));
 
     registerTypeSyntax(
         Type::BSDF,
