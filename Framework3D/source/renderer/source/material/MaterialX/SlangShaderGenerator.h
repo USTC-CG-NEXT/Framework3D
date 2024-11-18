@@ -62,6 +62,18 @@ class HD_USTC_CG_API SlangShaderGenerator : public HwShaderGenerator {
         const NodeDef& nodedef,
         GenContext& context) const override;
 
+    // For slang, use import instead
+    void emitLibraryInclude(
+        const FilePath& filename,
+        GenContext& context,
+        ShaderStage& stage) const override;
+
+    void emitBlock(
+        const string& str,
+        const FilePath& sourceFilename,
+        GenContext& context,
+        ShaderStage& stage) const override;
+
     /// Determine the prefix of vertex data variables.
     string getVertexDataPrefix(const VariableBlock& vertexData) const override;
 

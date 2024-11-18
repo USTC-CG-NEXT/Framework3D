@@ -27,6 +27,9 @@
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
 
+#include <format>
+
+#include "Logger/Logger.h"
 #include "Nodes/BlurNodeSlang.h"
 #include "Nodes/GeomColorNodeSlang.h"
 #include "Nodes/GeomPropValueNodeSlang.h"
@@ -41,7 +44,6 @@
 #include "SlangSyntax.h"
 
 MATERIALX_NAMESPACE_BEGIN
-
 const string SlangShaderGenerator::TARGET = "genslang";
 const string SlangShaderGenerator::VERSION = "400";
 
@@ -350,6 +352,7 @@ ShaderPtr SlangShaderGenerator::generate(
         resourceBindingCtx->initialize();
     }
 
+    // Emit code for vertex shader stage
     // Emit code for vertex shader stage
     ShaderStage& vs = shader->getStage(Stage::VERTEX);
     emitVertexStage(shader->getGraph(), context, vs);
@@ -1071,6 +1074,52 @@ ShaderNodeImplPtr SlangShaderGenerator::getImplementation(
     context.addNodeImplementation(name, impl);
 
     return impl;
+}
+
+void SlangShaderGenerator::emitLibraryInclude(
+    const FilePath& filename,
+    GenContext& context,
+    ShaderStage& stage) const
+{
+    auto name = filename;
+    name.removeExtension();
+    auto file_path = name.asString(FilePath::FormatPosix);
+
+    std::ranges::replace(file_path, '/', '.');
+
+    auto line = std::format("import {0}", file_path);
+    emitLine(line, stage);
+}
+
+void SlangShaderGenerator::emitBlock(
+    const string& str,
+    const FilePath& sourceFilename,
+    GenContext& context,
+    ShaderStage& stage) const
+{
+    const string& INCLUDE = _syntax->getIncludeStatement();
+    const string& QUOTE = _syntax->getStringQuote();
+
+    // Add each line in the block seperately to get correct indentation.
+    StringStream stream(str);
+    for (string line; std::getline(stream, line);) {
+        size_t pos = line.find(INCLUDE);
+        if (pos != string::npos) {
+            size_t startQuote = line.find_first_of(QUOTE);
+            size_t endQuote = line.find_last_of(QUOTE);
+            if (startQuote != string::npos && endQuote != string::npos &&
+                endQuote > startQuote) {
+                size_t length = (endQuote - startQuote) - 1;
+                if (length) {
+                    const string filename = line.substr(startQuote + 1, length);
+                    emitLibraryInclude(filename, context, stage);
+                }
+            }
+        }
+        else {
+            emitLine(line, stage, false);
+        }
+    }
 }
 
 const string& SlangImplementation::getTarget() const
