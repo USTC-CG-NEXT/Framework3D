@@ -1,8 +1,10 @@
 #ifndef MX_MICROFACET
 #define MX_MICROFACET
 
-#define M_PI 3.1415926535897932
-#define M_PI_INV (1.0 / M_PI)
+import stdlib.genslang.lib.mx_math;
+
+static const float M_PI = 3.1415926535897932;
+static const float M_PI_INV = (1.0 / M_PI);
 
 float mx_pow5(float x)
 {
@@ -49,7 +51,8 @@ float3 mx_fresnel_schlick(float cosTheta, float3 F0, float3 F90, float exponent)
     return lerp(F0, F90, pow(x, exponent));
 }
 
-// Enforce that the given normal is forward-facing from the specified view direction.
+// Enforce that the given normal is forward-facing from the specified view
+// direction.
 float3 mx_forward_facing_normal(float3 N, float3 V)
 {
     return (dot(N, V) < 0.0) ? -N : N;
@@ -65,7 +68,8 @@ float mx_golden_ratio_sequence(int i)
 // https://people.irisa.fr/Ricardo.Marques/articles/2013/SF_CGF.pdf
 float2 mx_spherical_fibonacci(int i, int numSamples)
 {
-    return float2((float(i) + 0.5) / float(numSamples), mx_golden_ratio_sequence(i));
+    return float2(
+        (float(i) + 0.5) / float(numSamples), mx_golden_ratio_sequence(i));
 }
 
 // Generate a uniform-weighted sample in the unit hemisphere.
@@ -74,9 +78,7 @@ float3 mx_uniform_sample_hemisphere(float2 Xi)
     float phi = 2.0 * M_PI * Xi.x;
     float cosTheta = 1.0 - Xi.y;
     float sinTheta = sqrt(1.0 - mx_square(cosTheta));
-    return float3(cos(phi) * sinTheta,
-                sin(phi) * sinTheta,
-                cosTheta);
+    return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 }
 
-#endif // MX_MICROFACET
+#endif  // MX_MICROFACET

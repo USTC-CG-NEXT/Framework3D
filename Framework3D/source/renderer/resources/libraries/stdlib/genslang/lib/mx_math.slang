@@ -1,4 +1,4 @@
-#define M_FLOAT_EPS 1e-8
+static const float M_FLOAT_EPS = 1e-8;
 
 float mx_square(float x)
 {
