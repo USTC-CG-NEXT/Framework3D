@@ -11,7 +11,7 @@ const int FRESNEL_MODEL_AIRY = 3;
 const int FRESNEL_MODEL_SCHLICK_AIRY = 4;
 
 // XYZ to CIE 1931 RGB color space (using neutral E illuminant)
-const mat3 XYZ_TO_RGB = mat3(2.3706743, -0.5138850, 0.0052982, -0.9000405, 1.4253036, -0.0146949, -0.4706338, 0.0885814, 1.0093968);
+const float3x3 XYZ_TO_RGB = float3x3(2.3706743, -0.5138850, 0.0052982, -0.9000405, 1.4253036, -0.0146949, -0.4706338, 0.0885814, 1.0093968);
 
 // Parameters for Fresnel calculations.
 struct FresnelData
@@ -590,7 +590,7 @@ float2 mx_latlong_projection(float3 dir)
     return float2(longitude, latitude);
 }
 
-float3 mx_latlong_map_lookup(float3 dir, mat4 transform, float lod, sampler2D envSampler)
+float3 mx_latlong_map_lookup(float3 dir, float4x4 transform, float lod, sampler2D envSampler)
 {
     float3 envDir = normalize((transform * float4(dir,0.0)).xyz);
     float2 uv = mx_latlong_projection(envDir);

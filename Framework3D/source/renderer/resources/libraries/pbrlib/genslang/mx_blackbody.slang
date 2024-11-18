@@ -1,5 +1,5 @@
 /// XYZ to Rec.709 RGB colorspace conversion
-const mat3 XYZ_to_RGB = mat3( 3.2406, -0.9689, 0.0557,
+const float3x3 XYZ_to_RGB = float3x3( 3.2406, -0.9689, 0.0557,
                              -1.5372, 1.8758, -0.2040,
                              -0.4986, 0.0415, 1.0570);
 

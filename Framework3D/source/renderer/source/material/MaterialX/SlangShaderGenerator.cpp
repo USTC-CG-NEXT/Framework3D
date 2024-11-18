@@ -13,12 +13,9 @@
 #include <MaterialXGenShader/Nodes/ClosureSourceCodeNode.h>
 #include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/ConvertNode.h>
-#include <MaterialXGenShader/Nodes/HwBitangentNode.h>
 #include <MaterialXGenShader/Nodes/HwFrameNode.h>
 #include <MaterialXGenShader/Nodes/HwImageNode.h>
-#include <MaterialXGenShader/Nodes/HwNormalNode.h>
 #include <MaterialXGenShader/Nodes/HwPositionNode.h>
-#include <MaterialXGenShader/Nodes/HwTangentNode.h>
 #include <MaterialXGenShader/Nodes/HwTexCoordNode.h>
 #include <MaterialXGenShader/Nodes/HwTimeNode.h>
 #include <MaterialXGenShader/Nodes/HwTransformNode.h>
@@ -30,6 +27,7 @@
 #include <format>
 
 #include "Logger/Logger.h"
+#include "Nodes/BitangentNodeSlang.h"
 #include "Nodes/BlurNodeSlang.h"
 #include "Nodes/GeomColorNodeSlang.h"
 #include "Nodes/GeomPropValueNodeSlang.h"
@@ -40,8 +38,10 @@
 #include "Nodes/LightShaderNodeSlang.h"
 #include "Nodes/NumLightsNodeSlang.h"
 #include "Nodes/SurfaceNodeSlang.h"
+#include "Nodes/TangentNodeSlang.h"
 #include "Nodes/UnlitSurfaceNodeSlang.h"
 #include "SlangSyntax.h"
+#include "Nodes/NormalNodeSlang.h"
 
 MATERIALX_NAMESPACE_BEGIN
 const string SlangShaderGenerator::TARGET = "genslang";
@@ -173,15 +173,15 @@ SlangShaderGenerator::SlangShaderGenerator()
     // <!-- <normal> -->
     registerImplementation(
         "IM_normal_vector3_" + SlangShaderGenerator::TARGET,
-        HwNormalNode::create);
+        NormalNodeSlang::create);
     // <!-- <tangent> -->
     registerImplementation(
         "IM_tangent_vector3_" + SlangShaderGenerator::TARGET,
-        HwTangentNode::create);
+        TangentNodeSlang::create);
     // <!-- <bitangent> -->
     registerImplementation(
         "IM_bitangent_vector3_" + SlangShaderGenerator::TARGET,
-        HwBitangentNode::create);
+        BitangentNodeSlang::create);
     // <!-- <texcoord> -->
     registerImplementation(
         "IM_texcoord_vector2_" + SlangShaderGenerator::TARGET,
@@ -393,17 +393,22 @@ void SlangShaderGenerator::emitVertexStage(
     emitOutputs(context, stage);
 
     emitFunctionDefinitions(graph, context, stage);
+    const VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
 
     // Add main function
     setFunctionName("main", stage);
-    emitLine("void main()", stage, false);
+    emitLine(
+        "void main(out float4 sv_pos : SV_POSITION, out " +
+            vertexData.getName() + " " + vertexData.getInstance() + ")",
+        stage,
+        false);
     emitFunctionBodyBegin(graph, context, stage);
     emitLine(
-        "float4 hPositionWorld = " + HW::T_WORLD_MATRIX + " * float4(" +
-            HW::T_IN_POSITION + ", 1.0)",
+        "float4 hPositionWorld = mul(" + HW::T_WORLD_MATRIX + ", float4(" +
+            HW::T_IN_POSITION + ", 1.0))",
         stage);
     emitLine(
-        "gl_Position = " + HW::T_VIEW_PROJECTION_MATRIX + " * hPositionWorld",
+        "sv_pos = mul(" + HW::T_VIEW_PROJECTION_MATRIX + ", hPositionWorld)",
         stage);
 
     // Emit all function calls in order
@@ -592,7 +597,7 @@ void SlangShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage)
     {
         const VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
         if (!vertexData.empty()) {
-            emitLine("out " + vertexData.getName(), stage, false);
+            emitLine("struct " + vertexData.getName(), stage, false);
             emitScopeBegin(stage);
             emitVariableDeclarations(
                 vertexData,
@@ -602,8 +607,7 @@ void SlangShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage)
                 stage,
                 false);
             emitScopeEnd(stage, false, false);
-            emitString(
-                " " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
+            emitString(Syntax::SEMICOLON, stage);
             emitLineBreak(stage);
             emitLineBreak(stage);
         }

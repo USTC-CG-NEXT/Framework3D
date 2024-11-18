@@ -2,14 +2,14 @@
 
 // Construct an orthonormal basis from a unit floattor.
 // https://graphics.pixar.com/library/OrthonormalB/paper.pdf
-mat3 mx_orthonormal_basis(float3 N)
+float3x3 mx_orthonormal_basis(float3 N)
 {
     float sign = (N.z < 0.0) ? -1.0 : 1.0;
     float a = -1.0 / (sign + N.z);
     float b = N.x * N.y * a;
     float3 X = float3(1.0 + sign * N.x * N.x * a, sign * b, -sign * N.x);
     float3 Y = float3(b, sign + N.y * N.y * a, -N.y);
-    return mat3(X, Y, N);
+    return float3x3(X, Y, N);
 }
 
 // Return the alpha associated with the given mip level in a prefiltered environment.
@@ -41,7 +41,7 @@ float3 mx_generate_prefilter_env()
     // Compute derived properties.
     float2 uv = gl_FragCoord.xy * pow(2.0, $envPrefilterMip) / float2(textureSize($envRadiance, 0));
     float3 worldN = mx_latlong_map_projection_inverse(uv);
-    mat3 tangentToWorld = mx_orthonormal_basis(worldN);
+    float3x3 tangentToWorld = mx_orthonormal_basis(worldN);
     float alpha = mx_latlong_lod_to_alpha(float($envPrefilterMip));
     float G1V = mx_ggx_smith_G1(NdotV, alpha);
 

@@ -5,7 +5,7 @@ float3 mx_environment_radiance(float3 N, float3 V, float3 X, float2 alpha, int d
     // Generate tangent frame.
     X = normalize(X - dot(X, N) * N);
     float3 Y = cross(N, X);
-    mat3 tangentToWorld = mat3(X, Y, N);
+    float3x3 tangentToWorld = float3x3(X, Y, N);
 
     // Transform the view floattor to tangent space.
     V = float3(dot(V, X), dot(V, Y), dot(V, N));

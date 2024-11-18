@@ -143,8 +143,8 @@ SlangSyntax::SlangSyntax()
                             "discard",
                             "return",
                             "mat2",
-                            "mat3",
-                            "mat4",
+                            "float3x3",
+                            "float4x4",
                             "dmat2",
                             "dmat3",
                             "dmat4",
@@ -378,12 +378,12 @@ SlangSyntax::SlangSyntax()
     registerTypeSyntax(
         Type::MATRIX33,
         std::make_shared<AggregateTypeSyntax>(
-            "mat3", "mat3(1.0)", "mat3(1.0)"));
+            "float3x3", "float3x3(1.0)", "float3x3(1.0)"));
 
     registerTypeSyntax(
         Type::MATRIX44,
         std::make_shared<AggregateTypeSyntax>(
-            "mat4", "mat4(1.0)", "mat4(1.0)"));
+            "float4x4", "float4x4(1.0)", "float4x4(1.0)"));
 
     registerTypeSyntax(Type::STRING, std::make_shared<SlangStringTypeSyntax>());
 
