@@ -1,3 +1,6 @@
+#ifndef MX_MICROFACET_SPECULAR
+#define MX_MICROFACET_SPECULAR
+
 #include "mx_microfacet.slang"
 
 // Fresnel model options.
@@ -604,3 +607,6 @@ float mx_latlong_compute_lod(float3 dir, float pdf, float maxMipLevel, int envSa
     float distortion = sqrt(1.0 - mx_square(dir.y));
     return max(effectiveMaxMipLevel - 0.5 * log2(float(envSamples) * pdf * distortion), 0.0);
 }
+
+
+#endif // MX_MICROFACET_SPECULAR

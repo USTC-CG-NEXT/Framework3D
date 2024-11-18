@@ -55,11 +55,6 @@ class HD_USTC_CG_API SlangShaderGenerator : public HwShaderGenerator {
         ShaderStage& stage,
         bool assignValue = true) const override;
 
-    void emitLibraryInclude(
-        const FilePath& filename,
-        GenContext& context,
-        ShaderStage& stage) const override;
-
     /// Return a registered shader node implementation given an implementation
     /// element. The element must be an Implementation or a NodeGraph acting as
     /// implementation.

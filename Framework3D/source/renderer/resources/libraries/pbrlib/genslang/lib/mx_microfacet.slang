@@ -1,3 +1,6 @@
+#ifndef MX_MICROFACET
+#define MX_MICROFACET
+
 #define M_PI 3.1415926535897932
 #define M_PI_INV (1.0 / M_PI)
 
@@ -75,3 +78,5 @@ float3 mx_uniform_sample_hemisphere(float2 Xi)
                 sin(phi) * sinTheta,
                 cosTheta);
 }
+
+#endif // MX_MICROFACET
