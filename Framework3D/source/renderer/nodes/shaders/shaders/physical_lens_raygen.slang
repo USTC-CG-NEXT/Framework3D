@@ -1,12 +1,11 @@
 
-#include "utils/PhysicalCamInfo.h"
+import lens_shader;
 
 RWStructuredBuffer<RayInfo> rays;
 RWTexture2D<uint> random_seeds;
 
 RWStructuredBuffer<uint2> pixel_targets;
 ConstantBuffer<uint2> size;
-import lens_shader;
 
 [shader("compute")]
 [numthreads(32, 32, 1)]
@@ -24,12 +23,9 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     uint seed = 0;
     RayInfo ray;
-    for(int i = 0;i<1;i++)
-    {
-        var temp = raygen(pixel_id, weight, seed);
-        ray.Origin += weight * temp.Origin;
-        ray.Direction += weight * temp.Direction;
-    }
+    var temp = raygen(pixel_id, weight, seed);
+    ray.Origin = weight * temp.Origin;
+    ray.Direction = weight * temp.Direction;
     ray.Origin /= 1;
     ray.Direction /= 1;
 

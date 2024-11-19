@@ -81,8 +81,8 @@ TEST(dO_T, gen_shader)
         std::istreambuf_iterator<char>());
 
     lens_system.deserialize(json);
-    auto [shader_str, compiled_block] =
-        LensSystemCompiler::compile(&lens_system, true);
+    LensSystemCompiler compiler;
+    auto [shader_str, compiled_block] = compiler.compile(&lens_system, true);
 
     // Save file
     std::ofstream file("lens_shader.slang");
@@ -165,7 +165,8 @@ TEST(dO_T, gen_shader)
     // paint to a ppm image
 
     for (size_t i = 0; i < lens_system.lens_count(); i++) {
-        std::ofstream file("ray_visualization_dirs_" + std::to_string(i) + ".ppm");
+        std::ofstream file(
+            "ray_visualization_dirs_" + std::to_string(i) + ".ppm");
 
         file << "P3\n" << width << " " << height << "\n255\n";
         for (int y = 0; y < height; ++y) {
@@ -206,8 +207,7 @@ TEST(dO_T, gen_shader)
                         (ray.Origin[0] + 1.0f) * 0.5f * 255.0f);
                     int g = static_cast<int>(
                         (ray.Origin[1] + 1.0f) * 0.5f * 255.0f);
-                    int b = static_cast<int>(
-                        (ray.Origin[2]*0));
+                    int b = static_cast<int>((ray.Origin[2] * 0));
                     file << std::clamp(r, 0, 255) << " "
                          << std::clamp(g, 0, 255) << " "
                          << std::clamp(b, 0, 255) << "\n";
@@ -220,8 +220,6 @@ TEST(dO_T, gen_shader)
         }
         file.close();
     }
-
-
 
     std::ofstream file2("ray_dirs.ppm");
 

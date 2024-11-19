@@ -13,7 +13,7 @@ NODE_DECLARATION_FUNCTION(render_scatter_contribution)
 {
     b.add_input<nvrhi::BufferHandle>("PixelTarget");
     b.add_input<nvrhi::BufferHandle>("Eval");
-    b.add_input<int>("Buffer Size");
+    b.add_input<int>("Buffer Size").min(0).max(10000000).default_val(1000);
     b.add_input<nvrhi::TextureHandle>("Source Texture");
 
     b.add_output<nvrhi::TextureHandle>("Result Texture");
@@ -39,6 +39,10 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
             {},
             {});
         MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
+        if (!compute_shader) {
+            // Handle error
+            return false;
+        }
         nvrhi::BindingLayoutDescVector binding_layout_desc =
             reflection.get_binding_layout_descs();
 

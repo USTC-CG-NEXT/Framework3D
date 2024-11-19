@@ -140,10 +140,6 @@ float get_relative_refractive_index(float refract_id_last, float refract_id_this
 }
 )";
 
-unsigned LensSystemCompiler::indent = 0;
-unsigned LensSystemCompiler::cb_offset = 0;
-unsigned LensSystemCompiler::cb_size = 0;
-
 std::string LensSystemCompiler::emit_line(
     const std::string& line,
     unsigned cb_size_occupied)
@@ -210,7 +206,7 @@ import Utils.Math.MathHelpers;
 
     for (auto lens_layer : lens_system->lenses) {
         block.parameter_offsets[id] = cb_size;
-        lens_layer->EmitShader(id, const_buffer, raygen_shader);
+        lens_layer->EmitShader(id, const_buffer, raygen_shader, this);
 
         if (require_ray_visualization) {
             raygen_shader += emit_line(
@@ -260,10 +256,6 @@ void LensSystemCompiler::fill_block_data(
     LensSystem* lens_system,
     CompiledDataBlock& data_block)
 {
-    data_block.parameters.clear();
-    data_block.parameter_offsets.clear();
-    data_block.cb_size = 0;
-
     for (int i = 0; i < lens_system->lenses.size(); ++i) {
         auto lens = lens_system->lenses[i];
 

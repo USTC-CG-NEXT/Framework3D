@@ -88,8 +88,11 @@ inline BufferHandle get_model_buffer(
 }
 
 template<typename T>
-inline BufferHandle
-create_buffer(ExeParams& params, size_t count, bool is_constant_buffer = false)
+inline BufferHandle create_buffer(
+    ExeParams& params,
+    size_t count,
+    bool is_constant_buffer = false,
+    bool is_uav_buffer = false)
 {
     nvrhi::BufferDesc buffer_desc = nvrhi::BufferDesc();
     buffer_desc.byteSize = count * sizeof(T);
@@ -104,6 +107,11 @@ create_buffer(ExeParams& params, size_t count, bool is_constant_buffer = false)
         buffer_desc.initialState = nvrhi::ResourceStates::ConstantBuffer;
     }
 
+    if (is_uav_buffer) {
+        buffer_desc.canHaveUAVs = true;
+        buffer_desc.initialState = nvrhi::ResourceStates::UnorderedAccess;
+    }
+
     auto buffer = resource_allocator.create(buffer_desc);
 
     return buffer;
@@ -114,9 +122,11 @@ inline BufferHandle create_buffer(
     ExeParams& params,
     size_t count,
     const T& init_value,
-    bool is_constant_buffer = false)
+    bool is_constant_buffer = false,
+    bool is_uav_buffer = false)
 {
-    auto buffer = create_buffer<T>(params, count, is_constant_buffer);
+    auto buffer =
+        create_buffer<T>(params, count, is_constant_buffer, is_uav_buffer);
 
     // fill the buffer with default values
     std::vector<T> cpu_data(count, init_value);
@@ -134,6 +144,15 @@ template<typename T>
 inline BufferHandle create_constant_buffer(ExeParams& params, const T& value)
 {
     return create_buffer<T>(params, 1, value, true);
+}
+
+template<typename T>
+inline BufferHandle create_uav_buffer(  // unordered access view
+    ExeParams& params,
+    size_t count,
+    const T& init_value)
+{
+    return create_buffer<T>(params, count, init_value, false, true);
 }
 
 template<typename T>

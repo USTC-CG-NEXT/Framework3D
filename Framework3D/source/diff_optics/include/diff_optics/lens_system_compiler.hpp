@@ -18,20 +18,20 @@ struct LensSystemCompiler {
     static const std::string sphere_intersection;
     static const std::string flat_intersection;
     static const std::string occluder_intersection;
-    static unsigned indent;
-    static unsigned cb_offset;
-    static unsigned cb_size;
+    unsigned indent = 0;
+    unsigned cb_offset = 0;
+    unsigned cb_size = 0;
 
-    static std::string emit_line(
+    std::string emit_line(
         const std::string& line,
         unsigned cb_size_occupied = 0);
 
-    static std::string indent_str(unsigned n)
+    std::string indent_str(unsigned n)
     {
         return std::string(n, ' ');
     }
 
-    static std::tuple<std::string, CompiledDataBlock> compile(
+    std::tuple<std::string, CompiledDataBlock> compile(
         LensSystem* lens_system,
         bool require_ray_visualization);
 

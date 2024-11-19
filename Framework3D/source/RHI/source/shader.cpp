@@ -392,7 +392,7 @@ ProgramHandle ShaderFactory::compile_cpu_executable(
     SlangCompileTarget target = SLANG_SHADER_HOST_CALLABLE;
 
     SlangCompile(
-        std::filesystem::path(shader_search_path) / desc.path,
+        desc.path,
         desc.source_code,
         desc.entry_name.c_str(),
         desc.shaderType,

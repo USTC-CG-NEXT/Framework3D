@@ -142,7 +142,6 @@ void OccluderPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 
 void SphericalLens::update_info(float center_x, float center_y)
 {
-    assert(radius_of_curvature != 0);
     theta_range = asin(diameter / (2 * radius_of_curvature));
     sphere_center = { center_x + radius_of_curvature, center_y };
 }
@@ -236,32 +235,33 @@ void FlatLens::deserialize(const nlohmann::json& j)
 void FlatLens::EmitShader(
     int id,
     std::string& constant_buffer,
-    std::string& execution)
+    std::string& execution,
+    LensSystemCompiler* compiler)
 {
-    constant_buffer += LensSystemCompiler::emit_line(
-        "float diameter_" + std::to_string(id), 1);
-    constant_buffer += LensSystemCompiler::emit_line(
-        "float center_pos_" + std::to_string(id), 1);
+    constant_buffer +=
+        compiler->emit_line("float diameter_" + std::to_string(id), 1);
+    constant_buffer +=
+        compiler->emit_line("float center_pos_" + std::to_string(id), 1);
     // Optical Properties
 
-    constant_buffer += LensSystemCompiler::emit_line(
+    constant_buffer += compiler->emit_line(
         "float optical_property_" + std::to_string(id) + "_refractive_index;",
         1);
-    constant_buffer += LensSystemCompiler::emit_line(
+    constant_buffer += compiler->emit_line(
         "float optical_property_" + std::to_string(id) + "_abbe_number;", 1);
 
     if (id == 1) {
         assert(false);  // Not implemented
     }
     else {
-        execution += LensSystemCompiler::emit_line(
+        execution += compiler->emit_line(
             std::string("float relative_refractive_index_") +
             std::to_string(id) + " = get_relative_refractive_index(" +
             "lens_system_data.optical_property_" + std::to_string(id - 1) +
             "_refractive_index, " + "lens_system_data.optical_property_" +
             std::to_string(id) + "_refractive_index);");
 
-        execution += LensSystemCompiler::emit_line(
+        execution += compiler->emit_line(
             "next_ray = intersect_flat(ray, weight, t, "
             "lens_system_data.diameter_" +
             std::to_string(id) + ", lens_system_data.center_pos_" +
@@ -400,9 +400,10 @@ void NullLayer::deserialize(const nlohmann::json& j)
 void NullLayer::EmitShader(
     int id,
     std::string& constant_buffer,
-    std::string& execution)
+    std::string& execution,
+    LensSystemCompiler* compiler)
 {
-    constant_buffer += LensSystemCompiler::emit_line(
+    constant_buffer += compiler->emit_line(
         "float optical_property_" + std::to_string(id) + "_refractive_index;",
         1);
 }
@@ -480,13 +481,14 @@ static const std::string sphere_raygen_template = R"(
 void Occluder::EmitShader(
     int id,
     std::string& constant_buffer,
-    std::string& execution)
+    std::string& execution,
+    LensSystemCompiler* compiler)
 {
     constant_buffer +=
-        LensSystemCompiler::emit_line("float radius_" + std::to_string(id), 1);
-    constant_buffer += LensSystemCompiler::emit_line(
-        "float center_pos_" + std::to_string(id), 1);
-    constant_buffer += LensSystemCompiler::emit_line(
+        compiler->emit_line("float radius_" + std::to_string(id), 1);
+    constant_buffer +=
+        compiler->emit_line("float center_pos_" + std::to_string(id), 1);
+    constant_buffer += compiler->emit_line(
         "float optical_property_" + std::to_string(id) + "_refractive_index;",
         1);
 
@@ -494,7 +496,7 @@ void Occluder::EmitShader(
         throw std::runtime_error("Not implemented");
     }
     else {
-        execution += LensSystemCompiler::emit_line(
+        execution += compiler->emit_line(
             std::string("next_ray = intersect_occluder(ray, weight, t, ") +
             "lens_system_data.radius_" + std::to_string(id) + ", " +
             "lens_system_data.center_pos_" + std::to_string(id) + ")");
@@ -511,24 +513,25 @@ void Occluder::fill_block_data(float* ptr)
 void SphericalLens::EmitShader(
     int id,
     std::string& constant_buffer,
-    std::string& execution)
+    std::string& execution,
+    LensSystemCompiler* compiler)
 {
-    constant_buffer += LensSystemCompiler::emit_line(
-        "float diameter_" + std::to_string(id), 1);
-    constant_buffer += LensSystemCompiler::emit_line(
+    constant_buffer +=
+        compiler->emit_line("float diameter_" + std::to_string(id), 1);
+    constant_buffer += compiler->emit_line(
         "float radius_of_curvature_" + std::to_string(id), 1);
 
-    constant_buffer += LensSystemCompiler::emit_line(
-        "float theta_range_" + std::to_string(id), 1);
-    constant_buffer += LensSystemCompiler::emit_line(
-        "float sphere_center_" + std::to_string(id), 1);
+    constant_buffer +=
+        compiler->emit_line("float theta_range_" + std::to_string(id), 1);
+    constant_buffer +=
+        compiler->emit_line("float sphere_center_" + std::to_string(id), 1);
 
     //// Also optical parameters
 
-    constant_buffer += LensSystemCompiler::emit_line(
+    constant_buffer += compiler->emit_line(
         "float optical_property_" + std::to_string(id) + "_refractive_index;",
         1);
-    constant_buffer += LensSystemCompiler::emit_line(
+    constant_buffer += compiler->emit_line(
         "float optical_property_" + std::to_string(id) + "_abbe_number;", 1);
 
     if (id == 1) {
@@ -536,29 +539,28 @@ void SphericalLens::EmitShader(
         // calculate the direction based on it.
 
         // suppose we can use random_float2
-        execution += LensSystemCompiler::emit_line(
-            "float2 seed2 = random_float2(seed);");
-        execution += LensSystemCompiler::emit_line(
+        execution += compiler->emit_line("float2 seed2 = random_float2(seed);");
+        execution += compiler->emit_line(
             std::string("float2 target_pos = sample_disk(seed2) * ") +
             "lens_system_data.diameter_" + std::to_string(id));
-        execution += LensSystemCompiler::emit_line(
+        execution += compiler->emit_line(
             "float3 sampled_point_" + std::to_string(id) +
             " = float3(target_pos.x, target_pos.y, " +
             "lens_system_data.sphere_center_" + std::to_string(id) + ");");
 
-        execution += LensSystemCompiler::emit_line(
+        execution += compiler->emit_line(
             "ray.Direction = normalize(sampled_point_" + std::to_string(id) +
             " - ray.Origin);");
     }
 
-    execution += LensSystemCompiler::emit_line(
+    execution += compiler->emit_line(
         std::string("float relative_refractive_index_") + std::to_string(id) +
         " = get_relative_refractive_index(" +
         "lens_system_data.optical_property_" + std::to_string(id - 1) +
         "_refractive_index, " + "lens_system_data.optical_property_" +
         std::to_string(id) + "_refractive_index);");
 
-    execution += LensSystemCompiler::emit_line(
+    execution += compiler->emit_line(
         std::string("next_ray =  intersect_sphere(ray, weight, t, ") +
         "lens_system_data.radius_of_curvature_" + std::to_string(id) + ", " +
         "lens_system_data.sphere_center_" + std::to_string(id) + ", " +
