@@ -5,6 +5,7 @@
 #include "pxr/usd/sdf/path.h"
 
 namespace USTC_CG {
+class LensSystem;
 class Hd_USTC_CG_Light;
 class Hd_USTC_CG_Camera;
 class Hd_USTC_CG_Mesh;
@@ -88,6 +89,8 @@ struct RenderGlobalPayload {
     {
         return *materials;
     }
+
+    LensSystem* lens_system;
 
    private:
     pxr::VtArray<Hd_USTC_CG_Camera*>* cameras;

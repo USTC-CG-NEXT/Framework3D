@@ -4,6 +4,8 @@
 #include "GCore/geom_payload.hpp"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
+#include "diff_optics/diff_optics.hpp"
+#include "diff_optics/lens_system.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
 #include "pxr/usd/usd/stage.h"
@@ -75,6 +77,12 @@ int main()
             window->register_widget(std::move(node_widget));
         }
     });
+
+    std::unique_ptr<LensSystem> lens_system = std::make_unique<LensSystem>();
+    lens_system->deserialize(std::filesystem::path("lens.json"));
+
+    auto diff_optics_gui = createDiffOpticsGUI(lens_system.get());
+    window->register_widget(std::move(diff_optics_gui));
 
     window->run();
 

@@ -210,8 +210,8 @@ void DockingImguiRenderer::buildUI()
                 }),
             widgets_.end());
     }
-    for (auto& widget : widgets_) {
-        widget->CallBack();
+    for (size_t i = 0; i < widgets_.size(); ++i) {
+        widgets_[i]->CallBack();
     }
     ImGui::End();
 

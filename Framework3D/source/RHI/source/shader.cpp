@@ -469,6 +469,7 @@ void ShaderFactory::SlangCompile(
     sessionDesc.compilerOptionEntryCount = (SlangInt)compiler_options.size();
     std::vector<std::string> searchPaths = { shader_search_path };
     searchPaths.push_back("./");
+    searchPaths.push_back(shader_search_path + "/shaders/");
 
     std::vector<const char*> slangSearchPaths;
     for (auto& path : searchPaths) {
@@ -495,7 +496,8 @@ void ShaderFactory::SlangCompile(
     }
     else {
         slangRequest->addTranslationUnitSourceFile(
-            translationUnitIndex, path.generic_string().c_str());
+            translationUnitIndex,
+            (shader_search_path / path).generic_string().c_str());
     }
 
     for (const auto& define : defines) {

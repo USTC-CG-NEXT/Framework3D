@@ -2,6 +2,7 @@
 
 #include "diff_optics/lens_system.hpp"
 
+#include <fstream>
 #include <memory>
 #include <vector>
 
@@ -463,6 +464,15 @@ void LensSystem::deserialize(const std::string& json)
     }
 }
 
+void LensSystem::deserialize(const std::filesystem::path& path)
+{
+    std::ifstream json_file(path);
+    std::string json(
+        (std::istreambuf_iterator<char>(json_file)),
+        std::istreambuf_iterator<char>());
+    deserialize(json);
+}
+
 static const std::string sphere_raygen_template = R"(
     RayInfo
 )";
@@ -524,7 +534,7 @@ void SphericalLens::EmitShader(
     if (id == 1) {
         // Sample the target points with the first lens radius, and then
         // calculate the direction based on it.
-        
+
         // suppose we can use random_float2
         execution += LensSystemCompiler::emit_line(
             "float2 seed2 = random_float2(seed);");
