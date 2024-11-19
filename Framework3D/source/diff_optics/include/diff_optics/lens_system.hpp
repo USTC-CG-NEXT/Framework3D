@@ -207,17 +207,11 @@ class LensSystem {
         return lenses.size();
     }
 
-    unsigned get_cb_size() const
-    {
-        return cb_size;
-    }
-
     void deserialize(const std::string& json);
 
     void deserialize(const std::filesystem::path& path);
 
    private:
-    unsigned cb_size = 0;
     std::unique_ptr<LensSystemGUI> gui;
     std::vector<std::shared_ptr<LensLayer>> lenses;
 

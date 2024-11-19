@@ -34,7 +34,6 @@ inline Hd_USTC_CG_Camera* get_free_camera(
 }
 
 #define global_payload params.get_global_payload<RenderGlobalPayload&>()
-
 inline ResourceAllocator& get_resource_allocator(ExeParams& params)
 {
     return params.get_global_payload<RenderGlobalPayload&>().resource_allocator;

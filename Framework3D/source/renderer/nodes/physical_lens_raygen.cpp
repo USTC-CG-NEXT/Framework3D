@@ -1,12 +1,21 @@
 
 #include <diff_optics/diff_optics.hpp>
 
+#include "diff_optics/lens_system_compiler.hpp"
 #include "nodes/core/def/node_def.hpp"
 #include "render_node_base.h"
 #include "renderer/compute_context.hpp"
 #include "shaders/shaders/utils/ray.h"
 
 NODE_DEF_OPEN_SCOPE
+
+struct Storage {
+    constexpr static bool has_storage = false;
+
+    bool compiled = false;
+    CompiledDataBlock compiled_block;
+};
+
 NODE_DECLARATION_FUNCTION(physical_lens_raygen)
 {
     // Function content omitted
@@ -15,6 +24,14 @@ NODE_DECLARATION_FUNCTION(physical_lens_raygen)
 
     b.add_output<BufferHandle>("Rays");
     b.add_output<BufferHandle>("Pixel Target");
+}
+
+void compile_lens_system(LensSystem* lens_system, ExeParams& params)
+{
+    auto [shader, compiled_block] =
+        LensSystemCompiler::compile(lens_system, false);
+    params.get_storage<Storage&>().compiled = true;
+    params.get_storage<Storage&>().compiled_block = compiled_block;
 }
 
 NODE_EXECUTION_FUNCTION(physical_lens_raygen)
@@ -41,13 +58,41 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
     ProgramVars program_vars(resource_allocator, cs_program);
     program_vars["random_seeds"] = random_number;
     program_vars["rays"] = ray_buffer;
+    program_vars["pixel_targets"] = pixel_target_buffer;
 
+    auto size_cb = create_buffer(params, 1, image_size, true);
+    MARK_DESTROY_NVRHI_RESOURCE(size_cb);
+    program_vars["size"] = size_cb;
 
-    auto size_cb = create_buffer<GfVec2i>()
+    auto lens_system = global_payload.lens_system;
+
+    auto& compiled_block = params.get_storage<Storage&>().compiled_block;
+
+    compiled_block.parameters[0] = 36;
+    compiled_block.parameters[1] = (36.f * image_size[1]) / image_size[0];
+
+    compiled_block.parameters[2] = *reinterpret_cast<float*>(&image_size[0]);
+    compiled_block.parameters[3] = *reinterpret_cast<float*>(&image_size[1]);
+    compiled_block.parameters[4] = 50.0f;
+
+    auto lens_cb =
+        create_buffer<float>(params, compiled_block.parameters.size(), true);
+    MARK_DESTROY_NVRHI_RESOURCE(lens_cb);
+
+    auto ptr = resource_allocator.device->mapBuffer(
+        lens_cb, nvrhi::CpuAccessMode::Write);
+
+    memcpy(
+        ptr,
+        compiled_block.parameters.data(),
+        compiled_block.parameters.size() * sizeof(float));
+
+    resource_allocator.device->unmapBuffer(lens_cb);
+    program_vars["lens_system_data"] = lens_cb;
+
 
 
     params.set_output("Rays", ray_buffer);
-
     return true;
 }
 
