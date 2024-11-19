@@ -45,6 +45,11 @@ void compile_lens_system(LensSystem* lens_system, ExeParams& params)
 
 NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 {
+    if (params.get_storage<PhysicalLensStorage&>().compiled == false) {
+        auto lens_system = global_payload.lens_system;
+        compile_lens_system(lens_system, params);
+    }
+
     ProgramDesc cs_program_desc;
     cs_program_desc.shaderType = nvrhi::ShaderType::Compute;
     cs_program_desc.set_path("shaders/physical_lens_raygen.slang")
@@ -73,11 +78,6 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
     MARK_DESTROY_NVRHI_RESOURCE(size_cb);
     program_vars["size"] = size_cb;
 
-    if (params.get_storage<PhysicalLensStorage&>().compiled == false) {
-        auto lens_system = global_payload.lens_system;
-        compile_lens_system(lens_system, params);
-    }
-
     auto& compiled_block =
         params.get_storage<PhysicalLensStorage&>().compiled_block;
 
@@ -105,6 +105,11 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 
     resource_allocator.device->unmapBuffer(lens_cb);
     program_vars["lens_system_data"] = lens_cb;
+
+    auto view_cb = get_free_camera_planarview_cb(params);
+    MARK_DESTROY_NVRHI_RESOURCE(view_cb);
+
+    program_vars["viewConstant"] = view_cb;
 
     program_vars.finish_setting_vars();
 

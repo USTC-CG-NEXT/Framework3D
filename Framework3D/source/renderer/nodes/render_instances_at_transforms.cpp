@@ -52,7 +52,7 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
 
     auto depth_stencil_texture = create_default_depth_stencil(params);
 
-    auto view_cb = get_free_camera_cb(params);
+    auto view_cb = get_free_camera_planarview_cb(params);
     MARK_DESTROY_NVRHI_RESOURCE(view_cb);
 
     auto camera = get_free_camera(params);

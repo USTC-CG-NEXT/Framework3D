@@ -113,7 +113,7 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 
     auto random_seeds = params.get_input<nvrhi::TextureHandle>("random seeds");
 
-    auto constant_buffer = get_free_camera_cb(params);
+    auto constant_buffer = get_free_camera_planarview_cb(params);
 
     MARK_DESTROY_NVRHI_RESOURCE(constant_buffer);
 

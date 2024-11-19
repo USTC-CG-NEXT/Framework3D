@@ -47,7 +47,7 @@ inline ShaderFactory& get_shader_factory(ExeParams& params)
 #define resource_allocator get_resource_allocator(params)
 #define shader_factory     get_shader_factory(params)
 
-inline BufferHandle get_free_camera_cb(
+inline BufferHandle get_free_camera_planarview_cb(
     ExeParams& params,
     const std::string& camera_name = "Camera")
 {

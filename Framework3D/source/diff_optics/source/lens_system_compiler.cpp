@@ -32,7 +32,7 @@ RayInfo intersect_sphere(
     if (discriminant < 0.0) {
         // No intersection
         t = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+        return RayInfo(ray_pos, 0, ray_dir, 1000.0);
     }
 
     // Calculate the distance to the intersection points
@@ -47,8 +47,6 @@ RayInfo intersect_sphere(
 
     // Calculate the normal at the intersection point
     float3 normal = normalize(intersection_pos - sphere_center);
-    if(radius<0)
-        normal*=-1;
 
     // Calculate the refracted direction using Snell's law
     float eta = refractive_index;
@@ -61,7 +59,7 @@ RayInfo intersect_sphere(
     // Check if the angle is within the allowed range
     if (angle > alpha_range) {
         // No valid intersection within the alpha range
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+        //return RayInfo(ray_pos, 0, ray_dir, 0.0);
     }
 
     return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
@@ -185,7 +183,7 @@ import Utils.Math.MathHelpers;
 
     // Sample origin on the film
     raygen_shader += indent_str(indent) +
-                     "float2 film_pos = ((0.5f+float2(pixel_id)) / "
+                     "float2 film_pos = -((0.5f+float2(pixel_id)) / "
                      "float2(lens_system_data.film_resolution)-0.5f) * "
                      "lens_system_data.film_size;\n";
 

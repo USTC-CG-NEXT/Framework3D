@@ -44,7 +44,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
     MARK_DESTROY_NVRHI_RESOURCE(ps_program);
     CHECK_PROGRAM_ERROR(ps_program);
 
-    auto view_cb = get_free_camera_cb(params);
+    auto view_cb = get_free_camera_planarview_cb(params);
     MARK_DESTROY_NVRHI_RESOURCE(view_cb);
 
     auto output_position = create_default_render_target(params);
