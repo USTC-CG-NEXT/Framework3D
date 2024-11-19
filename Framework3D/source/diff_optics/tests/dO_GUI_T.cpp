@@ -147,3 +147,19 @@ TEST(dO_GUI_T, diff_optics_json)
 
     window.run();
 }
+
+
+TEST(dO_GUI_T, diff_optics_json_file)
+{
+    Window window;
+
+    LensSystem lens_system;
+
+    lens_system.deserialize(std::filesystem::path("lens2.json"));
+
+    auto gui = createDiffOpticsGUI(&lens_system);
+
+    window.register_widget(std::move(gui));
+
+    window.run();
+}
