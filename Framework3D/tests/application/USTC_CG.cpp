@@ -29,6 +29,8 @@ int main()
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
     auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
 
+    auto render_bare = render.get();
+
     render->SetCallBack([](Window* window, IWidget* render_widget) {
         auto node_system = static_cast<const std::shared_ptr<NodeSystem>*>(
             dynamic_cast<UsdviewEngine*>(render_widget)

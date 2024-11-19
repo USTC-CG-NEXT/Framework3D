@@ -256,4 +256,21 @@ import Utils.Math.MathHelpers;
     return std::make_tuple(final_shader, block);
 }
 
+void LensSystemCompiler::fill_block_data(
+    LensSystem* lens_system,
+    CompiledDataBlock& data_block)
+{
+    data_block.parameters.clear();
+    data_block.parameter_offsets.clear();
+    data_block.cb_size = 0;
+
+    for (int i = 0; i < lens_system->lenses.size(); ++i) {
+        auto lens = lens_system->lenses[i];
+
+        auto offset = data_block.parameter_offsets[i];
+
+        lens->fill_block_data(data_block.parameters.data() + offset);
+    }
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -4,7 +4,6 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct CompiledDataBlock {
-
     std::vector<float> parameters;
     std::map<unsigned, unsigned> parameter_offsets;
 
@@ -33,7 +32,12 @@ struct LensSystemCompiler {
     }
 
     static std::tuple<std::string, CompiledDataBlock> compile(
-        LensSystem* lens_system, bool require_ray_visualization);
+        LensSystem* lens_system,
+        bool require_ray_visualization);
+
+    static void fill_block_data(
+        LensSystem* lens_system,
+        CompiledDataBlock& data_block);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

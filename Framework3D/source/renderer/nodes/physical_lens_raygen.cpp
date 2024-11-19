@@ -1,5 +1,6 @@
 
 #include <diff_optics/diff_optics.hpp>
+#include <fstream>
 
 #include "diff_optics/lens_system_compiler.hpp"
 #include "nodes/core/def/node_def.hpp"
@@ -21,6 +22,7 @@ NODE_DECLARATION_FUNCTION(physical_lens_raygen)
     // Function content omitted
 
     b.add_input<TextureHandle>("Random Number");
+    b.add_input<float>("Focus distance").min(25).max(75).default_val(35);
 
     b.add_output<BufferHandle>("Rays");
     b.add_output<BufferHandle>("Pixel Target");
@@ -30,6 +32,13 @@ void compile_lens_system(LensSystem* lens_system, ExeParams& params)
 {
     auto [shader, compiled_block] =
         LensSystemCompiler::compile(lens_system, false);
+
+    // write shader (std::string) to lens_shader.slang
+
+    auto file = std::ofstream("lens_shader.slang");
+    file << shader;
+    file.close();
+
     params.get_storage<Storage&>().compiled = true;
     params.get_storage<Storage&>().compiled_block = compiled_block;
 }
@@ -64,7 +73,10 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
     MARK_DESTROY_NVRHI_RESOURCE(size_cb);
     program_vars["size"] = size_cb;
 
-    auto lens_system = global_payload.lens_system;
+    if (params.get_storage<Storage&>().compiled == false) {
+        auto lens_system = global_payload.lens_system;
+        compile_lens_system(lens_system, params);
+    }
 
     auto& compiled_block = params.get_storage<Storage&>().compiled_block;
 
@@ -73,7 +85,7 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 
     compiled_block.parameters[2] = *reinterpret_cast<float*>(&image_size[0]);
     compiled_block.parameters[3] = *reinterpret_cast<float*>(&image_size[1]);
-    compiled_block.parameters[4] = 50.0f;
+    compiled_block.parameters[4] = params.get_input<float>("Focus distance");
 
     auto lens_cb =
         create_buffer<float>(params, compiled_block.parameters.size(), true);
@@ -89,8 +101,6 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 
     resource_allocator.device->unmapBuffer(lens_cb);
     program_vars["lens_system_data"] = lens_cb;
-
-
 
     params.set_output("Rays", ray_buffer);
     return true;

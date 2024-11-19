@@ -208,7 +208,6 @@ class LensSystem {
     }
 
     void deserialize(const std::string& json);
-
     void deserialize(const std::filesystem::path& path);
 
    private:
