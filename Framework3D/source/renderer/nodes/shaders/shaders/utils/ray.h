@@ -23,6 +23,14 @@ RayDesc get_ray_desc(RayInfo info)
     ray_desc.TMax = info.TMax;
     return ray_desc;
 }
-
+RayInfo transformRay(RayInfo ray, float4x4 transform)
+{
+    RayInfo result;
+    result.Origin = mul(float4(ray.Origin, 1), transform).xyz;
+    result.Direction = mul(float4(ray.Direction, 0), transform).xyz;
+    result.TMin = ray.TMin;
+    result.TMax = ray.TMax;
+    return result;
+}
 #endif
 #endif

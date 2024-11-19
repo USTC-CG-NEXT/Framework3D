@@ -26,8 +26,9 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
     var temp = raygen(pixel_id, weight, seed);
     ray.Origin = weight * temp.Origin;
     ray.Direction = weight * temp.Direction;
-    ray.Origin /= 1;
-    ray.Direction /= 1;
+    ray.TMin = 0;
+    ray.TMax = 1000;
+
 
     rays[index] = ray;
     random_seeds[pixel_id] = seed;

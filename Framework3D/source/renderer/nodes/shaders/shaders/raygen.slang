@@ -51,21 +51,16 @@ RayInfo setupPrimaryRay(
 
     float2 uv = pixelPositionF * view.viewportSizeInv;
     float4 clipPos = float4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1, 1.0, 1);
-    float4 worldPos = mul(clipPos, view.matClipToWorld);
-    worldPos.xyz /= worldPos.w;
+
+    float4 viewPos = mul(clipPos, view.matClipToView);
+    viewPos.xyz /= viewPos.w;
 
     RayInfo ray;
-    ray.Origin = view.cameraDirectionOrPosition.xyz;
+    ray.Origin = float3(0, 0, 0);
 
     // Calculate cameraRight and cameraUp
-    float3 cameraRight = normalize(float3(
-        view.matViewToWorld[0].x,
-        view.matViewToWorld[1].x,
-        view.matViewToWorld[2].x));
-    float3 cameraUp = normalize(float3(
-        view.matViewToWorld[0].z,
-        view.matViewToWorld[1].z,
-        view.matViewToWorld[2].z));
+    float3 cameraRight = (float3(1, 0, 0));
+    float3 cameraUp = (float3(0, 1, 0));
 
     // Apply depth of field effect
     float lensRadius = cameraParams.aperture * 0.5;
@@ -73,7 +68,7 @@ RayInfo setupPrimaryRay(
     float2 randomDisk = lensRadius * sample_disk(seed2);
     float3 offset = cameraRight * randomDisk.x + cameraUp * randomDisk.y;
     float3 focusPoint = ray.Origin + cameraParams.focusDistance *
-                                         normalize(worldPos.xyz - ray.Origin);
+                                         normalize(viewPos.xyz - ray.Origin);
 
     ray.Origin += offset;
     ray.Direction = normalize(focusPoint - ray.Origin);
@@ -95,6 +90,9 @@ void main(uint3 DTid: SV_DispatchThreadID)
         c.focusDistance = cameraParams.focusDistance;
         c.aperture = cameraParams.aperture;
         RayInfo ray = setupPrimaryRay(LaunchIndex, viewConstant, seed, c);
+
+        // Transform the ray to world space
+        ray = transformRay(ray, viewConstant.matViewToWorld);
 
         rays[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] = ray;
         pixel_targets[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] =
