@@ -36,7 +36,10 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 
         auto& global_payload = node_system->get_node_tree_executor()
                                    ->get_global_payload<RenderGlobalPayload&>();
+
         global_payload.TLAS = render_param->TLAS->get_tlas();
+        global_payload.lens_system = render_param->lens_system;
+
         global_payload.reset_accumulation = false;
 
         node_system->execute(false);

@@ -469,6 +469,18 @@ void UsdviewEngine::SetEditMode(bool editing)
     is_editing_ = editing;
 }
 
+pxr::VtValue UsdviewEngine::get_renderer_setting(const pxr::TfToken& id) const
+{
+    return renderer_->GetRendererSetting(id);
+}
+
+void UsdviewEngine::set_renderer_setting(
+    const pxr::TfToken& id,
+    const pxr::VtValue& value)
+{
+    renderer_->SetRendererSetting(id, value);
+}
+
 ImGuiWindowFlags UsdviewEngine::GetWindowFlag()
 {
     return ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse |

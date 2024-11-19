@@ -420,4 +420,17 @@ VtValue Hd_USTC_CG_RenderDelegate::GetRenderSetting(TfToken const& key) const
     return HdRenderDelegate::GetRenderSetting(key);
 }
 
+void Hd_USTC_CG_RenderDelegate::SetRenderSetting(
+    const TfToken& key,
+    const VtValue& value)
+
+{
+    if (key == pxr::TfToken("lens_system_ptr")) {
+        _renderParam->lens_system = static_cast<LensSystem*>(value.Get<void*>());
+    }
+    else {
+        HdRenderDelegate::SetRenderSetting(key, value);
+    }
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

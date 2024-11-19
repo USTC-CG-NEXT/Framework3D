@@ -27,17 +27,18 @@
 #include <complex.h>
 
 #include "api.h"
+#include "nodes/system/node_system.hpp"
 #include "nvrhi/nvrhi.h"
 #include "pxr/base/tf/staticTokens.h"
 #include "pxr/imaging/hd/renderDelegate.h"
 #include "pxr/pxr.h"
 #include "renderParam.h"
 #include "renderer.h"
-#include "nodes/system/node_system.hpp"
 
 namespace USTC_CG {
+class LensSystem;
 struct RenderGlobalPayload;
-}
+}  // namespace USTC_CG
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_Material;
@@ -97,6 +98,7 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
     HdRenderParam* GetRenderParam() const override;
 
     VtValue GetRenderSetting(TfToken const& key) const override;
+    void SetRenderSetting(const TfToken& key, const VtValue& value) override;
 
    private:
     static const TfTokenVector SUPPORTED_RPRIM_TYPES;

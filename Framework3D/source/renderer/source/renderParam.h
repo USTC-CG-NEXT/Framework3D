@@ -33,6 +33,10 @@
 #include "renderTLAS.h"
 
 namespace USTC_CG {
+class LensSystem;
+}
+
+namespace USTC_CG {
 struct RenderGlobalPayload;
 }
 
@@ -67,8 +71,9 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
     NodeSystem *node_system;
     std::unique_ptr<Hd_USTC_CG_RenderTLAS> TLAS;
     nvrhi::TextureHandle presented_texture;
+    LensSystem *lens_system;
 
-private:
+   private:
     /// A handle to the global render thread.
     /// A version counter for edits to _scene.
     std::atomic<int> *_sceneVersion;
