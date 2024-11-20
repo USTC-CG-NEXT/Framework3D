@@ -26,7 +26,7 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
         RayInfo ray;
         ray = raygen(LaunchIndex, weight, seed);
         ray.throughput = { weight };
-        ray.Direction *= -1;
+        ray.Direction.z *= -1;
         // ray.Direction.xy *= -1;
         // ray.throughput = { weight * float3(ray.Direction * 0.5 + 0.5) };
         ray.Origin /= 1000.f;   
