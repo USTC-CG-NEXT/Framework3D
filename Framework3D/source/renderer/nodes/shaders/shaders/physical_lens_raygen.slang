@@ -20,11 +20,13 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     if (all(LaunchIndex.xy < LaunchDimensions.xy)) {
         uint index = LaunchIndex.x + LaunchIndex.y * LaunchDimensions.x;
-        float weight = 1.0;
+        float3 weight = 1.0;
         uint seed = random_seeds[LaunchIndex];
 
         RayInfo ray;
         ray = raygen(LaunchIndex, weight, seed);
+        ray.throughput = { float3(weight) };
+        ray.Origin /= 1000.f;
         ray.TMin = 0;
         ray.TMax = 1000;
 
@@ -36,4 +38,4 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
             LaunchIndex;
         random_seeds[LaunchIndex] = seed;
     }
-}
+} 

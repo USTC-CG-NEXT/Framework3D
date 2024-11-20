@@ -1,8 +1,14 @@
 #ifndef RAY_H
 #define RAY_H
 
-
 #include "cpp_shader_macro.h"
+
+#ifdef __cplusplus
+#include "Spectrum.slang"
+#else
+import utils.Spectrum;
+#endif
+
 // Constants
 struct RayInfo {
 #ifdef __cplusplus
@@ -12,11 +18,10 @@ struct RayInfo {
     float TMin;
     float3 Direction;
     float TMax;
+    RGBSpectrum throughput;
 };
 
 #ifndef __cplusplus
-
-import utils.types;
 
 RayDesc get_ray_desc(RayInfo info)
 {
@@ -34,6 +39,7 @@ RayInfo transformRay(RayInfo ray, float4x4 transform)
     result.TMin = ray.TMin;
     result.Direction = mul(float4(ray.Direction, 0), transform).xyz;
     result.TMax = ray.TMax;
+    result.throughput = ray.throughput;
     return result;
 }
 #endif

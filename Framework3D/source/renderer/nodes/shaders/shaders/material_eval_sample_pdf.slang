@@ -80,11 +80,12 @@ void ClosestHit(
     StandardBSDF bsdf = StandardBSDF(dir, header, data);
 
     UniformSampleGenerator s;
-    
+
     result = bsdf.eval(ObjectRayDirection(), ObjectRayDirection(), s, context);
     result = WorldRayDirection();
 
-    Eval[id] = float4(attrib.uv,0, 1);
+    Eval[id] = float4(attrib.uv, 0, 1) *
+               float4(hitObjects[id].rays.throughput.toFloat3(), 1.0);
 
     // Acquire the material information here.
 }

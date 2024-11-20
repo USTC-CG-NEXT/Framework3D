@@ -171,7 +171,7 @@ import Utils.Math.MathHelpers;
     const_buffer += emit_line("float film_distance;", 1);
 
     std::string raygen_shader =
-        "RayInfo raygen(int2 pixel_id, inout float weight, inout uint "
+        "RayInfo raygen(int2 pixel_id, inout float3 weight, inout uint "
         "seed)\n{";
 
     int id = 0;
@@ -198,7 +198,7 @@ import Utils.Math.MathHelpers;
 
     raygen_shader += emit_line("next_ray = ray;");
 
-    raygen_shader += indent_str(indent) + "float3 weight = 1;\n";
+    raygen_shader += indent_str(indent) + "weight = 1;\n";
 
     CompiledDataBlock block;
 
