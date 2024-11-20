@@ -54,12 +54,13 @@ RayInfo intersect_sphere(
     // Calculate the angle of the intersection point to the normalized sphere
     // center
     float3 normalized_sphere_center = normalize(-sphere_center);
-    float angle = abs(acos(dot(normal, normalized_sphere_center)));
+    float angle = acos(abs(normal.z));
 
     // Check if the angle is within the allowed range
     if (angle > alpha_range) {
         // No valid intersection within the alpha range
         //return RayInfo(ray_pos, 0, ray_dir, 0.0);
+        weight = 0;
     }
 
     return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
@@ -154,6 +155,7 @@ std::tuple<std::string, CompiledDataBlock> LensSystemCompiler::compile(
 
     std::string header = R"(
 #include "utils/random.slangh"
+#include "Utils/Math/MathConstants.slangh"
 #include "utils/ray.h"
 import Utils.Math.MathHelpers;
 )";

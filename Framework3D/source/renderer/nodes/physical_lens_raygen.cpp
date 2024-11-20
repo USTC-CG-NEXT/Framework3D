@@ -15,6 +15,7 @@ struct PhysicalLensStorage {
 
     bool compiled = false;
     CompiledDataBlock compiled_block;
+    float focus_distance;
 };
 
 NODE_DECLARATION_FUNCTION(physical_lens_raygen)
@@ -76,15 +77,18 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
     program_vars["rays"] = ray_buffer;
     program_vars["pixel_targets"] = pixel_target_buffer;
 
-    auto& compiled_block =
+    auto focus_distance = params.get_input<float>("Focus distance");
+
+    CompiledDataBlock compiled_block =
         params.get_storage<PhysicalLensStorage&>().compiled_block;
 
-    compiled_block.parameters[0] = 36;
-    compiled_block.parameters[1] = (36.f * image_size[1]) / image_size[0];
+    compiled_block.parameters[0] = 36.f;
+    compiled_block.parameters[1] =
+        (compiled_block.parameters[0] * image_size[1]) / image_size[0];
 
     compiled_block.parameters[2] = *reinterpret_cast<float*>(&image_size[0]);
     compiled_block.parameters[3] = *reinterpret_cast<float*>(&image_size[1]);
-    compiled_block.parameters[4] = params.get_input<float>("Focus distance");
+    compiled_block.parameters[4] = focus_distance;
 
     auto lens_cb =
         create_buffer<float>(params, compiled_block.parameters.size(), true);
@@ -92,6 +96,20 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 
     LensSystemCompiler::fill_block_data(
         global_payload.lens_system, compiled_block);
+
+    if (params.get_storage<PhysicalLensStorage&>().compiled_block !=
+        compiled_block) {
+        params.get_storage<PhysicalLensStorage&>().compiled_block =
+            compiled_block;
+        global_payload.reset_accumulation = true;
+    }
+
+    if (focus_distance !=
+        params.get_storage<PhysicalLensStorage&>().focus_distance) {
+        params.get_storage<PhysicalLensStorage&>().focus_distance =
+            focus_distance;
+        global_payload.reset_accumulation = true;
+    }
 
     auto ptr = resource_allocator.device->mapBuffer(
         lens_cb, nvrhi::CpuAccessMode::Write);

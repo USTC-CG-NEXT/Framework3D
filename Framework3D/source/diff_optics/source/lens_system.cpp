@@ -142,7 +142,7 @@ void OccluderPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 
 void SphericalLens::update_info(float center_x, float center_y)
 {
-    theta_range = asin(diameter / (2 * radius_of_curvature));
+    theta_range = abs(asin(diameter / (2 * radius_of_curvature)));
     sphere_center = { center_x + radius_of_curvature, center_y };
 }
 
@@ -424,7 +424,7 @@ void SphericalLens::deserialize(const nlohmann::json& j)
     LensLayer::deserialize(j);
     diameter = j["diameter"];
     radius_of_curvature = j["roc"];
-    theta_range = atan(diameter / (2 * radius_of_curvature));
+    theta_range = abs(atan(diameter / (2 * radius_of_curvature)));
     sphere_center = { center_pos[0] + radius_of_curvature, center_pos[1] };
     // if (j.contains("additional_params")) {
     //     high_order_polynomial_coefficients =
@@ -551,6 +551,7 @@ void SphericalLens::EmitShader(
         execution += compiler->emit_line(
             "ray.Direction = normalize(sampled_point_" + std::to_string(id) +
             " - ray.Origin);");
+        execution += compiler->emit_line("weight*=ray.Direction.z");
     }
 
     execution += compiler->emit_line(

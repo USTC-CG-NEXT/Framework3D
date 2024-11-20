@@ -8,6 +8,22 @@ struct CompiledDataBlock {
     std::map<unsigned, unsigned> parameter_offsets;
 
     unsigned cb_size;
+
+    friend bool operator==(
+        const CompiledDataBlock& lhs,
+        const CompiledDataBlock& rhs)
+    {
+        return lhs.parameters == rhs.parameters &&
+               lhs.parameter_offsets == rhs.parameter_offsets &&
+               lhs.cb_size == rhs.cb_size;
+    }
+
+    friend bool operator!=(
+        const CompiledDataBlock& lhs,
+        const CompiledDataBlock& rhs)
+    {
+        return !(lhs == rhs);
+    }
 };
 
 struct LensSystemCompiler {
