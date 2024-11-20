@@ -60,15 +60,10 @@ struct PlanarViewConstants {
     float2 viewportSizeInv;
     float2 pixelOffset;
 
-    float2 clipToWindowScale;
-    float2 clipToWindowBias;
-
-    float2 windowToClipScale;
-    float2 windowToClipBias;
-
     float4 cameraDirectionOrPosition;
 
     int2 resolution;
+    int2 padding;
 };
 
 #endif  // VIEW_CB_H

@@ -106,7 +106,7 @@ function(add_nodes)
 
     foreach(source ${ALL_THAT_NEEDS_TO_BE_COMPILED})
         get_filename_component(target_name ${source} NAME_WE)
-        add_library(${target_name} SHARED ${source})
+        add_library(${target_name} SHARED ${source} "../source/renderer/nodes/shaders/shaders/utils/types.h")
         set_target_properties(${target_name} PROPERTIES ${OUTPUT_DIR})
         target_link_libraries(${target_name} PUBLIC nodes_core ${ARG_DEP_LIBS})
         if(ARG_COMPILE_DEFS)

@@ -1,6 +1,7 @@
 #ifndef RAY_H
 #define RAY_H
 
+
 #include "cpp_shader_macro.h"
 // Constants
 struct RayInfo {
@@ -14,6 +15,9 @@ struct RayInfo {
 };
 
 #ifndef __cplusplus
+
+import utils.types;
+
 RayDesc get_ray_desc(RayInfo info)
 {
     RayDesc ray_desc;
@@ -27,8 +31,8 @@ RayInfo transformRay(RayInfo ray, float4x4 transform)
 {
     RayInfo result;
     result.Origin = mul(float4(ray.Origin, 1), transform).xyz;
-    result.Direction = mul(float4(ray.Direction, 0), transform).xyz;
     result.TMin = ray.TMin;
+    result.Direction = mul(float4(ray.Direction, 0), transform).xyz;
     result.TMax = ray.TMax;
     return result;
 }

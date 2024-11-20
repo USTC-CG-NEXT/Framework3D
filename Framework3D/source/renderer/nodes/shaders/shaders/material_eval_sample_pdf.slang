@@ -12,7 +12,7 @@ ByteAddressBuffer t_BindlessBuffers[] : register(t0, space1);
 
 RWStructuredBuffer<uint2> PixelTarget : register(u0);
 RWStructuredBuffer<float4> Eval : register(u1);
-RWStructuredBuffer<RayDesc> Sample : register(u2);
+RWStructuredBuffer<RayInfo> Sample : register(u2);
 RWStructuredBuffer<float> Weight : register(u3);
 RWStructuredBuffer<float> Pdf : register(u4);
 

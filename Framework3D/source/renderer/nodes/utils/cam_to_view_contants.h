@@ -30,14 +30,6 @@ inline PlanarViewConstants camera_to_view_constants(Hd_USTC_CG_Camera* camera)
     constants.pixelOffset =
         GfVec2f(0.0f, 0.0f);  // Assuming no offset initially
 
-    // Assuming identity transformation for clip to window
-    constants.clipToWindowScale = GfVec2f(1.0f, 1.0f);
-    constants.clipToWindowBias = GfVec2f(0.0f, 0.0f);
-
-    // Assuming identity transformation for window to clip
-    constants.windowToClipScale = GfVec2f(1.0f, 1.0f);
-    constants.windowToClipBias = GfVec2f(0.0f, 0.0f);
-
     // For camera direction or position, we may need to decide based on the
     // camera implementation
     auto position = camera->inverseViewMatrix.ExtractTranslation();

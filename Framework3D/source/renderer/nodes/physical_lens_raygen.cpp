@@ -46,6 +46,7 @@ void compile_lens_system(LensSystem* lens_system, ExeParams& params)
 NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 {
     PROFILE_SCOPE(physical_lens_raygen);
+
     if (params.get_storage<PhysicalLensStorage&>().compiled == false) {
         auto lens_system = global_payload.lens_system;
         compile_lens_system(lens_system, params);
@@ -74,10 +75,6 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
     program_vars["random_seeds"] = random_number;
     program_vars["rays"] = ray_buffer;
     program_vars["pixel_targets"] = pixel_target_buffer;
-
-    auto size_cb = create_buffer(params, 1, image_size, true);
-    MARK_DESTROY_NVRHI_RESOURCE(size_cb);
-    program_vars["size"] = size_cb;
 
     auto& compiled_block =
         params.get_storage<PhysicalLensStorage&>().compiled_block;
@@ -116,10 +113,14 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 
     ComputeContext context(resource_allocator, program_vars);
     context.finish_setting_pso();
+    {
+        PROFILE_SCOPE(physical_lens_raygen_dispatch);
 
-    context.begin();
-    context.dispatch({}, program_vars, image_size[0], 32, image_size[1], 32);
-    context.finish();
+        context.begin();
+        context.dispatch(
+            {}, program_vars, image_size[0], 32, image_size[1], 32);
+        context.finish();
+    }
 
     params.set_output("Rays", ray_buffer);
     params.set_output("Pixel Target", pixel_target_buffer);

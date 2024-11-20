@@ -92,19 +92,21 @@ inline BufferHandle create_buffer(
     ExeParams& params,
     size_t count,
     bool is_constant_buffer = false,
-    bool is_uav_buffer = false)
+    bool is_uav_buffer = false,
+    bool isVertexBuffer = false)
 {
     nvrhi::BufferDesc buffer_desc = nvrhi::BufferDesc();
     buffer_desc.byteSize = count * sizeof(T);
-    buffer_desc.isVertexBuffer = true;
+    buffer_desc.isVertexBuffer = isVertexBuffer;
     buffer_desc.initialState = nvrhi::ResourceStates::ShaderResource;
     buffer_desc.debugName = typeid(T).name();
-    buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
     buffer_desc.structStride = sizeof(T);
+    buffer_desc.keepInitialState = true;
 
     if (is_constant_buffer) {
         buffer_desc.isConstantBuffer = true;
         buffer_desc.initialState = nvrhi::ResourceStates::ConstantBuffer;
+        buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
     }
 
     if (is_uav_buffer) {

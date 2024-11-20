@@ -87,8 +87,7 @@ void ClosestHit(
 
     hitObjectInfo[index].RayContributionToHitGroupIndex = 0;
     hitObjectInfo[index].MultiplierForGeometryContributionToHitGroupIndex = 0;
-    hitObjectInfo[index].rays = RayInfo(
-        WorldRayOrigin(), RayTMin(), WorldRayDirection(), RayTCurrent());
+    hitObjectInfo[index].rays = rays[DispatchRaysIndex().x];
 
     hitObjectInfo[index].attributes = payload.barycentric;
     PixelTarget[index] = inPixelTarget[DispatchRaysIndex().x];
@@ -105,8 +104,4 @@ void Miss(inout HitInfo payload: SV_RayPayload)
 
     uint index;
     InterlockedAdd(miss_counter_buffer[0], 1u, index);
-    // payload.barycentric = 0;
-    // payload.position = 1.0 / 0.0f;
-    // uint index;
-    // InterlockedAdd(hit_counter_buffer[0], -1, index);
 }

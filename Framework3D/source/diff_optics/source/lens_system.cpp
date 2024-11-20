@@ -542,7 +542,7 @@ void SphericalLens::EmitShader(
         execution += compiler->emit_line("float2 seed2 = random_float2(seed);");
         execution += compiler->emit_line(
             std::string("float2 target_pos = sample_disk(seed2) * ") +
-            "lens_system_data.diameter_" + std::to_string(id));
+            "lens_system_data.diameter_" + std::to_string(id) + "/2.0f");
         execution += compiler->emit_line(
             "float3 sampled_point_" + std::to_string(id) +
             " = float3(target_pos.x, target_pos.y, " +

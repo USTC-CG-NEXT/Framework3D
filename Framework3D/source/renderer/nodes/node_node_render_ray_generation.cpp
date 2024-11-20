@@ -42,7 +42,7 @@ NODE_DECLARATION_FUNCTION(node_render_ray_generation)
 NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 {
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
-    auto size = free_camera->dataWindow.GetSize();
+    auto image_size = free_camera->dataWindow.GetSize();
 
     auto aperture = params.get_input<float>("Aperture");
     auto focus_distance = params.get_input<float>("Focus Distance");
@@ -53,25 +53,11 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
         global_payload.reset_accumulation = true;
     }
 
-    // 0. Prepare the output buffer
-    nvrhi::BufferDesc ray_buffer_desc;
-    ray_buffer_desc.byteSize = size[0] * size[1] * sizeof(RayInfo);
-    ray_buffer_desc.structStride = sizeof(RayInfo);
-    ray_buffer_desc.canHaveUAVs = true;
-    ray_buffer_desc.initialState = nvrhi::ResourceStates::UnorderedAccess;
-    ray_buffer_desc.keepInitialState = true;
-    auto result_rays = resource_allocator.create(ray_buffer_desc);
+    auto ray_buffer = create_buffer<RayInfo>(
+        params, image_size[0] * image_size[1], false, true);
 
-    // Prepare the pixel target buffer
-    auto pixel_target_buffer_desc =
-        nvrhi::BufferDesc{}
-            .setByteSize(size[0] * size[1] * sizeof(pxr::GfVec2i))
-            .setStructStride(sizeof(pxr::GfVec2i))
-            .setCanHaveUAVs(true)
-            .setInitialState(nvrhi::ResourceStates::UnorderedAccess)
-            .setKeepInitialState(true);
-    auto pixel_target_buffer =
-        resource_allocator.create(pixel_target_buffer_desc);
+    auto pixel_target_buffer = create_buffer<GfVec2i>(
+        params, image_size[0] * image_size[1], false, true);
 
     // 2. Prepare the shader
     std::string error_string;
@@ -87,7 +73,7 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
         reflection_info.get_binding_layout_descs();
 
     if (!error_string.empty()) {
-        resource_allocator.destroy(result_rays);
+        resource_allocator.destroy(ray_buffer);
         log::warning(error_string.c_str());
         return false;
     }
@@ -119,7 +105,7 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
 
     BindingSetDesc binding_set_desc;
     binding_set_desc.bindings = {
-        nvrhi::BindingSetItem::StructuredBuffer_UAV(0, result_rays),
+        nvrhi::BindingSetItem::StructuredBuffer_UAV(0, ray_buffer),
         nvrhi::BindingSetItem::Texture_UAV(1, random_seeds),
         nvrhi::BindingSetItem::StructuredBuffer_UAV(2, pixel_target_buffer),
         nvrhi::BindingSetItem::ConstantBuffer(0, constant_buffer),
@@ -141,11 +127,12 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     compute_state.pipeline = compute_pipeline;
     compute_state.addBindingSet(binding_set);
     command_list->setComputeState(compute_state);
-    command_list->dispatch(div_ceil(size[0], 32), div_ceil(size[1], 32));
+    command_list->dispatch(
+        div_ceil(image_size[0], 32), div_ceil(image_size[1], 32));
     command_list->close();
 
     resource_allocator.device->executeCommandList(command_list);
-    params.set_output("Rays", result_rays);
+    params.set_output("Rays", ray_buffer);
     params.set_output("Pixel Target", pixel_target_buffer);
     return true;
 }
