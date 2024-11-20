@@ -37,7 +37,7 @@ function(UCG_ADD_TEST)
     string(REGEX REPLACE "(.*/)([a-zA-Z0-9_ ]+)(\.cpp|\.cu)" "\\2" test_name ${UCG_TEST_SRC})
     message("---- Adding the test ${test_name}_test.")
 
-    add_executable(${test_name}_test ${UCG_TEST_SRC} "../source/renderer/nodes/shaders/shaders/utils/types.h")
+    add_executable(${test_name}_test ${UCG_TEST_SRC})
 
     set_target_properties(${test_name}_test PROPERTIES ${OUTPUT_DIR})
 
@@ -105,7 +105,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     endif()
 
     if(${USTC_CG_ADD_LIB_SHARED})
-        add_library(${name} SHARED ${USTC_CG_ADD_LIB_LIB_FLAGS} ${${name}_sources} "../source/renderer/nodes/shaders/shaders/utils/types.h")
+        add_library(${name} SHARED ${USTC_CG_ADD_LIB_LIB_FLAGS} ${${name}_sources})
     else()
         add_library(${name} STATIC ${USTC_CG_ADD_LIB_LIB_FLAGS} ${${name}_sources})
     endif()
