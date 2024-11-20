@@ -526,6 +526,10 @@ void SphericalLens::EmitShader(
     constant_buffer +=
         compiler->emit_line("float sphere_center_" + std::to_string(id), 1);
 
+    // center_pos
+    constant_buffer +=
+        compiler->emit_line("float center_pos_" + std::to_string(id), 1);
+
     //// Also optical parameters
 
     constant_buffer += compiler->emit_line(
@@ -546,7 +550,7 @@ void SphericalLens::EmitShader(
         execution += compiler->emit_line(
             "float3 sampled_point_" + std::to_string(id) +
             " = float3(target_pos.x, target_pos.y, " +
-            "lens_system_data.sphere_center_" + std::to_string(id) + ");");
+            "lens_system_data.center_pos_" + std::to_string(id) + ");");
 
         execution += compiler->emit_line(
             "ray.Direction = normalize(sampled_point_" + std::to_string(id) +
@@ -577,8 +581,9 @@ void SphericalLens::fill_block_data(float* ptr)
     ptr[1] = radius_of_curvature;
     ptr[2] = theta_range;
     ptr[3] = sphere_center[0];
-    ptr[4] = optical_property.refractive_index;
-    ptr[5] = optical_property.abbe_number;
+    ptr[4] = center_pos[0];
+    ptr[5] = optical_property.refractive_index;
+    ptr[6] = optical_property.abbe_number;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
