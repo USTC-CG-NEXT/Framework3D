@@ -8,6 +8,11 @@ cbuffer cbImageSize : register(b0)
     uint2 gImageSize;
 }
 
+cbuffer cbToneMappingParams : register(b1)
+{
+    float gColorScale;
+}
+
 groupshared float3 groupMinColor[1];
 groupshared float3 groupMaxColor[1];
 groupshared float3 sharedMin[256];
@@ -59,6 +64,6 @@ void main(
     float3 minColor = groupMinColor[0];
     float3 maxColor = groupMaxColor[0];
     float3 mappedColor = (rgb - minColor) / (maxColor - minColor + 1e-5);
-    mappedColor = rgb * 10;
+    mappedColor = rgb * gColorScale;
     gOutputTexture[coord] = float4(mappedColor, color.a);
 }

@@ -90,7 +90,8 @@ void main(uint3 DTid: SV_DispatchThreadID)
         c.focusDistance = cameraParams.focusDistance;
         c.aperture = cameraParams.aperture;
         RayInfo ray = setupPrimaryRay(LaunchIndex, viewConstant, seed, c);
-
+        ray.throughput = RGBSpectrum(float3(1.0f));
+        
         // Transform the ray to world space
         ray = transformRay(ray, viewConstant.matViewToWorld);
 

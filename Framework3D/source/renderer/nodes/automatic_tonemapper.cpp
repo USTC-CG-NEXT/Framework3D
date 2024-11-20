@@ -7,6 +7,7 @@ NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(automatic_tonemapper)
 {
     b.add_input<nvrhi::TextureHandle>("InputTexture");
+    b.add_input<float>("Scale").min(0).max(20).default_val(1);
     b.add_output<nvrhi::TextureHandle>("OutputTexture");
 }
 
@@ -35,6 +36,12 @@ NODE_EXECUTION_FUNCTION(automatic_tonemapper)
         input_texture->getDesc().width, input_texture->getDesc().height);
     auto size_cb = create_constant_buffer(params, image_size);
     MARK_DESTROY_NVRHI_RESOURCE(size_cb);
+
+    float scale = params.get_input<float>("Scale");
+    auto scale_cb = create_constant_buffer(params, scale);
+    MARK_DESTROY_NVRHI_RESOURCE(scale_cb);
+
+    program_vars["cbToneMappingParams"] = scale_cb;
 
     program_vars["cbImageSize"] = size_cb;
 

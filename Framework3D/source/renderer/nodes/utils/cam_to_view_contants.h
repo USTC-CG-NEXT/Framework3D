@@ -14,6 +14,7 @@ inline PlanarViewConstants camera_to_view_constants(Hd_USTC_CG_Camera* camera)
     constants.matWorldToClip =
         constants.matWorldToView * constants.matViewToClip;
     constants.matClipToView = constants.matViewToClip.GetInverse();
+
     constants.matViewToWorld = constants.matWorldToView.GetInverse();
     constants.matClipToWorld = constants.matWorldToClip.GetInverse();
 
