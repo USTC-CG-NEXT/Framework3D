@@ -22,6 +22,8 @@ NODE_DECLARATION_FUNCTION(scene_ray_launch)
 
 NODE_EXECUTION_FUNCTION(scene_ray_launch)
 {
+    PROFILE_SCOPE(scene_ray_launch);
+
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
 

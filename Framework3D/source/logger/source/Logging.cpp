@@ -238,5 +238,25 @@ void fatal(const char* fmt...)
 
     va_end(args);
 }
+
+ProfileScope::ProfileScope(const char* name) : name(name)
+{
+    begin_time = std::chrono::steady_clock::now();
+}
+
+ProfileScope::~ProfileScope()
+{
+    auto now = std::chrono::steady_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - begin_time)
+            .count();
+
+    message(Severity::Info, "%s took %lld ms", name, duration);
+}
+
+ProfileScope profile_scope(const char* fmt)
+{
+    return { fmt };
+}
 }  // namespace log
 USTC_CG_NAMESPACE_CLOSE_SCOPE

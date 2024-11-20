@@ -1,5 +1,6 @@
 #pragma once
 
+#include <__msvc_chrono.hpp>
 #include <functional>
 #include <iostream>
 
@@ -47,6 +48,18 @@ LOGGER_API void info(const char* fmt...);
 LOGGER_API void warning(const char* fmt...);
 LOGGER_API void error(const char* fmt...);
 LOGGER_API void fatal(const char* fmt...);
+
+struct LOGGER_API ProfileScope {
+    const char* name;
+    ProfileScope(const char* name);
+    ~ProfileScope();
+
+   private:
+    std::chrono::steady_clock::time_point begin_time;
+};
+
+LOGGER_API ProfileScope profile_scope(const char* fmt);
+
 }  // namespace log
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

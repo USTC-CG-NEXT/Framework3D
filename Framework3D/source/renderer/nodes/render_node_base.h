@@ -264,4 +264,6 @@ inline auto get_size(ExeParams& params)
         return false;                             \
     }
 
+#define PROFILE_SCOPE(node_name) auto scope = log::profile_scope(#node_name)
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

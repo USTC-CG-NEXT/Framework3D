@@ -45,6 +45,7 @@ void compile_lens_system(LensSystem* lens_system, ExeParams& params)
 
 NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 {
+    PROFILE_SCOPE(physical_lens_raygen);
     if (params.get_storage<PhysicalLensStorage&>().compiled == false) {
         auto lens_system = global_payload.lens_system;
         compile_lens_system(lens_system, params);
