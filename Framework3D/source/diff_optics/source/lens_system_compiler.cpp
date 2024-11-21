@@ -138,7 +138,7 @@ RayInfo intersect_occluder(
 const std::string get_relative_refractive_index = R"(
 float get_relative_refractive_index(float refract_id_last, float refract_id_this)
 {
-	return refract_id_this / refract_id_last;
+	return 1.0f/(refract_id_this / refract_id_last);
 }
 )";
 

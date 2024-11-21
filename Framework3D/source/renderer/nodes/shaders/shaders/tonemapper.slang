@@ -13,10 +13,10 @@ cbuffer cbToneMappingParams : register(b1)
     float gColorScale;
 }
 
-groupshared float3 groupMinColor[1];
-groupshared float3 groupMaxColor[1];
-groupshared float3 sharedMin[256];
-groupshared float3 sharedMax[256];
+groupshared float groupMinLuminance[1];
+groupshared float groupMaxLuminance[1];
+
+#define FLT_MAX 3.402823466e+38
 
 [numthreads(16, 16, 1)]
 void main(
@@ -24,46 +24,44 @@ void main(
     uint3 groupThreadID: SV_GroupThreadID)
 {
     uint2 coord = dispatchThreadID.xy;
-    uint localIndex = groupThreadID.x + groupThreadID.y * 16;
 
     if (coord.x >= gImageSize.x || coord.y >= gImageSize.y)
         return;
 
-    float4 color = gInputTexture.Load(int3(coord, 0));
-    float3 rgb = color.rgb;
+    // Initialize global min and max luminance
+    float globalMinLuminance = FLT_MAX;
+    float globalMaxLuminance = -FLT_MAX;
 
-    // Initialize local min and max
-    float3 localMin = rgb;
-    float3 localMax = rgb;
+    // Sample 256 points across the entire texture
+    for (uint i = 0; i < 256; ++i)
+    {
+        uint2 sampleCoord = uint2(
+            (i * 9973) % gImageSize.x, // Use a large prime number for pseudo-random sampling
+            (i * 7919) % gImageSize.y  // Use a different large prime number for pseudo-random sampling
+        );
 
-    sharedMin[localIndex] = localMin;
-    sharedMax[localIndex] = localMax;
+        float4 color = gInputTexture.Load(int3(sampleCoord, 0));
+        float luminance = dot(color.rgb, float3(0.2126, 0.7152, 0.0722)); // Calculate luminance
 
-    GroupMemoryBarrierWithGroupSync();
-
-    // Reduction to find group min and max
-    for (uint stride = 256 / 2; stride > 0; stride /= 2) {
-        if (localIndex < stride) {
-            sharedMin[localIndex] =
-                min(sharedMin[localIndex], sharedMin[localIndex + stride]);
-            sharedMax[localIndex] =
-                max(sharedMax[localIndex], sharedMax[localIndex + stride]);
-        }
-        GroupMemoryBarrierWithGroupSync();
+        globalMinLuminance = min(globalMinLuminance, luminance);
+        globalMaxLuminance = max(globalMaxLuminance, luminance);
     }
 
-    // Store group results
-    if (localIndex == 0) {
-        groupMinColor[0] = sharedMin[0];
-        groupMaxColor[0] = sharedMax[0];
+    // Store global results in group shared memory
+    if (groupThreadID.x == 0 && groupThreadID.y == 0)
+    {
+        groupMinLuminance[0] = globalMinLuminance;
+        groupMaxLuminance[0] = globalMaxLuminance;
     }
 
     GroupMemoryBarrierWithGroupSync();
 
     // Apply tone mapping
-    float3 minColor = groupMinColor[0];
-    float3 maxColor = groupMaxColor[0];
-    float3 mappedColor = (rgb - minColor) / (maxColor - minColor + 1e-5);
-    mappedColor = rgb * gColorScale;
-    gOutputTexture[coord] = float4(mappedColor, color.a);
+    float minLuminance = groupMinLuminance[0];
+    float maxLuminance = groupMaxLuminance[0];
+    float4 color = gInputTexture.Load(int3(coord, 0));
+    float luminance = dot(color.rgb, float3(0.2126, 0.7152, 0.0722)); // Calculate luminance
+    float mappedLuminance = (luminance - minLuminance) / (maxLuminance - minLuminance + 1e-5);
+    float3 mappedColor = color.rgb * (mappedLuminance / luminance) * gColorScale;
+    gOutputTexture[coord] = float4(mappedColor, 1.0);
 }
