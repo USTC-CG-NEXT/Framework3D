@@ -126,12 +126,17 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             else:
                 openvdb_args = " "
 
-            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
+            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --generator=Ninja --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
 
             if dry_run:
                 print(f"[DRY RUN] Would run: {build_command}")
             else:
                 os.system(build_command)
+                # A work around: usd currently has a bug with pch when building with ninja, so call it's doomed to fail. Call it again withouth specifying generator=ninja to build it with visual studio.
+                if os.name == 'nt':  # Only do this on Windows
+                    shutil.rmtree(os.path.join("SDK", "OpenUSD", target, "build", "OpenUSD-24.11"))
+                    build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
+                    os.system(build_command)
 
     # Copy the built binaries to the Binaries folder
     for target in targets:

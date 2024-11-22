@@ -220,8 +220,9 @@ class LensSystem {
 
     void deserialize(const std::string& json);
     void deserialize(const std::filesystem::path& path);
+    void set_default();
 
-   private:
+private:
     std::unique_ptr<LensSystemGUI> gui;
     std::vector<std::shared_ptr<LensLayer>> lenses;
 

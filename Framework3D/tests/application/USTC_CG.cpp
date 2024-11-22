@@ -81,7 +81,14 @@ int main()
     });
 
     std::unique_ptr<LensSystem> lens_system = std::make_unique<LensSystem>();
-    lens_system->deserialize(std::filesystem::path("lens.json"));
+
+    // Check existence of lens.json
+    if (std::filesystem::exists("lens.json")) {
+        lens_system->deserialize(std::filesystem::path("lens.json"));
+    }
+    else {
+        lens_system->set_default();
+    }
 
     auto diff_optics_gui = createDiffOpticsGUI(lens_system.get());
     window->register_widget(std::move(diff_optics_gui));
