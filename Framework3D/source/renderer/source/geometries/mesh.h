@@ -66,6 +66,7 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
     uint32_t IndexCount();
     uint32_t PointCount();
     nvrhi::IBuffer* GetNormalBuffer();
+    nvrhi::IBuffer* GetModelTransformBuffer();
 
     nvrhi::rt::AccelStructHandle BLAS;
 
@@ -74,6 +75,7 @@ protected:
     nvrhi::BufferHandle indexBuffer;
     nvrhi::BufferHandle texcoord_buffer;
     nvrhi::BufferHandle normal_buffer;
+    nvrhi::BufferHandle model_transform_buffer;
 
     GfMatrix4f transform;
     VtArray<GfVec3i> triangulatedIndices;

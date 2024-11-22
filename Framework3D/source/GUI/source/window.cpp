@@ -147,6 +147,15 @@ void DockingImguiRenderer::register_function_perframe(
 
 void DockingImguiRenderer::register_widget(std::unique_ptr<IWidget> widget)
 {
+    // If the widget with the "UniqueName" exists, replace it
+    std::string unique_name = widget->GetWindowUniqueName();
+    for (auto& w : widgets_) {
+        if (w->GetWindowUniqueName() == unique_name) {
+            w = std::move(widget);
+            return;
+        }
+    }
+
     widgets_.push_back(std::move(widget));
 }
 

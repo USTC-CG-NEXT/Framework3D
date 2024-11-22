@@ -36,7 +36,7 @@ class NodeWidget : public IWidget {
     Node* create_node_menu();
     bool BuildUI() override;
 
-protected:
+   protected:
     std::string GetWindowUniqueName() override;
 
     const char* GetWindowName() override;

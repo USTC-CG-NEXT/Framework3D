@@ -49,6 +49,17 @@ Hd_USTC_CG_Mesh::Hd_USTC_CG_Mesh(const SdfPath& id)
       _adjacencyValid(false),
       _refined(false)
 {
+    // create model buffer (constant buffer, CPU writable)
+    auto device = RHI::get_device();
+    nvrhi::BufferDesc buffer_desc =
+        nvrhi::BufferDesc{}
+            .setByteSize(sizeof(GfMatrix4f))
+            .setStructStride(sizeof(GfMatrix4f))
+            .setInitialState(nvrhi::ResourceStates::ShaderResource)
+            .setCpuAccess(nvrhi::CpuAccessMode::Write)
+            .setDebugName("modelBuffer");
+
+    model_transform_buffer = device->createBuffer(buffer_desc);
 }
 
 Hd_USTC_CG_Mesh::~Hd_USTC_CG_Mesh()
@@ -445,6 +456,19 @@ uint32_t Hd_USTC_CG_Mesh::PointCount()
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetNormalBuffer()
 {
     return normal_buffer;
+}
+
+nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetModelTransformBuffer()
+{
+    // fill it
+
+    auto device = RHI::get_device();
+    auto buffer =
+        device->mapBuffer(model_transform_buffer, nvrhi::CpuAccessMode::Write);
+    memcpy(buffer, &transform, sizeof(GfMatrix4f));
+    device->unmapBuffer(model_transform_buffer);
+
+    return model_transform_buffer;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

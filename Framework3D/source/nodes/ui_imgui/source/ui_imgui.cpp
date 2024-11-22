@@ -504,7 +504,8 @@ std::string NodeWidget::GetWindowUniqueName()
     if (!widget_name.empty()) {
         return widget_name;
     }
-    return "NodeEditor##" + std::to_string(reinterpret_cast<uint64_t>(this));
+    return "NodeEditor##" +
+           std::to_string(reinterpret_cast<uint64_t>(system_.get()));
 }
 
 const char* NodeWidget::GetWindowName()
