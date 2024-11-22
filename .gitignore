@@ -6,3 +6,4 @@ imgui.ini
 .DS_Store
 .vs
 *.zip
+*/.slangtorch_cache/*
