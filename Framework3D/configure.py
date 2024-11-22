@@ -99,7 +99,14 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
         )
 
         # Check if the user has a debug python installed
-        has_python_d = os.system("python_d --version >nul 2>&1") == 0
+        import subprocess
+        try:
+            subprocess.check_output(["python_d", "--version"], stderr=subprocess.STDOUT)
+            has_python_d = True
+        except subprocess.CalledProcessError:
+            has_python_d = False
+        except FileNotFoundError:
+            has_python_d = False
 
         if has_python_d:
             use_debug_python = "--debug-python "
@@ -273,9 +280,14 @@ def main():
     if dry_run:
         print(f"[DRY RUN] Selected build variants: {targets}")
 
-    urls = {
-        "slang": "https://github.com/shader-slang/slang/releases/download/v2024.14.3/slang-2024.14.3-windows-x86_64.zip",
-    }
+    if os.name == 'nt':
+        urls = {
+            "slang": "https://github.com/shader-slang/slang/releases/download/v2024.14.3/slang-2024.14.3-windows-x86_64.zip",
+        }
+    else:
+        urls = {
+            "slang": "https://github.com/shader-slang/slang/releases/download/v2024.14.5/slang-2024.14.5-linux-x86_64.zip",
+        }
     folders = {"slang": "slang/bin"}
 
     for lib in args.library:
