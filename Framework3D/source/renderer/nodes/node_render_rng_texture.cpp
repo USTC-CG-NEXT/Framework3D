@@ -9,12 +9,12 @@ struct RNGStorage {
 };
 
 // This texture is for repeated read and write.
-NODE_DECLARATION_FUNCTION(render_rng_texture)
+NODE_DECLARATION_FUNCTION(rng_texture)
 {
     b.add_output<nvrhi::TextureHandle>("Random Number");
 }
 
-NODE_EXECUTION_FUNCTION(render_rng_texture)
+NODE_EXECUTION_FUNCTION(rng_texture)
 {
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
@@ -110,5 +110,5 @@ NODE_EXECUTION_FUNCTION(render_rng_texture)
     return true;
 }
 
-NODE_DECLARATION_UI(render_rng_texture);
+NODE_DECLARATION_UI(rng_texture);
 NODE_DEF_CLOSE_SCOPE

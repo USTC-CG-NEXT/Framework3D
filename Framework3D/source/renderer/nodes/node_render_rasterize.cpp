@@ -100,15 +100,6 @@ NODE_EXECUTION_FUNCTION(rasterize)
                 state.addVertexBuffer(nvrhi::VertexBufferBinding{
                     mesh->GetTexcoordBuffer(pxr::TfToken("UVMap")), 2, 0 });
             }
-            else {
-                auto texcoord_buffer = create_buffer<pxr::GfVec2f>(
-                    params, mesh->PointCount(), { 0, 0 });
-
-                MARK_DESTROY_NVRHI_RESOURCE(texcoord_buffer);
-
-                state.addVertexBuffer(
-                    nvrhi::VertexBufferBinding{ texcoord_buffer, 2, 0 });
-            }
 
             context.draw(state, program_vars, mesh->IndexCount());
         }

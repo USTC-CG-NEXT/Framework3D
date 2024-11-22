@@ -9,7 +9,7 @@
 #include "shaders/shaders/utils/cpp_shader_macro.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(render_scatter_contribution)
+NODE_DECLARATION_FUNCTION(scatter_contribution)
 {
     b.add_input<nvrhi::BufferHandle>("PixelTarget");
     b.add_input<nvrhi::BufferHandle>("Eval");
@@ -19,7 +19,7 @@ NODE_DECLARATION_FUNCTION(render_scatter_contribution)
     b.add_output<nvrhi::TextureHandle>("Result Texture");
 }
 
-NODE_EXECUTION_FUNCTION(render_scatter_contribution)
+NODE_EXECUTION_FUNCTION(scatter_contribution)
 {
     using namespace nvrhi;
 
@@ -115,5 +115,5 @@ NODE_EXECUTION_FUNCTION(render_scatter_contribution)
     return true;
 }
 
-NODE_DECLARATION_UI(render_scatter_contribution);
+NODE_DECLARATION_UI(scatter_contribution);
 NODE_DEF_CLOSE_SCOPE

@@ -4,7 +4,7 @@
 #include "pxr/base/gf/matrix3d.h"
 #include "render_node_base.h"
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(render_camera_info)
+NODE_DECLARATION_FUNCTION(camera_info)
 {
     b.add_output<pxr::VtArray<float>>("Rotation Matrix");
     b.add_output<pxr::VtArray<float>>("Translation");
@@ -19,7 +19,7 @@ NODE_DECLARATION_FUNCTION(render_camera_info)
     b.add_output<pxr::VtArray<float>>("camera_center");
 }
 
-NODE_EXECUTION_FUNCTION(render_camera_info)
+NODE_EXECUTION_FUNCTION(camera_info)
 {
     Hd_USTC_CG_Camera* camera = get_free_camera(params);
 
@@ -103,5 +103,5 @@ NODE_EXECUTION_FUNCTION(render_camera_info)
     return true;
 }
 
-NODE_DECLARATION_UI(render_camera_info);
+NODE_DECLARATION_UI(camera_info);
 NODE_DEF_CLOSE_SCOPE

@@ -6,7 +6,7 @@
 #include "renderer/program_vars.hpp"
 #include "renderer/graphics_context.hpp"
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(render_instances_at_transforms)
+NODE_DECLARATION_FUNCTION(instances_at_transforms)
 {
     b.add_input<std::string>("Instance");
     b.add_input<nvrhi::BufferHandle>("Transforms");
@@ -20,7 +20,7 @@ NODE_DECLARATION_FUNCTION(render_instances_at_transforms)
     b.add_output<nvrhi::TextureHandle>("Normal");
 }
 
-NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
+NODE_EXECUTION_FUNCTION(instances_at_transforms)
 {
     ProgramDesc vs_program_desc;
     vs_program_desc.shaderType = nvrhi::ShaderType::Vertex;
@@ -120,5 +120,5 @@ NODE_EXECUTION_FUNCTION(render_instances_at_transforms)
     return true;
 }
 
-NODE_DECLARATION_UI(render_instances_at_positions);
+NODE_DECLARATION_UI(instances_at_positions);
 NODE_DEF_CLOSE_SCOPE

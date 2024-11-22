@@ -4,12 +4,12 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(render_create_empty_texture)
+NODE_DECLARATION_FUNCTION(create_empty_texture)
 {
     b.add_output<nvrhi::TextureHandle>("Texture");
 }
 
-NODE_EXECUTION_FUNCTION(render_create_empty_texture)
+NODE_EXECUTION_FUNCTION(create_empty_texture)
 {
     Hd_USTC_CG_Camera* free_camera = get_free_camera(params);
     auto size = free_camera->dataWindow.GetSize();
@@ -38,5 +38,5 @@ NODE_EXECUTION_FUNCTION(render_create_empty_texture)
     return true;
 }
 
-NODE_DECLARATION_UI(render_create_empty_texture);
+NODE_DECLARATION_UI(create_empty_texture);
 NODE_DEF_CLOSE_SCOPE

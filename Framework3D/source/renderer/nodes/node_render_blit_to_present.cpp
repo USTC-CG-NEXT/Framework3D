@@ -23,7 +23,7 @@ struct BlitParameters {
     nvrhi::Color blendConstantColor = nvrhi::Color(0.f);
 };
 
-NODE_DECLARATION_FUNCTION(render_blit_to_present)
+NODE_DECLARATION_FUNCTION(blit_to_present)
 {
     b.add_input<nvrhi::TextureHandle>("Tex");
     b.add_output<nvrhi::TextureHandle>("Tex");
@@ -44,7 +44,7 @@ static bool IsTextureArray(nvrhi::TextureDimension dimension)
            dimension == nvrhi::TextureDimension::TextureCubeArray;
 }
 
-NODE_EXECUTION_FUNCTION(render_blit_to_present)
+NODE_EXECUTION_FUNCTION(blit_to_present)
 {
     auto sourceTexture = params.get_input<TextureHandle>("Tex");
     if (!sourceTexture) {
@@ -225,5 +225,5 @@ NODE_EXECUTION_FUNCTION(render_blit_to_present)
     return true;
 }
 
-NODE_DECLARATION_UI(render_blit_to_present);
+NODE_DECLARATION_UI(blit_to_present);
 NODE_DEF_CLOSE_SCOPE

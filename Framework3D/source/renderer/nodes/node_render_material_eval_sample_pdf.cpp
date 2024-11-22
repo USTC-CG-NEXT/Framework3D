@@ -6,7 +6,7 @@
 #include "shaders/shaders/utils/HitObject.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(render_material_eval_sample_pdf)
+NODE_DECLARATION_FUNCTION(material_eval_sample_pdf)
 {
     b.add_input<nvrhi::BufferHandle>("PixelTarget");
 
@@ -20,7 +20,7 @@ NODE_DECLARATION_FUNCTION(render_material_eval_sample_pdf)
     b.add_output<nvrhi::BufferHandle>("Pdf");
 }
 
-NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
+NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
 {
     using namespace nvrhi;
 
@@ -211,5 +211,5 @@ NODE_EXECUTION_FUNCTION(render_material_eval_sample_pdf)
     return true;
 }
 
-NODE_DECLARATION_UI(render_material_eval_sample_pdf);
+NODE_DECLARATION_UI(material_eval_sample_pdf);
 NODE_DEF_CLOSE_SCOPE

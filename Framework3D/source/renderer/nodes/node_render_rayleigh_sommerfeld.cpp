@@ -11,13 +11,13 @@
 
 #include "nodes/core/def/node_def.hpp"
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(render_rayleigh_sommerfeld)
+NODE_DECLARATION_FUNCTION(rayleigh_sommerfeld)
 {
 
 
 }
 
-NODE_EXECUTION_FUNCTION(render_rayleigh_sommerfeld)
+NODE_EXECUTION_FUNCTION(rayleigh_sommerfeld)
 {
     //using nparray = boost::python::numpy::ndarray;
 
@@ -40,5 +40,5 @@ NODE_EXECUTION_FUNCTION(render_rayleigh_sommerfeld)
 
 
 
-NODE_DECLARATION_UI(render_rayleigh_sommerfeld);
+NODE_DECLARATION_UI(rayleigh_sommerfeld);
 NODE_DEF_CLOSE_SCOPE

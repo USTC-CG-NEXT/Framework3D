@@ -10,7 +10,7 @@ struct CameraState {
     pxr::GfMatrix4f camera_status;
 };
 
-NODE_DECLARATION_FUNCTION(render_taa)
+NODE_DECLARATION_FUNCTION(taa)
 {
     b.add_input<nvrhi::TextureHandle>("Previous Frame");
     b.add_input<nvrhi::TextureHandle>("Current Frame");
@@ -19,7 +19,7 @@ NODE_DECLARATION_FUNCTION(render_taa)
     b.add_output<nvrhi::TextureHandle>("Output Frame");
 }
 
-NODE_EXECUTION_FUNCTION(render_taa)
+NODE_EXECUTION_FUNCTION(taa)
 {
     auto previous = params.get_input<TextureHandle>("Previous Frame");
     auto current = params.get_input<TextureHandle>("Current Frame");
@@ -116,5 +116,5 @@ NODE_EXECUTION_FUNCTION(render_taa)
     return true;
 }
 
-NODE_DECLARATION_UI(render_taa);
+NODE_DECLARATION_UI(taa);
 NODE_DEF_CLOSE_SCOPE

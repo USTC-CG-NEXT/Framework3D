@@ -12,14 +12,14 @@ struct PrevCamStatus {
     pxr::GfMatrix4f PrevProjViewMatrix;
 };
 
-NODE_DECLARATION_FUNCTION(render_motion_vec)
+NODE_DECLARATION_FUNCTION(motion_vec)
 {
     b.add_input<nvrhi::TextureHandle>("World Position");
 
     b.add_output<nvrhi::TextureHandle>("Motion Vector");
 }
 
-NODE_EXECUTION_FUNCTION(render_motion_vec)
+NODE_EXECUTION_FUNCTION(motion_vec)
 {
     auto world_position =
         params.get_input<nvrhi::TextureHandle>("World Position");
@@ -111,5 +111,5 @@ NODE_EXECUTION_FUNCTION(render_motion_vec)
     return true;
 }
 
-NODE_DECLARATION_UI(render_motion_vec);
+NODE_DECLARATION_UI(motion_vec);
 NODE_DEF_CLOSE_SCOPE
