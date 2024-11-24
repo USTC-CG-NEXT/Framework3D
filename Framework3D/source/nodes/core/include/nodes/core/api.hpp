@@ -42,7 +42,7 @@ inline void register_cpp_type()
 }
 
 template<typename T>
-NODES_CORE_API SocketType get_socket_type()
+SocketType get_socket_type()
 {
     auto type =
         entt::resolve(get_entt_ctx(), entt::type_hash<std::decay_t<T>>());
