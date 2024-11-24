@@ -33,8 +33,8 @@
 #include "Core/Macros.h"
 #include "LightBVHTypes.slang"
 #include "Scene/Lights/LightCollection.h"
-#include "Utils/Math/AABB.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/AABB.h"
+#include "utils/Math/Vector.h"
 
 namespace Falcor {
 class LightBVHBuilder;

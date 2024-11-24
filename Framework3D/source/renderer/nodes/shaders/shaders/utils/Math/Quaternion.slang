@@ -25,7 +25,7 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 
 /**************************************************************************************************************
  # All the quaternion code was copied from: https://gist.github.com/mattatz/40a91588d5fb38240403f198a938a593

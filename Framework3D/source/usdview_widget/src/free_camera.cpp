@@ -1,6 +1,5 @@
 #include "free_camera.hpp"
 
-#include <corecrt_math_defines.h>
 #include <pxr/base/gf/matrix4d.h>
 
 #include <algorithm>

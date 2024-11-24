@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 #include <memory>
 
 namespace Falcor

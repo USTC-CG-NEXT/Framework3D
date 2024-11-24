@@ -31,7 +31,7 @@
 #include "Core/Macros.h"
 #include "Core/Pass/ComputePass.h"
 #include "Scene/SceneIDs.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 
 namespace Falcor {
 /** Utility class for BSDF integration.

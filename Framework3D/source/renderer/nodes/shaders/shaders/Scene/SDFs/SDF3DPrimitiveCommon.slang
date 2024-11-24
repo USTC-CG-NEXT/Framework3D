@@ -27,10 +27,10 @@
  **************************************************************************/
 #pragma once
 
-#include "Utils/HostDeviceShared.slangh"
+#include "utils/HostDeviceShared.slangh"
 
 #ifdef HOST_CODE
-#include "Utils/SDF/SDFOperationType.slang"
+#include "utils/SDF/SDFOperationType.slang"
 #else
 __exported import Utils.SDF.SDFOperationType;
 #endif

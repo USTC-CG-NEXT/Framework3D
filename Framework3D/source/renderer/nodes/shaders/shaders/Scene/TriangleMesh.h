@@ -29,8 +29,8 @@
 #include "Transform.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Math/Matrix.h"
+#include "utils/Math/Vector.h"
+#include "utils/Math/Matrix.h"
 #include <filesystem>
 #include <memory>
 #include <string>

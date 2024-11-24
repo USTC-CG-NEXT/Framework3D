@@ -31,7 +31,7 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
 
     auto length = hit_info_buffer->getDesc().byteSize / sizeof(HitObjectInfo);
 
-    length = std::max(length, 1ull);
+    length = std::max(length, static_cast<decltype(length)>(1));
 
     // The Eval, Pixel Target together should be the same size, and should
     // together be able to store the result of the material evaluation

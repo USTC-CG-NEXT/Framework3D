@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <variant>
 
 #include "api.hpp"
 #include "entt/core/type_info.hpp"

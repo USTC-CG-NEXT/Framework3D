@@ -28,8 +28,8 @@
 #pragma once
 #include "Core/Macros.h"
 #include "Core/Enum.h"
-#include "Utils/Properties.h"
-#include "Utils/Debug/PixelDebug.h"
+#include "utils/Properties.h"
+#include "utils/Debug/PixelDebug.h"
 #include "Scene/Scene.h"
 #include <memory>
 #include <type_traits>

@@ -23,17 +23,19 @@
 //
 #include "config.h"
 
-#include "pxr/base/tf/envSetting.h"
-#include "pxr/base/tf/instantiateSingleton.h"
-
 #include <algorithm>
 #include <iostream>
 
+#include "pxr/base/tf/envSetting.h"
+#include "pxr/base/tf/instantiateSingleton.h"
+
+// Instantiate the config singleton.
+namespace pxrInternal_v0_24_11__pxrReserved__ {
+TF_INSTANTIATE_SINGLETON(USTC_CG::Hd_USTC_CG_Config);
+}
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
-// Instantiate the config singleton.
-TF_INSTANTIATE_SINGLETON(Hd_USTC_CG_Config);
-
 // Each configuration variable has an associated environment variable.
 // The environment variable macro takes the variable name, a default value,
 // and a description...
@@ -50,13 +52,14 @@ TF_DEFINE_ENV_SETTING(
 TF_DEFINE_ENV_SETTING(
     Hd_USTC_CG_AMBIENT_OCCLUSION_SAMPLES,
     16,
-    "Ambient occlusion samples per camera ray (must be >= 0; a value of 0 disables ambient occlusion)")
-;
+    "Ambient occlusion samples per camera ray (must be >= 0; a value of 0 "
+    "disables ambient occlusion)");
 
 TF_DEFINE_ENV_SETTING(
     Hd_USTC_CG_JITTER_CAMERA,
     1,
-    "Should Hd_USTC_CG jitter camera rays while rendering? (values >0 are true)");
+    "Should Hd_USTC_CG jitter camera rays while rendering? (values >0 are "
+    "true)");
 
 TF_DEFINE_ENV_SETTING(
     Hd_USTC_CG_USE_FACE_COLORS,
@@ -76,44 +79,33 @@ TF_DEFINE_ENV_SETTING(
 Hd_USTC_CG_Config::Hd_USTC_CG_Config()
 {
     // Read in values from the environment, clamping them to valid ranges.
-    samplesToConvergence = std::max(
-        1,
-        TfGetEnvSetting(Hd_USTC_CG_SAMPLES_TO_CONVERGENCE));
-    tileSize = std::max(
-        1,
-        TfGetEnvSetting(Hd_USTC_CG_TILE_SIZE));
-    ambientOcclusionSamples = std::max(
-        0,
-        TfGetEnvSetting(Hd_USTC_CG_AMBIENT_OCCLUSION_SAMPLES));
+    samplesToConvergence =
+        std::max(1, TfGetEnvSetting(Hd_USTC_CG_SAMPLES_TO_CONVERGENCE));
+    tileSize = std::max(1, TfGetEnvSetting(Hd_USTC_CG_TILE_SIZE));
+    ambientOcclusionSamples =
+        std::max(0, TfGetEnvSetting(Hd_USTC_CG_AMBIENT_OCCLUSION_SAMPLES));
     jitterCamera = (TfGetEnvSetting(Hd_USTC_CG_JITTER_CAMERA) > 0);
     useFaceColors = (TfGetEnvSetting(Hd_USTC_CG_USE_FACE_COLORS) > 0);
-    cameraLightIntensity = (std::max(
-                                100,
-                                TfGetEnvSetting(
-                                    Hd_USTC_CG_CAMERA_LIGHT_INTENSITY)) / 100.0f);
+    cameraLightIntensity =
+        (std::max(100, TfGetEnvSetting(Hd_USTC_CG_CAMERA_LIGHT_INTENSITY)) /
+         100.0f);
 
-    if (TfGetEnvSetting(Hd_USTC_CG_PRINT_CONFIGURATION) > 0)
-    {
-        std::cout
-            << "Hd_USTC_CG Configuration: \n"
-            << "  samplesToConvergence       = "
-            << samplesToConvergence << "\n"
-            << "  tileSize                   = "
-            << tileSize << "\n"
-            << "  ambientOcclusionSamples    = "
-            << ambientOcclusionSamples << "\n"
-            << "  jitterCamera               = "
-            << jitterCamera << "\n"
-            << "  useFaceColors              = "
-            << useFaceColors << "\n"
-            << "  cameraLightIntensity      = "
-            << cameraLightIntensity << "\n";
+    if (TfGetEnvSetting(Hd_USTC_CG_PRINT_CONFIGURATION) > 0) {
+        std::cout << "Hd_USTC_CG Configuration: \n"
+                  << "  samplesToConvergence       = " << samplesToConvergence
+                  << "\n"
+                  << "  tileSize                   = " << tileSize << "\n"
+                  << "  ambientOcclusionSamples    = "
+                  << ambientOcclusionSamples << "\n"
+                  << "  jitterCamera               = " << jitterCamera << "\n"
+                  << "  useFaceColors              = " << useFaceColors << "\n"
+                  << "  cameraLightIntensity      = " << cameraLightIntensity
+                  << "\n";
     }
 }
 
 /*static*/
-const Hd_USTC_CG_Config&
-Hd_USTC_CG_Config::GetInstance()
+const Hd_USTC_CG_Config& Hd_USTC_CG_Config::GetInstance()
 {
     return TfSingleton<Hd_USTC_CG_Config>::GetInstance();
 }

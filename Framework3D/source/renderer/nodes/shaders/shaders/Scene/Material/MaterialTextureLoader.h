@@ -28,7 +28,7 @@
 #pragma once
 #include "Core/Macros.h"
 #include "Scene/Material/Material.h"
-#include "Utils/Image/TextureManager.h"
+#include "utils/Image/TextureManager.h"
 #include <filesystem>
 #include <vector>
 

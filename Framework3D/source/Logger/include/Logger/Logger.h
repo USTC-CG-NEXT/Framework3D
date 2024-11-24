@@ -1,6 +1,6 @@
 #pragma once
 
-#include <__msvc_chrono.hpp>
+#include <chrono>
 #include <functional>
 #include <iostream>
 

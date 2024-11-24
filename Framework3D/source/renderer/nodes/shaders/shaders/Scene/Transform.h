@@ -27,9 +27,9 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Math/Matrix.h"
-#include "Utils/Math/Quaternion.h"
+#include "utils/Math/Vector.h"
+#include "utils/Math/Matrix.h"
+#include "utils/Math/Quaternion.h"
 
 namespace Falcor
 {

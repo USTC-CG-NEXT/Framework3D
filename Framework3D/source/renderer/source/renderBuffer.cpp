@@ -27,7 +27,6 @@
 
 #include "RHI/Hgi/format_conversion.hpp"
 #include "RHI/rhi.hpp"
-#include "Windows.h"
 #include "pxr/base/gf/half.h"
 #include "renderParam.h"
 

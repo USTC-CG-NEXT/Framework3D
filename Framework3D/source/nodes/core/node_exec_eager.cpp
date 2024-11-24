@@ -81,14 +81,14 @@ void EagerNodeTreeExecutor::forward_output_to_input(Node* node)
                 auto directly_linked_input_socket =
                     output->directly_linked_sockets[i];
 
-                if (std::string(directly_linked_input_socket->Node->typeinfo
+                if (std::string(directly_linked_input_socket->node->typeinfo
                                     ->id_name) == "func_storage_in") {
                     need_to_keep_alive = true;
                 }
 
                 if (index_cache.find(directly_linked_input_socket) !=
                     index_cache.end()) {
-                    if (directly_linked_input_socket->Node->REQUIRED) {
+                    if (directly_linked_input_socket->node->REQUIRED) {
                         last_used_id = std::max(
                             last_used_id,
                             int(index_cache[directly_linked_input_socket]));
@@ -109,12 +109,12 @@ void EagerNodeTreeExecutor::forward_output_to_input(Node* node)
                     else if (
                         input_state.value.type() &&
                         input_state.value.type() != value_to_forward.type()) {
-                        directly_linked_input_socket->Node->execution_failed =
+                        directly_linked_input_socket->node->execution_failed =
                             "Type mismatch input";
                         input_state.is_forwarded = false;
                     }
                     else {
-                        directly_linked_input_socket->Node
+                        directly_linked_input_socket->node
                             ->execution_failed = {};
 
                         if (is_last_target) {
@@ -186,7 +186,7 @@ void EagerNodeTreeExecutor::compile(NodeTree* tree)
                 assert(input->directly_linked_sockets.size() <= 1);
                 for (auto directly_linked_socket :
                      input->directly_linked_sockets) {
-                    directly_linked_socket->Node->REQUIRED = true;
+                    directly_linked_socket->node->REQUIRED = true;
                 }
             }
         }
@@ -248,9 +248,9 @@ void EagerNodeTreeExecutor::refresh_storage()
     for (int i = 0; i < input_of_nodes_to_execute.size(); ++i) {
         auto socket = input_of_nodes_to_execute[i];
         if (!socket->type_info) {
-            if (std::string(socket->Node->typeinfo->id_name) ==
+            if (std::string(socket->node->typeinfo->id_name) ==
                 "func_storage_in") {
-                auto node = socket->Node;
+                auto node = socket->node;
                 entt::meta_any data;
                 if (!socket->directly_linked_sockets.empty()) {
                     auto input = node->get_inputs()[0];
@@ -285,9 +285,9 @@ void EagerNodeTreeExecutor::try_storage()
     for (int i = 0; i < input_of_nodes_to_execute.size(); ++i) {
         auto socket = input_of_nodes_to_execute[i];
         if (!socket->type_info) {
-            if (std::string(socket->Node->typeinfo->id_name) ==
+            if (std::string(socket->node->typeinfo->id_name) ==
                 "func_storage_in") {
-                auto node = socket->Node;
+                auto node = socket->node;
                 entt::meta_any data;
                 sync_node_to_external_storage(
                     input_of_nodes_to_execute[i], data);

@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Utils/HostDeviceShared.slangh"
+#include "utils/HostDeviceShared.slangh"
 
 BEGIN_NAMESPACE_FALCOR
 

@@ -8,7 +8,7 @@
 #include <entt/meta/policy.hpp>
 #include <entt/meta/resolve.hpp>
 
-#include "Utils/Logger/Logger.h"
+#include "utils/Logger/Logger.h"
 #include "boost/python/object.hpp"
 #include "gtest/gtest.h"
 

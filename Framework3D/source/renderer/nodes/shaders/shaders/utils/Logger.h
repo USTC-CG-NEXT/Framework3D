@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Utils/StringFormatters.h"
+#include "utils/StringFormatters.h"
 #include <format>
 #include <string_view>
 #include <filesystem>

@@ -33,7 +33,7 @@
 
 #include "Core/Pass/ComputePass.h"
 
-#include "Utils/Algorithm/ParallelReduction.h"
+#include "utils/Algorithm/ParallelReduction.h"
 #include <memory>
 
 namespace Falcor

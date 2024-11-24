@@ -185,7 +185,7 @@ void Node::generate_socket_group_based_on_declaration(
                    socket->type_info == socket_declaration.type;
         });
     if (old_socket != old_sockets.end()) {
-        (*old_socket)->Node = this;
+        (*old_socket)->node = this;
         new_socket = *old_socket;
         new_socket->type_info = socket_declaration.type;
         socket_declaration.update_default_value(new_socket);
@@ -209,7 +209,7 @@ NodeSocket* Node::add_socket(
     strcpy(socket->identifier, identifier);
     strcpy(socket->ui_name, name);
     socket->in_out = in_out;
-    socket->Node = this;
+    socket->node = this;
 
     register_socket_to_node(socket, in_out);
     return socket;

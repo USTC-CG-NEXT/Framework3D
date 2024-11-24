@@ -2,7 +2,6 @@
 
 #include "camera.h"
 #include "node_exec_eager_render.hpp"
-#include "nvrhi/d3d12.h"
 #include "pxr/imaging/hd/renderBuffer.h"
 #include "pxr/imaging/hd/tokens.h"
 #include "renderBuffer.h"

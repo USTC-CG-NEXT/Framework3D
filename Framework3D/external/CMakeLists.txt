@@ -1,6 +1,8 @@
 set(EIGEN_BUILD_DOC OFF CACHE BOOL "" FORCE)
 add_subdirectory(eigen)
-target_compile_options (eigen INTERFACE /wd5054)
+if (WIN32)
+    target_compile_options(eigen INTERFACE /wd5054)
+endif()
 # glfw
 add_subdirectory(glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -11,11 +13,16 @@ set_target_properties(glfw update_mappings PROPERTIES FOLDER "external/GLFW3")
 set_target_properties(glfw update_mappings PROPERTIES ${OUTPUT_DIR})
 
 # nvrhi (with vulkan headers)
-set(NVRHI_WITH_NVAPI ON)
+if (WIN32)
+    set(NVRHI_WITH_NVAPI ON)
+endif()
 set(NVRHI_BUILD_SHARED ON CACHE INTERNAL "Override default shared build of nvrhi")
 add_subdirectory(nvrhi)
 set_target_properties(nvrhi PROPERTIES ${OUTPUT_DIR})
-target_link_libraries(nvrhi PUBLIC NVAPI::NVAPI)
+
+if (WIN32)
+    target_link_libraries(nvrhi PUBLIC NVAPI::NVAPI)
+endif()
 
 # imgui
 set(imgui_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/imgui" CACHE STRING "")

@@ -26,8 +26,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Utils/HostDeviceShared.slangh"
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/HostDeviceShared.slangh"
+#include "utils/Math/MathConstants.slangh"
 
 __exported import Scene.SDFs.SDF3DPrimitiveCommon;
 import Utils.SDF.SDF3DShapes;

@@ -31,8 +31,8 @@
 #include "LightBVHBuilder.h"
 #include "LightBVHSamplerSharedDefinitions.slang"
 #include "Core/Macros.h"
-#include "Utils/Properties.h"
-#include "Utils/Math/AABB.h"
+#include "utils/Properties.h"
+#include "utils/Math/AABB.h"
 #include "Scene/Lights/LightCollection.h"
 #include <memory>
 

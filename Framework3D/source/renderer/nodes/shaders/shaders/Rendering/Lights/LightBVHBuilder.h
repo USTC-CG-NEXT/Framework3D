@@ -34,8 +34,8 @@
 #include "Core/Enum.h"
 #include "Core/Macros.h"
 #include "LightBVH.h"
-#include "Utils/Math/AABB.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/AABB.h"
+#include "utils/Math/Vector.h"
 #include "utils/UI/Gui.h"
 
 namespace Falcor {

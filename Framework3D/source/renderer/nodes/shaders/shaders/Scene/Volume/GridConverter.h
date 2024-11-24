@@ -30,11 +30,11 @@
 #include "BC4Encode.h"
 
 
-#include "Utils/Logger.h"
-#include "Utils/HostDeviceShared.slangh"
-#include "Utils/NumericRange.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Timing/CpuTimer.h"
+#include "utils/Logger.h"
+#include "utils/HostDeviceShared.slangh"
+#include "utils/NumericRange.h"
+#include "utils/Math/Vector.h"
+#include "utils/Timing/CpuTimer.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)

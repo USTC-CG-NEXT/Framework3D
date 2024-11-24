@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>  // for std::move
+#include <cstdint>    // for uintptr_t
 #include <type_traits>
 
 #include "nodes/core/api.h"

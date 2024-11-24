@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 
-#include "Utils/HostDeviceShared.slangh"
+#include "utils/HostDeviceShared.slangh"
 
 #define SAMPLE_GENERATOR_TINY_UNIFORM 0
 #define SAMPLE_GENERATOR_UNIFORM 1

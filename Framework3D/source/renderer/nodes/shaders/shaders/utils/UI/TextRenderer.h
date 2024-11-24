@@ -31,7 +31,7 @@
 
 
 #include "Core/Pass/RasterPass.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 
 namespace Falcor
 {

@@ -32,7 +32,7 @@
 
 #include "Core/Macros.h"
 #include "ProgramReflection.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 
 namespace Falcor {
 class ParameterBlock;

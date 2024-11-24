@@ -32,7 +32,7 @@
 #include "Core/Macros.h"
 #include "Core/Object.h"
 #include "EnvMapData.slang"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 
 namespace Falcor {
 struct ShaderVar;

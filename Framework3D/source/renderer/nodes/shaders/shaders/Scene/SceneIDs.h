@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Utils/ObjectID.h"
+#include "utils/ObjectID.h"
 #include <cstdint>
 
 // Scene1 IDs are now defined in scene1 namespace, so places that need to distinguish multiple MeshIDs can.

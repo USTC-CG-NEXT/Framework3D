@@ -29,7 +29,7 @@
 #include "GridVolumeSamplerParams.slang"
 #include "Core/Macros.h"
 #include "Core/Program/DefineList.h"
-#include "Utils/Properties.h"
+#include "utils/Properties.h"
 #include "Scene/Scene.h"
 
 namespace Falcor

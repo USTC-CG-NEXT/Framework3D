@@ -31,8 +31,8 @@
 #include "Core/Macros.h"
 #include "Core/Object.h"
 
-#include "Utils/Math/AABB.h"
-#include "Utils/Math/Matrix.h"
+#include "utils/Math/AABB.h"
+#include "utils/Math/Matrix.h"
 
 
 #ifdef _MSC_VER

@@ -64,9 +64,9 @@
 #define STD_NAMESPACE std::
 
 #include "Core/Enum.h"
-#include "Utils/Math/ScalarMath.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Math/Matrix.h"
+#include "utils/Math/ScalarMath.h"
+#include "utils/Math/Vector.h"
+#include "utils/Math/Matrix.h"
 #include <algorithm>
 
 namespace Falcor

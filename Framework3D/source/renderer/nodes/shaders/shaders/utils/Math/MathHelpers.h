@@ -30,7 +30,7 @@
 #include "Vector.h"
 #include "Matrix.h"
 #include "Core/Error.h"
-#include "Utils/Logger.h"
+#include "utils/Logger.h"
 
 namespace Falcor
 {

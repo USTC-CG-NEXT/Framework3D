@@ -4,7 +4,7 @@
 
 #include "RHI/internal/resources.hpp"
 #include "RHI/rhi.hpp"
-#include "rhi/api.h"
+#include "RHI/api.h"
 #include "shader_reflection.hpp"
 #include <nvrhi/nvrhi.h>
 

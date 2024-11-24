@@ -27,8 +27,8 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Color/SampledSpectrum.h"
+#include "utils/Math/Vector.h"
+#include "utils/Color/SampledSpectrum.h"
 
 #include <imgui.h>
 #include <string>

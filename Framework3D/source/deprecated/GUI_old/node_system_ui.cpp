@@ -24,7 +24,7 @@
 #include "Nodes/node.hpp"
 #include "Nodes/node_exec_eager.hpp"
 #include "Nodes/node_socket.hpp"
-#include "Utils/json.hpp"
+#include "utils/json.hpp"
 #include "imgui_impl_opengl3_loader.h"
 #include "node_system_ui.h"
 #include "pxr/usd/usd/attribute.h"

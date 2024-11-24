@@ -1,12 +1,12 @@
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 
 #include "Logger/Logger.h"
 #include "entt/meta/factory.hpp"
-#include "node.hpp"
 #include "nodes/core/api.h"
 #include "socket.hpp"
 
@@ -34,12 +34,15 @@ template<typename TYPE>
 inline void register_cpp_type()
 {
     entt::meta<TYPE>(get_entt_ctx()).type(entt::type_hash<TYPE>());
-    assert(
-        entt::hashed_string{ typeid(TYPE).name() } == entt::type_hash<TYPE>());
+    if (!entt::hashed_string{ typeid(TYPE).name() } ==
+        entt::type_hash<TYPE>()) {
+        log::error("register type failed: %s", typeid(TYPE).name());
+        std::cerr << "register type failed: " << typeid(TYPE).name() << std::endl;
+    }
 }
 
 template<typename T>
-SocketType get_socket_type()
+NODES_CORE_API SocketType get_socket_type()
 {
     auto type =
         entt::resolve(get_entt_ctx(), entt::type_hash<std::decay_t<T>>());
@@ -53,7 +56,7 @@ SocketType get_socket_type()
     return type;
 }
 
-NODES_CORE_API inline SocketType get_socket_type(const char* t);
+NODES_CORE_API SocketType get_socket_type(const char* t);
 NODES_CORE_API std::string get_type_name(SocketType);
 
 template<>

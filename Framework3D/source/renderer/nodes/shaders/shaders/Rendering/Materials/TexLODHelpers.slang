@@ -39,7 +39,7 @@
     See WhittedRayTracer.* for an example using these functions.
 */
 
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 import Rendering.Materials.TexLODTypes;
 import Scene.SceneTypes; // Needed for ray bounce helpers.
 

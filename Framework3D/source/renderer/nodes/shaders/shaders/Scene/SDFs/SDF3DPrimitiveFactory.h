@@ -28,9 +28,9 @@
 #pragma once
 #include "SDF3DPrimitiveCommon.slang"
 #include "Core/Macros.h"
-#include "Utils/Math/AABB.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/SDF/SDFOperationType.slang"
+#include "utils/Math/AABB.h"
+#include "utils/Math/Vector.h"
+#include "utils/SDF/SDFOperationType.slang"
 #include "Scene/Transform.h"
 
 namespace Falcor

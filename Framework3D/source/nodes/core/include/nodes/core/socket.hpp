@@ -23,7 +23,7 @@ struct NODES_CORE_API NodeSocket {
     std::vector<NodeSocket*> directly_linked_sockets;
 
     SocketID ID;
-    Node* Node;
+    Node* node;
 
     SocketType type_info;
     PinKind in_out;
@@ -39,7 +39,7 @@ struct NODES_CORE_API NodeSocket {
         : identifier{},
           ui_name{},
           ID(id),
-          Node(nullptr),
+          node(nullptr),
           in_out(PinKind::Input)
     {
     }

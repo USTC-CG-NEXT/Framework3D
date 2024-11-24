@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 #include <bitset>
 
 namespace Falcor

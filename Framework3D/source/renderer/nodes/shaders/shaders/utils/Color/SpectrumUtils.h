@@ -29,8 +29,8 @@
 #include "SampledSpectrum.h"
 #include "Core/Macros.h"
 #include "Core/Error.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Color/ColorUtils.h"
+#include "utils/Math/Vector.h"
+#include "utils/Color/ColorUtils.h"
 #include <algorithm>
 #include <functional>
 #include <type_traits>

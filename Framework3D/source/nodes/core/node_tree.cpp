@@ -199,8 +199,8 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
 {
     SetDirty(true);
 
-    auto fromnode = fromsock->Node;
-    auto tonode = tosock->Node;
+    auto fromnode = fromsock->node;
+    auto tonode = tosock->node;
 
     if (fromsock->in_out == PinKind::Input) {
         std::swap(fromnode, tonode);
@@ -329,7 +329,7 @@ void NodeTree::delete_node(NodeId nodeId)
 
 bool NodeTree::can_create_link(NodeSocket* a, NodeSocket* b)
 {
-    if (!a || !b || a == b || a->in_out == b->in_out || a->Node == b->Node)
+    if (!a || !b || a == b || a->in_out == b->in_out || a->node == b->node)
         return false;
 
     auto in = a->in_out == PinKind::Input ? a : b;
@@ -499,7 +499,7 @@ static void toposort_from_start_node(
 
             NodeSocket& linked_socket =
                 *socket.directly_linked_sockets[item.link_index];
-            Node& linked_node = *linked_socket.Node;
+            Node& linked_node = *linked_socket.node;
             if (handle_linked_node(linked_node)) {
                 /* The linked node has already been visited. */
                 item.link_index++;

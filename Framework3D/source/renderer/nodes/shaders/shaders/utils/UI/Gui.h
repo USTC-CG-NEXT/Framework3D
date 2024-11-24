@@ -35,8 +35,8 @@
 
 #include "Core/Enum.h"
 #include "Core/Macros.h"
-#include "Utils/Color/SampledSpectrum.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Color/SampledSpectrum.h"
+#include "utils/Math/Vector.h"
 
 struct ImFont;
 

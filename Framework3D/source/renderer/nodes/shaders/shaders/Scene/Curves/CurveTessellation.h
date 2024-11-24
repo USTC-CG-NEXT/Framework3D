@@ -27,9 +27,9 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Utils/Math/Matrix.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/fast_vector.h"
+#include "utils/Math/Matrix.h"
+#include "utils/Math/Vector.h"
+#include "utils/fast_vector.h"
 #include <vector>
 
 namespace Falcor

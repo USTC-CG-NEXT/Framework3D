@@ -32,7 +32,7 @@
 
 #include "Core/Macros.h"
 #include "Device.h"
-#include "Utils/Math/VectorTypes.h"
+#include "utils/Math/VectorTypes.h"
 #include "utils/CudaRuntime.h"
 
 #if FALCOR_HAS_CUDA

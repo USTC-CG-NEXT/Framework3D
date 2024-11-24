@@ -25,11 +25,11 @@
 #define PXR_IMAGING_PLUGIN_HD_EMBREE_RENDER_BUFFER_H
 
 #include "api.h"
-#include "nvrhi/d3d12.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/renderBuffer.h"
 #include "pxr/pxr.h"
 
+#include <nvrhi/nvrhi.h>
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
 class Hd_USTC_CG_RenderBuffer : public HdRenderBuffer {

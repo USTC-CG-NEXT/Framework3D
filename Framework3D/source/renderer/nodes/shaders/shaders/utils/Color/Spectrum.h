@@ -27,9 +27,9 @@
  **************************************************************************/
 #pragma once
 #include "Core/Macros.h"
-#include "Utils/Math/Common.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Color/ColorUtils.h"
+#include "utils/Math/Common.h"
+#include "utils/Math/Vector.h"
+#include "utils/Color/ColorUtils.h"
 #include <span> // TODO C++20: Replace with <span>
 #include <algorithm>
 #include <filesystem>

@@ -28,7 +28,7 @@
 #pragma once
 
 #include "Core/Error.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 #include <array>
 
 namespace Falcor

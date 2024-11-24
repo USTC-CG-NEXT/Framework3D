@@ -1,7 +1,5 @@
 #pragma once
 
-#include <complex.h>
-
 #include <memory>
 #include <string>
 

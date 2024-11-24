@@ -30,7 +30,7 @@
 */
 
 #pragma once
-#include "Utils/HostDeviceShared.slangh"
+#include "utils/HostDeviceShared.slangh"
 
 BEGIN_NAMESPACE_FALCOR
 

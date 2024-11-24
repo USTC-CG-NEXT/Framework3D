@@ -1,9 +1,5 @@
 #include "RHI/ShaderFactory/shader.hpp"
 
-#include <Windows.h>
-#include <dxcapi.h>
-#include <wrl.h>
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -15,7 +11,6 @@
 #include "slang-com-ptr.h"
 #include "slang.h"
 
-using namespace Microsoft::WRL;
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

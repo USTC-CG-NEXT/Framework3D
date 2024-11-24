@@ -5,7 +5,7 @@
 #include <pxr/imaging/hgi/types.h>
 
 #include "RHI/Hgi/format_conversion.hpp"
-#include "rhi/api.h"
+#include "RHI/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace RHI {

@@ -29,8 +29,8 @@
 #include "Grid.h"
 #include "GridVolumeData.slang"
 #include "Core/Macros.h"
-#include "Utils/Math/AABB.h"
-#include "Utils/Math/Matrix.h"
+#include "utils/Math/AABB.h"
+#include "utils/Math/Matrix.h"
 
 #include "Scene/Animation/Animatable.h"
 #include <array>

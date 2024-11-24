@@ -1,7 +1,6 @@
 #pragma once
 
 #define SLANG_PRELUDE_NAMESPACE CPPPrelude
-#include <wrl.h>
 
 #include <RHI/ShaderFactory/shader_reflection.hpp>
 #include <filesystem>
@@ -10,7 +9,7 @@
 #include "map.h"
 #include "nvrhi/nvrhi.h"
 #include "nvrhi_patch.hpp"
-#include "rhi/api.h"
+#include "RHI/api.h"
 #include "slang-com-ptr.h"
 #include "slang-cpp-prelude.h"
 #include "slang-cpp-types.h"
@@ -98,7 +97,7 @@ class RHI_API IProgram : public nvrhi::IResource {
     virtual nvrhi::ShaderDesc get_shader_desc() const = 0;
     virtual void const* getBufferPointer() const = 0;
     virtual size_t getBufferSize() const = 0;
-    virtual [[nodiscard]] const std::string& get_error_string() const = 0;
+    virtual const std::string& get_error_string() const = 0;
     virtual const ShaderReflectionInfo& get_reflection_info() const = 0;
 };
 

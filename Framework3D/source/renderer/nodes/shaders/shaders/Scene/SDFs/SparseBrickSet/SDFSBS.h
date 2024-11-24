@@ -29,7 +29,7 @@
 
 #include "Core/Pass/ComputePass.h"
 #include "Scene/SDFs/SDFGrid.h"
-#include "Utils/Algorithm/PrefixSum.h"
+#include "utils/Algorithm/PrefixSum.h"
 
 namespace Falcor
 {

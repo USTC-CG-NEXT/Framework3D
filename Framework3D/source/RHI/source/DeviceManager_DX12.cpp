@@ -47,6 +47,8 @@ freely, subject to the following restrictions:
    distribution.
 */
 
+#ifdef _WIN32
+
 #include <Logger/Logger.h>
 #include <RHI/DeviceManager/DeviceManager.h>
 #include <Windows.h>
@@ -682,3 +684,5 @@ DeviceManager* DeviceManager::CreateD3D12(void)
 }
 #endif
 USTC_CG_NAMESPACE_CLOSE_SCOPE
+
+#endif

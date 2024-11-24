@@ -4,3 +4,4 @@ USTC_CG_ADD_LIB(
 	COMPILE_DEFS
 		NOMINMAX 
 )
+target_compile_options(render_nodes_facilities PRIVATE -fPIC)

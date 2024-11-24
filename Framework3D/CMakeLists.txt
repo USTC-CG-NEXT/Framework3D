@@ -89,9 +89,15 @@ find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
 message("Python3_EXECUTABLE is ${Python3_EXECUTABLE}")
 
 find_package(Vulkan)
+if(Vulkan_FOUND)
+  message("Found Vulkan version ${Vulkan_VERSION}")
+else()
+  message("Vulkan not found")
+endif()
 set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})
 find_package(pxr)
 if(pxr_FOUND)
+  message("Found OpenUSD version ${pxr_VERSION}")
   find_package(OpenGL REQUIRED)
   set(USTC_CG_WITH_OPENUSD ON)
   if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -108,7 +114,10 @@ endif()
 # Include Slang
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-find_package(NVAPI REQUIRED)
+if(WIN32)
+  find_package(NVAPI REQUIRED)
+endif()
+
 set(SLANG_ROOT_DIR ${PROJECT_SOURCE_DIR}/SDK/slang)
 find_package(Slang REQUIRED COMPONENTS slang slang-rt gfx)
 

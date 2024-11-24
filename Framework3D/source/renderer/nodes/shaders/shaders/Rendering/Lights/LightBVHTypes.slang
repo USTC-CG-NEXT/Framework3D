@@ -26,10 +26,10 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Utils/HostDeviceShared.slangh"
+#include "utils/HostDeviceShared.slangh"
 
 #ifdef HOST_CODE
-#include "Utils/Math/PackedFormats.h"
+#include "utils/Math/PackedFormats.h"
 #else
 import Utils.Math.PackedFormats;
 #endif

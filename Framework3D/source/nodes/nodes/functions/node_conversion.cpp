@@ -19,7 +19,7 @@
 #include "Nodes/socket_types/render_socket_types.hpp"
 #include "Nodes/socket_types/stage_socket_types.hpp"
 #include "RCore/Backend.hpp"
-#include "Utils/CUDA/CUDAException.h"
+#include "utils/CUDA/CUDAException.h"
 #include "boost/python/numpy.hpp"
 #include "func_node_base.h"
 #include "nvrhi/utils.h"

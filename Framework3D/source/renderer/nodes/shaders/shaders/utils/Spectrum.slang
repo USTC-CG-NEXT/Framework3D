@@ -1,5 +1,5 @@
 #ifdef __cplusplus
-#include <pxr/base/gf/Vec3f.h>
+#include <pxr/base/gf/vec3f.h>
 
 struct ISpectrum
 {

@@ -28,8 +28,8 @@
 #pragma once
 
 #include "Core/Error.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Math/Matrix.h"
+#include "utils/Math/Vector.h"
+#include "utils/Math/Matrix.h"
 
 /**
  * Color conversion utility functions.

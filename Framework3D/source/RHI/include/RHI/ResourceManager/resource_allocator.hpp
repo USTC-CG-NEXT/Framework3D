@@ -11,7 +11,7 @@
 #include "RHI/ShaderFactory/shader.hpp"
 #include "RHI/internal/nvrhi_equality.hpp"
 #include "RHI/internal/resources.hpp"
-#include "rhi/api.h"
+#include "RHI/api.h"
 
 #ifdef USTC_CG_BACKEND_NVRHI
 #include <nvrhi/nvrhi.h>

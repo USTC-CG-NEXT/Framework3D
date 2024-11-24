@@ -28,7 +28,7 @@
 #pragma once
 #include "EmissiveLightSampler.h"
 #include "Core/Macros.h"
-#include "Utils/Properties.h"
+#include "utils/Properties.h"
 #include "Scene/Lights/LightCollection.h"
 
 namespace Falcor

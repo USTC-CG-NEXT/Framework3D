@@ -47,7 +47,7 @@ std::function<Func> DynamicLibraryLoader::getFunction(
     if (!funcPtr) {
         return nullptr;
     }
-    return reinterpret_cast<Func>(funcPtr);
+    return reinterpret_cast<Func*>(funcPtr);
 #endif
 }
 

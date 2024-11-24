@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 
-#include "rhi/api.h"
+#include "RHI/api.h"
 #include "slang.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

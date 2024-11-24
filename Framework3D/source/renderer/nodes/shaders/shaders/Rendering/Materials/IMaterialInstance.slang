@@ -25,7 +25,7 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "Utils/HostDeviceShared.slangh" // For bit packing macros
+#include "utils/HostDeviceShared.slangh" // For bit packing macros
 
 __exported import Scene.ShadingData;
 __exported import Scene.Material.ShadingUtils;

@@ -418,8 +418,8 @@ bool NodeWidget::BuildUI()
         ImGui::Separator();
         if (pin) {
             ImGui::Text("ID: %p", pin->ID.AsPointer());
-            if (pin->Node)
-                ImGui::Text("Node: %p", pin->Node->ID.AsPointer());
+            if (pin->node)
+                ImGui::Text("Node: %p", pin->node->ID.AsPointer());
             else
                 ImGui::Text("Node: %s", "<none>");
         }

@@ -35,7 +35,7 @@
     This is work in progress. The code is not very well-tested.
 */
 
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 
 import Scene.Lights.LightData;
 import Utils.Math.MathHelpers;

@@ -25,7 +25,7 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "Utils/NVAPI.slangh" // We need this to get interlocked compare exchange for uint64.
+#include "utils/NVAPI.slangh" // We need this to get interlocked compare exchange for uint64.
 
 import Scene.SDFs.SDFVoxelCommon;
 import Utils.Math.HashUtils;

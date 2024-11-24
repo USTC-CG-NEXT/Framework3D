@@ -14,7 +14,7 @@
 #include <typeindex>
 #include <utility>
 
-#include "Utils/CUDA/CUDAException.h"
+#include "utils/CUDA/CUDAException.h"
 
 #pragma once
 

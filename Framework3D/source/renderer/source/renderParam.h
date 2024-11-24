@@ -26,7 +26,6 @@
 #include "RHI/rhi.hpp"
 #include "api.h"
 #include "nodes/system/node_system.hpp"
-#include "nvrhi/d3d12.h"
 #include "pxr/imaging/hd/renderDelegate.h"
 #include "pxr/imaging/hd/renderThread.h"
 #include "pxr/pxr.h"

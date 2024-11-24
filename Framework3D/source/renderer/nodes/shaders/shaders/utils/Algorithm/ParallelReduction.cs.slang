@@ -34,7 +34,7 @@
  * - FORMAT_TYPE <type>    Texture format type. See ParallelReductionType.slangh.
  */
 #include "ParallelReductionType.slangh"
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 
 cbuffer PerFrameCB
 {

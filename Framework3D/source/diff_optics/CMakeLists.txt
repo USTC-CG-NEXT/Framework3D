@@ -3,3 +3,4 @@ USTC_CG_ADD_LIB(
 	PUBLIC_LIBS GUI gf RHI SLANG::slang
 
 )
+target_compile_options(diff_optics PRIVATE -fPIC)

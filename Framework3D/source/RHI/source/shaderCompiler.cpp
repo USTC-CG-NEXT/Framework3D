@@ -1,6 +1,6 @@
 #include "shaderCompiler.h"
 
-#include "rhi/api.h"
+#include "RHI/api.h"
 
 #ifdef _WIN32
 #include <codecvt>

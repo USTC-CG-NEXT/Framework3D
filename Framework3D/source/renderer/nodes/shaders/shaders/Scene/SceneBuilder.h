@@ -38,10 +38,10 @@
 #include "Core/Macros.h"
 #include "Core/AssetResolver.h"
 
-#include "Utils/Math/AABB.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Math/Matrix.h"
-#include "Utils/Settings/Settings.h"
+#include "utils/Math/AABB.h"
+#include "utils/Math/Vector.h"
+#include "utils/Math/Matrix.h"
+#include "utils/Settings/Settings.h"
 
 #include <pybind11/pytypes.h>
 

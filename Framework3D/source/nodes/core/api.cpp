@@ -1,7 +1,7 @@
 #include "nodes/core/api.hpp"
 
-#include "nodes/core/node_exec_eager.hpp"
 #include "nodes/core/node.hpp"
+#include "nodes/core/node_exec_eager.hpp"
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/core/socket.hpp"
@@ -17,6 +17,7 @@ entt::meta_ctx& get_entt_ctx()
 
 SocketType get_socket_type(const char* t)
 {
+    log::info("get_socket_type with type name: %s", t);
     if (std::string(t).empty()) {
         return SocketType();
     }

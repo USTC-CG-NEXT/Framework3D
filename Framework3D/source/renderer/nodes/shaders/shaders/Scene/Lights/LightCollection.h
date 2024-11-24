@@ -37,7 +37,7 @@
 #include "Core/State/GraphicsState.h"
 #include "ILightCollection.h"
 #include "MeshLightData.slang"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 
 namespace Falcor {
 class Scene;

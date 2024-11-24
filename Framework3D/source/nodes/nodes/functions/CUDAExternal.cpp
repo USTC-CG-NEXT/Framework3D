@@ -14,7 +14,7 @@ using HANDLE = int;
 
 #include <unordered_map>
 
-#include "Utils/CUDA/CUDAException.h"
+#include "utils/CUDA/CUDAException.h"
 #include "nvrhi/nvrhi.h"
 
 inline std::wstring string_2_wstring(const std::string& s)

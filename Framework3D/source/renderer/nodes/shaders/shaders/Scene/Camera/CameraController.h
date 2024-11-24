@@ -28,9 +28,9 @@
 #pragma once
 #include "Camera.h"
 #include "Core/Macros.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/Math/Matrix.h"
-#include "Utils/Timing/CpuTimer.h"
+#include "utils/Math/Vector.h"
+#include "utils/Math/Matrix.h"
+#include "utils/Timing/CpuTimer.h"
 #include <bitset>
 #include <memory>
 

@@ -428,6 +428,7 @@ void UsdviewEngine::Animate(float elapsed_time_seconds)
 
 void UsdviewEngine::CreateGLContext()
 {
+#ifdef _WIN32
     HDC hdc = GetDC(GetConsoleWindow());
     PIXELFORMATDESCRIPTOR pfd;
     ZeroMemory(&pfd, sizeof(pfd));
@@ -442,6 +443,7 @@ void UsdviewEngine::CreateGLContext()
 
     HGLRC hglrc = wglCreateContext(hdc);
     wglMakeCurrent(hdc, hglrc);
+#endif
 }
 
 UsdviewEngine::~UsdviewEngine()

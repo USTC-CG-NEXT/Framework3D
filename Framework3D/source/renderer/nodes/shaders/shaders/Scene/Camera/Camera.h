@@ -30,11 +30,11 @@
 
 #include "CameraData.slang"
 #include "Core/Macros.h"
-#include "Utils/Math/AABB.h"
-#include "Utils/Math/Matrix.h"
-#include "Utils/Math/Ray.h"
-#include "Utils/Math/Vector.h"
-#include "Utils/SampleGenerators/CPUSampleGenerator.h"
+#include "utils/Math/AABB.h"
+#include "utils/Math/Matrix.h"
+#include "utils/Math/Ray.h"
+#include "utils/Math/Vector.h"
+#include "utils/SampleGenerators/CPUSampleGenerator.h"
 
 namespace Falcor {
 struct ShaderVar;

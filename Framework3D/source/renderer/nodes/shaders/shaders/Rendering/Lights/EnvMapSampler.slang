@@ -33,7 +33,7 @@
     for importance sampling.
 */
 
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 import Scene.Scene;
 import Utils.Math.MathHelpers;
 

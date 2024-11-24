@@ -37,7 +37,7 @@
  * and shared memory to shuffle between warps.
  * Shuffles are not yet available in shader model 6.0+, we therefore rely on NVAPI.
  */
-#include "Utils/NVAPI.slangh" // We need this to get shuffle-xor operations.
+#include "utils/NVAPI.slangh" // We need this to get shuffle-xor operations.
 
 #if (NV_WARP_SIZE != 32)
 #error Kernel assumes warp size 32

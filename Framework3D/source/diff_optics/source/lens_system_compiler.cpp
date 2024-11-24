@@ -158,7 +158,7 @@ std::tuple<std::string, CompiledDataBlock> LensSystemCompiler::compile(
 
     std::string header = R"(
 #include "utils/random.slangh"
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 #include "utils/ray.h"
 import Utils.Math.MathHelpers;
 )";

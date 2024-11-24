@@ -28,7 +28,7 @@
 #pragma once
 
 #include "Error.h"
-#include "Utils/Logger.h"
+#include "utils/Logger.h"
 #include <span>
 #include <string>
 #include <string_view>

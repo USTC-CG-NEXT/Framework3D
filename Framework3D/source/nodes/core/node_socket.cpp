@@ -4,6 +4,7 @@
 #include "nodes/core/api.h"
 #include "nodes/core/api.hpp"
 #include "nodes/core/node.hpp"
+#include "nodes/core/node_tree.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 

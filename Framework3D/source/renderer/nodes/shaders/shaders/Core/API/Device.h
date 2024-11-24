@@ -42,7 +42,7 @@
 
 #include "Core/Enum.h"
 #include "Core/Platform/OS.h"
-#include "Utils/Math/VectorTypes.h"
+#include "utils/Math/VectorTypes.h"
 #include "slang-com-ptr.h"
 
 namespace Falcor {

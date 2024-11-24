@@ -24,8 +24,6 @@
 #ifndef Hd_USTC_CG_RENDER_DELEGATE_H
 #define Hd_USTC_CG_RENDER_DELEGATE_H
 
-#include <complex.h>
-
 #include "api.h"
 #include "nodes/system/node_system.hpp"
 #include "nvrhi/nvrhi.h"

@@ -3,7 +3,7 @@
 #include <nodes/core/node_exec.hpp>
 
 NODE_DEF_OPEN_SCOPE
-__declspec(dllexport) const char* node_ui_name()
+NODE_DECLARATION_UI(add)
 {
     return "Add";
 }

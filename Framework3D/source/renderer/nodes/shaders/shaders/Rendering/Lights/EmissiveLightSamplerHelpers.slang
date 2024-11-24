@@ -35,7 +35,7 @@
      struct (representing the "base" class that "derived" classes can use).
  */
 
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 
 import Scene.Scene;
 __exported import Scene.Lights.LightCollection;

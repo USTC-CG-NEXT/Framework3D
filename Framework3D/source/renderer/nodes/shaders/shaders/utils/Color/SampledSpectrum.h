@@ -27,8 +27,8 @@
  **************************************************************************/
 #pragma once
 #include "Core/Error.h"
-#include "Utils/Math/Common.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Common.h"
+#include "utils/Math/Vector.h"
 #include <type_traits>
 #include <vector>
 #include <cmath>

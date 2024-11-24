@@ -2,7 +2,7 @@
 
 #include <nvrhi/nvrhi.h>
 
-#include "rhi/api.h"
+#include "RHI/api.h"
 
 namespace vk {
 class Image;

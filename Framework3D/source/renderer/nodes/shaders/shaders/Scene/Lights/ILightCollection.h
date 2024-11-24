@@ -28,7 +28,7 @@
 #pragma once
 #include "MeshLightData.slang"
 #include "Core/Object.h"
-#include "Utils/Math/VectorTypes.h"
+#include "utils/Math/VectorTypes.h"
 
 #include <sigs/sigs.h>
 

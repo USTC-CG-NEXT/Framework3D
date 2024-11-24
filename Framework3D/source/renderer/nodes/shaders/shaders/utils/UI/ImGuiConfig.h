@@ -31,7 +31,7 @@
 // We use this to provide implicit conversion between ImGui's vector types
 // and Falcor's vector types.
 
-#include "Utils/Math/VectorTypes.h"
+#include "utils/Math/VectorTypes.h"
 
 // clang-format off
 #define IM_VEC2_CLASS_EXTRA                                                             \

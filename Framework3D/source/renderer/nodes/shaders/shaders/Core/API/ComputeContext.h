@@ -29,7 +29,7 @@
 #include "CopyContext.h"
 #include "Core/Macros.h"
 #include "Device.h"
-#include "Utils/Math/Vector.h"
+#include "utils/Math/Vector.h"
 
 namespace Falcor {
 class ComputeState;

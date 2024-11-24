@@ -48,7 +48,7 @@ freely, subject to the following restrictions:
 */
 
 #pragma once
-#include "rhi/api.h"
+#include "RHI/api.h"
 
 #if USTC_CG_WITH_DX11 || USTC_CG_WITH_DX12
 #include <DXGI.h>

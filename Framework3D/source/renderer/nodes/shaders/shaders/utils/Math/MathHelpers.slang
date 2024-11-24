@@ -40,7 +40,7 @@
 
 // Include math constants (M_PI etc.). These are for use in this file only,
 // as macro definitions are not exported from a Slang module.
-#include "Utils/Math/MathConstants.slangh"
+#include "utils/Math/MathConstants.slangh"
 
 /******************************************************************************
 
