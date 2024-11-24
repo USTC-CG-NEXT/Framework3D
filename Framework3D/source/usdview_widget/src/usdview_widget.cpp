@@ -205,6 +205,10 @@ void UsdviewEngine::OnFrame(float delta_time)
     renderer_->SetLightingState(lights, material, sceneAmbient);
     renderer_->SetRendererAov(HdAovTokens->color);
 
+    for (auto&& setting : settings) {
+        renderer_->SetRendererSetting(setting.first, setting.second);
+    }
+
     UsdPrim root = root_stage_->GetPseudoRoot();
 
     renderer_->Render(root, _renderParams);
@@ -478,6 +482,7 @@ void UsdviewEngine::set_renderer_setting(
     const pxr::TfToken& id,
     const pxr::VtValue& value)
 {
+    settings[id] = value;
     renderer_->SetRendererSetting(id, value);
 }
 
