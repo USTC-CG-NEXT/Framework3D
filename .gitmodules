@@ -34,3 +34,6 @@
 [submodule "Framework3D/external/glm"]
 	path = Framework3D/external/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Framework3D/external/nanobind"]
+	path = Framework3D/external/nanobind
+	url = https://github.com/wjakob/nanobind.git
