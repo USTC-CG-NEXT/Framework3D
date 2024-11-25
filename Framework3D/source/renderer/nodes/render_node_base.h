@@ -99,7 +99,7 @@ inline BufferHandle create_buffer(
     buffer_desc.byteSize = count * sizeof(T);
     buffer_desc.isVertexBuffer = isVertexBuffer;
     buffer_desc.initialState = nvrhi::ResourceStates::ShaderResource;
-    buffer_desc.debugName = typeid(T).name();
+    buffer_desc.debugName = type_name<T>().data();
     buffer_desc.structStride = sizeof(T);
     buffer_desc.keepInitialState = true;
 
@@ -164,7 +164,7 @@ create_counter_buffer(ExeParams& params, size_t max_size)
     nvrhi::BufferDesc storage_buffer = nvrhi::BufferDesc();
     storage_buffer.byteSize = max_size * sizeof(T);
     storage_buffer.initialState = nvrhi::ResourceStates::UnorderedAccess;
-    storage_buffer.debugName = typeid(T).name();
+    storage_buffer.debugName = type_name<T>().data();
     storage_buffer.cpuAccess = nvrhi::CpuAccessMode::Write;
     storage_buffer.canHaveUAVs = true;
     storage_buffer.structStride = sizeof(T);

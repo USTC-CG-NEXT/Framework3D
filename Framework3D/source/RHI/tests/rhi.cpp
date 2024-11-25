@@ -17,6 +17,7 @@ TEST(CreateRHI, create_rhi_with_window)
     EXPECT_TRUE(USTC_CG::RHI::shutdown());
 }
 
+#ifndef __linux__
 TEST(CreateRHI, create_rhi_with_dx12)
 {
     EXPECT_TRUE(USTC_CG::RHI::init(false, true));
@@ -32,3 +33,4 @@ TEST(CreateRHI, create_rhi_with_window_and_dx12)
     EXPECT_TRUE(USTC_CG::RHI::internal::get_device_manager() != nullptr);
     EXPECT_TRUE(USTC_CG::RHI::shutdown());
 }
+#endif

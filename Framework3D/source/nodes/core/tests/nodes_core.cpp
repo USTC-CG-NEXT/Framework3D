@@ -26,22 +26,22 @@ TEST_F(NodeCoreTest, TYPENAME)
     auto type = get_socket_type<int>();
     ASSERT_TRUE(type);
 
-    type = get_socket_type(entt::hashed_string{ typeid(int).name() });
+    type = get_socket_type(entt::hashed_string{ type_name<int>().data() });
 
     ASSERT_TRUE(type);
 
     // std::string
     register_cpp_type<std::string>();
     auto type2 =
-        get_socket_type(entt::hashed_string{ typeid(std::string).name() });
+        get_socket_type(entt::hashed_string{ type_name<std::string>().data() });
     ASSERT_TRUE(type2);
 
     // false
-    auto type3 = get_socket_type(entt::hashed_string{ typeid(float).name() });
+    auto type3 = get_socket_type(entt::hashed_string{ type_name<float>().data() });
     ASSERT_FALSE(type3);
 
     ASSERT_EQ(
-        entt::hashed_string{ typeid(float).name() }, entt::type_hash<float>());
+        entt::hashed_string{ type_name<float>().data() }, entt::type_hash<float>());
 }
 
 TEST_F(NodeCoreTest, RegisterCppType)

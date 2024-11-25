@@ -220,7 +220,7 @@ class Decl : public SocketDeclaration {
     NodeSocket* build(NodeTree* ntree, Node* node) const override
     {
         NodeSocket* socket = node->add_socket(
-            typeid(T).name(),
+            type_name<T>().data(),
             this->identifier.c_str(),
             this->name.c_str(),
             this->in_out);

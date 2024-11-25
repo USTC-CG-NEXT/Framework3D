@@ -36,8 +36,8 @@
 #define CONVERSION_FUNC_NAME(from, to)                               \
     USTC_CG_EXPORT std::string node_id_name_##from##_to_##to()       \
     {                                                                \
-        return "conv_" + std::string(typeid(from).name()) + "_to_" + \
-               std::string(typeid(to).name());                       \
+        return "conv_" + std::string(type_name<from>().data()) + "_to_" + \
+               std::string(type_name<to>().data());                       \
     }
 
 #define NODE_DECLARATION_REQUIRED(name)        \

@@ -9,6 +9,6 @@ GeometryComponentHandle VolumeComponet::copy(Geometry* operand) const
 
 std::string VolumeComponet::to_string() const
 {
-    return std::string(typeid(decltype(*this)).name());
+    return std::string(type_name<decltype(*this)>().data());
 }
 USTC_CG_NAMESPACE_CLOSE_SCOPE

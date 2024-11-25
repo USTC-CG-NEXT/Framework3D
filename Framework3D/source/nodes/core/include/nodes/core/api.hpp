@@ -7,6 +7,7 @@
 
 #include "Logger/Logger.h"
 #include "entt/meta/factory.hpp"
+#include "gtest/gtest.h"
 #include "nodes/core/api.h"
 #include "socket.hpp"
 
@@ -30,14 +31,23 @@ struct NodeSocket;
 
 NODES_CORE_API entt::meta_ctx& get_entt_ctx();
 
+// A wrapper for returnning the stripped string, instead of a string_view
+template<typename T>
+inline std::string type_name()
+{
+    return { entt::type_name<T>::value().data(),
+             entt::type_name<T>::value().size() };
+}
+
 template<typename TYPE>
 inline void register_cpp_type()
 {
     entt::meta<TYPE>(get_entt_ctx()).type(entt::type_hash<TYPE>());
-    if (!entt::hashed_string{ typeid(TYPE).name() } ==
+    if (!entt::hashed_string{ type_name<TYPE>().data() } ==
         entt::type_hash<TYPE>()) {
-        log::error("register type failed: %s", typeid(TYPE).name());
-        std::cerr << "register type failed: " << typeid(TYPE).name() << std::endl;
+        log::error("register type failed: %s", type_name<TYPE>().data());
+        std::cerr << "register type failed: " << type_name<TYPE>().data()
+                  << std::endl;
     }
 }
 
@@ -48,7 +58,7 @@ SocketType get_socket_type()
         entt::resolve(get_entt_ctx(), entt::type_hash<std::decay_t<T>>());
     if (!type) {
         register_cpp_type<std::decay_t<T>>();
-        log::info("register type: %s", typeid(T).name());
+        log::info("register type: %s", type_name<T>().data());
         type =
             entt::resolve(get_entt_ctx(), entt::type_hash<std::decay_t<T>>());
         assert(type);
