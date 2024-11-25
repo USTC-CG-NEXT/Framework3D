@@ -9,3 +9,5 @@ CMakeSettings.json
 SDK.zip
 *.user
 .cache/
+*.exr
+__pycache__/
