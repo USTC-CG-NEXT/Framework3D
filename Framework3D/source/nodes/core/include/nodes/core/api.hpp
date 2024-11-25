@@ -7,7 +7,6 @@
 
 #include "Logger/Logger.h"
 #include "entt/meta/factory.hpp"
-#include "gtest/gtest.h"
 #include "nodes/core/api.h"
 #include "socket.hpp"
 
