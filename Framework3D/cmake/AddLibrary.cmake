@@ -161,7 +161,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         target_link_libraries(${name}_py PRIVATE Python3::Python)
         target_link_libraries(nanobind-static PRIVATE Python3::Python)
         message("Output directory: ${OUTPUT_DIR}")
-        #set_target_properties(${name}_py PROPERTIES ${OUTPUT_DIR})
+        set_target_properties(${name}_py PROPERTIES ${OUTPUT_DIR})
         set(Python_EXECUTABLE ${Python3_EXECUTABLE})
         nanobind_add_stub(
             ${name}_py_stub
