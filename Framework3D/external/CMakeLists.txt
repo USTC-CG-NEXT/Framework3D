@@ -56,3 +56,6 @@ add_subdirectory(entt)
 add_subdirectory(glm)
 set_target_properties(glm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set_target_properties(glm PROPERTIES ${OUTPUT_DIR})
+
+
+add_subdirectory(nanobind)

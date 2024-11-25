@@ -55,10 +55,13 @@ function(UCG_ADD_TEST)
         ${test_name}_test
     )
 endfunction(UCG_ADD_TEST)
+
+
+
 function(USTC_CG_ADD_LIB LIB_NAME)
     set(options SHARED)
     set(oneValueArgs RESOURCE_COPY_TARGET)
-    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS COMPILE_DEFS USD_RESOURCE_DIRS USD_RESOURCE_FILES SKIP_DIRS)
+    set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS COMPILE_DEFS USD_RESOURCE_DIRS USD_RESOURCE_FILES SKIP_DIRS PYTHON_WRAP_SRC PYTHON_WRAP_DIR)
     cmake_parse_arguments(USTC_CG_ADD_LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     if(NOT LIB_NAME)
@@ -68,7 +71,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     set(name ${LIB_NAME})
 
     set(folder ${CMAKE_CURRENT_SOURCE_DIR})
-    
+
     file(GLOB_RECURSE ${name}_src_headers ${folder}/*.h)
     file(GLOB_RECURSE ${name}_cpp_sources ${folder}/*.cpp)
 
@@ -79,6 +82,21 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         list(FILTER ${name}_src_headers EXCLUDE REGEX "${resource_dir}/.*")
         list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${resource_dir}/.*")
     endforeach()
+
+    if(USTC_CG_ADD_LIB_PYTHON_WRAP_DIR)
+        file(GLOB_RECURSE DIRED_PYTHON_WRAP_SRC ${USTC_CG_ADD_LIB_PYTHON_WRAP_DIR}/*.cpp)
+        list(APPEND USTC_CG_ADD_LIB_PYTHON_WRAP_SRC ${DIRED_PYTHON_WRAP_SRC})
+    endif()
+    if(USTC_CG_ADD_LIB_PYTHON_WRAP_SRC)
+        list(FILTER USTC_CG_ADD_LIB_PYTHON_WRAP_SRC EXCLUDE REGEX "${folder}/tests/.*")
+        foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
+            list(FILTER USTC_CG_ADD_LIB_PYTHON_WRAP_SRC EXCLUDE REGEX "${skip_dir}/.*")
+        endforeach()
+    endif()
+
+    if(USTC_CG_ADD_LIB_PYTHON_WRAP_DIR)
+        list(APPEND USTC_CG_ADD_LIB_SKIP_DIRS ${USTC_CG_ADD_LIB_PYTHON_WRAP_DIR})
+    endif()
     foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
         list(FILTER ${name}_src_headers EXCLUDE REGEX "${skip_dir}/.*")
         list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${skip_dir}/.*")
@@ -136,6 +154,24 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         PRIVATE ${USTC_CG_ADD_LIB_PRIVATE_LIBS}
     )
     set_target_properties(${name} PROPERTIES ${OUTPUT_DIR})
+
+    if(USTC_CG_ADD_LIB_PYTHON_WRAP_SRC)
+        nanobind_add_module(${name}_py ${USTC_CG_ADD_LIB_PYTHON_WRAP_SRC})
+        target_link_libraries(${name}_py PRIVATE ${name})
+        target_link_libraries(${name}_py PRIVATE Python3::Python)
+        target_link_libraries(nanobind-static PRIVATE Python3::Python)
+        message("Output directory: ${OUTPUT_DIR}")
+        #set_target_properties(${name}_py PROPERTIES ${OUTPUT_DIR})
+        set(Python_EXECUTABLE ${Python3_EXECUTABLE})
+        nanobind_add_stub(
+            ${name}_py_stub
+            MODULE ${name}_py
+            OUTPUT ${name}_py.pyi
+            PYTHON_PATH $<TARGET_FILE_DIR:${name}_py>
+            DEPENDS ${name}_py
+        )
+        
+    endif()
 
     file(GLOB test_sources ${folder}/tests/*.cpp)
     foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
