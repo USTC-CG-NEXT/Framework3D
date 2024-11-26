@@ -11,3 +11,4 @@ SDK.zip
 .cache/
 *.exr
 __pycache__/
+.pytest_cache/
