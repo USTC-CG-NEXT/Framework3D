@@ -166,7 +166,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         nanobind_add_stub(
             ${name}_py_stub
             MODULE ${name}_py
-            OUTPUT ${name}_py.pyi
+            OUTPUT ${OUT_BINARY_DIR}/${name}_py.pyi
             PYTHON_PATH $<TARGET_FILE_DIR:${name}_py>
             DEPENDS ${name}_py
         )
