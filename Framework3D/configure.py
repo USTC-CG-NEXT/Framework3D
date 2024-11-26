@@ -12,9 +12,18 @@ def copytree_common_to_binaries(folder, target="Debug", dst=None, dry_run=False)
     if dry_run:
         print(f"[DRY RUN] Would copy {folder} to {dst_path}")
     else:
-        shutil.copytree(
-            os.path.join(root_dir, "SDK", folder), dst_path, dirs_exist_ok=True
-        )
+        src_path = os.path.join(root_dir, "SDK", folder)
+        for root, dirs, files in os.walk(src_path):
+            relative_path = os.path.relpath(root, src_path)
+            dst_dir = os.path.join(dst_path, relative_path)
+            os.makedirs(dst_dir, exist_ok=True)
+            for file in files:
+                if file.endswith(".lib"):
+                    print(f"Skipping {os.path.join(root, file)}")
+                    continue
+                src_file = os.path.join(root, file)
+                dst_file = os.path.join(dst_dir, file)
+                shutil.copy2(src_file, dst_file)
         print(f"Copied {folder} to {dst_path}")
 
 
