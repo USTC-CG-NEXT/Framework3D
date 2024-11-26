@@ -9,7 +9,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Window;
 
-class GUI_API IWidget {
+class IWidget {
    public:
     IWidget()
     {

@@ -1,4 +1,8 @@
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/tuple.h>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/map.h>
+#include <nanobind/stl/shared_ptr.h>
 
 #include "diff_optics/lens_system_compiler.hpp"
 #include "nanobind/nanobind.h"
@@ -20,30 +24,6 @@ NB_MODULE(diff_optics_py, m)
             overload_cast<const std::filesystem::path&>(
                 &LensSystem::deserialize))
         .def("set_default", &LensSystem::set_default);
-
-    // class_<LensLayer>(m, "LensLayer")
-    //     .def("set_axis", &LensLayer::set_axis)
-    //     .def("set_pos", &LensLayer::set_pos)
-    //     .def("deserialize", &LensLayer::deserialize)
-    //     .def("fill_block_data", &LensLayer::fill_block_data);
-
-    // class_<NullLayer, LensLayer>(m, "NullLayer")
-    //     .def(nanobind::init<float, float>());
-
-    // class_<Occluder, LensLayer>(m, "Occluder")
-    //     .def(nanobind::init<float, float, float>())
-    //     .def("deserialize", &Occluder::deserialize)
-    //     .def("fill_block_data", &Occluder::fill_block_data);
-
-    // class_<SphericalLens, LensLayer>(m, "SphericalLens")
-    //     .def(nanobind::init<float, float, float, float>())
-    //     .def("deserialize", &SphericalLens::deserialize)
-    //     .def("fill_block_data", &SphericalLens::fill_block_data);
-
-    // class_<FlatLens, LensLayer>(m, "FlatLens")
-    //     .def(nanobind::init<float, float, float>())
-    //     .def("deserialize", &FlatLens::deserialize)
-    //     .def("fill_block_data", &FlatLens::fill_block_data);
 
     class_<LensSystemCompiler>(m, "LensSystemCompiler")
         .def(nanobind::init<>())
