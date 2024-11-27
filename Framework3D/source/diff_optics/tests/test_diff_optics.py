@@ -41,6 +41,3 @@ def test_shader_compile():
     m = slangtorch.loadModule("lens_shader.slang", includePaths=["./usd/hd_USTC_CG/resources/shaders"])
     assert m is not None
     
-    
-    
-    

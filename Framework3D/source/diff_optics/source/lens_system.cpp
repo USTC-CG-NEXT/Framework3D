@@ -236,19 +236,21 @@ void FlatLens::EmitShader(
     int id,
     std::string& constant_buffer,
     std::string& execution,
+    std::string& data_load,
     LensSystemCompiler* compiler)
 {
-    constant_buffer +=
-        compiler->emit_line("float diameter_" + std::to_string(id), 1);
-    constant_buffer +=
-        compiler->emit_line("float center_pos_" + std::to_string(id), 1);
-    // Optical Properties
+    auto add_data_load_and_constant_buffer = [&](const std::string& name) {
+        data_load += compiler->emit_line(
+            "data." + name + "_" + std::to_string(id) + " = tensor[uint(" +
+            std::to_string(compiler->cb_size) + ")]");
+        constant_buffer +=
+            compiler->emit_line("float " + name + "_" + std::to_string(id), 1);
+    };
 
-    constant_buffer += compiler->emit_line(
-        "float optical_property_" + std::to_string(id) + "_refractive_index;",
-        1);
-    constant_buffer += compiler->emit_line(
-        "float optical_property_" + std::to_string(id) + "_abbe_number;", 1);
+    add_data_load_and_constant_buffer("diameter");
+    add_data_load_and_constant_buffer("center_pos");
+    add_data_load_and_constant_buffer("optical_property_refractive_index");
+    add_data_load_and_constant_buffer("optical_property_abbe_number");
 
     if (id == 1) {
         assert(false);  // Not implemented
@@ -257,17 +259,16 @@ void FlatLens::EmitShader(
         execution += compiler->emit_line(
             std::string("float relative_refractive_index_") +
             std::to_string(id) + " = get_relative_refractive_index(" +
-            "lens_system_data.optical_property_" + std::to_string(id - 1) +
-            "_refractive_index, " + "lens_system_data.optical_property_" +
-            std::to_string(id) + "_refractive_index);");
+            "data.optical_property_refractive_index_" + std::to_string(id - 1) +
+            ", " + "data.optical_property_refractive_index_" +
+            std::to_string(id) + ");");
 
         execution += compiler->emit_line(
             "next_ray = intersect_flat(ray, weight, t, "
-            "lens_system_data.diameter_" +
-            std::to_string(id) + ", lens_system_data.center_pos_" +
-            std::to_string(id) + ", " + "relative_refractive_index_" +
-            std::to_string(id) + ", " + "lens_system_data.optical_property_" +
-            std::to_string(id) + "_abbe_number);");
+            "data.diameter_" +
+            std::to_string(id) + ", data.center_pos_" + std::to_string(id) +
+            ", " + "relative_refractive_index_" + std::to_string(id) + ", " +
+            "data.optical_property_abbe_number_" + std::to_string(id) + ");");
     }
 }
 
@@ -401,11 +402,18 @@ void NullLayer::EmitShader(
     int id,
     std::string& constant_buffer,
     std::string& execution,
+    std::string& data_load,
     LensSystemCompiler* compiler)
 {
-    constant_buffer += compiler->emit_line(
-        "float optical_property_" + std::to_string(id) + "_refractive_index;",
-        1);
+    auto add_data_load_and_constant_buffer = [&](const std::string& name) {
+        data_load += compiler->emit_line(
+            "data." + name + "_" + std::to_string(id) + " = tensor[uint(" +
+            std::to_string(compiler->cb_size) + ")]");
+        constant_buffer +=
+            compiler->emit_line("float " + name + "_" + std::to_string(id), 1);
+    };
+
+    add_data_load_and_constant_buffer("optical_property_refractive_index");
 }
 
 void NullLayer::fill_block_data(float* ptr)
@@ -581,15 +589,20 @@ void Occluder::EmitShader(
     int id,
     std::string& constant_buffer,
     std::string& execution,
+    std::string& data_load,
     LensSystemCompiler* compiler)
 {
-    constant_buffer +=
-        compiler->emit_line("float radius_" + std::to_string(id), 1);
-    constant_buffer +=
-        compiler->emit_line("float center_pos_" + std::to_string(id), 1);
-    constant_buffer += compiler->emit_line(
-        "float optical_property_" + std::to_string(id) + "_refractive_index;",
-        1);
+    auto add_data_load_and_constant_buffer = [&](const std::string& name) {
+        data_load += compiler->emit_line(
+            "data." + name + "_" + std::to_string(id) + " = tensor[uint(" +
+            std::to_string(compiler->cb_size) + ")]");
+        constant_buffer +=
+            compiler->emit_line("float " + name + "_" + std::to_string(id), 1);
+    };
+
+    add_data_load_and_constant_buffer("radius");
+    add_data_load_and_constant_buffer("center_pos");
+    add_data_load_and_constant_buffer("optical_property_refractive_index");
 
     if (id == 1) {
         throw std::runtime_error("Not implemented");
@@ -597,8 +610,8 @@ void Occluder::EmitShader(
     else {
         execution += compiler->emit_line(
             std::string("next_ray = intersect_occluder(ray, weight, t, ") +
-            "lens_system_data.radius_" + std::to_string(id) + ", " +
-            "lens_system_data.center_pos_" + std::to_string(id) + ")");
+            "data.radius_" + std::to_string(id) + ", " + "data.center_pos_" +
+            std::to_string(id) + ")");
     }
 }
 
@@ -608,34 +621,27 @@ void Occluder::fill_block_data(float* ptr)
     ptr[1] = center_pos[0];
     ptr[2] = optical_property.refractive_index;
 }
-
 void SphericalLens::EmitShader(
     int id,
     std::string& constant_buffer,
     std::string& execution,
+    std::string& data_load,
     LensSystemCompiler* compiler)
 {
-    constant_buffer +=
-        compiler->emit_line("float diameter_" + std::to_string(id), 1);
-    constant_buffer += compiler->emit_line(
-        "float radius_of_curvature_" + std::to_string(id), 1);
-
-    constant_buffer +=
-        compiler->emit_line("float theta_range_" + std::to_string(id), 1);
-    constant_buffer +=
-        compiler->emit_line("float sphere_center_" + std::to_string(id), 1);
-
-    // center_pos
-    constant_buffer +=
-        compiler->emit_line("float center_pos_" + std::to_string(id), 1);
-
-    //// Also optical parameters
-
-    constant_buffer += compiler->emit_line(
-        "float optical_property_" + std::to_string(id) + "_refractive_index;",
-        1);
-    constant_buffer += compiler->emit_line(
-        "float optical_property_" + std::to_string(id) + "_abbe_number;", 1);
+    auto add_data_load_and_constant_buffer = [&](const std::string& name) {
+        data_load += compiler->emit_line(
+            "data." + name + "_" + std::to_string(id) + " = tensor[uint(" +
+            std::to_string(compiler->cb_size) + ")]");
+        constant_buffer +=
+            compiler->emit_line("float " + name + "_" + std::to_string(id), 1);
+    };
+    add_data_load_and_constant_buffer("diameter");
+    add_data_load_and_constant_buffer("radius_of_curvature");
+    add_data_load_and_constant_buffer("theta_range");
+    add_data_load_and_constant_buffer("sphere_center");
+    add_data_load_and_constant_buffer("center_pos");
+    add_data_load_and_constant_buffer("optical_property_refractive_index");
+    add_data_load_and_constant_buffer("optical_property_abbe_number");
 
     if (id == 1) {
         // Sample the target points with the first lens radius, and then
@@ -645,18 +651,18 @@ void SphericalLens::EmitShader(
         execution += compiler->emit_line("float2 seed2 = random_float2(seed);");
         execution += compiler->emit_line(
             std::string("float2 target_pos = sample_disk(seed2) * ") +
-            "lens_system_data.diameter_" + std::to_string(id) + "/2.0f");
+            "data.diameter_" + std::to_string(id) + "/2.0f");
 
         //  the weight is the area of the disk
         execution += compiler->emit_line(
-            std::string("weight *= M_PI* ") + "lens_system_data.diameter_" +
-            std::to_string(id) + "/2.0f * lens_system_data.diameter_" +
-            std::to_string(id) + "/2.0f");
+            std::string("weight *= M_PI* ") + "data.diameter_" +
+            std::to_string(id) + "/2.0f * data.diameter_" + std::to_string(id) +
+            "/2.0f");
 
         execution += compiler->emit_line(
             "float3 sampled_point_" + std::to_string(id) +
-            " = float3(target_pos.x, target_pos.y, " +
-            "lens_system_data.center_pos_" + std::to_string(id) + ");");
+            " = float3(target_pos.x, target_pos.y, " + "data.center_pos_" +
+            std::to_string(id) + ");");
 
         execution += compiler->emit_line(
             "ray.Direction = normalize(sampled_point_" + std::to_string(id) +
@@ -667,18 +673,17 @@ void SphericalLens::EmitShader(
     execution += compiler->emit_line(
         std::string("float relative_refractive_index_") + std::to_string(id) +
         " = get_relative_refractive_index(" +
-        "lens_system_data.optical_property_" + std::to_string(id - 1) +
-        "_refractive_index, " + "lens_system_data.optical_property_" +
-        std::to_string(id) + "_refractive_index);");
+        "data.optical_property_refractive_index_" + std::to_string(id - 1) +
+        ", " + "data.optical_property_refractive_index_" + std::to_string(id) +
+        ");");
 
     execution += compiler->emit_line(
         std::string("next_ray =  intersect_sphere(ray, weight, t, ") +
-        "lens_system_data.radius_of_curvature_" + std::to_string(id) + ", " +
-        "lens_system_data.sphere_center_" + std::to_string(id) + ", " +
-        "lens_system_data.theta_range_" + std::to_string(id) + ", " +
+        "data.radius_of_curvature_" + std::to_string(id) + ", " +
+        "data.sphere_center_" + std::to_string(id) + ", " +
+        "data.theta_range_" + std::to_string(id) + ", " +
         "relative_refractive_index_" + std::to_string(id) + ", " +
-        +"lens_system_data.optical_property_" + std::to_string(id) +
-        "_abbe_number);");
+        "data.optical_property_abbe_number_" + std::to_string(id) + ");");
 }
 
 void SphericalLens::fill_block_data(float* ptr)

@@ -25,7 +25,8 @@
 #include "matrix_op.h"
 #include "utils/CameraParameters.h"
 #include "utils/random.slangh"
-#include "utils/ray.h"
+import utils.ray;
+import utils.Spectrum;
 #include "utils/view_cb.h"
 
 import Utils.Math.MathHelpers;

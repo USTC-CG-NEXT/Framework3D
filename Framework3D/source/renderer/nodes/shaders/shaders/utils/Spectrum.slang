@@ -26,6 +26,7 @@ struct RGBSpectrum : ISpectrum
 {
     float3 data;
 
+    [Differentiable]
     float3 toFloat3()
     {
         return data;

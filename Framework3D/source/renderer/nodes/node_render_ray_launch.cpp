@@ -4,7 +4,7 @@
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/HitObject.h"
-#include "shaders/shaders/utils/ray.h"
+#include "shaders/shaders/utils/ray.slang"
 
 #define WITH_NVAPI 1
 

@@ -23,7 +23,7 @@
 // ---[ Structures ]---
 #include "matrix_op.h"
 #include "utils/HitObject.h"
-#include "utils/ray.h"
+import utils.ray;
 #include "utils/view_cb.h"
 
 RaytracingAccelerationStructure SceneBVH : register(t0);

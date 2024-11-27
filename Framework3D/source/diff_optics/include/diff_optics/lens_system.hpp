@@ -62,6 +62,7 @@ class LensLayer {
         int id,
         std::string& constant_buffer,
         std::string& execution,
+        std::string& data_load,
         LensSystemCompiler* compiler) = 0;
     void set_axis(float axis_pos);
     void set_pos(float x);
@@ -90,6 +91,7 @@ class NullLayer : public LensLayer {
         int id,
         std::string& constant_buffer,
         std::string& execution,
+        std::string& data_load,
         LensSystemCompiler* compiler);
 
    private:
@@ -129,6 +131,7 @@ class Occluder : public LensLayer {
         int id,
         std::string& constant_buffer,
         std::string& execution,
+        std::string& data_load,
         LensSystemCompiler* compiler) override;
 
     void fill_block_data(float* ptr) override;
@@ -156,6 +159,7 @@ class SphericalLens : public LensLayer {
         int id,
         std::string& constant_buffer,
         std::string& execution,
+        std::string& data_load,
         LensSystemCompiler* compiler) override;
     void fill_block_data(float* ptr) override;
 
@@ -188,6 +192,7 @@ class FlatLens : public LensLayer {
         int id,
         std::string& constant_buffer,
         std::string& execution,
+        std::string& data_load,
         LensSystemCompiler* compiler);
 
     void fill_block_data(float* ptr) override;
@@ -222,7 +227,7 @@ class LensSystem {
     void deserialize(const std::filesystem::path& path);
     void set_default();
 
-private:
+   private:
     std::unique_ptr<LensSystemGUI> gui;
     std::vector<std::shared_ptr<LensLayer>> lenses;
 

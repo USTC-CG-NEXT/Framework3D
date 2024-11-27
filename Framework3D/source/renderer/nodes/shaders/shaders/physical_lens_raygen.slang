@@ -1,5 +1,6 @@
 
 import lens_shader;
+import utils.ray;
 #include "utils/CameraParameters.h"
 import Utils.Math.MathHelpers;
 #include "utils/random.slangh"
@@ -7,6 +8,8 @@ import Utils.Math.MathHelpers;
 
 RWStructuredBuffer<RayInfo> rays;
 RWTexture2D<uint> random_seeds;
+
+ConstantBuffer<LensSystemData> lens_system_data;
 
 RWStructuredBuffer<uint2> pixel_targets;
 ConstantBuffer<PlanarViewConstants> viewConstant;
@@ -24,7 +27,7 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
         uint seed = random_seeds[LaunchIndex];
 
         RayInfo ray;
-        ray = raygen(LaunchIndex, weight, seed);
+        ray = raygen(LaunchIndex, weight, seed, lens_system_data);
         ray.throughput = { weight };
         ray.Direction.z *= -1;
         // ray.Direction.xy *= -1;

@@ -6,7 +6,7 @@
 #include "nodes/core/def/node_def.hpp"
 #include "render_node_base.h"
 #include "renderer/compute_context.hpp"
-#include "shaders/shaders/utils/ray.h"
+#include "shaders/shaders/utils/ray.slang"
 
 NODE_DEF_OPEN_SCOPE
 

@@ -4,7 +4,7 @@
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
 #include "shaders/shaders/utils/CameraParameters.h"
-#include "shaders/shaders/utils/ray.h"
+#include "shaders/shaders/utils/ray.slang"
 #include "shaders/shaders/utils/view_cb.h"
 #include "utils/cam_to_view_contants.h"
 #include "utils/math.h"

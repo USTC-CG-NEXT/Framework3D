@@ -1,3 +1,4 @@
+[Differentiable]
 float get_relative_refractive_index(
     float refract_id_last,
     float refract_id_this)

@@ -1,6 +1,10 @@
 #pragma once
 #include "cpp_shader_macro.h"
-#include "ray.h"
+#ifndef __cplusplus
+import utils.ray;
+#else
+#include "utils/ray.slang"
+#endif
 
 struct HitObjectInfo {
 #ifdef __cplusplus

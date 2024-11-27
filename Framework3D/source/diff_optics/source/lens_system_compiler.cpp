@@ -2,144 +2,19 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 const std::string LensSystemCompiler::sphere_intersection = R"(
-
-RayInfo intersect_sphere(
-    RayInfo ray,
-    inout float3 weight,
-    inout float t,
-    float radius,
-    float center_pos,
-    float alpha_range,
-    float refractive_index,
-    float abbe_number)
-{
-    float3 ray_dir = ray.Direction;
-    float3 ray_pos = ray.Origin;
-    float3 sphere_center = float3(0, 0, center_pos);
-
-    // Calculate the vector from the ray origin to the sphere center
-    float3 oc = ray_pos - sphere_center;
-
-    // Calculate the coefficients of the quadratic equation
-    float a = dot(ray_dir, ray_dir);
-    float b = 2.0 * dot(oc, ray_dir);
-    float c = dot(oc, oc) - radius * radius;
-
-    // Calculate the discriminant
-    float discriminant = b * b - 4.0 * a * c;
-
-    // Check if the ray intersects the sphere
-    if (discriminant < 0.0) {
-        // No intersection
-        t = 0;
-        weight = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 1000.0);
-    }
-
-    // Calculate the distance to the intersection points
-    float t1 = (-b - sqrt(discriminant)) / (2.0 * a);
-    float t2 = (-b + sqrt(discriminant)) / (2.0 * a);
-
-    // Choose the closest positive intersection
-    t = (t1 > 0.0) ? t1 : t2;
-
-    // Calculate the intersection position
-    float3 intersection_pos = ray_pos + t * ray_dir;
-
-    // Calculate the normal at the intersection point
-    float3 normal = normalize(intersection_pos - sphere_center);
-    if(radius<0)
-        normal*=-1;
-
-    // Calculate the refracted direction using Snell's law
-    float eta = refractive_index;
-    float3 refracted_dir = normalize( refract(ray_dir, normal, eta));
-    // Calculate the angle of the intersection point to the normalized sphere
-    // center
-    float3 normalized_sphere_center = normalize(-sphere_center);
-    float angle = acos(abs(normal.z));
-
-    // Check if the angle is within the allowed range
-    if (angle > alpha_range) {
-        // No valid intersection within the alpha range
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
-        weight = 0;
-    }
-
-    return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
-}
-
+import lens.intersect_sphere;
 )";
 
 const std::string LensSystemCompiler::flat_intersection = R"(
-RayInfo intersect_flat(
-    RayInfo ray,
-    inout float3 weight,
-    inout float t,
-    float diameter,
-    float center_pos,
-    float refractive_index,
-    float abbe_number)
-{
-    float3 ray_dir = ray.Direction;
-    float3 ray_pos = ray.Origin;
-    float3 plane_center = float3(0, 0, center_pos);
-
-    // Calculate the vector from the ray origin to the plane center
-    float3 oc = ray_pos - plane_center;
-
-    // Calculate the distance to the intersection point
-    t = dot(plane_center - ray_pos, float3(0, 0, 1)) / dot(ray_dir, float3(0, 0, 1));
-
-    // Calculate the intersection position
-    float3 intersection_pos = ray_pos + t * ray_dir;
-
-    // Calculate the normal at the intersection point
-    float3 normal = float3(0, 0, -1);
-
-    // Calculate the refracted direction using Snell's law
-    float eta = refractive_index;
-    float3 refracted_dir = normalize(refract(ray_dir, normal, eta));
-
-    return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
-}
+import lens.intersect_flat;
 )";
 
 const std::string LensSystemCompiler::occluder_intersection = R"(
-RayInfo intersect_occluder(
-    RayInfo ray,
-    inout float3 weight,
-    inout float t,
-    float radius,
-    float center_pos)
-{
-    float3 ray_dir = ray.Direction;
-    float3 ray_pos = ray.Origin;
-    float3 plane_center = float3(0, 0, center_pos);
-
-    // Calculate the vector from the ray origin to the plane center
-    float3 oc = ray_pos - plane_center;
-
-    // Calculate the distance to the intersection point
-    t = dot(plane_center - ray_pos, float3(0, 0, 1)) / dot(ray_dir, float3(0, 0, 1));
-
-    // Calculate the intersection position
-    float3 intersection_pos = ray_pos + t * ray_dir;
-    
-    if(length(intersection_pos.xy)>radius)
-    {
-        weight = 0;
-    }
-
-    return RayInfo(intersection_pos, 0, ray_dir, 1000.f);
-}
+import lens.intersect_occluder;
 )";
 
 const std::string get_relative_refractive_index = R"(
-float get_relative_refractive_index(float refract_id_last, float refract_id_this)
-{
-	return 1.0f/(refract_id_this / refract_id_last);
-}
+import lens.lens_utils;
 )";
 
 std::string LensSystemCompiler::emit_line(
@@ -159,7 +34,7 @@ std::tuple<std::string, CompiledDataBlock> LensSystemCompiler::compile(
     std::string header = R"(
 #include "utils/random.slangh"
 #include "utils/Math/MathConstants.slangh"
-#include "utils/ray.h"
+import utils.ray;
 import Utils.Math.MathHelpers;
 )";
     std::string functions = sphere_intersection + "\n";
@@ -176,8 +51,14 @@ import Utils.Math.MathHelpers;
     const_buffer += emit_line("float film_distance;", 1);
 
     std::string raygen_shader =
-        "RayInfo raygen(int2 pixel_id, inout float3 weight, inout uint "
-        "seed)\n{";
+        "[Differentiable]\n RayInfo raygen(int2 pixel_id, inout float3 weight, inout uint "
+        "seed, LensSystemData data)\n{";
+
+    std::string get_lens_data_from_torch_tensor = "[Differentiable]";
+    get_lens_data_from_torch_tensor +=
+        "LensSystemData get_lens_data_from_torch_tensor(DiffTensorView "
+        "tensor)\n{";
+    get_lens_data_from_torch_tensor += emit_line("LensSystemData data;");
 
     int id = 0;
 
@@ -189,12 +70,12 @@ import Utils.Math.MathHelpers;
     // Sample origin on the film
     raygen_shader += indent_str(indent) +
                      "float2 film_pos = -((0.5f+float2(pixel_id)) / "
-                     "float2(lens_system_data.film_resolution)-0.5f) * "
-                     "lens_system_data.film_size;\n";
+                     "float2(data.film_resolution)-0.5f) * "
+                     "data.film_size;\n";
 
     raygen_shader += indent_str(indent) +
                      "ray.Origin = float3(film_pos, "
-                     "-lens_system_data.film_distance);\n";
+                     "-data.film_distance);\n";
 
     // TMin and TMax
 
@@ -209,12 +90,17 @@ import Utils.Math.MathHelpers;
 
     for (auto lens_layer : lens_system->lenses) {
         block.parameter_offsets[id] = cb_size;
-        lens_layer->EmitShader(id, const_buffer, raygen_shader, this);
+        lens_layer->EmitShader(
+            id,
+            const_buffer,
+            raygen_shader,
+            get_lens_data_from_torch_tensor,
+            this);
 
         if (require_ray_visualization) {
             raygen_shader += emit_line(
                 "ray_visualization_" + std::to_string(id) +
-                "[pixel_id.y * lens_system_data.film_resolution.x + "
+                "[pixel_id.y * data.film_resolution.x + "
                 "pixel_id.x] "
                 "= RayInfo(ray.Origin, 0, ray.Direction, t);");
         }
@@ -234,7 +120,6 @@ import Utils.Math.MathHelpers;
     }
 
     const_buffer += "};\n";
-    const_buffer += "ConstantBuffer<LensSystemData> lens_system_data;\n";
 
     if (require_ray_visualization) {
         for (size_t i = 0; i < lens_system->lenses.size(); i++) {
@@ -248,9 +133,13 @@ import Utils.Math.MathHelpers;
     raygen_shader += indent_str(indent) + "return ray;\n";
     raygen_shader += "}";
 
+    get_lens_data_from_torch_tensor += emit_line("return data;");
+    get_lens_data_from_torch_tensor += "}";
+
     indent -= 4;
 
-    auto final_shader = header + functions + const_buffer + raygen_shader;
+    auto final_shader = header + functions + const_buffer + raygen_shader +
+                        get_lens_data_from_torch_tensor;
 
     return std::make_tuple(final_shader, block);
 }

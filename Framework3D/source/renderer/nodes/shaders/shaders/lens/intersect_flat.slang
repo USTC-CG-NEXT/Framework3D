@@ -1,3 +1,6 @@
+import utils.ray;
+
+[Differentiable]
 RayInfo intersect_flat(
     RayInfo ray,
     inout float3 weight,

@@ -12,3 +12,4 @@ SDK.zip
 *.exr
 __pycache__/
 .pytest_cache/
+.slangtorch_cache/

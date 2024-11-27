@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "../../renderer/nodes/shaders/shaders/utils/PhysicalCamInfo.h"
-#include "../../renderer/nodes/shaders/shaders/utils/ray.h"
+#include "../../renderer/nodes/shaders/shaders/utils/ray.slang"
 #include "RHI/ShaderFactory/shader.hpp"
 #include "diff_optics/lens_system.hpp"
 #include "diff_optics/lens_system_compiler.hpp"
