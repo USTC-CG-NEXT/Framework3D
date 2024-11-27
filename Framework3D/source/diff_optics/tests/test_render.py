@@ -55,6 +55,3 @@ def test_custom_raygen():
 
     mi.Bitmap(original_image).write("test.exr")
 
-
-if __name__ == "__main__":
-    test_custom_raygen()

@@ -128,7 +128,42 @@ class LensCamera(mi.ProjectiveCamera):
         ray.time = time
         ray.wavelengths = wavelengths
 
-        print("position_sample: ", dr.mean(position_sample))
+        scaled_principal_point_offset = (
+            self.film().size()
+            * self.principal_point_offset
+            / mi.Vector2f(self.film().crop_size())
+        )
+
+        near_p = self.sample_to_camera @ mi.Point3f(
+            position_sample.x + scaled_principal_point_offset.x,
+            position_sample.y + scaled_principal_point_offset.y,
+            0.0,
+        )
+        d = dr.normalize(mi.Vector3d(near_p))
+        print("d: ", d)
+        ray.o = self.to_world.translation()
+        print("self.to_world", self.to_world)
+        ray.d = self.to_world @ mi.Vector3d(d)
+
+        inv_z = dr.rcp(d.z)
+        near_t = self.near_clip * inv_z
+        far_t = self.far_clip * inv_z
+        ray.o += ray.d * near_t
+        ray.maxt = far_t - near_t
+
+        print("ray", ray)
+        print("wav_weight", wav_weight)
+        return ray, wav_weight
+
+    def sample_ray_differential(
+        self, time, wavelength_sample, position_sample, aperture_sample, active=True
+    ):
+        wavelengths, wav_weight = self.sample_wavelengths(
+            dr.zeros(mi.SurfaceInteraction3f), wavelength_sample, active
+        )
+        ray = mi.RayDifferential3f()
+        ray.time = time
+        ray.wavelengths = wavelengths
 
         scaled_principal_point_offset = (
             self.film().size()
@@ -141,7 +176,7 @@ class LensCamera(mi.ProjectiveCamera):
             position_sample.y + scaled_principal_point_offset.y,
             0.0,
         )
-        d = dr.normalize(mi.Vector3f(near_p))
+        d = dr.normalize(mi.Vector3d(near_p))
 
         ray.o = self.to_world.translation()
         ray.d = self.to_world @ d
@@ -152,97 +187,63 @@ class LensCamera(mi.ProjectiveCamera):
         ray.o += ray.d * near_t
         ray.maxt = far_t - near_t
 
+        ray.o_x = ray.o_y = ray.o
+        ray.d_x = self.to_world @ dr.normalize(mi.Vector3d(near_p) + self.dx)
+        ray.d_y = self.to_world @ dr.normalize(mi.Vector3d(near_p) + self.dy)
+        ray.has_differentials = True
+
         return ray, wav_weight
 
-    # def sample_ray_differential(
-    #     self, time, wavelength_sample, position_sample, aperture_sample, active=True
-    # ):
-    #     wavelengths, wav_weight = self.sample_wavelengths(
-    #         dr.zeros(mi.SurfaceInteraction3f), wavelength_sample, active
-    #     )
-    #     ray = mi.RayDifferential3f()
-    #     ray.time = time
-    #     ray.wavelengths = wavelengths
+    def sample_direction(self, it, sample, active=True):
+        trafo = self.to_world
+        ref_p = trafo.inverse().transform_affine(it.p)
 
-    #     scaled_principal_point_offset = (
-    #         self.film().size()
-    #         * self.principal_point_offset
-    #         / mi.Vector2f(self.film().crop_size())
-    #     )
+        ds = mi.DirectionSample3f()
+        ds.pdf = 0.0
+        active &= (ref_p.z >= self.near_clip) & (ref_p.z <= self.far_clip)
+        if dr.none_or_false(active):
+            return ds, dr.zeros(mi.Spectrum)
 
-    #     near_p = self.sample_to_camera @ mi.Point3f(
-    #         position_sample.x + scaled_principal_point_offset.x,
-    #         position_sample.y + scaled_principal_point_offset.y,
-    #         0.0,
-    #     )
-    #     d = dr.normalize(mi.Vector3f(near_p))
+        scaled_principal_point_offset = (
+            self.film().size() * self.principal_point_offset / self.film().crop_size()
+        )
 
-    #     ray.o = self.to_world.translation()
-    #     ray.d = self.to_world @ d
+        screen_sample = self.camera_to_sample @ ref_p
+        ds.uv = mi.Point2f(
+            screen_sample.x - scaled_principal_point_offset.x,
+            screen_sample.y - scaled_principal_point_offset.y,
+        )
+        active &= (ds.uv.x >= 0) & (ds.uv.x <= 1) & (ds.uv.y >= 0) & (ds.uv.y <= 1)
+        if dr.none_or_false(active):
+            return ds, dr.zeros(mi.Spectrum)
 
-    #     inv_z = dr.rcp(d.z)
-    #     near_t = self.near_clip * inv_z
-    #     far_t = self.far_clip * inv_z
-    #     ray.o += ray.d * near_t
-    #     ray.maxt = far_t - near_t
+        ds.uv *= self.resolution
 
-    #     ray.o_x = ray.o_y = ray.o
-    #     ray.d_x = self.to_world @ dr.normalize(mi.Vector3f(near_p) + self.dx)
-    #     ray.d_y = self.to_world @ dr.normalize(mi.Vector3f(near_p) + self.dy)
-    #     ray.has_differentials = True
+        local_d = mi.Vector3d(ref_p)
+        dist = dr.norm(local_d)
+        inv_dist = dr.rcp(dist)
+        local_d *= inv_dist
 
-    #     return ray, wav_weight
+        ds.p = trafo.transform_affine(mi.Point3f(0.0))
+        ds.d = (ds.p - it.p) * inv_dist
+        ds.dist = dist
+        ds.n = trafo @ mi.Vector3d(0.0, 0.0, 1.0)
+        ds.pdf = dr.select(active, 1.0, 0.0)
 
-    # def sample_direction(self, it, sample, active=True):
-    #     trafo = self.to_world
-    #     ref_p = trafo.inverse().transform_affine(it.p)
+        return ds, mi.Spectrum(self.importance(local_d) * inv_dist * inv_dist)
 
-    #     ds = mi.DirectionSample3f()
-    #     ds.pdf = 0.0
-    #     active &= (ref_p.z >= self.near_clip) & (ref_p.z <= self.far_clip)
-    #     if dr.none_or_false(active):
-    #         return ds, dr.zeros(mi.Spectrum)
+    def bbox(self):
+        p = self.to_world @ mi.Point3f(0.0)
+        return mi.BoundingBox3f(p, p)
 
-    #     scaled_principal_point_offset = (
-    #         self.film().size() * self.principal_point_offset / self.film().crop_size()
-    #     )
+    def importance(self, d):
+        ct = mi.Frame3f.cos_theta(d)
+        inv_ct = dr.rcp(ct)
 
-    #     screen_sample = self.camera_to_sample @ ref_p
-    #     ds.uv = mi.Point2f(
-    #         screen_sample.x - scaled_principal_point_offset.x,
-    #         screen_sample.y - scaled_principal_point_offset.y,
-    #     )
-    #     active &= (ds.uv.x >= 0) & (ds.uv.x <= 1) & (ds.uv.y >= 0) & (ds.uv.y <= 1)
-    #     if dr.none_or_false(active):
-    #         return ds, dr.zeros(mi.Spectrum)
+        p = mi.Point2f(d.x * inv_ct, d.y * inv_ct)
+        valid = (ct > 0) & self.image_rect.contains(p)
 
-    #     ds.uv *= self.resolution
-
-    #     local_d = mi.Vector3f(ref_p)
-    #     dist = dr.norm(local_d)
-    #     inv_dist = dr.rcp(dist)
-    #     local_d *= inv_dist
-
-    #     ds.p = trafo.transform_affine(mi.Point3f(0.0))
-    #     ds.d = (ds.p - it.p) * inv_dist
-    #     ds.dist = dist
-    #     ds.n = trafo @ mi.Vector3f(0.0, 0.0, 1.0)
-    #     ds.pdf = dr.select(active, 1.0, 0.0)
-
-    #     return ds, mi.Spectrum(self.importance(local_d) * inv_dist * inv_dist)
-
-    # def bbox(self):
-    #     p = self.to_world @ mi.Point3f(0.0)
-    #     return mi.BoundingBox3f(p, p)
-
-    # def importance(self, d):
-    #     ct = mi.Frame3f.cos_theta(d)
-    #     inv_ct = dr.rcp(ct)
-
-    #     p = mi.Point2f(d.x * inv_ct, d.y * inv_ct)
-    #     valid = (ct > 0) & self.image_rect.contains(p)
-
-    #     return dr.select(valid, self.normalization * inv_ct * inv_ct * inv_ct, 0.0)
+        return dr.select(valid, self.normalization * inv_ct * inv_ct * inv_ct, 0.0)
 
     def to_string(self):
         return f"LensCamera[\n  x_fov = {self.x_fov},\n  near_clip = {self.near_clip},\n  far_clip = {self.far_clip},\n  film = {self.film()},\n  sampler = {self.sampler()},\n  resolution = {self.resolution},\n  shutter_open = {self.shutter_open()},\n  shutter_open_time = {self.shutter_open_time()},\n  to_world = {self.to_world}\n]"
