@@ -36,4 +36,4 @@ NB_MODULE(diff_optics_py, m)
         .def_rw("parameters", &CompiledDataBlock::parameters)
         .def_rw("parameter_offsets", &CompiledDataBlock::parameter_offsets)
         .def_rw("cb_size", &CompiledDataBlock::cb_size);
-}
+} 

@@ -19,5 +19,8 @@ void main(uint3 DTid: SV_DispatchThreadID)
     }
     uint2 pixelID = inputPixelID[DTid.x];
     float4 color = inputColor[DTid.x];
-    outputTexture[pixelID] += color;
+    InterlockedAdd(outputTexture[pixelID].r, color.r);
+    InterlockedAdd(outputTexture[pixelID].g, color.g);
+    InterlockedAdd(outputTexture[pixelID].b, color.b);
+    InterlockedAdd(outputTexture[pixelID].a, color.a);
 }

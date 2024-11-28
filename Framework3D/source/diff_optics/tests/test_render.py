@@ -32,8 +32,6 @@ import sys
 #     assert m is not None
 
 
-
-
 # def test_shader_run(shader_path):
 #     LensCamera.set_shader_path(shader_path)
 

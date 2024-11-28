@@ -5,6 +5,9 @@ import os
 
 os.environ["TORCH_CUDA_ARCH_LIST"] = "8.6"
 import slangtorch
+import torch
+
+from struct import pack, unpack
 
 
 def set_shader_path(shader_path):
@@ -29,7 +32,7 @@ def shader_compile(shader_path):
         shader_path + "physical_lens_raygen_torch.slang",
         includePaths=[shader_path, "."],
     )
-    return m
+    return m, block
 
 
 import mitsuba as mi
@@ -44,14 +47,12 @@ class LensCamera(mi.ProjectiveCamera):
         mi.Sensor.__init__(self, props)
 
         global _shader_path
-        self.m = shader_compile(shader_path=_shader_path)
+        self.m, self.block_cb = shader_compile(shader_path=_shader_path)
         assert self.m is not None
 
         size = self.film().size()
-        print("size: ", size)
         self.x_fov = mi.parse_fov(props, size.x / size.y)
         self.to_world = mi.Transform4d(props.get("to_world"))
-        print("self.to_world: ", self.to_world)
         if self.to_world.has_scale():
             raise Exception(
                 "Scale factors in the camera-to-world transformation are not allowed!"
@@ -114,12 +115,6 @@ class LensCamera(mi.ProjectiveCamera):
         self.update_camera_transforms()
 
     def update_camera_transforms(self):
-        print("film size: ", self.film().size())
-        print("film crop size: ", self.film().crop_size())
-        print("film crop offset: ", self.film().crop_offset())
-        print("x_fov: ", self.x_fov)
-        print("near_clip: ", self.near_clip)
-        print("far_clip: ", self.far_clip)
 
         self.camera_to_sample = mi.perspective_projection(
             self.film().size(),
@@ -160,10 +155,21 @@ class LensCamera(mi.ProjectiveCamera):
             self.principal_point_offset,
         )
 
+    def run_shader(self, random, data_tensor, rays, pixel_targets):
+        shape = rays.shape
+        self.m.computeMain(
+            random_seeds=random,
+            lens_system_data_tensor=data_tensor,
+            rays=rays,
+            pixel_targets=pixel_targets,
+        ).launchRaw(
+            blockSize=(32, 32, 1), gridSize=(shape[0] // 32 + 1, shape[1] // 32 + 1, 1)
+        )
+        return rays
+
     def sample_ray(
         self, time, wavelength_sample, position_sample, aperture_sample, active=True
     ):
-        print("sample_ray")
         wavelengths, wav_weight = self.sample_wavelengths(
             dr.zeros(mi.SurfaceInteraction3f), wavelength_sample, active
         )
@@ -183,9 +189,30 @@ class LensCamera(mi.ProjectiveCamera):
             0.0,
         )
         d = dr.normalize(mi.Vector3d(near_p))
-        print("d: ", d)
+
+        print("position_sample", position_sample.shape)
+
+        data_tensor_size = self.block_cb.cb_size
+        data_tensor = torch.zeros(data_tensor_size, device="cuda", dtype=torch.float32)
+        data_tensor[0] = 36
+        data_tensor[1] = 1
+        data_tensor[2] = unpack("f", pack("i", 10))[0]
+        data_tensor[3] = unpack("f", pack("i", 10))[0]
+        data_tensor[4] = 10
+
+        for i, p in enumerate(self.block_cb.parameters):
+            data_tensor[i] = p
+        print("data_tensor", data_tensor)
+        rays = torch.zeros([data_tensor[1], 11])
+
+        self.run_shader(
+            random=position_sample.torch(),
+            data_tensor=data_tensor,
+            rays=rays,
+            pixel_targets=position_sample.torch(),
+        )
+
         ray.o = self.to_world.translation()
-        print("self.to_world", self.to_world)
         ray.d = self.to_world @ mi.Vector3d(d)
 
         inv_z = dr.rcp(d.z)
@@ -194,49 +221,47 @@ class LensCamera(mi.ProjectiveCamera):
         ray.o += ray.d * near_t
         ray.maxt = far_t - near_t
 
-        print("ray", ray)
-        print("wav_weight", wav_weight)
         return ray, wav_weight
 
-    def sample_ray_differential(
-        self, time, wavelength_sample, position_sample, aperture_sample, active=True
-    ):
-        print("sample_ray_differential")
-        wavelengths, wav_weight = self.sample_wavelengths(
-            dr.zeros(mi.SurfaceInteraction3f), wavelength_sample, active
-        )
-        ray = mi.RayDifferential3f()
-        ray.time = time
-        ray.wavelengths = wavelengths
+    # def sample_ray_differential(
+    #     self, time, wavelength_sample, position_sample, aperture_sample, active=True
+    # ):
+    #     print("sample_ray_differential")
+    #     wavelengths, wav_weight = self.sample_wavelengths(
+    #         dr.zeros(mi.SurfaceInteraction3f), wavelength_sample, active
+    #     )
+    #     ray = mi.RayDifferential3f()
+    #     ray.time = time
+    #     ray.wavelengths = wavelengths
 
-        scaled_principal_point_offset = (
-            self.film().size()
-            * self.principal_point_offset
-            / mi.Vector2f(self.film().crop_size())
-        )
+    #     scaled_principal_point_offset = (
+    #         self.film().size()
+    #         * self.principal_point_offset
+    #         / mi.Vector2f(self.film().crop_size())
+    #     )
 
-        near_p = self.sample_to_camera @ mi.Point3f(
-            position_sample.x + scaled_principal_point_offset.x,
-            position_sample.y + scaled_principal_point_offset.y,
-            0.0,
-        )
-        d = dr.normalize(mi.Vector3d(near_p))
+    #     near_p = self.sample_to_camera @ mi.Point3f(
+    #         position_sample.x + scaled_principal_point_offset.x,
+    #         position_sample.y + scaled_principal_point_offset.y,
+    #         0.0,
+    #     )
+    #     d = dr.normalize(mi.Vector3d(near_p))
 
-        ray.o = self.to_world.translation()
-        ray.d = self.to_world @ d
+    #     ray.o = self.to_world.translation()
+    #     ray.d = self.to_world @ d
 
-        inv_z = dr.rcp(d.z)
-        near_t = self.near_clip * inv_z
-        far_t = self.far_clip * inv_z
-        ray.o += ray.d * near_t
-        ray.maxt = far_t - near_t
+    #     inv_z = dr.rcp(d.z)
+    #     near_t = self.near_clip * inv_z
+    #     far_t = self.far_clip * inv_z
+    #     ray.o += ray.d * near_t
+    #     ray.maxt = far_t - near_t
 
-        ray.o_x = ray.o_y = ray.o
-        ray.d_x = self.to_world @ dr.normalize(mi.Vector3d(near_p) + self.dx)
-        ray.d_y = self.to_world @ dr.normalize(mi.Vector3d(near_p) + self.dy)
-        ray.has_differentials = True
+    #     ray.o_x = ray.o_y = ray.o
+    #     ray.d_x = self.to_world @ dr.normalize(mi.Vector3d(near_p) + self.dx)
+    #     ray.d_y = self.to_world @ dr.normalize(mi.Vector3d(near_p) + self.dy)
+    #     ray.has_differentials = True
 
-        return ray, wav_weight
+    #     return ray, wav_weight
 
     def sample_direction(self, it, sample, active=True):
         trafo = self.to_world

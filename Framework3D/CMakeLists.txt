@@ -80,7 +80,6 @@ else()
 endif()
 
 # The following packages optional
-
 find_package(Python COMPONENTS Development Interpreter REQUIRED)
 
 find_package(Vulkan)
@@ -96,7 +95,8 @@ if(pxr_FOUND)
   find_package(OpenGL REQUIRED)
   set(USTC_CG_WITH_OPENUSD ON)
   if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    if(Python_LIBRARY MATCHES "_d.lib$")
+
+    if(Python3_LIBRARY MATCHES "_d.lib$")
       set_target_properties(usd PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1; BOOST_DEBUG_PYTHON")
     else()
       set_target_properties(usd PROPERTIES INTERFACE_COMPILE_DEFINITIONS "TBB_USE_DEBUG=1")
