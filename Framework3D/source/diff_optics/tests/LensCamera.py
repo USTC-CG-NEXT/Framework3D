@@ -1,10 +1,52 @@
+from diff_optics_py import LensSystem, LensSystemCompiler, CompiledDataBlock
+
+global _shader_path
+import os
+
+os.environ["TORCH_CUDA_ARCH_LIST"] = "8.6"
+import slangtorch
+
+
+def set_shader_path(shader_path):
+    global _shader_path
+    _shader_path = shader_path
+
+
+def get_shader_path():
+    global _shader_path
+    return _shader_path
+
+
+def shader_compile(shader_path):
+
+    lens_system = LensSystem()
+    lens_system.set_default()
+    compiler = LensSystemCompiler()
+    compiled, block = compiler.compile(lens_system, False)
+    with open("lens_shader.slang", "w") as file:
+        file.write(compiled)
+    m = slangtorch.loadModule(
+        shader_path + "physical_lens_raygen_torch.slang",
+        includePaths=[shader_path, "."],
+    )
+    return m
+
+
 import mitsuba as mi
+
+mi.set_variant("cuda_ad_rgb")
+
 import drjit as dr
 
 
 class LensCamera(mi.ProjectiveCamera):
     def __init__(self, props):
         mi.Sensor.__init__(self, props)
+
+        global _shader_path
+        self.m = shader_compile(shader_path=_shader_path)
+        assert self.m is not None
+
         size = self.film().size()
         print("size: ", size)
         self.x_fov = mi.parse_fov(props, size.x / size.y)
@@ -121,6 +163,7 @@ class LensCamera(mi.ProjectiveCamera):
     def sample_ray(
         self, time, wavelength_sample, position_sample, aperture_sample, active=True
     ):
+        print("sample_ray")
         wavelengths, wav_weight = self.sample_wavelengths(
             dr.zeros(mi.SurfaceInteraction3f), wavelength_sample, active
         )
@@ -158,6 +201,7 @@ class LensCamera(mi.ProjectiveCamera):
     def sample_ray_differential(
         self, time, wavelength_sample, position_sample, aperture_sample, active=True
     ):
+        print("sample_ray_differential")
         wavelengths, wav_weight = self.sample_wavelengths(
             dr.zeros(mi.SurfaceInteraction3f), wavelength_sample, active
         )

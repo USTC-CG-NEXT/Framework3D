@@ -51,7 +51,8 @@ import Utils.Math.MathHelpers;
     const_buffer += emit_line("float film_distance;", 1);
 
     std::string raygen_shader =
-        "[Differentiable]\n RayInfo raygen(int2 pixel_id, inout float3 weight, inout uint "
+        "[Differentiable]\n RayInfo raygen(int2 pixel_id, inout float3 weight, "
+        "inout uint "
         "seed, LensSystemData data)\n{";
 
     std::string get_lens_data_from_torch_tensor = "[Differentiable]";
@@ -59,6 +60,17 @@ import Utils.Math.MathHelpers;
         "LensSystemData get_lens_data_from_torch_tensor(DiffTensorView "
         "tensor)\n{";
     get_lens_data_from_torch_tensor += emit_line("LensSystemData data;");
+
+    get_lens_data_from_torch_tensor +=
+        emit_line("data.film_size.x = tensor[uint(0)]");
+    get_lens_data_from_torch_tensor +=
+        emit_line("data.film_size.y = tensor[uint(1)]");
+    get_lens_data_from_torch_tensor +=
+        emit_line("data.film_resolution.x = reinterpret<int>(tensor[uint(2)])");
+    get_lens_data_from_torch_tensor +=
+        emit_line("data.film_resolution.y = reinterpret<int>(tensor[uint(3)])");
+    get_lens_data_from_torch_tensor +=
+        emit_line("data.film_distance = tensor[uint(4)]");
 
     int id = 0;
 

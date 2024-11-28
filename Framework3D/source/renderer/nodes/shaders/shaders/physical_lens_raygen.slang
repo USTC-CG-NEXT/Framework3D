@@ -32,7 +32,7 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
         ray.Direction.z *= -1;
         // ray.Direction.xy *= -1;
         // ray.throughput = { weight * float3(ray.Direction * 0.5 + 0.5) };
-        ray.Origin /= 1000.f;   
+        ray.Origin /= 1000.f;
         ray.TMin = 0;
         ray.TMax = 1000;
 

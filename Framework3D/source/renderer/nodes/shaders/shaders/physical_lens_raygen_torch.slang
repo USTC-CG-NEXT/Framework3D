@@ -47,11 +47,11 @@ void computeMain(
 
         RayInfo ray;
         ray = raygen(LaunchIndex, weight, seed, lens_system_data);
-        ray.throughput = { weight };
         ray.Direction.z *= -1;
         ray.Origin /= 1000.f;
         ray.TMin = 0;
         ray.TMax = 1000;
+        ray.throughput = { weight };
 
         fill_ray(rays, LaunchIndex, ray);
 
