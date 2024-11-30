@@ -11,6 +11,7 @@
 #include "pxr/base/gf/vec2f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class LayerCompiler;
 struct LensSystemCompiler;
 class LensSystemGUI;
 class Occluder;
@@ -58,12 +59,7 @@ class LensLayer {
    public:
     LensLayer(float center_x, float center_y);
     virtual ~LensLayer();
-    virtual void EmitShader(
-        int id,
-        std::string& constant_buffer,
-        std::string& execution,
-        std::string& data_load,
-        LensSystemCompiler* compiler) = 0;
+
     void set_axis(float axis_pos);
     void set_pos(float x);
 
@@ -77,7 +73,9 @@ class LensLayer {
 
    protected:
     std::shared_ptr<LensGUIPainter> painter;
+    std::unique_ptr<LayerCompiler> compiler;
     friend class LensSystemGUI;
+    friend class LensSystemCompiler;
 };
 
 class NullPainter;
@@ -86,13 +84,6 @@ class NullLayer : public LensLayer {
     NullLayer(float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
     void fill_block_data(float* ptr) override;
-
-    void EmitShader(
-        int id,
-        std::string& constant_buffer,
-        std::string& execution,
-        std::string& data_load,
-        LensSystemCompiler* compiler);
 
    private:
     friend class NullPainter;
@@ -127,13 +118,6 @@ class Occluder : public LensLayer {
     explicit Occluder(float radius, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
 
-    void EmitShader(
-        int id,
-        std::string& constant_buffer,
-        std::string& execution,
-        std::string& data_load,
-        LensSystemCompiler* compiler) override;
-
     void fill_block_data(float* ptr) override;
 
     float radius;
@@ -155,12 +139,7 @@ class SphericalLens : public LensLayer {
     void update_info(float center_x, float center_y);
     SphericalLens(float d, float roc, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
-    void EmitShader(
-        int id,
-        std::string& constant_buffer,
-        std::string& execution,
-        std::string& data_load,
-        LensSystemCompiler* compiler) override;
+
     void fill_block_data(float* ptr) override;
 
    private:
@@ -187,13 +166,6 @@ class FlatLens : public LensLayer {
    public:
     FlatLens(float d, float center_x, float center_y);
     void deserialize(const nlohmann::json& j) override;
-
-    void EmitShader(
-        int id,
-        std::string& constant_buffer,
-        std::string& execution,
-        std::string& data_load,
-        LensSystemCompiler* compiler);
 
     void fill_block_data(float* ptr) override;
 

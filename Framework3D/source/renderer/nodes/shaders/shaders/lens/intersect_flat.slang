@@ -3,7 +3,6 @@ import utils.ray;
 [Differentiable]
 RayInfo intersect_flat(
     RayInfo ray,
-    inout float3 weight,
     inout float t,
     float diameter,
     float center_pos,
@@ -23,8 +22,8 @@ RayInfo intersect_flat(
 
     if (t > ray.TMax) {
         t = 0;
-        weight = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+
+        return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
 
     // Calculate the intersection position
@@ -39,8 +38,8 @@ RayInfo intersect_flat(
     if (safe_refract(ray_dir, normal, eta, refracted_dir))
         refracted_dir = normalize(refracted_dir);
     else {
-        weight = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+        ray.throughput = { 0 };
+        return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
 
     return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);

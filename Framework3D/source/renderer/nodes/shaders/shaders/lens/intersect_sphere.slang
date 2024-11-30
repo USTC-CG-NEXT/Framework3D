@@ -3,7 +3,6 @@ import utils.ray;
 [Differentiable]
 RayInfo intersect_sphere(
     RayInfo ray,
-    inout float3 weight,
     inout float t,
     float radius,
     float center_pos,
@@ -30,8 +29,7 @@ RayInfo intersect_sphere(
     if (discriminant <= 0.0) {
         // No intersection
         t = 0;
-        weight = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+        return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
 
     // Calculate the distance to the intersection points
@@ -43,8 +41,7 @@ RayInfo intersect_sphere(
 
     if (t > ray.TMax) {
         t = 0;
-        weight = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+        return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
 
     // Calculate the intersection position
@@ -62,8 +59,7 @@ RayInfo intersect_sphere(
         refracted_dir = normalize(refracted_dir);
     else {
         // Total internal reflection
-        weight = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+        return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
     // Calculate the angle of the intersection point to the normalized sphere
     // center
@@ -73,8 +69,7 @@ RayInfo intersect_sphere(
     // Check if the angle is within the allowed range
     if (angle > alpha_range) {
         // No valid intersection within the alpha range
-        return RayInfo(ray_pos, 0, ray_dir, 0.0);
-        weight = 0;
+        return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
     // if (isnan(refracted_dir.x))
     //     intersection_pos = 0;
