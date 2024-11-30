@@ -51,9 +51,10 @@ import Utils.Math.MathHelpers;
     const_buffer += emit_line("float film_distance;", 1);
 
     std::string raygen_shader =
-        "[Differentiable]\n RayInfo raygen(int2 pixel_id, inout float3 weight, "
-        "inout uint "
-        "seed, LensSystemData data)\n{";
+        "[Differentiable]\n RayInfo raygen(float2 pixel_id, inout float3 "
+        "weight, "
+        "in float2 "
+        "seed2, LensSystemData data)\n{";
 
     std::string get_lens_data_from_torch_tensor = "[Differentiable]";
     get_lens_data_from_torch_tensor +=
@@ -86,7 +87,7 @@ import Utils.Math.MathHelpers;
                      "data.film_size;\n";
 
     raygen_shader += indent_str(indent) +
-                     "ray.Origin = float3(film_pos, "
+                     "ray.Origin = float3(detach(film_pos), "
                      "-data.film_distance);\n";
 
     // TMin and TMax

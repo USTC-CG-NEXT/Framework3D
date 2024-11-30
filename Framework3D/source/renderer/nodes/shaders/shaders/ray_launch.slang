@@ -59,7 +59,6 @@ void RayGen()
 
     TraceRay(
         SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, get_ray_desc(ray), payload);
-    var color = payload.ShadedColorAndHitT.rgb;
 }
 
 // ---[ Closest Hit Shader ]---

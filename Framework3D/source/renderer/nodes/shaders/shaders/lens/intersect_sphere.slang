@@ -27,11 +27,11 @@ RayInfo intersect_sphere(
     float discriminant = b * b - 4.0 * a * c;
 
     // Check if the ray intersects the sphere
-    if (discriminant < 0.0) {
+    if (discriminant <= 0.0) {
         // No intersection
         t = 0;
         weight = 0;
-        return RayInfo(ray_pos, 0, ray_dir, 1000.0);
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
     }
 
     // Calculate the distance to the intersection points
@@ -40,6 +40,12 @@ RayInfo intersect_sphere(
 
     // Choose the closest positive intersection
     t = (t1 > 0.0) ? t1 : t2;
+
+    if (t > ray.TMax) {
+        t = 0;
+        weight = 0;
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+    }
 
     // Calculate the intersection position
     float3 intersection_pos = ray_pos + t * ray_dir;
@@ -51,7 +57,14 @@ RayInfo intersect_sphere(
 
     // Calculate the refracted direction using Snell's law
     float eta = refractive_index;
-    float3 refracted_dir = normalize(refract(ray_dir, normal, eta));
+    float3 refracted_dir;
+    if (safe_refract(ray_dir, normal, eta, refracted_dir))
+        refracted_dir = normalize(refracted_dir);
+    else {
+        // Total internal reflection
+        weight = 0;
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+    }
     // Calculate the angle of the intersection point to the normalized sphere
     // center
     float3 normalized_sphere_center = normalize(-sphere_center);
@@ -63,6 +76,7 @@ RayInfo intersect_sphere(
         return RayInfo(ray_pos, 0, ray_dir, 0.0);
         weight = 0;
     }
-
+    // if (isnan(refracted_dir.x))
+    //     intersection_pos = 0;
     return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
 }

@@ -14,62 +14,6 @@ using namespace USTC_CG;
 
 #include "slang-cpp-types.h"
 
-class CPURWTexture : public CPPPrelude::IRWTexture {
-   public:
-    CPURWTexture(unsigned width, unsigned height, unsigned format_size)
-        : data(new char8_t[width * height * format_size]),
-          width(width),
-          height(height),
-          format_size(format_size)
-    {
-    }
-
-    virtual ~CPURWTexture()
-    {
-        delete[] data;
-    }
-
-    CPPPrelude::TextureDimensions GetDimensions(int mipLevel) override
-    {
-        return { width, height, 1 };
-    }
-
-    void Load(const int32_t* v, void* outData, size_t dataSize) override
-    {
-        memcpy(outData, data + v[0] * format_size, dataSize);
-    }
-
-    void Sample(
-        CPPPrelude::SamplerState samplerState,
-        const float* loc,
-        void* outData,
-        size_t dataSize) override
-    {
-        memcpy(outData, data, dataSize);
-    }
-
-    void SampleLevel(
-        CPPPrelude::SamplerState samplerState,
-        const float* loc,
-        float level,
-        void* outData,
-        size_t dataSize) override
-    {
-        memcpy(outData, data, dataSize);
-    }
-
-    void* refAt(const uint32_t* loc) override
-    {
-        return data + loc[0] * format_size;
-    }
-
-   private:
-    char8_t* data;
-    unsigned width;
-    unsigned height;
-    unsigned format_size;
-};
-
 TEST(dO_T, gen_shader)
 {
     LensSystem lens_system;
@@ -97,7 +41,7 @@ TEST(dO_T, gen_shader)
     auto program_handle = shader_factory.compile_cpu_executable(
         "computeMain",
         nvrhi::ShaderType::Compute,
-        "shaders/physical_lens_raygen.slang",
+        "shaders/physical_lens_raygen_cpu.slang",
         reflection,
         error_string);
 

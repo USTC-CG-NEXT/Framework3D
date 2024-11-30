@@ -648,7 +648,6 @@ void SphericalLens::EmitShader(
         // calculate the direction based on it.
 
         // suppose we can use random_float2
-        execution += compiler->emit_line("float2 seed2 = random_float2(seed);");
         execution += compiler->emit_line(
             std::string("float2 target_pos = sample_disk(seed2) * ") +
             "data.diameter_" + std::to_string(id) + "/2.0f");

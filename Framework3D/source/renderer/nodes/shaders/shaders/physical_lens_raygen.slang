@@ -30,12 +30,14 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
         float x = random_float(seed);
         float y = random_float(seed);
 
-        uint pixel_target_x = floor(x * viewConstant.resolution.x);
-        uint pixel_target_y = floor(y * viewConstant.resolution.y);
-        uint2 pixel_target = { pixel_target_x, pixel_target_y };
+        float pixel_target_x = x * viewConstant.resolution.x;
+        float pixel_target_y = y * viewConstant.resolution.y;
+        uint2 pixel_target = { floor(pixel_target_x), floor(pixel_target_y) };
+        float2 pixel_target_f = { pixel_target_x, pixel_target_y };
 
+        float2 seed2 = random_float2(seed);
         RayInfo ray;
-        ray = raygen(pixel_target, weight, seed, lens_system_data);
+        ray = raygen(detach(pixel_target_f), weight, seed2, lens_system_data);
         ray.throughput = { weight };
         ray.Direction.z *= -1;
         ray.Origin /= 1000.f;
@@ -43,7 +45,6 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
         ray.TMax = 1000;
 
         ray = transformRay(ray, viewConstant.matViewToWorld);
-
         rays[index] = ray;
         pixel_targets[index] = pixel_target;
         random_seeds[LaunchIndex] = seed;

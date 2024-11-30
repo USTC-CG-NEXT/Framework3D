@@ -42,5 +42,15 @@ RayInfo transformRay(RayInfo ray, float4x4 transform)
     result.throughput = ray.throughput;
     return result;
 }
+
+bool safe_refract(float3 i, float3 n, float eta, out float3 t)
+{
+    t = refract(i, n, eta);
+    if(length(t) == 0)
+    {
+        return false;
+    }
+    return true;
+}
 #endif
 #endif

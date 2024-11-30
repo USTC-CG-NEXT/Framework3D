@@ -21,6 +21,12 @@ RayInfo intersect_flat(
     t = dot(plane_center - ray_pos, float3(0, 0, 1)) /
         dot(ray_dir, float3(0, 0, 1));
 
+    if (t > ray.TMax) {
+        t = 0;
+        weight = 0;
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+    }
+
     // Calculate the intersection position
     float3 intersection_pos = ray_pos + t * ray_dir;
 
@@ -29,7 +35,13 @@ RayInfo intersect_flat(
 
     // Calculate the refracted direction using Snell's law
     float eta = refractive_index;
-    float3 refracted_dir = normalize(refract(ray_dir, normal, eta));
+    float3 refracted_dir;
+    if (safe_refract(ray_dir, normal, eta, refracted_dir))
+        refracted_dir = normalize(refracted_dir);
+    else {
+        weight = 0;
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+    }
 
     return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
 }

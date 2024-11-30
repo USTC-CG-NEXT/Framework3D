@@ -26,5 +26,11 @@ RayInfo intersect_occluder(
         weight = 0;
     }
 
+    if (t > ray.TMax) {
+        t = 0;
+        weight = 0;
+        return RayInfo(ray_pos, 0, ray_dir, 0.0);
+    }
+
     return RayInfo(intersection_pos, 0, ray_dir, 1000.f);
 }

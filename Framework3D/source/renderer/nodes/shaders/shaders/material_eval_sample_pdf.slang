@@ -84,7 +84,7 @@ void ClosestHit(
     result = bsdf.eval(ObjectRayDirection(), ObjectRayDirection(), s, context);
     result = WorldRayDirection();
 
-    Eval[id] = float4(attrib.uv, 0, 1) *
+    Eval[id] = float4(attrib.uv, 1, 1) *
                float4(hitObjects[id].rays.throughput.toFloat3(), 1.0);
 
     // Acquire the material information here.

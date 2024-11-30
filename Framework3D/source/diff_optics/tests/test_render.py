@@ -31,6 +31,7 @@ import sys
 
 #     assert m is not None
 
+
 def test_shader_run(shader_path):
     LensCamera.set_shader_path(shader_path)
 
@@ -46,7 +47,13 @@ def test_shader_run(shader_path):
         includePaths=[shader_path, "."],
     )
 
-    random_seeds = torch.randint(0, 1, (10, 1), device="cuda", dtype=torch.int32)
+    width = 1000
+    height = 1000
+    sample_count = width * height
+
+    sample1 = torch.rand(sample_count, 2, device="cuda", dtype=torch.float32)
+    sample2 = torch.rand(sample_count, 2, device="cuda", dtype=torch.float32)
+
     data_tensor_size = block.cb_size
     data_tensor = torch.zeros(data_tensor_size, device="cuda", dtype=torch.float32)
 
@@ -55,24 +62,24 @@ def test_shader_run(shader_path):
 
     data_tensor[0] = 36
     data_tensor[1] = 1
-    data_tensor[2] = unpack("f", pack("i", 10))[0]
-    data_tensor[3] = unpack("f", pack("i", 10))[0]
-    data_tensor[4] = 10
+    data_tensor[2] = unpack("f", pack("i", width))[0]
+    data_tensor[3] = unpack("f", pack("i", height))[0]
+    data_tensor[4] = 11
 
     print(data_tensor, file=sys.stderr)
     print(data_tensor.shape)
 
-    rays = torch.zeros(10, 1, 11, device="cuda", dtype=torch.float32)
-    pixel_targets = torch.zeros(10, 1, 2, device="cuda", dtype=torch.int32)
+    rays = torch.zeros(sample_count, 11, device="cuda", dtype=torch.float32)
 
     m.computeMain(
-        random_seeds=random_seeds,
+        sample1=sample1,
+        sample2=sample2,
         lens_system_data_tensor=data_tensor,
         rays=rays,
-        pixel_targets=pixel_targets,
-    ).launchRaw(blockSize=(32, 1, 1), gridSize=(64, 1, 1))
-    print(rays, file=sys.stderr)
-    print(pixel_targets, file=sys.stderr)
+    ).launchRaw(blockSize=(1024, 1, 1), gridSize=((sample_count // 1024 + 1), 1, 1))
+
+    average_rays = torch.mean(torch.abs(rays), dim=0)
+    print(average_rays, file=sys.stderr)
 
     assert m is not None
 

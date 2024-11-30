@@ -190,6 +190,8 @@ class LensCamera(mi.ProjectiveCamera):
         )
         d = dr.normalize(mi.Vector3d(near_p))
 
+        print("pos sample:", position_sample.shape)
+
         print("position_sample", position_sample.shape)
 
         data_tensor_size = self.block_cb.cb_size
