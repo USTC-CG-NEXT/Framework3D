@@ -761,6 +761,7 @@ bool DeviceManager_VK::createDevice()
     bool synchronization2Supported = false;
     bool maintenance4Supported = false;
     bool aftermathSupported = false;
+    bool shaderAtomicSupported = false;
 
     log::message(
         m_DeviceParams.infoLogSeverity, "Enabled Vulkan device extensions:");
@@ -785,6 +786,8 @@ bool DeviceManager_VK::createDevice()
             m_SwapChainMutableFormatSupported = true;
         else if (ext == VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME)
             aftermathSupported = true;
+        else if (ext == VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME)
+            shaderAtomicSupported = true;
     }
 
 #define APPEND_EXTENSION(condition, desc) \
@@ -858,12 +861,19 @@ bool DeviceManager_VK::createDevice()
         vk::DeviceDiagnosticsConfigFlagBitsNV::eEnableShaderDebugInfo |
         vk::DeviceDiagnosticsConfigFlagBitsNV::eEnableShaderErrorReporting);
 
+    auto shaderAtomicFloatFeatures =
+        vk::PhysicalDeviceShaderAtomicFloatFeaturesEXT()
+            .setShaderBufferFloat32Atomics(true)
+            .setShaderImageFloat32Atomics(true)
+            .setShaderImageFloat32AtomicAdd(true);
+
     pNext = nullptr;
     APPEND_EXTENSION(accelStructSupported, accelStructFeatures)
     APPEND_EXTENSION(rayPipelineSupported, rayPipelineFeatures)
     APPEND_EXTENSION(rayQuerySupported, rayQueryFeatures)
     APPEND_EXTENSION(meshletsSupported, meshletFeatures)
     APPEND_EXTENSION(vrsSupported, vrsFeatures)
+    APPEND_EXTENSION(shaderAtomicSupported, shaderAtomicFloatFeatures)
     APPEND_EXTENSION(
         physicalDeviceProperties.apiVersion >= VK_API_VERSION_1_3,
         vulkan13features)

@@ -26,9 +26,12 @@ void GPUContext::finish()
     resource_allocator_.device->executeCommandList(commandList_);
 }
 
-void GPUContext::clear_texture(nvrhi::ITexture* texture, nvrhi::Color color)
+void GPUContext::clear_texture(
+    nvrhi::ITexture* texture,
+    nvrhi::Color color,
+    const nvrhi::TextureSubresourceSet& subresources)
 {
-    commandList_->clearTextureFloat(texture, {}, color);
+    commandList_->clearTextureFloat(texture, subresources, color);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -7,7 +7,7 @@
 void main(uint3 DTid: SV_DispatchThreadID)
 {
     uint2 coord = DTid.xy;
-    uint seed = coord.x + coord.y * 32;
+    uint seed = (coord.x + 1) * (coord.y + 1) * 2654435761u; // Better seed calculation using a prime number
     uint randomValue = random_unsigned(seed);
     inout_random_init[coord] = randomValue;
 }

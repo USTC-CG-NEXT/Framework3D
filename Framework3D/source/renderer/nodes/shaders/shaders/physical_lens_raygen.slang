@@ -22,26 +22,30 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
     uint2 LaunchDimensions = viewConstant.resolution;
 
     if (all(LaunchIndex.xy < LaunchDimensions.xy)) {
-        uint index = LaunchIndex.x + LaunchIndex.y * LaunchDimensions.x;
+        uint index = LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y;
+
         float3 weight = 1.0;
         uint seed = random_seeds[LaunchIndex];
 
+        float x = random_float(seed);
+        float y = random_float(seed);
+
+        uint pixel_target_x = floor(x * viewConstant.resolution.x);
+        uint pixel_target_y = floor(y * viewConstant.resolution.y);
+        uint2 pixel_target = { pixel_target_x, pixel_target_y };
+
         RayInfo ray;
-        ray = raygen(LaunchIndex, weight, seed, lens_system_data);
+        ray = raygen(pixel_target, weight, seed, lens_system_data);
         ray.throughput = { weight };
         ray.Direction.z *= -1;
-        // ray.Direction.xy *= -1;
-        // ray.throughput = { weight * float3(ray.Direction * 0.5 + 0.5) };
         ray.Origin /= 1000.f;
         ray.TMin = 0;
         ray.TMax = 1000;
 
         ray = transformRay(ray, viewConstant.matViewToWorld);
 
-        rays[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] = ray;
-
-        pixel_targets[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] =
-            LaunchIndex;
+        rays[index] = ray;
+        pixel_targets[index] = pixel_target;
         random_seeds[LaunchIndex] = seed;
     }
 }

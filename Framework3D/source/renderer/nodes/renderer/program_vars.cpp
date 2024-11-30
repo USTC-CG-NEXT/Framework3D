@@ -36,7 +36,7 @@ void ProgramVars::finish_setting_vars()
             }
             else if (dynamic_cast<nvrhi::ITexture*>(
                          desc.bindings[i].resourceHandle)) {
-                desc.bindings[i].subresources = {};
+                desc.bindings[i].subresources = nvrhi::AllSubresources;
             }
         }
         binding_sets_solid.push_back(
@@ -104,6 +104,7 @@ std::tuple<unsigned, unsigned> ProgramVars::get_binding_location(
 
     item.slot = get_binding_id(name);
     item.type = get_binding_type(name);
+    item.subresources = nvrhi::AllSubresources;
 
     return std::make_tuple(binding_space_id, binding_set_location);
 }
@@ -114,6 +115,21 @@ nvrhi::IResource*& ProgramVars::operator[](const std::string& name)
 
     return binding_spaces[binding_space_id][binding_set_location]
         .resourceHandle;
+}
+
+void ProgramVars::set_binding(
+    const std::string& name,
+    nvrhi::ITexture* resource,
+    const nvrhi::TextureSubresourceSet& subset)
+{
+    auto [binding_space_id, binding_set_location] = get_binding_location(name);
+    auto& binding_set = binding_spaces[binding_space_id][binding_set_location];
+
+    binding_set.resourceHandle = resource;
+    binding_set.subresources = subset;
+    if (subset.baseArraySlice != 0 || subset.numArraySlices != 1) {
+        binding_set.dimension = nvrhi::TextureDimension::Texture2DArray;
+    }
 }
 
 nvrhi::BindingSetVector ProgramVars::get_binding_sets() const

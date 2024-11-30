@@ -18,6 +18,11 @@ class ProgramVars {
     void finish_setting_vars();
 
     nvrhi::IResource*& operator[](const std::string& name);
+    // This is for setting extra settings
+    void set_binding(
+        const std::string& name,
+        nvrhi::ITexture* resource,
+        const nvrhi::TextureSubresourceSet& subset = {});
     nvrhi::BindingSetVector get_binding_sets() const;
     nvrhi::BindingLayoutVector& get_binding_layout();
     std::vector<IProgram*> get_programs() const;

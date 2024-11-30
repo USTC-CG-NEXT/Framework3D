@@ -27,6 +27,7 @@ class ComputeContext : public GPUContext {
         uint32_t groupSizeZ = 1) const;
 
     ComputeContext& finish_setting_pso();
+    void uav_barrier(nvrhi::ITexture* texture) const;
 
    protected:
     nvrhi::ComputePipelineDesc compute_pipeline_desc;

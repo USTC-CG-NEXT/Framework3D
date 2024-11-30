@@ -203,14 +203,14 @@ class LensCamera(mi.ProjectiveCamera):
         for i, p in enumerate(self.block_cb.parameters):
             data_tensor[i] = p
         print("data_tensor", data_tensor)
-        rays = torch.zeros([data_tensor[1], 11])
+        # rays = torch.zeros([data_tensor[1], 11])
 
-        self.run_shader(
-            random=position_sample.torch(),
-            data_tensor=data_tensor,
-            rays=rays,
-            pixel_targets=position_sample.torch(),
-        )
+        # self.run_shader(
+        #     random=position_sample.torch(),
+        #     data_tensor=data_tensor,
+        #     rays=rays,
+        #     pixel_targets=position_sample.torch(),
+        # )
 
         ray.o = self.to_world.translation()
         ray.d = self.to_world @ mi.Vector3d(d)

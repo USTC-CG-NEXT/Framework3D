@@ -6,6 +6,7 @@
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "render_node_base.h"
+#include "renderer/compute_context.hpp"
 #include "shaders/shaders/utils/cpp_shader_macro.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
@@ -28,85 +29,72 @@ NODE_EXECUTION_FUNCTION(scatter_contribution)
     auto source_texture = params.get_input<TextureHandle>("Source Texture");
     unsigned length = params.get_input<int>("Buffer Size");
     if (length > 0) {
-        std::string error_string;
-        ShaderReflectionInfo reflection;
-        auto compute_shader = shader_factory.compile_shader(
-            "main",
-            ShaderType::Compute,
-            "shaders/scatter.slang",
-            reflection,
-            error_string,
-            {},
-            {});
-        MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
-        if (!compute_shader) {
-            // Handle error
-            return false;
-        }
-        nvrhi::BindingLayoutDescVector binding_layout_desc =
-            reflection.get_binding_layout_descs();
+        ProgramDesc atomic_scatter_desc;
+        atomic_scatter_desc.set_path("shaders/atomic_scatter.slang")
+            .set_entry_name("main")
+            .set_shader_type(ShaderType::Compute);
 
-        // Constant buffer contains the size of the length (single float), and I
-        // can write if from CPU
-        auto cb_desc = BufferDesc{}
-                           .setByteSize(sizeof(float))
-                           .setInitialState(ResourceStates::CopyDest)
-                           .setKeepInitialState(true)
-                           .setCpuAccess(CpuAccessMode::Write)
-                           .setIsConstantBuffer(true);
+        auto atomic_scatter_program =
+            resource_allocator.create(atomic_scatter_desc);
+        MARK_DESTROY_NVRHI_RESOURCE(atomic_scatter_program);
+        CHECK_PROGRAM_ERROR(atomic_scatter_program);
 
-        auto cb = resource_allocator.create(cb_desc);
-        MARK_DESTROY_NVRHI_RESOURCE(cb);
+        auto source_desc = source_texture->getDesc();
+        source_desc.setFormat(Format::R32_FLOAT);
+        source_desc.dimension = TextureDimension::Texture2DArray;
+        source_desc.arraySize = 4;
 
-        auto binding_layout = resource_allocator.create(binding_layout_desc[0]);
-        MARK_DESTROY_NVRHI_RESOURCE(binding_layout);
+        auto textures = resource_allocator.create(source_desc);
+        MARK_DESTROY_NVRHI_RESOURCE(textures);
 
-        // BindingSet and BindingSetLayout
-        BindingSetDesc binding_set_desc;
-        binding_set_desc.bindings = {
-            nvrhi::BindingSetItem::StructuredBuffer_SRV(0, eval_buffer),
-            nvrhi::BindingSetItem::StructuredBuffer_SRV(1, pixel_target_buffer),
-            nvrhi::BindingSetItem::ConstantBuffer(0, cb),
-            nvrhi::BindingSetItem::Texture_UAV(0, source_texture)
-        };
+        auto length_buffer = create_constant_buffer(params, length);
+        MARK_DESTROY_NVRHI_RESOURCE(length_buffer);
 
-        auto binding_set =
-            resource_allocator.create(binding_set_desc, binding_layout.Get());
-        MARK_DESTROY_NVRHI_RESOURCE(binding_set);
-        if (!binding_set) {
-            // Handle error
-            return false;
-        }
-        // Execute the shader
-        ComputePipelineDesc pipeline_desc;
-        pipeline_desc.CS = compute_shader;
-        pipeline_desc.bindingLayouts = { binding_layout };
-        auto pipeline = resource_allocator.create(pipeline_desc);
+        ProgramVars program_vars(  resource_allocator, atomic_scatter_program);
+        program_vars["textures"] = textures;
+        program_vars["inputColor"] = eval_buffer;
+        program_vars["inputPixelID"] = pixel_target_buffer;
+        program_vars["bufferLength"] = length_buffer;
+        program_vars.finish_setting_vars();
 
-        MARK_DESTROY_NVRHI_RESOURCE(pipeline);
-        if (!pipeline) {
-            // Handle error
-            return false;
+        ComputeContext context(resource_allocator, program_vars);
+        context.finish_setting_pso();
+        {
+            PROFILE_SCOPE(scatter_contribution_dispatch);
+            context.begin();
+            context.clear_texture(textures);
+            context.uav_barrier(textures);
+
+            context.dispatch({}, program_vars, length, 64);
+            context.finish();
         }
 
-        ComputeState compute_state;
-        compute_state.pipeline = pipeline;
-        compute_state.bindings = { binding_set };
+        ProgramDesc add_desc;
+        add_desc.set_path("shaders/add_scatter.slang")
+            .set_entry_name("main")
+            .set_shader_type(ShaderType::Compute);
+        auto add_program = resource_allocator.create(add_desc);
+        MARK_DESTROY_NVRHI_RESOURCE(add_program);
+        CHECK_PROGRAM_ERROR(add_program);
 
-        CommandListHandle command_list =
-            resource_allocator.create(CommandListDesc{});
-        MARK_DESTROY_NVRHI_RESOURCE(command_list);
+        ProgramVars add_program_vars(resource_allocator, add_program);
+        add_program_vars["textures"] = textures;
+        add_program_vars["outputTexture"] = source_texture;
+        add_program_vars.finish_setting_vars();
 
-        auto mapped =
-            resource_allocator.device->mapBuffer(cb, CpuAccessMode::Read);
-        memcpy(mapped, &length, sizeof(length));
-        resource_allocator.device->unmapBuffer(cb);
+        ComputeContext add_context(resource_allocator, add_program_vars);
+        add_context.finish_setting_pso();
+        {
+            PROFILE_SCOPE(scatter_contribution_dispatch);
+            add_context.begin();
+            add_context.uav_barrier(textures);
 
-        command_list->open();
-        command_list->setComputeState(compute_state);
-        command_list->dispatch(div_ceil(length, 64), 1, 1);
-        command_list->close();
-        resource_allocator.device->executeCommandList(command_list);
+            auto width = source_texture->getDesc().width;
+            auto height = source_texture->getDesc().height;
+
+            add_context.dispatch({}, add_program_vars, width, 16, height, 16);
+            add_context.finish();
+        }
     }
     else {
         log::warning("Buffer size is 0");

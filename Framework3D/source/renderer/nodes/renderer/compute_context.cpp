@@ -1,5 +1,7 @@
 #include "compute_context.hpp"
 
+#include "nvrhi/utils.h"
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 ComputeContext::ComputeContext(ResourceAllocator& r, ProgramVars& vars)
     : GPUContext(r, vars)
@@ -57,6 +59,11 @@ ComputeContext& ComputeContext::finish_setting_pso()
     compute_pipeline = resource_allocator_.create(compute_pipeline_desc);
 
     return *this;
+}
+
+void ComputeContext::uav_barrier(nvrhi::ITexture* texture) const
+{
+    nvrhi::utils::TextureUavBarrier(commandList_, texture);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
