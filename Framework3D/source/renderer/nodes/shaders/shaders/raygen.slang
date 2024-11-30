@@ -86,19 +86,26 @@ void main(uint3 DTid: SV_DispatchThreadID)
 
     if (all(LaunchIndex.xy < LaunchDimensions.xy)) {
         uint seed = random_seeds[LaunchIndex];
+
+        float x = random_float(seed);
+        float y = random_float(seed);
+
+        uint pixel_target_x = floor(x * viewConstant.resolution.x);
+        uint pixel_target_y = floor(y * viewConstant.resolution.y);
+        uint2 pixel_target = { pixel_target_x, pixel_target_y };
         // Setup the ray
         CameraParameters c;
         c.focusDistance = cameraParams.focusDistance;
         c.aperture = cameraParams.aperture;
-        RayInfo ray = setupPrimaryRay(LaunchIndex, viewConstant, seed, c);
+        RayInfo ray = setupPrimaryRay(pixel_target, viewConstant, seed, c);
         ray.throughput = RGBSpectrum(float3(1.0f));
-        
+
         // Transform the ray to world space
         ray = transformRay(ray, viewConstant.matViewToWorld);
 
         rays[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] = ray;
         pixel_targets[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] =
-            LaunchIndex;
+            pixel_target;
         random_seeds[LaunchIndex] = seed;
     }
 }
