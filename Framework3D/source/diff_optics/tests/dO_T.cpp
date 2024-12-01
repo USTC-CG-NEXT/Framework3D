@@ -28,11 +28,37 @@ TEST(dO_T, gen_shader)
     file.close();
 }
 
+std::ostream& operator<<(std::ostream& os, const RayInfo& ray)
+{
+    os << "RayInfo{";
+    os << "Origin: " << ray.Origin << ", ";
+    os << "Direction: " << ray.Direction << ", ";
+    os << "TMin: " << ray.TMin << ", ";
+    os << "TMax: " << ray.TMax << ", ";
+    os << "throughput: " << ray.throughput.data;
+    os << "}";
+    return os;
+}
+
 TEST(dO_T, gen_shader_run)
 {
     LensSystem lens_system;
     lens_system.set_default();
-    lens_system.trace_ray({RayInfo{.Origin = {1,1,1}}});
+
+    RayInfo begin;
+    begin.Origin = { 0, 0, -2 };
+    begin.Direction = { 0, 0, 1 };
+    begin.TMin = 0;
+    begin.TMax = 1000;
+    begin.throughput.data = { 0.8, 0.7, 0.8 };
+
+    std::cout << "Begin: " << begin << std::endl;
+    auto result_rays = lens_system.trace_ray({ begin });
+    for (auto& ray_step : result_rays) {
+        for (auto& ray : ray_step) {
+            std::cout << ray << std::endl;
+        }
+    }
 }
 
 //    LensSystemCompiler compiler;

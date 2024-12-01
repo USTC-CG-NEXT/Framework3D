@@ -13,12 +13,49 @@ import utils.Spectrum;
 struct RayInfo {
 #ifdef __cplusplus
     USING_PXR_MATH_TYPES
+    RayInfo()
+        : Origin(0.0f),
+          TMin(0.0f),
+          Direction(0.0f),
+          TMax(0.0f),
+          throughput(float3(1.0f))
+    {
+    }
+    RayInfo(
+        float3 Origin,
+        float TMin,
+        float3 Direction,
+        float TMax,
+        RGBSpectrum throughput)
+        : Origin(Origin),
+          TMin(TMin),
+          Direction(Direction),
+          TMax(TMax),
+          throughput(throughput)
+    {
+    }
+#else
+    __init(
+        float3 origin,
+        float tmin,
+        float3 direction,
+        float tmax,
+        RGBSpectrum _throughput)
+    {
+        Origin = origin;
+        TMin = tmin;
+        Direction = direction;
+        TMax = tmax;
+        throughput = _throughput;
+    }
 #endif
+
     float3 Origin;
     float TMin;
     float3 Direction;
     float TMax;
     RGBSpectrum throughput;
+    uint pad;
 };
 
 #ifndef __cplusplus
@@ -46,11 +83,11 @@ RayInfo transformRay(RayInfo ray, float4x4 transform)
 bool safe_refract(float3 i, float3 n, float eta, out float3 t)
 {
     t = refract(i, n, eta);
-    if(length(t) == 0)
-    {
+    if (length(t) == 0) {
         return false;
     }
     return true;
 }
+
 #endif
-#endif
+#endif 

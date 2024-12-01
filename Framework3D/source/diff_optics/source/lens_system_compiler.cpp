@@ -219,11 +219,7 @@ void NullCompiler::EmitCbDataLoad(
     LensSystemCompiler* compiler)
 {
     add_cb_data_load(
-        id,
-        constant_buffer,
-        data_load,
-        compiler,
-        "refractive_index");
+        id, constant_buffer, data_load, compiler, "refractive_index");
 }
 
 void NullCompiler::EmitRayTrace(
@@ -249,11 +245,7 @@ void OccluderCompiler::EmitCbDataLoad(
     add_cb_data_load(id, constant_buffer, data_load, compiler, "radius");
     add_cb_data_load(id, constant_buffer, data_load, compiler, "center_pos");
     add_cb_data_load(
-        id,
-        constant_buffer,
-        data_load,
-        compiler,
-        "refractive_index");
+        id, constant_buffer, data_load, compiler, "refractive_index");
 }
 
 void OccluderCompiler::EmitRayTrace(
@@ -289,17 +281,8 @@ void SphericalLensCompiler::EmitCbDataLoad(
     add_cb_data_load(id, constant_buffer, data_load, compiler, "sphere_center");
     add_cb_data_load(id, constant_buffer, data_load, compiler, "center_pos");
     add_cb_data_load(
-        id,
-        constant_buffer,
-        data_load,
-        compiler,
-        "refractive_index");
-    add_cb_data_load(
-        id,
-        constant_buffer,
-        data_load,
-        compiler,
-        "abbe_number");
+        id, constant_buffer, data_load, compiler, "refractive_index");
+    add_cb_data_load(id, constant_buffer, data_load, compiler, "abbe_number");
 }
 
 void SphericalLensCompiler::EmitRayTrace(
@@ -309,10 +292,9 @@ void SphericalLensCompiler::EmitRayTrace(
 {
     execution += compiler->emit_line(
         std::string("float relative_refractive_index_") + std::to_string(id) +
-        " = get_relative_refractive_index(" +
-        "data.refractive_index_" + std::to_string(id - 1) +
-        ", " + "data.refractive_index_" + std::to_string(id) +
-        ")");
+        " = get_relative_refractive_index(" + "data.refractive_index_" +
+        std::to_string(id - 1) + ", " + "data.refractive_index_" +
+        std::to_string(id) + ")");
 
     execution += compiler->emit_line(
         std::string("next_ray =  intersect_sphere(ray, ") +
@@ -351,17 +333,8 @@ void FlatLensCompiler::EmitCbDataLoad(
     add_cb_data_load(id, constant_buffer, data_load, compiler, "diameter");
     add_cb_data_load(id, constant_buffer, data_load, compiler, "center_pos");
     add_cb_data_load(
-        id,
-        constant_buffer,
-        data_load,
-        compiler,
-        "refractive_index");
-    add_cb_data_load(
-        id,
-        constant_buffer,
-        data_load,
-        compiler,
-        "abbe_number");
+        id, constant_buffer, data_load, compiler, "refractive_index");
+    add_cb_data_load(id, constant_buffer, data_load, compiler, "abbe_number");
 }
 
 void FlatLensCompiler::EmitRayTrace(
@@ -371,10 +344,9 @@ void FlatLensCompiler::EmitRayTrace(
 {
     execution += compiler->emit_line(
         std::string("float relative_refractive_index_") + std::to_string(id) +
-        " = get_relative_refractive_index(" +
-        "data.refractive_index_" + std::to_string(id - 1) +
-        ", " + "data.refractive_index_" + std::to_string(id) +
-        ")");
+        " = get_relative_refractive_index(" + "data.refractive_index_" +
+        std::to_string(id - 1) + ", " + "data.refractive_index_" +
+        std::to_string(id) + ")");
 
     execution += compiler->emit_line(
         "next_ray = intersect_flat(ray, data.diameter_" + std::to_string(id) +

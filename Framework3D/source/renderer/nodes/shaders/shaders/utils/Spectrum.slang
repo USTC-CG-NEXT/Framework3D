@@ -8,6 +8,7 @@ struct ISpectrum
 
 struct RGBSpectrum : ISpectrum
 {
+    RGBSpectrum(const pxr::GfVec3f& data) : data(data) {}
     pxr::GfVec3f data;
 
     pxr::GfVec3f toFloat3() override
@@ -24,6 +25,18 @@ interface ISpectrum
 
 struct RGBSpectrum : ISpectrum
 {
+    __init(float v)
+    {
+        data = float3(v, v, v);
+    }
+
+    __init(float3 rgb)
+    {
+        data = rgb;
+    }
+
+
+
     float3 data;
 
     [Differentiable]

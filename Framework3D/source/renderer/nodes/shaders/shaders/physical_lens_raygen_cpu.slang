@@ -24,6 +24,7 @@ void ray_trace_main(uint3 dispatchThreadID: SV_DispatchThreadID)
         return;
     }
 
-    var traced = ray_trace(rays[id], lens_system_data, id);
+    var ray = rays[id];
+    var traced = ray_trace(ray, lens_system_data, id);
     rays[id] = traced;
 }
