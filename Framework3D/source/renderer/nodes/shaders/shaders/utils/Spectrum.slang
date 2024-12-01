@@ -3,18 +3,13 @@
 
 struct ISpectrum
 {
-    virtual pxr::GfVec3f toFloat3() = 0;
+    //virtual pxr::GfVec3f toFloat3() = 0;
 };
 
 struct RGBSpectrum : ISpectrum
 {
     RGBSpectrum(const pxr::GfVec3f& data) : data(data) {}
     pxr::GfVec3f data;
-
-    pxr::GfVec3f toFloat3() override
-    {
-        return data;
-    }
 };
 #else
 interface ISpectrum

@@ -55,7 +55,6 @@ struct RayInfo {
     float3 Direction;
     float TMax;
     RGBSpectrum throughput;
-    uint pad;
 };
 
 #ifndef __cplusplus
