@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "lens_system_gui.hpp"
 #include "diff_optics/lens_system.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE

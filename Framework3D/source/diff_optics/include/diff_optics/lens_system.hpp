@@ -1,19 +1,17 @@
 #pragma once
 
-#include <pxr/base/gf/matrix3f.h>
-
 #include <memory>
 #include <vector>
 
 #include "api.h"
-#include "imgui.h"
 #include "io/json.hpp"
 #include "pxr/base/gf/vec2f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class LensSystem;
+class LensGUIPainter;
 class LayerCompiler;
 struct LensSystemCompiler;
-class LensSystemGUI;
 class Occluder;
 class LensLayer;
 class DiffOpticsGUI;
@@ -22,37 +20,6 @@ class OpticalProperty {
    public:
     float refractive_index;
     float abbe_number;
-};
-
-struct BBox2D {
-    // Default init to an impossible bound
-    BBox2D();
-
-    BBox2D(pxr::GfVec2f min, pxr::GfVec2f max);
-    pxr::GfVec2f min;
-    pxr::GfVec2f max;
-
-    pxr::GfVec2f center() const;
-
-    BBox2D operator+(const BBox2D& b) const;
-
-    BBox2D& operator+=(const BBox2D& b);
-};
-
-class LensGUIPainter {
-   public:
-    virtual ~LensGUIPainter() = default;
-    virtual BBox2D get_bounds(LensLayer*) = 0;
-    virtual void
-    draw(DiffOpticsGUI* gui, LensLayer*, const pxr::GfMatrix3f& transform) = 0;
-    virtual void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) = 0;
-
-    const char* UniqueUIName(const char* name)
-    {
-        static char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s##%p", name, this);
-        return buffer;
-    }
 };
 
 class LensLayer {
@@ -72,7 +39,7 @@ class LensLayer {
     OpticalProperty optical_property;
 
    protected:
-    std::shared_ptr<LensGUIPainter> painter;
+    std::unique_ptr<LensGUIPainter> painter;
     std::unique_ptr<LayerCompiler> compiler;
     friend class LensSystemGUI;
     friend class LensSystemCompiler;
@@ -89,28 +56,6 @@ class NullLayer : public LensLayer {
     friend class NullPainter;
 };
 
-class NullPainter : public LensGUIPainter {
-   public:
-    BBox2D get_bounds(LensLayer* layer) override
-    {
-        // a box of (1,1) at the center
-        return BBox2D{
-            pxr::GfVec2f(
-                layer->center_pos[0] - 0.5, layer->center_pos[1] - 0.5),
-            pxr::GfVec2f(
-                layer->center_pos[0] + 0.5, layer->center_pos[1] + 0.5),
-        };
-    }
-    void draw(
-        DiffOpticsGUI* gui,
-        LensLayer* layer,
-        const pxr::GfMatrix3f& transform) override
-    {
-    }
-
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
-};
-
 class OccluderPainter;
 
 class Occluder : public LensLayer {
@@ -121,17 +66,6 @@ class Occluder : public LensLayer {
     void fill_block_data(float* ptr) override;
 
     float radius;
-};
-
-class OccluderPainter : public LensGUIPainter {
-   public:
-    BBox2D get_bounds(LensLayer* layer) override;
-    void draw(
-        DiffOpticsGUI* gui,
-        LensLayer* layer,
-        const pxr::GfMatrix3f& transform) override;
-
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
 class SphericalLens : public LensLayer {
@@ -152,16 +86,6 @@ class SphericalLens : public LensLayer {
     friend class SphericalLensPainter;
 };
 
-class SphericalLensPainter : public LensGUIPainter {
-   public:
-    BBox2D get_bounds(LensLayer* layer) override;
-    void draw(
-        DiffOpticsGUI* gui,
-        LensLayer* layer,
-        const pxr::GfMatrix3f& transform) override;
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
-};
-
 class FlatLens : public LensLayer {
    public:
     FlatLens(float d, float center_x, float center_y);
@@ -174,14 +98,22 @@ class FlatLens : public LensLayer {
     friend class FlatLensPainter;
 };
 
-class FlatLensPainter : public LensGUIPainter {
+class LensSystemGUI {
    public:
-    BBox2D get_bounds(LensLayer* layer) override;
-    void draw(
-        DiffOpticsGUI* gui,
-        LensLayer* layer,
-        const pxr::GfMatrix3f& transform) override;
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
+    explicit LensSystemGUI(LensSystem* lens_system) : lens_system(lens_system)
+    {
+    }
+    virtual ~LensSystemGUI() = default;
+
+    void set_canvas_size(float x, float y);
+
+    virtual void draw(DiffOpticsGUI* gui) const;
+    void control(DiffOpticsGUI* diff_optics_gui);
+
+   private:
+    pxr::GfVec2f canvas_size;
+
+    LensSystem* lens_system;
 };
 
 class LensSystem {
@@ -205,24 +137,6 @@ class LensSystem {
 
     friend class LensSystemGUI;
     friend class LensSystemCompiler;
-};
-
-class LensSystemGUI {
-   public:
-    explicit LensSystemGUI(LensSystem* lens_system) : lens_system(lens_system)
-    {
-    }
-    virtual ~LensSystemGUI() = default;
-
-    void set_canvas_size(float x, float y);
-
-    virtual void draw(DiffOpticsGUI* gui) const;
-    void control(DiffOpticsGUI* diff_optics_gui);
-
-   private:
-    pxr::GfVec2f canvas_size;
-
-    LensSystem* lens_system;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

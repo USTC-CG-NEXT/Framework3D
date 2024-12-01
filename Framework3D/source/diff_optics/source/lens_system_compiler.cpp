@@ -1,6 +1,7 @@
 #include "diff_optics/lens_system_compiler.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
 const std::string LensSystemCompiler::sphere_intersection = R"(
 import lens.intersect_sphere;
 )";
@@ -56,11 +57,21 @@ RayInfo sample_dir(float2 pixel_id, float2 seed2, LensSystemData data)
 {
 )";
 
-    std::string ray_trace_shader = R"(
+    std::string ray_trace_shader;
+    if (require_ray_visualization) {
+        ray_trace_shader = R"(
+[Differentiable]
+RayInfo ray_trace(RayInfo ray, LensSystemData data, int ray_id)
+{
+)";
+    }
+    else {
+        ray_trace_shader = R"(
 [Differentiable]
 RayInfo ray_trace(RayInfo ray, LensSystemData data)
 {
 )";
+    }
 
     std::string raygen_shader =
         "[Differentiable]\n RayInfo raygen(float2 pixel_id, "
@@ -87,12 +98,18 @@ RayInfo ray_trace(RayInfo ray, LensSystemData data)
     int id = 0;
 
     raygen_shader += "\n";
-    sample_dir_shader +=
+    raygen_shader +=
         emit_line("RayInfo ray = sample_dir(pixel_id, seed2, data);");
-    sample_dir_shader += emit_line("return ray_trace(ray, data);");
+    if (require_ray_visualization) {
+        raygen_shader += emit_line(
+            "int ray_id = pixel_id.x + pixel_id.y * data.film_resolution.x");
+        raygen_shader += emit_line("return ray_trace(ray, data, ray_id)");
+    }
+    else {
+        raygen_shader += emit_line("return ray_trace(ray, data)");
+    }
 
-    sample_dir_shader += emit_line("float t = 0");
-
+    sample_dir_shader += emit_line("RayInfo ray;");
     // Sample origin on the film
     sample_dir_shader += indent_str(indent) +
                          "float2 film_pos = -((0.5f+float2(pixel_id)) / "
@@ -128,11 +145,10 @@ RayInfo ray_trace(RayInfo ray, LensSystemData data)
         if (require_ray_visualization) {
             ray_trace_shader += emit_line(
                 "ray_visualization_" + std::to_string(id) +
-                "[pixel_id.y * data.film_resolution.x + "
-                "pixel_id.x] "
-                "= RayInfo(ray.Origin, 0, ray.Direction, t)");
+                "[ray_id]"
+                "= ray");
         }
-        ray_trace_shader += emit_line("ray = next_ray;");
+        ray_trace_shader += emit_line("ray = next_ray");
         id++;
     }
 
@@ -157,14 +173,15 @@ RayInfo ray_trace(RayInfo ray, LensSystemData data)
     }
 
     raygen_shader += "\n";
-    raygen_shader += indent_str(indent) + "return ray;\n";
     raygen_shader += "}";
 
     get_lens_data_from_torch_tensor += emit_line("return data;");
     get_lens_data_from_torch_tensor += "}";
 
+    ray_trace_shader += emit_line("return ray");
     ray_trace_shader += "}\n";
 
+    sample_dir_shader += emit_line("ray.throughput = { float3(1.0f) }");
     sample_dir_shader += emit_line("return ray");
     sample_dir_shader += "}\n";
 
@@ -188,6 +205,11 @@ void LensSystemCompiler::fill_block_data(
 
         lens->fill_block_data(data_block.parameters.data() + offset);
     }
+}
+
+LayerCompiler::LayerCompiler(LensLayer* layer)
+{
+    this->layer = layer;
 }
 
 void NullCompiler::EmitCbDataLoad(
@@ -240,7 +262,7 @@ void OccluderCompiler::EmitRayTrace(
     LensSystemCompiler* compiler)
 {
     execution += compiler->emit_line(
-        std::string("next_ray = intersect_occluder(ray, t, ") + "data.radius_" +
+        std::string("next_ray = intersect_occluder(ray, ") + "data.radius_" +
         std::to_string(id) + ", " + "data.center_pos_" + std::to_string(id) +
         ")");
 }
@@ -293,7 +315,7 @@ void SphericalLensCompiler::EmitRayTrace(
         ")");
 
     execution += compiler->emit_line(
-        std::string("next_ray =  intersect_sphere(ray, t, ") +
+        std::string("next_ray =  intersect_sphere(ray, ") +
         "data.radius_of_curvature_" + std::to_string(id) + ", " +
         "data.sphere_center_" + std::to_string(id) + ", " +
         "data.theta_range_" + std::to_string(id) + ", " +
@@ -355,8 +377,8 @@ void FlatLensCompiler::EmitRayTrace(
         ")");
 
     execution += compiler->emit_line(
-        "next_ray = intersect_flat(ray, t, data.diameter_" +
-        std::to_string(id) + ", data.center_pos_" + std::to_string(id) + ", " +
+        "next_ray = intersect_flat(ray, data.diameter_" + std::to_string(id) +
+        ", data.center_pos_" + std::to_string(id) + ", " +
         "relative_refractive_index_" + std::to_string(id) + ", " +
         "data.optical_property_abbe_number_" + std::to_string(id) + ")");
 }

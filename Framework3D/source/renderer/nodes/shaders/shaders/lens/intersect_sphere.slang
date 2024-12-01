@@ -3,13 +3,13 @@ import utils.ray;
 [Differentiable]
 RayInfo intersect_sphere(
     RayInfo ray,
-    inout float t,
     float radius,
     float center_pos,
     float alpha_range,
     float refractive_index,
     float abbe_number)
 {
+    float t = 0;
     float3 ray_dir = ray.Direction;
     float3 ray_pos = ray.Origin;
     float3 sphere_center = float3(0, 0, center_pos);
@@ -73,5 +73,5 @@ RayInfo intersect_sphere(
     }
     // if (isnan(refracted_dir.x))
     //     intersection_pos = 0;
-    return RayInfo(intersection_pos, 0, refracted_dir, 1000.f);
+    return RayInfo(intersection_pos, 0, refracted_dir, 1000.f, ray.throughput);
 }

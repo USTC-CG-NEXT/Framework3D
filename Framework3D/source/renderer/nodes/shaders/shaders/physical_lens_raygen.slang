@@ -24,7 +24,6 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
     if (all(LaunchIndex.xy < LaunchDimensions.xy)) {
         uint index = LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y;
 
-        float3 weight = 1.0;
         uint seed = random_seeds[LaunchIndex];
 
         float x = random_float(seed);
@@ -37,8 +36,7 @@ void computeMain(uint3 dispatchThreadID: SV_DispatchThreadID)
 
         float2 seed2 = random_float2(seed);
         RayInfo ray;
-        ray = raygen(detach(pixel_target_f), weight, seed2, lens_system_data);
-        ray.throughput = { weight };
+        ray = raygen(detach(pixel_target_f), seed2, lens_system_data);
         ray.Direction.z *= -1;
         ray.Origin /= 1000.f;
         ray.TMin = 0;
