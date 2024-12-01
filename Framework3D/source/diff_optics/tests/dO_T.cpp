@@ -27,12 +27,14 @@ TEST(dO_T, gen_shader)
     file << shader_str;
     file.close();
 }
-//
-//TEST(dO_T, gen_shader_run)
-//{
-//    LensSystem lens_system;
-//    lens_system.set_default();
-//
+
+TEST(dO_T, gen_shader_run)
+{
+    LensSystem lens_system;
+    lens_system.set_default();
+    lens_system.trace_ray({RayInfo{.Origin = {1,1,1}}});
+}
+
 //    LensSystemCompiler compiler;
 //    auto [shader_str, compiled_block] = compiler.compile(&lens_system, true);
 //

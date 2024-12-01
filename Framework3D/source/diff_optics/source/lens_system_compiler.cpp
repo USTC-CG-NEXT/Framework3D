@@ -109,7 +109,7 @@ RayInfo ray_trace(RayInfo ray, LensSystemData data)
         raygen_shader += emit_line("return ray_trace(ray, data)");
     }
 
-    sample_dir_shader += emit_line("RayInfo ray;");
+    sample_dir_shader += emit_line("RayInfo ray");
     // Sample origin on the film
     sample_dir_shader += indent_str(indent) +
                          "float2 film_pos = -((0.5f+float2(pixel_id)) / "
@@ -223,7 +223,7 @@ void NullCompiler::EmitCbDataLoad(
         constant_buffer,
         data_load,
         compiler,
-        "optical_property_refractive_index");
+        "refractive_index");
 }
 
 void NullCompiler::EmitRayTrace(
@@ -253,7 +253,7 @@ void OccluderCompiler::EmitCbDataLoad(
         constant_buffer,
         data_load,
         compiler,
-        "optical_property_refractive_index");
+        "refractive_index");
 }
 
 void OccluderCompiler::EmitRayTrace(
@@ -293,13 +293,13 @@ void SphericalLensCompiler::EmitCbDataLoad(
         constant_buffer,
         data_load,
         compiler,
-        "optical_property_refractive_index");
+        "refractive_index");
     add_cb_data_load(
         id,
         constant_buffer,
         data_load,
         compiler,
-        "optical_property_abbe_number");
+        "abbe_number");
 }
 
 void SphericalLensCompiler::EmitRayTrace(
@@ -310,8 +310,8 @@ void SphericalLensCompiler::EmitRayTrace(
     execution += compiler->emit_line(
         std::string("float relative_refractive_index_") + std::to_string(id) +
         " = get_relative_refractive_index(" +
-        "data.optical_property_refractive_index_" + std::to_string(id - 1) +
-        ", " + "data.optical_property_refractive_index_" + std::to_string(id) +
+        "data.refractive_index_" + std::to_string(id - 1) +
+        ", " + "data.refractive_index_" + std::to_string(id) +
         ")");
 
     execution += compiler->emit_line(
@@ -320,7 +320,7 @@ void SphericalLensCompiler::EmitRayTrace(
         "data.sphere_center_" + std::to_string(id) + ", " +
         "data.theta_range_" + std::to_string(id) + ", " +
         "relative_refractive_index_" + std::to_string(id) + ", " +
-        "data.optical_property_abbe_number_" + std::to_string(id) + ")");
+        "data.abbe_number_" + std::to_string(id) + ")");
 }
 
 void SphericalLensCompiler::EmitSampleDirFromSensor(
@@ -355,13 +355,13 @@ void FlatLensCompiler::EmitCbDataLoad(
         constant_buffer,
         data_load,
         compiler,
-        "optical_property_refractive_index");
+        "refractive_index");
     add_cb_data_load(
         id,
         constant_buffer,
         data_load,
         compiler,
-        "optical_property_abbe_number");
+        "abbe_number");
 }
 
 void FlatLensCompiler::EmitRayTrace(
@@ -372,15 +372,15 @@ void FlatLensCompiler::EmitRayTrace(
     execution += compiler->emit_line(
         std::string("float relative_refractive_index_") + std::to_string(id) +
         " = get_relative_refractive_index(" +
-        "data.optical_property_refractive_index_" + std::to_string(id - 1) +
-        ", " + "data.optical_property_refractive_index_" + std::to_string(id) +
+        "data.refractive_index_" + std::to_string(id - 1) +
+        ", " + "data.refractive_index_" + std::to_string(id) +
         ")");
 
     execution += compiler->emit_line(
         "next_ray = intersect_flat(ray, data.diameter_" + std::to_string(id) +
         ", data.center_pos_" + std::to_string(id) + ", " +
         "relative_refractive_index_" + std::to_string(id) + ", " +
-        "data.optical_property_abbe_number_" + std::to_string(id) + ")");
+        "data.abbe_number_" + std::to_string(id) + ")");
 }
 
 void FlatLensCompiler::EmitSampleDirFromSensor(

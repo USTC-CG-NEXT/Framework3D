@@ -6,6 +6,9 @@
 #include <memory>
 #include <vector>
 
+#include "../../renderer/nodes/utils/math.h"
+#include "RHI/ShaderFactory/shader.hpp"
+#include "RHI/ShaderFactory/shader_reflection.hpp"
 #include "dO_GUI.hpp"
 #include "diff_optics/lens_system_compiler.hpp"
 #include "imgui.h"
@@ -267,6 +270,74 @@ const char* double_gauss = R"(
 void LensSystem::set_default()
 {
     deserialize(std::string(double_gauss));
+}
+
+std::vector<std::vector<RayInfo>> LensSystem::trace_ray(
+    const std::vector<RayInfo>& ray_in)
+{
+    if (!ray_trace_func) {
+        compile_ray_trace_func();
+    }
+    return ray_trace_func(ray_in);
+}
+
+struct UniformState {
+    void* data;
+    CPPPrelude::RWStructuredBuffer<RayInfo> rays[20];
+};
+
+void LensSystem::compile_ray_trace_func()
+{
+    LensSystemCompiler compiler;
+    auto [shader, block] = compiler.compile(this, true);
+    ShaderFactory shader_factory;
+    shader_factory.set_search_path("../../source/renderer/nodes/shaders");
+
+    ShaderReflectionInfo reflection;
+    std::string error_string;
+    auto program_handle = shader_factory.compile_cpu_executable(
+        "ray_trace_main",
+        nvrhi::ShaderType::Compute,
+        "shaders/physical_lens_raygen_cpu.slang",
+        reflection,
+        error_string);
+
+    ray_trace_func =
+        [block, program_handle, this](const std::vector<RayInfo>& ray_in) {
+            auto rays = ray_in;
+
+            auto trancient_rays_count = lenses.size();
+
+            UniformState state;
+            state.data = (void*)(block.parameters.data());
+
+            std::vector<CPPPrelude::RWStructuredBuffer<RayInfo>> ray_buffers;
+
+            ray_buffers.resize(trancient_rays_count + 1);
+            ray_buffers[0].data = rays.data();
+            ray_buffers[0].count = rays.size();
+
+            std::vector<std::vector<RayInfo>> ray_visualizations;
+
+            for (size_t i = 0; i < trancient_rays_count; i++) {
+                ray_visualizations.push_back(std::vector<RayInfo>(rays.size()));
+                ray_buffers[i + 1].data = ray_visualizations[i].data();
+                ray_buffers[i + 1].count = ray_visualizations[i].size();
+            }
+
+            memcpy(
+                state.rays,
+                ray_buffers.data(),
+                sizeof(CPPPrelude::RWStructuredBuffer<RayInfo>) *
+                    ray_buffers.size());
+
+            CPPPrelude::ComputeVaryingInput input;
+            input.startGroupID = { 0, 0, 0 };
+            input.endGroupID = { unsigned(div_ceil(rays.size(), 128)), 1, 1 };
+            program_handle->host_call(input, state);
+
+            return ray_visualizations;
+        };
 }
 
 static const std::string sphere_raygen_template = R"(

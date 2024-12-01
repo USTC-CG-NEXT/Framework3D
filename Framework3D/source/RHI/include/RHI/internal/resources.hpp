@@ -121,7 +121,7 @@ struct RHI_API Program : nvrhi::RefCounter<IProgram> {
     {
         if (library) {
             auto func = reinterpret_cast<CPPPrelude::ComputeFunc>(
-                library->findFuncByName("computeMain"));
+                library->findFuncByName(get_desc().entry_name.c_str()));
             if (func) {
                 func(&input, NULL, &uniform);
             }

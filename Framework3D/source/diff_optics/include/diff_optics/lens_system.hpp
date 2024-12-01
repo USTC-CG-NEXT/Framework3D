@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "../../renderer/nodes/shaders/shaders/utils/ray.slang"
 #include "api.h"
 #include "io/json.hpp"
 #include "pxr/base/gf/vec2f.h"
@@ -131,9 +132,17 @@ class LensSystem {
     void deserialize(const std::filesystem::path& path);
     void set_default();
 
+    std::vector<std::vector<RayInfo>> trace_ray(
+        const std::vector<RayInfo>& ray_in);
+
    private:
     std::unique_ptr<LensSystemGUI> gui;
     std::vector<std::shared_ptr<LensLayer>> lenses;
+
+    std::function<std::vector<std::vector<RayInfo>>(
+        const std::vector<RayInfo>& ray_in)>
+        ray_trace_func;
+    void compile_ray_trace_func();
 
     friend class LensSystemGUI;
     friend class LensSystemCompiler;
