@@ -2,7 +2,7 @@ import utils.ray;
 
 [Differentiable]
 RayInfo intersect_sphere(
-    RayInfo ray,
+    inout RayInfo ray,
     float radius,
     float center_pos,
     float alpha_range,
@@ -73,5 +73,7 @@ RayInfo intersect_sphere(
     }
     // if (isnan(refracted_dir.x))
     //     intersection_pos = 0;
+    ray.TMax = t;
+
     return RayInfo(intersection_pos, 0, refracted_dir, 1000.f, ray.throughput);
 }

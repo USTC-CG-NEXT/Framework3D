@@ -4,6 +4,7 @@
 #include <diff_optics/diff_optics.hpp>
 
 #include "diff_optics/lens_system.hpp"
+#include "diff_optics/lens_system_compiler.hpp"
 
 using namespace USTC_CG;
 
@@ -100,49 +101,61 @@ const char* str = R"(
 }
 
 )";
+//
+// TEST(dO_GUI_T, diff_optics_gui)
+//{
+//    Window window;
+//
+//    LensSystem lens_system;
+//    lens_system.add_lens(std::make_shared<NullLayer>(0, 0));
+//    lens_system.add_lens(std::make_shared<Occluder>(1.f, 10, 0));
+//    lens_system.add_lens(std::make_shared<SphericalLens>(10.f, 5.f, 12.f, 0));
+//    lens_system.add_lens(std::make_shared<Occluder>(3.f, 15, 0));
+//
+//    lens_system.add_lens(std::make_shared<Occluder>(0.1f, 20, 0));
+//
+//    lens_system.add_lens(std::make_shared<NullLayer>(30.f, 0));
+//
+//    auto gui = createDiffOpticsGUI(&lens_system);
+//
+//    window.register_widget(std::move(gui));
+//
+//    window.run();
+//}
+//
+// TEST(dO_T, diff_optics)
+//// int main()
+//{
+//    Window window;
+//    LensSystem lens_system;
+//
+//    std::string json = std::string(str);
+//    lens_system.deserialize(json);
+//}
+//
+// TEST(dO_GUI_T, diff_optics_json)
+//{
+//    Window window;
+//
+//    LensSystem lens_system;
+//
+//    std::string json = std::string(str);
+//    lens_system.deserialize(json);
+//
+//    auto gui = createDiffOpticsGUI(&lens_system);
+//
+//    window.register_widget(std::move(gui));
+//
+//    window.run();
+//}
 
-TEST(dO_GUI_T, diff_optics_gui)
+TEST(dO_GUI_T, draw_rays)
 {
     Window window;
 
     LensSystem lens_system;
-    lens_system.add_lens(std::make_shared<NullLayer>(0, 0));
-    lens_system.add_lens(std::make_shared<Occluder>(1.f, 10, 0));
-    lens_system.add_lens(std::make_shared<SphericalLens>(10.f, 5.f, 12.f, 0));
-    lens_system.add_lens(std::make_shared<Occluder>(3.f, 15, 0));
-
-    lens_system.add_lens(std::make_shared<Occluder>(0.1f, 20, 0));
-
-    lens_system.add_lens(std::make_shared<NullLayer>(30.f, 0));
-
+    lens_system.set_default();
     auto gui = createDiffOpticsGUI(&lens_system);
-
-    window.register_widget(std::move(gui));
-
-    window.run();
-}
-
- TEST(dO_T, diff_optics)
-//int main()
-{
-    Window window;
-    LensSystem lens_system;
-
-    std::string json = std::string(str);
-    lens_system.deserialize(json);
-}
-
-TEST(dO_GUI_T, diff_optics_json)
-{
-    Window window;
-
-    LensSystem lens_system;
-
-    std::string json = std::string(str);
-    lens_system.deserialize(json);
-
-    auto gui = createDiffOpticsGUI(&lens_system);
-
     window.register_widget(std::move(gui));
 
     window.run();

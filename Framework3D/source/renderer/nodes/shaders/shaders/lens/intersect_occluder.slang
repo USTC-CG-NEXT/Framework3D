@@ -1,7 +1,7 @@
 import utils.ray;
 
 [Differentiable]
-RayInfo intersect_occluder(RayInfo ray, float radius, float center_pos)
+RayInfo intersect_occluder(inout RayInfo ray, float radius, float center_pos)
 {
     float t = 0;
     float3 ray_dir = ray.Direction;
@@ -18,12 +18,13 @@ RayInfo intersect_occluder(RayInfo ray, float radius, float center_pos)
     // Calculate the intersection position
     float3 intersection_pos = ray_pos + t * ray_dir;
 
+    ray.TMax = t;
+
     if (length(intersection_pos.xy) > radius) {
         return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
 
     if (t > ray.TMax) {
-        t = 0;
         return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
 

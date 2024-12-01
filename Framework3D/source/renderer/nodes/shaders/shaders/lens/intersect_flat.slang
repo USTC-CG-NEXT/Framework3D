@@ -2,7 +2,7 @@ import utils.ray;
 
 [Differentiable]
 RayInfo intersect_flat(
-    RayInfo ray,
+    inout RayInfo ray,
     float diameter,
     float center_pos,
     float refractive_index,
@@ -41,6 +41,7 @@ RayInfo intersect_flat(
         ray.throughput = { 0 };
         return RayInfo(ray_pos, 0, ray_dir, 0.0, { 0 });
     }
+    ray.TMax = t;
 
     return RayInfo(intersection_pos, 0, refracted_dir, 1000.f, ray.throughput);
 }

@@ -34,12 +34,15 @@ BBox2D& BBox2D::operator+=(const BBox2D& b)
     return *this;
 }
 
-void NullPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+bool NullPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 {
     // Slider control the center position
 
-    ImGui::SliderFloat2(
+    bool changed = false;
+    changed |= ImGui::SliderFloat2(
         UniqueUIName("Center"), get->center_pos.data(), -40, 40);
+
+    return changed;
 }
 
 BBox2D OccluderPainter::get_bounds(LensLayer* layer)
@@ -87,16 +90,19 @@ void OccluderPainter::draw(
         ImVec2(tep3_2d[0], tep3_2d[1]), ImVec2(tep4_2d[0], tep4_2d[1]));
 }
 
-void OccluderPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+bool OccluderPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 {
     // float sliders
     auto occluder = dynamic_cast<Occluder*>(get);
 
+    bool changed = false;
     // Slider control the center position
-    ImGui::SliderFloat2(
+    changed |= ImGui::SliderFloat2(
         UniqueUIName("Center"), occluder->center_pos.data(), -40, 40);
-
-    ImGui::SliderFloat(UniqueUIName("Radius"), &occluder->radius, 0, 20);
+    // Slider control the radius
+    changed |=
+        ImGui::SliderFloat(UniqueUIName("Radius"), &occluder->radius, 0, 20);
+    return changed;
 }
 
 BBox2D SphericalLensPainter::get_bounds(LensLayer* layer)
@@ -139,7 +145,7 @@ void SphericalLensPainter::draw(
         theta_max);
 }
 
-void SphericalLensPainter::control(
+bool SphericalLensPainter::control(
     DiffOpticsGUI* diff_optics_gui,
     LensLayer* get)
 {
@@ -161,6 +167,8 @@ void SphericalLensPainter::control(
     if (changed) {
         film->update_info(film->center_pos[0], film->center_pos[1]);
     }
+
+    return changed;
 }
 
 BBox2D FlatLensPainter::get_bounds(LensLayer* layer)
@@ -193,16 +201,18 @@ void FlatLensPainter::draw(
     gui->DrawLine(ImVec2(tep1[0], tep1[1]), ImVec2(tep2[0], tep2[1]));
 }
 
-void FlatLensPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+bool FlatLensPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 {
     // float sliders
     auto film = dynamic_cast<FlatLens*>(get);
 
+    bool changed = false;
     // Slider control the center position
-    ImGui::SliderFloat2(
+    changed |= ImGui::SliderFloat2(
         UniqueUIName("Center"), film->center_pos.data(), -40, 40);
-
-    ImGui::SliderFloat(UniqueUIName("Diameter"), &film->diameter, 0, 20);
+    changed |=
+        ImGui::SliderFloat(UniqueUIName("Diameter"), &film->diameter, 0, 20);
+    return changed;
 }
 
 void LensSystemGUI::set_canvas_size(float x, float y)
@@ -248,15 +258,57 @@ void LensSystemGUI::draw(DiffOpticsGUI* gui) const
     for (auto& lens : lens_system->lenses) {
         lens->painter->draw(gui, lens.get(), transform);
     }
+
+    //  Draw rays
+    draw_rays(gui, transform);
+}
+
+void LensSystemGUI::draw_rays(DiffOpticsGUI* gui, const pxr::GfMatrix3f& t)
+    const
+{
+    std::vector<RayInfo> begin_rays;
+
+    const int ray_per_group = 10;
+    const float group_spacing = 0.4f;
+    
+    auto add_rays = [&](float origin_offset, float direction_x) {
+        for (int i = 0; i < ray_per_group; ++i) {
+            RayInfo ray;
+            ray.Origin = { origin_offset + i * group_spacing, 0, -2 };
+            ray.Direction = pxr::GfVec3f{ direction_x, 0, 1 }.GetNormalized();
+            ray.TMin = 0;
+            ray.TMax = 1000;
+            ray.throughput.data = pxr::GfVec3f{ 1, 1, 1 };
+            begin_rays.push_back(ray);
+        }
+    };
+
+    add_rays(-2.0f, 0);
+    add_rays(-2.0f, 0.2f);
+    add_rays(-6.0f, 0.4f);
+
+    auto rays = lens_system->trace_ray(begin_rays);
+
+    for (auto& ray_step : rays) {
+        for (auto& ray : ray_step) {
+            auto beg = ray.Origin;
+            auto end = ray.Origin + ray.Direction * ray.TMax;
+            auto tbeg = t * pxr::GfVec3f(beg[2], beg[0], 1);
+            auto tend = t * pxr::GfVec3f(end[2], end[0], 1);
+            gui->DrawLine(ImVec2(tbeg[0], tbeg[1]), ImVec2(tend[0], tend[1]));
+        }
+    }
 }
 
 void LensSystemGUI::control(DiffOpticsGUI* diff_optics_gui)
 {
     // For each lens, give a imgui subgroup to control the lens
 
+    bool changed = false;
     for (auto&& lens_layer : lens_system->lenses) {
         if (ImGui::TreeNode(lens_layer->painter->UniqueUIName("Lens Layer"))) {
-            lens_layer->painter->control(diff_optics_gui, lens_layer.get());
+            changed |=
+                lens_layer->painter->control(diff_optics_gui, lens_layer.get());
             ImGui::TreePop();
         }
     }

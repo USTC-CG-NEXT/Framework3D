@@ -26,7 +26,7 @@ class LensGUIPainter {
     virtual BBox2D get_bounds(LensLayer*) = 0;
     virtual void
     draw(DiffOpticsGUI* gui, LensLayer*, const pxr::GfMatrix3f& transform) = 0;
-    virtual void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) = 0;
+    virtual bool control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) = 0;
 
     const char* UniqueUIName(const char* name)
     {
@@ -55,7 +55,7 @@ class NullPainter : public LensGUIPainter {
     {
     }
 
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
+    bool control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
 class OccluderPainter : public LensGUIPainter {
@@ -66,7 +66,7 @@ class OccluderPainter : public LensGUIPainter {
         LensLayer* layer,
         const pxr::GfMatrix3f& transform) override;
 
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
+    bool control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
 class SphericalLensPainter : public LensGUIPainter {
@@ -76,7 +76,7 @@ class SphericalLensPainter : public LensGUIPainter {
         DiffOpticsGUI* gui,
         LensLayer* layer,
         const pxr::GfMatrix3f& transform) override;
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
+    bool control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
 class FlatLensPainter : public LensGUIPainter {
@@ -86,7 +86,7 @@ class FlatLensPainter : public LensGUIPainter {
         DiffOpticsGUI* gui,
         LensLayer* layer,
         const pxr::GfMatrix3f& transform) override;
-    void control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
+    bool control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

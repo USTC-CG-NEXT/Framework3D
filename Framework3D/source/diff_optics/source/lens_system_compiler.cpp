@@ -227,6 +227,8 @@ void NullCompiler::EmitRayTrace(
     std::string& execution,
     LensSystemCompiler* compiler)
 {
+    execution += compiler->emit_line("next_ray = ray");
+    execution += compiler->emit_line("ray.TMax = 0");
 }
 
 void NullCompiler::EmitSampleDirFromSensor(

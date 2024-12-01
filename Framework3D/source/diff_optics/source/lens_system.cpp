@@ -90,6 +90,7 @@ void FlatLens::fill_block_data(float* ptr)
 
 LensSystem::LensSystem() : gui(std::make_unique<LensSystemGUI>(this))
 {
+    block = std::make_unique<CompiledDataBlock>();
 }
 
 void LensSystem::add_lens(std::shared_ptr<LensLayer> lens)
@@ -288,8 +289,12 @@ struct UniformState {
 
 void LensSystem::compile_ray_trace_func()
 {
-    LensSystemCompiler compiler;
-    auto [shader, block] = compiler.compile(this, true);
+    if (!compiler) {
+        compiler = std::make_unique<LensSystemCompiler>();
+    }
+
+    std::string shader;
+    std::tie(shader, *block) = compiler->compile(this, true);
     ShaderFactory shader_factory;
     shader_factory.set_search_path("../../source/renderer/nodes/shaders");
 
@@ -302,42 +307,45 @@ void LensSystem::compile_ray_trace_func()
         reflection,
         error_string);
 
-    ray_trace_func =
-        [block, program_handle, this](const std::vector<RayInfo>& ray_in) {
-            auto rays = ray_in;
+    ray_trace_func = [program_handle,
+                      this](const std::vector<RayInfo>& ray_in) {
+        auto rays = ray_in;
 
-            auto trancient_rays_count = lenses.size();
+        auto trancient_rays_count = lenses.size();
 
-            UniformState state;
-            state.data = (void*)(block.parameters.data());
+        compiler->fill_block_data(this, *block);
 
-            std::vector<CPPPrelude::RWStructuredBuffer<RayInfo>> ray_buffers;
+        UniformState state;
+        state.data = (void*)(block->parameters.data());
 
-            ray_buffers.resize(trancient_rays_count + 1);
-            ray_buffers[0].data = rays.data();
-            ray_buffers[0].count = rays.size();
+        std::vector<CPPPrelude::RWStructuredBuffer<RayInfo>> ray_buffers;
 
-            std::vector<std::vector<RayInfo>> ray_visualizations;
+        ray_buffers.resize(trancient_rays_count + 1);
+        ray_buffers[0].data = rays.data();
+        ray_buffers[0].count = rays.size();
 
-            for (size_t i = 0; i < trancient_rays_count; i++) {
-                ray_visualizations.push_back(std::vector<RayInfo>(rays.size()));
-                ray_buffers[i + 1].data = ray_visualizations[i].data();
-                ray_buffers[i + 1].count = ray_visualizations[i].size();
-            }
+        std::vector<std::vector<RayInfo>> ray_visualizations;
 
-            memcpy(
-                state.rays,
-                ray_buffers.data(),
-                sizeof(CPPPrelude::RWStructuredBuffer<RayInfo>) *
-                    ray_buffers.size());
+        for (size_t i = 0; i < trancient_rays_count; i++) {
+            ray_visualizations.push_back(std::vector<RayInfo>(rays.size()));
+            ray_buffers[i + 1].data = ray_visualizations[i].data();
+            ray_buffers[i + 1].count = ray_visualizations[i].size();
+        }
 
-            CPPPrelude::ComputeVaryingInput input;
-            input.startGroupID = { 0, 0, 0 };
-            input.endGroupID = { unsigned(div_ceil(rays.size(), 128)), 1, 1 };
-            program_handle->host_call(input, state);
+        memcpy(
+            state.rays,
+            ray_buffers.data(),
+            sizeof(CPPPrelude::RWStructuredBuffer<RayInfo>) *
+                ray_buffers.size());
 
-            return ray_visualizations;
-        };
+        CPPPrelude::ComputeVaryingInput input;
+        input.startGroupID = { 0, 0, 0 };
+        input.endGroupID = { unsigned(div_ceil(rays.size(), 128)), 1, 1 };
+        program_handle->host_call(input, state);
+
+        ray_visualizations[0] = rays;
+        return ray_visualizations;
+    };
 }
 
 static const std::string sphere_raygen_template = R"(

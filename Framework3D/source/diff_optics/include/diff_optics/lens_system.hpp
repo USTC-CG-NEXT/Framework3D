@@ -9,6 +9,7 @@
 #include "pxr/base/gf/vec2f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+struct CompiledDataBlock;
 class LensSystem;
 class LensGUIPainter;
 class LayerCompiler;
@@ -108,6 +109,7 @@ class LensSystemGUI {
 
     void set_canvas_size(float x, float y);
 
+    void draw_rays(DiffOpticsGUI* gui, const pxr::GfMatrix3f& t) const;
     virtual void draw(DiffOpticsGUI* gui) const;
     void control(DiffOpticsGUI* diff_optics_gui);
 
@@ -142,6 +144,9 @@ class LensSystem {
     std::function<std::vector<std::vector<RayInfo>>(
         const std::vector<RayInfo>& ray_in)>
         ray_trace_func;
+
+    std::unique_ptr<CompiledDataBlock> block;
+    std::unique_ptr<LensSystemCompiler> compiler;
     void compile_ray_trace_func();
 
     friend class LensSystemGUI;
