@@ -215,6 +215,49 @@ bool FlatLensPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
     return changed;
 }
 
+BBox2D SensorPainter::get_bounds(LensLayer* layer)
+{
+    // treat like flat lens
+    auto sensor = dynamic_cast<Sensor*>(layer);
+
+    auto diameter = sensor->diameter;
+
+    return BBox2D{
+        pxr::GfVec2f(
+            sensor->center_pos[0], sensor->center_pos[1] - diameter / 2),
+        pxr::GfVec2f(
+            sensor->center_pos[0] + 1, sensor->center_pos[1] + diameter / 2),
+    };
+}
+
+void SensorPainter::draw(
+    DiffOpticsGUI* gui,
+    LensLayer* layer,
+    const pxr::GfMatrix3f& transform)
+{
+    auto sensor = dynamic_cast<Sensor*>(layer);
+    auto center_pos = sensor->center_pos;
+    auto diameter = sensor->diameter;
+    auto ep1 = pxr::GfVec2f(center_pos[0], center_pos[1] + diameter / 2);
+    auto ep2 = pxr::GfVec2f(center_pos[0], center_pos[1] - diameter / 2);
+    auto tep1 = transform * pxr::GfVec3f(ep1[0], ep1[1], 1);
+    auto tep2 = transform * pxr::GfVec3f(ep2[0], ep2[1], 1);
+    gui->DrawLine(ImVec2(tep1[0], tep1[1]), ImVec2(tep2[0], tep2[1]));
+}
+
+bool SensorPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
+{  // float sliders
+    auto sensor = dynamic_cast<Sensor*>(get);
+    bool changed = false;
+    // Slider control the center position
+    changed |= ImGui::SliderFloat2(
+        UniqueUIName("Center"), sensor->center_pos.data(), -40, 40);
+    // Slider control the diameter
+    changed |=
+        ImGui::SliderFloat(UniqueUIName("Diameter"), &sensor->diameter, 0, 50);
+    return changed;
+}
+
 void LensSystemGUI::set_canvas_size(float x, float y)
 {
     canvas_size = pxr::GfVec2f(x, y);
@@ -268,9 +311,9 @@ void LensSystemGUI::draw_rays(DiffOpticsGUI* gui, const pxr::GfMatrix3f& t)
 {
     std::vector<RayInfo> begin_rays;
 
-    const int ray_per_group = 10;
-    const float group_spacing = 0.4f;
-    
+    const int ray_per_group = 5;
+    const float group_spacing = 3.0f / ray_per_group;
+
     auto add_rays = [&](float origin_offset, float direction_x) {
         for (int i = 0; i < ray_per_group; ++i) {
             RayInfo ray;
@@ -285,7 +328,7 @@ void LensSystemGUI::draw_rays(DiffOpticsGUI* gui, const pxr::GfMatrix3f& t)
 
     add_rays(-2.0f, 0);
     add_rays(-2.0f, 0.2f);
-    add_rays(-6.0f, 0.4f);
+    add_rays(-7.0f, 0.4f);
 
     auto rays = lens_system->trace_ray(begin_rays);
 

@@ -131,25 +131,26 @@ RayInfo ray_trace(RayInfo ray, LensSystemData data)
 
     for (int i = 0; i < lens_system->lenses.size(); i++) {
         auto lens_layer = lens_system->lenses[i];
+        if (lens_layer->compiler) {
+            block.parameter_offsets[id] = cb_size;
 
-        block.parameter_offsets[id] = cb_size;
+            lens_layer->compiler->EmitCbDataLoad(
+                id, const_buffer, get_lens_data_from_torch_tensor, this);
+            lens_layer->compiler->EmitRayTrace(id, ray_trace_shader, this);
+            if (i == 1) {
+                lens_layer->compiler->EmitSampleDirFromSensor(
+                    id, sample_dir_shader, this);
+            }
 
-        lens_layer->compiler->EmitCbDataLoad(
-            id, const_buffer, get_lens_data_from_torch_tensor, this);
-        lens_layer->compiler->EmitRayTrace(id, ray_trace_shader, this);
-        if (i == 1) {
-            lens_layer->compiler->EmitSampleDirFromSensor(
-                id, sample_dir_shader, this);
+            if (require_ray_visualization) {
+                ray_trace_shader += emit_line(
+                    "ray_visualization_" + std::to_string(id) +
+                    "[ray_id]"
+                    "= ray");
+            }
+            ray_trace_shader += emit_line("ray = next_ray");
+            id++;
         }
-
-        if (require_ray_visualization) {
-            ray_trace_shader += emit_line(
-                "ray_visualization_" + std::to_string(id) +
-                "[ray_id]"
-                "= ray");
-        }
-        ray_trace_shader += emit_line("ray = next_ray");
-        id++;
     }
 
     block.parameters.resize(cb_size);

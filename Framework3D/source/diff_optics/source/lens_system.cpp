@@ -88,6 +88,20 @@ void FlatLens::fill_block_data(float* ptr)
     ptr[3] = optical_property.abbe_number;
 }
 
+Sensor::Sensor(float d, float center_x, float center_y)
+    : LensLayer(center_x, center_y)
+{
+    diameter = d;
+    painter = std::make_unique<SensorPainter>();
+}
+void Sensor::deserialize(const nlohmann::json& j)
+{
+}
+
+void Sensor::fill_block_data(float* ptr)
+{
+}
+
 LensSystem::LensSystem() : gui(std::make_unique<LensSystemGUI>(this))
 {
     block = std::make_unique<CompiledDataBlock>();
@@ -271,6 +285,8 @@ const char* double_gauss = R"(
 void LensSystem::set_default()
 {
     deserialize(std::string(double_gauss));
+    auto sensor = std::make_shared<Sensor>(35.f, 36.0f, 0.0f);
+    add_lens(sensor);
 }
 
 std::vector<std::vector<RayInfo>> LensSystem::trace_ray(

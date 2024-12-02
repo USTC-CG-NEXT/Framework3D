@@ -89,4 +89,16 @@ class FlatLensPainter : public LensGUIPainter {
     bool control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
 };
 
+class SensorPainter : public LensGUIPainter {
+   public:
+    BBox2D get_bounds(LensLayer* layer) override;
+
+    void draw(
+        DiffOpticsGUI* gui,
+        LensLayer* layer,
+        const pxr::GfMatrix3f& transform) override;
+
+    bool control(DiffOpticsGUI* diff_optics_gui, LensLayer* get) override;
+};
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

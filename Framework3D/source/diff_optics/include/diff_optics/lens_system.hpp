@@ -6,6 +6,7 @@
 #include "../../renderer/nodes/shaders/shaders/utils/ray.slang"
 #include "api.h"
 #include "io/json.hpp"
+#include "lens_system.hpp"
 #include "pxr/base/gf/vec2f.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -98,6 +99,18 @@ class FlatLens : public LensLayer {
    private:
     float diameter;
     friend class FlatLensPainter;
+};
+
+class Sensor : public LensLayer {
+   public:
+    Sensor(float d,float center_x, float center_y);
+    void deserialize(const nlohmann::json& j) override;
+
+    void fill_block_data(float* ptr) override;
+
+   private:
+    float diameter;
+    friend class SensorPainter;
 };
 
 class LensSystemGUI {
