@@ -17,6 +17,7 @@ function(Set_CUDA_Properties lib_name)
         PUBLIC
         CUDA::cudart
         CUDA::nvrtc
+        CCCL::CCCL
     )
 endfunction()
 
@@ -39,6 +40,11 @@ function(UCG_ADD_TEST)
     target_link_libraries(${test_name}_test PUBLIC ${UCG_TEST_LIBS})
     target_include_directories(${test_name}_test PUBLIC ${UCG_TEST_INCLUDE_DIRS})
     target_compile_definitions(${test_name}_test PUBLIC NOMINMAX=1)
+
+    # Check if the test source is a CUDA file and set CUDA properties if so
+    if (USTC_CG_WITH_CUDA AND UCG_TEST_SRC MATCHES "\\.cu$")
+        Set_CUDA_Properties(${test_name}_test)
+    endif()
 
     add_test(
         NAME
@@ -172,7 +178,19 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         
     endif()
 
-    file(GLOB test_sources ${folder}/tests/*.cpp)
+    file(GLOB test_cpp_sources ${folder}/tests/*.cpp)
+    if(USTC_CG_ADD_LIB_WITH_CUDA)
+        if(USTC_CG_WITH_CUDA)
+            file(GLOB test_cuda_sources ${folder}/tests/*.cu)
+            set( test_sources ${test_cpp_sources} ${test_cuda_sources} )
+        else()
+            set( test_sources ${test_cpp_sources} )
+        endif()
+    else()
+        set( test_sources ${test_cpp_sources} )
+    endif()
+
+    set( test_sources ${test_cpp_sources} ${test_cuda_sources} )
     foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
         list(FILTER test_sources EXCLUDE REGEX "${skip_dir}/.*")
     endforeach()

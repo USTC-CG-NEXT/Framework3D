@@ -469,7 +469,7 @@ OptiXTraversableHandle createOptiXTraversable(const OptiXTraversableDesc& d)
 
 [[nodiscard]] OptixDeviceContext OptixContext()
 {
-    optix_init();
+    cuda::optix_init();
     return optixContext;
 }
 
