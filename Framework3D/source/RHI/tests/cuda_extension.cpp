@@ -2,8 +2,6 @@
 #include "RHI/internal/cuda_extension.hpp"
 
 #include <gtest/gtest.h>
-#include <thrust/device_vector.h>
-#include <thrust/host_vector.h>
 
 using namespace USTC_CG::cuda;
 
@@ -119,28 +117,45 @@ TEST(cuda_extension, create_optix_pipeline)
 
 TEST(cuda_extension, trace_optix_traversable)
 {
-    // optix_init();
-    // auto line_end_vertices = create_cuda_linear_buffer(
-    //     std::vector{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
-    // auto widths = create_cuda_linear_buffer(std::vector{ 0.1f, 0.1f });
-    // auto indices = create_cuda_linear_buffer(std::vector{ 0 });
-    // auto traversable = create_optix_traversable(
-    //     { line_end_vertices->get_device_ptr() },
-    //     2,
-    //     { widths->get_device_ptr() },
-    //     { indices->get_device_ptr() },
-    //     1);
-    // auto raygen_group = create_optix_raygen("raygen.ptx", "raygen");
-    // auto hit_group1 = create_optix_hitgroup("hitgroup.ptx", "closest_hit");
-    // auto miss_group = create_optix_miss("miss.ptx", "miss");
-    // auto pipeline = create_optix_pipeline(
-    //     { {}, {} }, { raygen_group, hit_group1, miss_group });
-    // auto handle = trace_optix_traversable(
-    //     pipeline,
-    //     traversable,
-    //     { 0.0f, 0.0f, 0.0f },
-    //     { 1.0f, 1.0f, 1.0f },
-    //     0.1f);
+    optix_init();
+
+    std::string filename = "glints/glints.cu";
+
+    auto raygen_group = create_optix_raygen(filename, RGS_STR(line));
+    auto cylinder_module =
+        get_builtin_module(OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR);
+    auto hg_module = create_optix_module(filename);
+    OptiXProgramGroupDesc hg_desc;
+    hg_desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_HITGROUP)
+        .set_entry_name(nullptr, AHS_STR(line), CHS_STR(line));
+
+    auto hg =
+        create_optix_program_group(hg_desc, { nullptr, hg_module, hg_module });
+
+    auto miss_group = create_optix_miss(filename, MISS_STR(line));
+    auto pipeline = create_optix_pipeline({ raygen_group, hg, miss_group });
+
+    auto line_end_vertices = create_cuda_linear_buffer(
+        std::vector{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
+    auto widths = create_cuda_linear_buffer(std::vector{ 0.1f, 0.1f });
+    auto indices = create_cuda_linear_buffer(std::vector{ 0 });
+    auto handle = create_optix_traversable(
+        { line_end_vertices->get_device_ptr() },
+        2,
+        { widths->get_device_ptr() },
+        { indices->get_device_ptr() },
+        1);
+
+    line_end_vertices->assign_host_vector<float>(
+        { 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f });
+
+    handle = create_optix_traversable(
+        { line_end_vertices->get_device_ptr() },
+        2,
+        { widths->get_device_ptr() },
+        { indices->get_device_ptr() },
+        1,
+        true);
 }
 
 #endif

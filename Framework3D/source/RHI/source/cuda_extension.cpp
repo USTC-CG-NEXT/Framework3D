@@ -35,7 +35,6 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-static CUstream optixStream;
 static OptixDeviceContext optixContext;
 static bool isOptiXInitalized = false;
 char optix_log[2048];
@@ -54,6 +53,12 @@ static void context_log_cb(
 // CUDA and OptiX
 //////////////////////////////////////////////////////////////////////////
 namespace cuda {
+static cudaStream_t optixStream;
+
+cudaStream_t get_optix_stream()
+{
+    return optixStream;
+}
 
 static bool readSourceFile(std::string& str, const std::string& filename)
 {
@@ -296,21 +301,21 @@ class OptiXProgramGroup : public RefCounter<IOptiXProgramGroup> {
         std::tuple<OptiXModuleHandle, OptiXModuleHandle, OptiXModuleHandle>
             modules);
 
-   private:
     [[nodiscard]] const OptiXProgramGroupDesc& getDesc() const override
     {
         return desc;
     }
 
-   private:
-    OptiXProgramGroupDesc desc;
-    OptixProgramGroup hitgroup_prog_group;
+    OptixProgramGroupKind getKind() const override;
 
    protected:
     OptixProgramGroup getProgramGroup() const override
     {
         return hitgroup_prog_group;
     }
+
+    OptiXProgramGroupDesc desc;
+    OptixProgramGroup hitgroup_prog_group;
 };
 
 class OptiXPipeline : public RefCounter<IOptiXPipeline> {
@@ -330,9 +335,19 @@ class OptiXPipeline : public RefCounter<IOptiXPipeline> {
         return pipeline;
     }
 
+    OptixShaderBindingTable getSbt() const override
+    {
+        return sbt;
+    }
+
    private:
+    CUDALinearBufferHandle raygen_record;
+    CUDALinearBufferHandle hitgroup_record;
+    CUDALinearBufferHandle miss_record;
+    CUDALinearBufferHandle callable_record;
     OptiXPipelineDesc desc;
     OptixPipeline pipeline;
+    OptixShaderBindingTable sbt = {};
 };
 
 class OptiXTraversable : public RefCounter<IOptiXTraversable> {
@@ -482,6 +497,29 @@ OptiXProgramGroup::OptiXProgramGroup(
         &hitgroup_prog_group));
 }
 
+OptixProgramGroupKind OptiXProgramGroup::getKind() const
+{
+    return desc.prog_group_desc.kind;
+}
+
+template<typename IntegerType>
+IntegerType roundUp(IntegerType x, IntegerType y)
+{
+    return ((x + y - 1) / y) * y;
+}
+
+template<typename T>
+struct SbtRecord {
+    __align__(
+        OPTIX_SBT_RECORD_ALIGNMENT) char header[OPTIX_SBT_RECORD_HEADER_SIZE];
+    T data;
+};
+
+using RayGenSbtRecord = SbtRecord<int>;
+using HitGroupSbtRecord = SbtRecord<int>;
+using MissSbtRecord = SbtRecord<int>;
+using CallableSbtRecord = SbtRecord<int>;
+
 OptiXPipeline::OptiXPipeline(
     OptiXPipelineDesc desc,
     const std::vector<OptiXProgramGroupHandle>& program_groups)
@@ -533,6 +571,139 @@ OptiXPipeline::OptiXPipeline(
         continuation_stack_size,
         max_trace_depth  // maxTraversableDepth
         ));
+
+    OptiXProgramGroupHandle solid_raygen_group;
+    std::vector<OptiXProgramGroupHandle> solid_hitgroup_group;
+    std::vector<OptiXProgramGroupHandle> solid_miss_group;
+    std::vector<OptiXProgramGroupHandle> solid_callable_group;
+
+    for (auto&& program_group : program_groups) {
+        switch (program_group->getKind()) {
+            case OPTIX_PROGRAM_GROUP_KIND_RAYGEN:
+                solid_raygen_group = program_group;
+                break;
+            case OPTIX_PROGRAM_GROUP_KIND_HITGROUP:
+                solid_hitgroup_group.push_back(program_group);
+                break;
+            case OPTIX_PROGRAM_GROUP_KIND_MISS:
+                solid_miss_group.push_back(program_group);
+                break;
+            case OPTIX_PROGRAM_GROUP_KIND_CALLABLES:
+                solid_callable_group.push_back(program_group);
+                break;
+            default: throw std::runtime_error("Unknown program group kind.");
+        }
+    }
+
+    const int hitgroup_count = solid_hitgroup_group.size();
+    const int miss_count = solid_miss_group.size();
+    const int callable_count = solid_callable_group.size();
+
+    const size_t raygen_record_size = sizeof(RayGenSbtRecord);
+    raygen_record = create_cuda_linear_buffer(
+        CUDALinearBufferDesc{ 1, raygen_record_size });
+    CUdeviceptr d_raygen_record = raygen_record->get_device_ptr();
+    RayGenSbtRecord rg_sbt;
+    OPTIX_CHECK(optixSbtRecordPackHeader(
+        solid_raygen_group->getProgramGroup(), &rg_sbt));
+    CUDA_CHECK(cudaMemcpy(
+        reinterpret_cast<void*>(d_raygen_record),
+        &rg_sbt,
+        raygen_record_size,
+        cudaMemcpyHostToDevice));
+
+    int hitgroupRecordStrideInBytes =
+        roundUp<int>(sizeof(HitGroupSbtRecord), OPTIX_SBT_RECORD_ALIGNMENT);
+
+    const int hitgroup_record_size =
+        hitgroupRecordStrideInBytes * hitgroup_count;
+
+    hitgroup_record = create_cuda_linear_buffer(
+        CUDALinearBufferDesc{ hitgroup_count, hitgroupRecordStrideInBytes });
+    CUdeviceptr d_hitgroup_record = hitgroup_record->get_device_ptr();
+    std::vector<HitGroupSbtRecord> hg_sbts(hitgroup_count);
+
+    for (int i = 0; i < hitgroup_count; ++i) {
+        OPTIX_CHECK(optixSbtRecordPackHeader(
+            solid_hitgroup_group[i]->getProgramGroup(), &hg_sbts[i]));
+    }
+
+    CUDA_CHECK(cudaMemcpy(
+        reinterpret_cast<void*>(d_hitgroup_record),
+        hg_sbts.data(),
+        hitgroup_record_size,
+        cudaMemcpyHostToDevice));
+
+    if (miss_count > 0) {
+        int missRecordStrideInBytes =
+            roundUp<size_t>(sizeof(MissSbtRecord), OPTIX_SBT_RECORD_ALIGNMENT);
+
+        int miss_record_size = missRecordStrideInBytes * miss_count;
+
+        miss_record = create_cuda_linear_buffer(
+            CUDALinearBufferDesc{ miss_count, missRecordStrideInBytes });
+
+        CUdeviceptr d_miss_record = miss_record->get_device_ptr();
+
+        std::vector<MissSbtRecord> ms_sbts(miss_count);
+        for (int i = 0; i < miss_count; ++i) {
+            // currently, do nothing.
+            OPTIX_CHECK(optixSbtRecordPackHeader(
+                solid_miss_group[i]->getProgramGroup(), &ms_sbts[i]));
+        }
+
+        CUDA_CHECK(cudaMemcpy(
+            reinterpret_cast<void*>(d_miss_record),
+            ms_sbts.data(),
+            miss_record_size,
+            cudaMemcpyHostToDevice));
+
+        sbt.missRecordBase = CUdeviceptr(d_miss_record);
+        sbt.missRecordStrideInBytes = missRecordStrideInBytes;
+        sbt.missRecordCount = miss_count;
+    }
+    else {
+        sbt.missRecordCount = sbt.missRecordStrideInBytes = sbt.missRecordBase =
+            0;
+    }
+
+    if (callable_count > 0) {
+        int callableRecordStrideInBytes = roundUp<size_t>(
+            sizeof(CallableSbtRecord), OPTIX_SBT_RECORD_ALIGNMENT);
+
+        int callable_record_size = callableRecordStrideInBytes * callable_count;
+
+        callable_record = create_cuda_linear_buffer(CUDALinearBufferDesc{
+            callable_count, callableRecordStrideInBytes });
+
+        CUdeviceptr d_callable_record = callable_record->get_device_ptr();
+
+        std::vector<CallableSbtRecord> ms_sbts(callable_count);
+        for (int i = 0; i < callable_count; ++i) {
+            // currently, do nothing.
+            OPTIX_CHECK(optixSbtRecordPackHeader(
+                solid_callable_group[i]->getProgramGroup(), &ms_sbts[i]));
+        }
+
+        CUDA_CHECK(cudaMemcpy(
+            reinterpret_cast<void*>(d_callable_record),
+            ms_sbts.data(),
+            callable_record_size,
+            cudaMemcpyHostToDevice));
+
+        sbt.callablesRecordBase = CUdeviceptr(d_callable_record);
+        sbt.callablesRecordStrideInBytes = callableRecordStrideInBytes;
+        sbt.callablesRecordCount = callable_count;
+    }
+    else {
+        sbt.callablesRecordCount = sbt.callablesRecordStrideInBytes =
+            sbt.callablesRecordBase = 0;
+    }
+
+    sbt.raygenRecord = CUdeviceptr(d_raygen_record);
+    sbt.hitgroupRecordBase = CUdeviceptr(d_hitgroup_record);
+    sbt.hitgroupRecordStrideInBytes = hitgroupRecordStrideInBytes;
+    sbt.hitgroupRecordCount = hitgroup_count;
 }
 
 OptiXTraversable::OptiXTraversable(const OptiXTraversableDesc& desc)
@@ -816,6 +987,7 @@ OptiXProgramGroupHandle create_optix_program_group(
 
     return OptiXProgramGroupHandle::Create(buffer);
 }
+
 }  // namespace cuda
 
 //

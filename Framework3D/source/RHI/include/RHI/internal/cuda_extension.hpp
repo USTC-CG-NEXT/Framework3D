@@ -2,6 +2,7 @@
 #if USTC_CG_WITH_CUDA
 
 #include <RHI/api.h>
+#include <cuda_runtime.h>
 #include <nvrhi/nvrhi.h>
 #include <thrust/host_vector.h>
 
@@ -27,7 +28,6 @@ class IOptiXTraversable : public nvrhi::IResource {
    public:
     [[nodiscard]] virtual const OptiXTraversableDesc& getDesc() const = 0;
 
-   protected:
     virtual OptixTraversableHandle getOptiXTraversable() const = 0;
 };
 
@@ -143,6 +143,8 @@ class IOptiXProgramGroup : public nvrhi::IResource {
    public:
     [[nodiscard]] virtual const OptiXProgramGroupDesc& getDesc() const = 0;
 
+    virtual OptixProgramGroupKind getKind() const = 0;
+
    protected:
     virtual OptixProgramGroup getProgramGroup() const = 0;
     friend class OptiXPipeline;
@@ -161,8 +163,8 @@ class IOptiXPipeline : public nvrhi::IResource {
    public:
     [[nodiscard]] virtual const OptiXPipelineDesc& getDesc() const = 0;
 
-   protected:
     virtual OptixPipeline getPipeline() const = 0;
+    virtual OptixShaderBindingTable getSbt() const = 0;
 };
 using OptiXModuleHandle = nvrhi::RefCountPtr<IOptiXModule>;
 using OptiXPipelineHandle = nvrhi::RefCountPtr<IOptiXPipeline>;
@@ -199,6 +201,28 @@ RHI_API OptiXPipelineHandle create_optix_pipeline(
 RHI_API OptiXPipelineHandle
 create_optix_pipeline(std::vector<OptiXProgramGroupHandle> program_groups = {});
 
+RHI_API cudaStream_t get_optix_stream();
+
+template<typename OptixLaunchParams>
+ int OptiXTrace(
+    OptiXTraversableHandle traversable,
+    OptiXPipelineHandle handle,
+    CUdeviceptr launch_params,
+    int x,
+    int y,
+    int z)
+{
+    optixLaunch(
+        handle->getPipeline(),
+        get_optix_stream(),
+        launch_params,
+        sizeof(OptixLaunchParams),
+        &handle->getSbt(),
+        x,
+        y,
+        z);
+    return 0;
+}
 }  // namespace cuda
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
