@@ -1,5 +1,5 @@
 
-import lens_shader;
+import lens_shader_cpu;
 import utils.ray;
 #include "utils/CameraParameters.h"
 import Utils.Math.MathHelpers;

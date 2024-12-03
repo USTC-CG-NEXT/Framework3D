@@ -307,10 +307,14 @@ void LensSystem::compile_ray_trace_func()
 {
     if (!compiler) {
         compiler = std::make_unique<LensSystemCompiler>();
+        std::string shader;
+        std::tie(shader, *block) = compiler->compile(this, true);
+
+        std::ofstream file("lens_shader_cpu.slang");
+        file << shader;
+        file.close();
     }
 
-    std::string shader;
-    std::tie(shader, *block) = compiler->compile(this, true);
     ShaderFactory shader_factory;
     shader_factory.set_search_path("../../source/renderer/nodes/shaders");
 
