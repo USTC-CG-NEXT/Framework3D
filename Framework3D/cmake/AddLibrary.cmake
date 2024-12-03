@@ -9,21 +9,13 @@ function(Set_CUDA_Properties lib_name)
     target_compile_features(${lib_name} PUBLIC cuda_std_20)
     target_compile_options(${lib_name}
         PUBLIC
-        "$<<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr;--extended-lambda;--forward-unknown-to-host-compiler;-g;-lineinfo;-rdc=true;-c;>"
+        "$<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr;--extended-lambda;--forward-unknown-to-host-compiler;-g;-lineinfo;-rdc=true;-c;>"
     )
 
-    target_include_directories(
-        ${lib_name}
-        PUBLIC
-        $<INSTALL_INTERFACE:include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-    )
     target_link_libraries(
         ${lib_name}
         PUBLIC
-        #CUDA::cudart
+        CUDA::cudart
         CUDA::nvrtc
     )
 endfunction()
@@ -59,7 +51,7 @@ endfunction(UCG_ADD_TEST)
 
 
 function(USTC_CG_ADD_LIB LIB_NAME)
-    set(options SHARED)
+    set(options SHARED WITH_CUDA)
     set(oneValueArgs RESOURCE_COPY_TARGET)
     set(multiValueArgs LIB_FLAGS EXTRA_FILES INC_DIR PUBLIC_LIBS PRIVATE_LIBS COMPILE_OPTIONS COMPILE_DEFS USD_RESOURCE_DIRS USD_RESOURCE_FILES SKIP_DIRS PYTHON_WRAP_SRC PYTHON_WRAP_DIR)
     cmake_parse_arguments(USTC_CG_ADD_LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -109,17 +101,19 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         ${USTC_CG_ADD_LIB_EXTRA_FILES}
     )
 
-    if(USTC_CG_WITH_CUDA)
-        file(GLOB_RECURSE ${name}_cuda_sources ${folder}/*.cu ${folder}/*.cuh)
-        list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${folder}/tests/.*")
-        foreach(resource_dir ${USTC_CG_ADD_LIB_USD_RESOURCE_DIRS})
-            list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${resource_dir}/.*")
-        endforeach()
-        foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
-            list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${skip_dir}/.*")
-        endforeach()
-        set(${name}_sources ${${name}_sources} ${${name}_cuda_sources})
-        list(LENGTH ${name}_cuda_sources cuda_file_count)
+    if(USTC_CG_ADD_LIB_WITH_CUDA)
+        if(USTC_CG_WITH_CUDA)
+            file(GLOB_RECURSE ${name}_cuda_sources ${folder}/*.cu ${folder}/*.cuh)
+            list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${folder}/tests/.*")
+            foreach(resource_dir ${USTC_CG_ADD_LIB_USD_RESOURCE_DIRS})
+                list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${resource_dir}/.*")
+            endforeach()
+            foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
+                list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${skip_dir}/.*")
+            endforeach()
+            set(${name}_sources ${${name}_sources} ${${name}_cuda_sources})
+            list(LENGTH ${name}_cuda_sources cuda_file_count)
+        endif()
     endif()
 
     if(${USTC_CG_ADD_LIB_SHARED})
@@ -138,9 +132,10 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         ${USTC_CG_ADD_LIB_INC_DIR}
     )
 
-    if(USTC_CG_WITH_CUDA)
-        if(NOT cuda_file_count EQUAL 0)
+    if(USTC_CG_ADD_LIB_WITH_CUDA)
+        if(USTC_CG_WITH_CUDA)
             Set_CUDA_Properties(${name})
+            message("Setting CUDA properties for ${name}")
         endif()
     endif()
 

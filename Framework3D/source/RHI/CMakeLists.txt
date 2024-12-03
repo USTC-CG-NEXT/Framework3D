@@ -2,6 +2,7 @@ if(SLANG_FOUND)
 	USTC_CG_ADD_LIB(
 		RHI
 		SHARED
+		WITH_CUDA
 		PUBLIC_LIBS nvrhi SLANG::slang
 		PRIVATE_LIBS Vulkan::Headers Logger glfw glm::glm nodes_core
 		COMPILE_DEFS 
