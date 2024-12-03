@@ -15,6 +15,9 @@ target_compile_definitions(hd_USTC_CG PRIVATE HOST_CODE=1)
 target_include_directories(hd_USTC_CG PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/nodes/shaders/shaders)
 
 add_subdirectory(nodes/renderer)
+add_subdirectory(nodes/glints)
+
+target_link_libraries(hd_USTC_CG PUBLIC glints)
 
 add_nodes(
 	TARGET_NAME render_nodes 
@@ -22,6 +25,5 @@ add_nodes(
 	DEP_LIBS usd RHI hd_USTC_CG render_nodes_facilities
 	COMPILE_DEFS NOMINMAX 
 )
-
 
 target_link_libraries(physical_lens_raygen PUBLIC diff_optics)
