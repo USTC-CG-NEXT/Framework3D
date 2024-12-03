@@ -8,6 +8,7 @@ USTC_CG_ADD_LIB(
 	USD_RESOURCE_DIRS resources nodes/shaders
 	SKIP_DIRS nodes
 	RESOURCE_COPY_TARGET ${OUT_BINARY_DIR}/usd/hd_USTC_CG/resources
+	PYTHON_WRAP_DIR python
 )
 
 target_compile_definitions(hd_USTC_CG PRIVATE HOST_CODE=1)
