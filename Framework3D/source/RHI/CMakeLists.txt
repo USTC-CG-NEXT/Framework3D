@@ -24,4 +24,5 @@ if(SLANG_FOUND)
 	if(TARGET garch)
 		target_link_libraries(RHI PUBLIC garch)
 	endif()
+
 endif()
