@@ -46,7 +46,6 @@ if(USTC_CG_WITH_CUDA)
   find_package(CCCL REQUIRED)
   add_compile_definitions(USTC_CG_WITH_CUDA=1)
   set(CMAKE_CUDA_STANDARD 20)
-
 else()
   add_compile_definitions(USTC_CG_WITH_CUDA=0)
 endif()

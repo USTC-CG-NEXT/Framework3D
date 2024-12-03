@@ -125,7 +125,8 @@ class OptiXModuleDesc {
     OptixPipelineCompileOptions pipeline_compile_options;
     OptixBuiltinISOptions builtinISOptions;
 
-    std::string ptx;
+    std::string file_name;
+    std::string entry_name;
 };
 
 class IOptiXProgramGroup : public nvrhi::IResource {
@@ -157,6 +158,10 @@ using OptiXModuleHandle = nvrhi::RefCountPtr<IOptiXModule>;
 using OptiXPipelineHandle = nvrhi::RefCountPtr<IOptiXPipeline>;
 using OptiXProgramGroupHandle = nvrhi::RefCountPtr<IOptiXProgramGroup>;
 
+RHI_API const char* get_ptx_string_from_cu(
+    const char* filename,
+    const char** log = nullptr);
+
 OptiXModuleHandle create_optix_module(const OptiXModuleDesc& d);
 
 OptiXProgramGroupHandle create_optix_program_group(
@@ -168,13 +173,13 @@ OptiXProgramGroupHandle create_optix_program_group(
     std::tuple<OptiXModuleHandle, OptiXModuleHandle, OptiXModuleHandle>
         modules);
 
-OptiXProgramGroupHandle create_optix_raygen(const std::string& file_path, const std::string& entry_name);
+OptiXProgramGroupHandle create_optix_raygen(
+    const std::string& file_path,
+    const std::string& entry_name);
 
 OptiXPipelineHandle create_optix_pipeline(
     const OptiXPipelineDesc& d,
     std::vector<OptiXProgramGroupHandle> program_groups = {});
-
-
 
 }  // namespace cuda
 

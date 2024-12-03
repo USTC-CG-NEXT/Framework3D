@@ -1,0 +1,15 @@
+#pragma once
+
+#define OptiX_DIR "@OptiX_DIR@"
+#define OptiX_PTX_DIR "@OptiX_PTX_DIR@"
+#define OptiX_CUDA_DIR "@OptiX_CUDA_DIR@"
+
+// Include directories
+#define OptiX_RELATIVE_INCLUDE_DIRS @OptiX_RELATIVE_INCLUDE_DIRS@ "@OptiX_DIR@/include",
+#define OptiX_ABSOLUTE_INCLUDE_DIRS @OptiX_ABSOLUTE_INCLUDE_DIRS@ "@GLM_INCLUDE_DIR@"
+
+// Signal whether to use NVRTC or not
+#cmakedefine01 CUDA_NVRTC_ENABLED
+
+// NVRTC compiler options
+#define CUDA_NVRTC_OPTIONS @CUDA_NVRTC_OPTIONS@

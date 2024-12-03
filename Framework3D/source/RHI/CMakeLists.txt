@@ -26,4 +26,8 @@ if(SLANG_FOUND)
 		target_link_libraries(RHI PUBLIC garch)
 	endif()
 
+	if(USTC_CG_WITH_CUDA)
+		include(nvrtc.cmake)
+	endif()
+
 endif()

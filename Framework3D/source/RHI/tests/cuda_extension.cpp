@@ -60,17 +60,72 @@ TEST(cuda_extension, create_optix_traversable)
         1);
 
     EXPECT_NE(handle, nullptr);
+
+    line_end_vertices->assign_host_vector<float>(
+        { 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f });
+
+    handle = create_optix_traversable(
+        { line_end_vertices->get_device_ptr() },
+        2,
+        { widths->get_device_ptr() },
+        { indices->get_device_ptr() },
+        1,
+        true);
+
+    EXPECT_NE(handle, nullptr);
 }
 
-TEST(cuda_extension, create_optix_pipeline)
+TEST(cuda_extension, get_ptx_from_cu)
 {
-    optix_init();
-
-    std::string filename;
-    std::string entry_name;
-    auto raygen_group = create_optix_raygen(filename, entry_name);
+    std::string ptx = get_ptx_string_from_cu("glints.cu");
+    std::cout << ptx;
 }
+
+// TEST(cuda_extension, create_optix_pipeline)
+//{
+//     optix_init();
+//
+//     std::string filename;
+//     std::string entry_name;
+//     auto raygen_group = create_optix_raygen(filename, entry_name);
+//
+//     EXPECT_NE(raygen_group, nullptr);
+//
+//     auto cylinder_module = get_builtin_module();
+//     EXPECT_NE(cylinder_module, nullptr);
+//
+//     auto hit_group1 = create_optix_hitgroup();
+//     EXPECT_NE(hit_group1, nullptr);
+//
+//     auto miss_group = create_optix_miss();
+//     EXPECT_NE(miss_group, nullptr);
+//
+//     auto pipeline = create_optix_pipeline(
+//         { {}, {} }, { raygen_group, hit_group1, miss_group });
+// }
 
 TEST(cuda_extension, trace_optix_traversable)
 {
+    // optix_init();
+    // auto line_end_vertices = create_cuda_linear_buffer(
+    //     std::vector{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
+    // auto widths = create_cuda_linear_buffer(std::vector{ 0.1f, 0.1f });
+    // auto indices = create_cuda_linear_buffer(std::vector{ 0 });
+    // auto traversable = create_optix_traversable(
+    //     { line_end_vertices->get_device_ptr() },
+    //     2,
+    //     { widths->get_device_ptr() },
+    //     { indices->get_device_ptr() },
+    //     1);
+    // auto raygen_group = create_optix_raygen("raygen.ptx", "raygen");
+    // auto hit_group1 = create_optix_hitgroup("hitgroup.ptx", "closest_hit");
+    // auto miss_group = create_optix_miss("miss.ptx", "miss");
+    // auto pipeline = create_optix_pipeline(
+    //     { {}, {} }, { raygen_group, hit_group1, miss_group });
+    // auto handle = trace_optix_traversable(
+    //     pipeline,
+    //     traversable,
+    //     { 0.0f, 0.0f, 0.0f },
+    //     { 1.0f, 1.0f, 1.0f },
+    //     0.1f);
 }
