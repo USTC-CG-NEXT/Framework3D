@@ -59,7 +59,6 @@ CUDALinearBufferHandle create_cuda_linear_buffer(const CUDALinearBufferDesc& d)
     return CUDALinearBufferHandle::Create(buffer);
 }
 
-
 }  // namespace cuda
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

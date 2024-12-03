@@ -1,11 +1,10 @@
 set(CUDA_NVRTC_ENABLED 1)
+set(OptiX_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/include/RHI/internal/optix)
 message("Optix include at ${OptiX_INCLUDE}")
 
 set(OptiX_ABSOLUTE_INCLUDE_DIRS "\\
-  \"${CMAKE_CURRENT_LIST_DIR}/include/RHI/internal/optix\",\\
   \"${OptiX_INCLUDE}\", \\
   \"${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}/cuda/std\", \\
-  \"${DONUT_SHADER_INCLUDE_DIR}\", \\
   \"${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}\", ")
 
   # NVRTC include paths relative to the sample path

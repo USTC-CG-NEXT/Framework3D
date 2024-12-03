@@ -1,3 +1,4 @@
+#if USTC_CG_WITH_CUDA
 #include <cuda_runtime.h>
 
 #include <RHI/internal/cuda_extension.hpp>
@@ -374,6 +375,7 @@ OptiXModule::OptiXModule(const OptiXModuleDesc& desc) : desc(desc)
 
     if (!desc.file_name.empty()) {
         if (ptx.empty()) {
+            ptx = get_ptx_string_from_cu(desc.file_name.c_str());
         }
 
         OPTIX_CHECK_LOG(optixModuleCreate(
@@ -394,6 +396,30 @@ OptiXModule::OptiXModule(const OptiXModuleDesc& desc) : desc(desc)
             &desc.builtinISOptions,
             &module));
     }
+}
+
+OptiXProgramGroupDesc& OptiXProgramGroupDesc::set_program_group_kind(
+    OptixProgramGroupKind kind)
+{
+    prog_group_desc.kind = kind;
+    return *this;
+}
+
+OptiXProgramGroupDesc& OptiXProgramGroupDesc::set_entry_name(const char* name)
+{
+    prog_group_desc.raygen.entryFunctionName = name;
+    return *this;
+}
+
+OptiXProgramGroupDesc& OptiXProgramGroupDesc::set_entry_name(
+    const char* is,
+    const char* ahs,
+    const char* chs)
+{
+    prog_group_desc.hitgroup.entryFunctionNameIS = is;
+    prog_group_desc.hitgroup.entryFunctionNameAH = ahs;
+    prog_group_desc.hitgroup.entryFunctionNameCH = chs;
+    return *this;
 }
 
 OptiXProgramGroup::OptiXProgramGroup(
@@ -661,9 +687,28 @@ OptiXProgramGroupHandle create_optix_program_group(
 
 OptiXProgramGroupHandle create_optix_raygen(
     const std::string& file_path,
-    const std::string& entry_name)
+    const char* entry_name)
 {
-    return nullptr;
+    auto module = create_optix_module(file_path);
+
+    OptiXProgramGroupDesc desc;
+    desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_RAYGEN)
+        .set_entry_name(entry_name);
+
+    return create_optix_program_group(desc, module);
+}
+
+OptiXProgramGroupHandle create_optix_miss(
+    const std::string& file_path,
+    const char* entry_name)
+{
+    auto module = create_optix_module(file_path);
+
+    OptiXProgramGroupDesc desc;
+    desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_MISS)
+        .set_entry_name(entry_name);
+
+    return create_optix_program_group(desc, module);
 }
 
 OptiXModuleHandle create_optix_module(const OptiXModuleDesc& d)
@@ -674,6 +719,75 @@ OptiXModuleHandle create_optix_module(const OptiXModuleDesc& d)
     return OptiXModuleHandle::Create(module);
 }
 
+OptixModuleCompileOptions get_default_module_compile_options()
+{
+    OptixModuleCompileOptions module_compile_options = {};
+    module_compile_options.maxRegisterCount = 128;
+    module_compile_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_DEFAULT;
+    module_compile_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+    module_compile_options.numBoundValues = 0;
+    module_compile_options.boundValues = nullptr;
+
+    return module_compile_options;
+}
+
+OptixPipelineCompileOptions get_default_pipeline_compile_options()
+{
+    OptixPipelineCompileOptions pipeline_compile_options = {};
+    pipeline_compile_options.traversableGraphFlags =
+        OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
+    pipeline_compile_options.usesMotionBlur = false;
+    pipeline_compile_options.numPayloadValues = 2;
+    pipeline_compile_options.numAttributeValues = 2;
+    pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
+    pipeline_compile_options.pipelineLaunchParamsVariableName = "params";
+    pipeline_compile_options.usesPrimitiveTypeFlags = 0;
+    pipeline_compile_options.usesPrimitiveTypeFlags |=
+        OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
+    pipeline_compile_options.usesPrimitiveTypeFlags |=
+        OPTIX_PRIMITIVE_TYPE_FLAGS_CUSTOM;
+    pipeline_compile_options.usesPrimitiveTypeFlags |=
+        OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_LINEAR;
+    return pipeline_compile_options;
+}
+
+OptixPipelineLinkOptions get_default_pipeline_link_options()
+{
+    OptixPipelineLinkOptions pipeline_link_options = {};
+    pipeline_link_options.maxTraceDepth = 2;
+    return pipeline_link_options;
+}
+
+OptixBuiltinISOptions get_default_built_in_is_options()
+{
+    OptixBuiltinISOptions options = {};
+    options.usesMotionBlur = false;
+    options.buildFlags = OPTIX_BUILD_FLAG_NONE;
+    options.curveEndcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT;
+    return options;
+}
+
+OptiXModuleHandle create_optix_module(const std::string& file_path)
+{
+    OptiXModuleDesc desc;
+    desc.file_name = file_path;
+    desc.module_compile_options = get_default_module_compile_options();
+    desc.pipeline_compile_options = get_default_pipeline_compile_options();
+    return create_optix_module(desc);
+}
+
+OptiXModuleHandle get_builtin_module(OptixPrimitiveType type)
+{
+    OptiXModuleDesc desc;
+    desc.module_compile_options = get_default_module_compile_options();
+    desc.pipeline_compile_options = get_default_pipeline_compile_options();
+    OptixBuiltinISOptions& options = desc.builtinISOptions;
+    options = get_default_built_in_is_options();
+    options.builtinISModuleType = type;
+
+    return create_optix_module(desc);
+}
+
 OptiXPipelineHandle create_optix_pipeline(
     const OptiXPipelineDesc& d,
     std::vector<OptiXProgramGroupHandle> program_groups)
@@ -682,6 +796,15 @@ OptiXPipelineHandle create_optix_pipeline(
     auto buffer = new OptiXPipeline(desc, program_groups);
 
     return OptiXPipelineHandle::Create(buffer);
+}
+
+OptiXPipelineHandle create_optix_pipeline(
+    std::vector<OptiXProgramGroupHandle> program_groups)
+{
+    OptiXPipelineDesc desc;
+    desc.pipeline_compile_options = get_default_pipeline_compile_options();
+    desc.pipeline_link_options = get_default_pipeline_link_options();
+    return create_optix_pipeline(desc, program_groups);
 }
 
 OptiXProgramGroupHandle create_optix_program_group(
@@ -1042,3 +1165,5 @@ OptiXProgramGroupHandle create_optix_program_group(
 //}
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
+
+#endif

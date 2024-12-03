@@ -32,8 +32,6 @@ set_target_properties(gtest_main PROPERTIES ${OUTPUT_DIR})
 include(cmake/AddLibrary.cmake)
 include(cmake/AddNodes.cmake)
 
-
-
 option(USTC_CG_WITH_CUDA OFF)
 option(USTC_CG_WITH_TORCH OFF)
 

@@ -1,3 +1,4 @@
+#if USTC_CG_WITH_CUDA
 #include "RHI/internal/cuda_extension.hpp"
 
 #include <gtest/gtest.h>
@@ -77,32 +78,44 @@ TEST(cuda_extension, create_optix_traversable)
 
 TEST(cuda_extension, get_ptx_from_cu)
 {
-    std::string ptx = get_ptx_string_from_cu("glints/glints.cu");
-    std::cout << ptx;
+    auto m = create_optix_module("glints/glints.cu");
+    EXPECT_NE(m, nullptr);
 }
 
-// TEST(cuda_extension, create_optix_pipeline)
-//{
-//     optix_init();
-//
-//     std::string filename;
-//     std::string entry_name;
-//     auto raygen_group = create_optix_raygen(filename, entry_name);
-//
-//     EXPECT_NE(raygen_group, nullptr);
-//
-//     auto cylinder_module = get_builtin_module();
-//     EXPECT_NE(cylinder_module, nullptr);
-//
-//     auto hit_group1 = create_optix_hitgroup();
-//     EXPECT_NE(hit_group1, nullptr);
-//
-//     auto miss_group = create_optix_miss();
-//     EXPECT_NE(miss_group, nullptr);
-//
-//     auto pipeline = create_optix_pipeline(
-//         { {}, {} }, { raygen_group, hit_group1, miss_group });
-// }
+TEST(cuda_extension, create_optix_pipeline)
+{
+    optix_init();
+
+    std::string filename = "glints/glints.cu";
+
+    auto raygen_group = create_optix_raygen(filename, RGS_STR(line));
+    EXPECT_NE(raygen_group, nullptr);
+
+    auto cylinder_module =
+        get_builtin_module(OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR);
+    EXPECT_NE(cylinder_module, nullptr);
+
+    auto hg_module = create_optix_module(filename);
+    EXPECT_NE(hg_module, nullptr);
+
+    OptiXProgramGroupDesc hg_desc;
+    hg_desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_HITGROUP)
+        .set_entry_name(nullptr, AHS_STR(line), CHS_STR(line));
+
+    auto hg =
+        create_optix_program_group(hg_desc, { nullptr, hg_module, hg_module });
+
+    EXPECT_NE(hg, nullptr);
+
+    auto miss_group = create_optix_miss(filename, MISS_STR(line));
+    EXPECT_NE(miss_group, nullptr);
+
+    auto pipeline = create_optix_pipeline({ raygen_group, hg, miss_group });
+
+    EXPECT_NE(pipeline, nullptr);
+}
+
+#include "../../renderer/nodes/shaders/shaders/glints/params.h"
 
 TEST(cuda_extension, trace_optix_traversable)
 {
@@ -129,3 +142,5 @@ TEST(cuda_extension, trace_optix_traversable)
     //     { 1.0f, 1.0f, 1.0f },
     //     0.1f);
 }
+
+#endif

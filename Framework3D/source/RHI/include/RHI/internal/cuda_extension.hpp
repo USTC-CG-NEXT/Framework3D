@@ -1,4 +1,6 @@
 #pragma once
+#if USTC_CG_WITH_CUDA
+
 #include <RHI/api.h>
 #include <nvrhi/nvrhi.h>
 #include <thrust/host_vector.h>
@@ -8,6 +10,7 @@
 #include <memory>
 #include <string>
 
+#include "optix/ShaderNameAbbre.h"
 #include "optix/optix.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -107,10 +110,18 @@ CUDALinearBufferHandle create_cuda_linear_buffer(const std::vector<T>& d)
     return ret;
 }
 
-class OptiXProgramGroupDesc {
+class RHI_API OptiXProgramGroupDesc {
    public:
     OptixProgramGroupOptions program_group_options = {};
+    OptiXProgramGroupDesc& set_program_group_kind(OptixProgramGroupKind kind);
+    OptiXProgramGroupDesc& set_entry_name(const char* name);
+    OptiXProgramGroupDesc&
+    set_entry_name(const char* is, const char* ahs, const char* chs);
+
+   protected:
     OptixProgramGroupDesc prog_group_desc;
+
+    friend class OptiXProgramGroup;
 };
 
 class OptiXPipelineDesc {
@@ -126,7 +137,6 @@ class OptiXModuleDesc {
     OptixBuiltinISOptions builtinISOptions;
 
     std::string file_name;
-    std::string entry_name;
 };
 
 class IOptiXProgramGroup : public nvrhi::IResource {
@@ -162,25 +172,35 @@ RHI_API const char* get_ptx_string_from_cu(
     const char* filename,
     const char** log = nullptr);
 
-OptiXModuleHandle create_optix_module(const OptiXModuleDesc& d);
+RHI_API OptiXModuleHandle create_optix_module(const OptiXModuleDesc& d);
+RHI_API OptiXModuleHandle create_optix_module(const std::string& file_path);
 
-OptiXProgramGroupHandle create_optix_program_group(
+RHI_API OptiXModuleHandle get_builtin_module(OptixPrimitiveType primitive_type);
+
+RHI_API OptiXProgramGroupHandle create_optix_program_group(
     const OptiXProgramGroupDesc& d,
     OptiXModuleHandle module);
 
-OptiXProgramGroupHandle create_optix_program_group(
+RHI_API OptiXProgramGroupHandle create_optix_program_group(
     const OptiXProgramGroupDesc& d,
     std::tuple<OptiXModuleHandle, OptiXModuleHandle, OptiXModuleHandle>
         modules);
 
-OptiXProgramGroupHandle create_optix_raygen(
-    const std::string& file_path,
-    const std::string& entry_name);
+RHI_API OptiXProgramGroupHandle
+create_optix_raygen(const std::string& file_path, const char* entry_name);
 
-OptiXPipelineHandle create_optix_pipeline(
+RHI_API OptiXProgramGroupHandle
+create_optix_miss(const std::string& file_path, const char* entry_name);
+
+RHI_API OptiXPipelineHandle create_optix_pipeline(
     const OptiXPipelineDesc& d,
     std::vector<OptiXProgramGroupHandle> program_groups = {});
+
+RHI_API OptiXPipelineHandle
+create_optix_pipeline(std::vector<OptiXProgramGroupHandle> program_groups = {});
 
 }  // namespace cuda
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
+
+#endif
