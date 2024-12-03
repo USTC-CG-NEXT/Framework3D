@@ -77,7 +77,7 @@ TEST(cuda_extension, create_optix_traversable)
 
 TEST(cuda_extension, get_ptx_from_cu)
 {
-    std::string ptx = get_ptx_string_from_cu("glints.cu");
+    std::string ptx = get_ptx_string_from_cu("glints/glints.cu");
     std::cout << ptx;
 }
 

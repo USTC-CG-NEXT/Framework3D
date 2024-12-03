@@ -81,7 +81,8 @@ static void getCuStringFromFile(
     // Potential source locations (in priority order)
     if (sampleDir)
         source_locations.push_back(base_dir + '/' + sampleDir + '/' + filename);
-    source_locations.push_back(base_dir + "/src/OptiX/" + filename);
+    source_locations.push_back(
+        base_dir + "../../source/renderer/nodes/shaders/shaders/" + filename);
     source_locations.push_back(base_dir + "test/src/OptiX/" + filename);
 
     for (const std::string& loc : source_locations) {
