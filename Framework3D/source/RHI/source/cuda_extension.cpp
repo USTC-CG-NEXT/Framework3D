@@ -7,102 +7,19 @@
 #include <unordered_map>
 #include <vector>
 
+#include "RHI/internal/optix/optix.h"
+#include "RHI/internal/optix/optix_function_table_definition.h"
+#include "RHI/internal/optix/optix_stack_size.h"
+#include "RHI/internal/optix/optix_stubs.h"
+#include "cuda_extension_utils.h"
 #include "nvrhi/nvrhi.h"
-#include "optix/optix.h"
-#include "optix/optix_function_table_definition.h"
-#include "optix/optix_stack_size.h"
-#include "optix/optix_stubs.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-
-#define CUDA_CHECK(call)                                              \
-    do {                                                              \
-        cudaError_t error = call;                                     \
-        if (error != cudaSuccess) {                                   \
-            std::stringstream ss;                                     \
-            ss << "CUDA call (" << #call << " ) failed with error: '" \
-               << cudaGetErrorString(error) << "' (" __FILE__ << ":"  \
-               << __LINE__ << ")\n";                                  \
-            printf("%s", ss.str().c_str());                           \
-        }                                                             \
-    } while (0)
-
-#define OPTIX_CHECK_LOG(call)                                              \
-    do {                                                                   \
-        OptixResult res = call;                                            \
-        const size_t sizeof_log_returned = sizeof_log;                     \
-        sizeof_log =                                                       \
-            sizeof(optix_log); /* reset sizeof_log for future calls */     \
-        if (res != OPTIX_SUCCESS) {                                        \
-            std::stringstream ss;                                          \
-            ss << "Optix call '" << #call << "' failed: " __FILE__ ":"     \
-               << __LINE__ << ")\nLog:\n"                                  \
-               << optix_log                                                \
-               << (sizeof_log_returned > sizeof(optix_log) ? "<TRUNCATED>" \
-                                                           : "")           \
-               << "\n";                                                    \
-            printf("%s", ss.str().c_str());                                \
-        }                                                                  \
-    } while (0)
-
-#define OPTIX_CHECK(call)                                              \
-    do {                                                               \
-        OptixResult res = call;                                        \
-        if (res != OPTIX_SUCCESS) {                                    \
-            std::stringstream ss;                                      \
-            ss << "Optix call '" << #call << "' failed: " __FILE__ ":" \
-               << __LINE__ << ")\n";                                   \
-            printf("%s", ss.str().c_str());                            \
-        }                                                              \
-    } while (0)
-
-#define CUDA_SYNC_CHECK()                                            \
-    do {                                                             \
-        cudaDeviceSynchronize();                                     \
-        cudaError_t error = cudaGetLastError();                      \
-        if (error != cudaSuccess) {                                  \
-            std::stringstream ss;                                    \
-            ss << "CUDA error on synchronize with error '"           \
-               << cudaGetErrorString(error) << "' (" __FILE__ << ":" \
-               << __LINE__ << ")\n";                                 \
-            printf("%s", ss.str().c_str());                          \
-        }                                                            \
-    } while (0)
-
-#define OPTIX_CHECK_LOG(call)                                              \
-    do {                                                                   \
-        OptixResult res = call;                                            \
-        const size_t sizeof_log_returned = sizeof_log;                     \
-        sizeof_log =                                                       \
-            sizeof(optix_log); /* reset sizeof_log for future calls */     \
-        if (res != OPTIX_SUCCESS) {                                        \
-            std::stringstream ss;                                          \
-            ss << "Optix call '" << #call << "' failed: " __FILE__ ":"     \
-               << __LINE__ << ")\nLog:\n"                                  \
-               << optix_log                                                \
-               << (sizeof_log_returned > sizeof(optix_log) ? "<TRUNCATED>" \
-                                                           : "")           \
-               << "\n";                                                    \
-            printf("%s", ss.str().c_str());                                \
-        }                                                                  \
-    } while (0)
-
-#define OPTIX_CHECK(call)                                              \
-    do {                                                               \
-        OptixResult res = call;                                        \
-        if (res != OPTIX_SUCCESS) {                                    \
-            std::stringstream ss;                                      \
-            ss << "Optix call '" << #call << "' failed: " __FILE__ ":" \
-               << __LINE__ << ")\n";                                   \
-            printf("%s", ss.str().c_str());                            \
-        }                                                              \
-    } while (0)
-
-char optix_log[2048];
 
 static CUstream optixStream;
 static OptixDeviceContext optixContext;
 static bool isOptiXInitalized = false;
+char optix_log[2048];
 
 static void context_log_cb(
     unsigned int level,
@@ -114,54 +31,10 @@ static void context_log_cb(
               << "]: " << message << "\n";
 }
 
-namespace cuda {
-
-int cuda_init()
-{
-    return 0;
-}
-
-int optix_init()
-{
-    if (!isOptiXInitalized) {
-        // Initialize CUDA
-        CUDA_CHECK(cudaFree(0));
-
-        OPTIX_CHECK(optixInit());
-        OptixDeviceContextOptions options = {};
-        options.logCallbackFunction = &context_log_cb;
-        options.logCallbackLevel = 4;
-        OPTIX_CHECK(optixDeviceContextCreate(0, &options, &optixContext));
-        CUDA_CHECK(cudaStreamCreate(&optixStream));
-    }
-    isOptiXInitalized = true;
-
-    return 0;
-}
-
-int cuda_shutdown()
-{
-    return 0;
-}
-
-}  // namespace cuda
-
 //////////////////////////////////////////////////////////////////////////
 // CUDA and OptiX
 //////////////////////////////////////////////////////////////////////////
-
-struct CUDALinearBufferDesc {
-    int size;
-    int element_size;
-
-    CUDALinearBufferDesc(int size = 0, int element_size = 0)
-        : size(size),
-          element_size(element_size)
-    {
-    }
-
-    friend class CUDALinearBuffer;
-};
+namespace cuda {
 
 struct CUDASurfaceObjectDesc {
     uint32_t width;
@@ -183,28 +56,6 @@ struct CUDASurfaceObjectDesc {
     friend class CUDASurfaceObject;
 };
 
-struct PtrTranpoline {
-    explicit PtrTranpoline(void* ptr) : ptr(ptr)
-    {
-    }
-
-    template<typename T>
-    operator T*()
-    {
-        return reinterpret_cast<T*>(ptr);
-    }
-
-   private:
-    void* ptr;
-};
-
-class ICUDALinearBuffer : public nvrhi::IResource {
-   public:
-    virtual ~ICUDALinearBuffer() = default;
-    [[nodiscard]] virtual const CUDALinearBufferDesc& getDesc() const = 0;
-    virtual PtrTranpoline GetGPUAddress() const = 0;
-};
-
 using cudaSurfaceObject_t = unsigned long long;
 
 class ICUDASurfaceObject : public nvrhi::IResource {
@@ -214,92 +65,11 @@ class ICUDASurfaceObject : public nvrhi::IResource {
     virtual cudaSurfaceObject_t GetSurfaceObject() const = 0;
 };
 
-using CUDALinearBufferHandle = nvrhi::RefCountPtr<ICUDALinearBuffer>;
 using CUDASurfaceObjectHandle = nvrhi::RefCountPtr<ICUDASurfaceObject>;
-
-class OptiXModuleDesc {
-   public:
-    OptixModuleCompileOptions module_compile_options;
-    OptixPipelineCompileOptions pipeline_compile_options;
-    OptixBuiltinISOptions builtinISOptions;
-
-    std::string ptx;
-};
-
-class OptiXPipelineDesc {
-   public:
-    OptixPipelineCompileOptions pipeline_compile_options;
-    OptixPipelineLinkOptions pipeline_link_options;
-};
-
-class OptiXProgramGroupDesc {
-   public:
-    OptixProgramGroupOptions program_group_options = {};
-    OptixProgramGroupDesc prog_group_desc;
-};
 
 using nvrhi::RefCountPtr;
 
-class IOptiXProgramGroup : public nvrhi::IResource {
-   public:
-    [[nodiscard]] virtual const OptiXProgramGroupDesc& getDesc() const = 0;
-
-    virtual OptixProgramGroup getProgramGroup() const = 0;
-};
-
-class IOptiXModule : public nvrhi::IResource {
-   public:
-    [[nodiscard]] virtual const OptiXModuleDesc& getDesc() const = 0;
-    virtual OptixModule getModule() const = 0;
-};
-
-class IOptiXPipeline : public nvrhi::IResource {
-   public:
-    [[nodiscard]] virtual const OptiXPipelineDesc& getDesc() const = 0;
-    virtual OptixPipeline getPipeline() const = 0;
-};
-using OptiXModuleHandle = RefCountPtr<IOptiXModule>;
-using OptiXPipelineHandle = RefCountPtr<IOptiXPipeline>;
-using OptiXProgramGroupHandle = RefCountPtr<IOptiXProgramGroup>;
-
-class OptiXTraversableDesc;
-class IOptiXTraversable : public nvrhi::IResource {
-   public:
-    [[nodiscard]] virtual const OptiXTraversableDesc& getDesc() const = 0;
-    virtual OptixTraversableHandle getOptiXTraversable() const = 0;
-};
-
-using OptiXTraversableHandle = RefCountPtr<IOptiXTraversable>;
-
 using nvrhi::RefCounter;
-
-class OptiXTraversableDesc {
-   public:
-    OptixBuildInput buildInput = {};
-    OptixAccelBuildOptions buildOptions = {};
-
-    std::vector<OptiXTraversableHandle> handles;
-};
-
-class CUDALinearBuffer : public RefCounter<ICUDALinearBuffer> {
-   public:
-    CUDALinearBuffer(const CUDALinearBufferDesc& in_desc);
-    ~CUDALinearBuffer() override;
-
-    const CUDALinearBufferDesc& getDesc() const override
-    {
-        return desc;
-    }
-
-    PtrTranpoline GetGPUAddress() const override
-    {
-        return PtrTranpoline{ data };
-    }
-
-   protected:
-    const CUDALinearBufferDesc desc;
-    void* data;
-};
 
 class CUDASurfaceObject : public RefCounter<ICUDASurfaceObject> {
    public:
@@ -330,6 +100,7 @@ class OptiXModule : public RefCounter<IOptiXModule> {
         return desc;
     }
 
+   protected:
     OptixModule getModule() const override
     {
         return module;
@@ -356,15 +127,15 @@ class OptiXProgramGroup : public RefCounter<IOptiXProgramGroup> {
         return desc;
     }
 
-   public:
+   private:
+    OptiXProgramGroupDesc desc;
+    OptixProgramGroup hitgroup_prog_group;
+
+   protected:
     OptixProgramGroup getProgramGroup() const override
     {
         return hitgroup_prog_group;
     }
-
-   private:
-    OptiXProgramGroupDesc desc;
-    OptixProgramGroup hitgroup_prog_group;
 };
 
 class OptiXPipeline : public RefCounter<IOptiXPipeline> {
@@ -378,6 +149,7 @@ class OptiXPipeline : public RefCounter<IOptiXPipeline> {
         return desc;
     }
 
+   protected:
     OptixPipeline getPipeline() const override
     {
         return pipeline;
@@ -410,66 +182,15 @@ class OptiXTraversable : public RefCounter<IOptiXTraversable> {
     CUdeviceptr traversableBuffer;
 };
 
-CUDALinearBufferHandle createCUDALinearBuffer(const CUDALinearBufferDesc& d)
-{
-    auto buffer = new CUDALinearBuffer(d);
-    return CUDALinearBufferHandle::Create(buffer);
-}
-
 CUDASurfaceObjectHandle createCUDASurfaceObject(const CUDASurfaceObjectDesc& d)
 {
     auto buffer = new CUDASurfaceObject(d);
     return CUDASurfaceObjectHandle::Create(buffer);
 }
 
-OptiXModuleHandle createOptiXModule(const OptiXModuleDesc& d)
-{
-    OptiXModuleDesc desc = d;
-    auto module = new OptiXModule(desc);
-
-    return OptiXModuleHandle::Create(module);
-}
-
-OptiXPipelineHandle createOptiXPipeline(
-    const OptiXPipelineDesc& d,
-    std::vector<OptiXProgramGroupHandle> program_groups = {})
-{
-    OptiXPipelineDesc desc = d;
-    auto buffer = new OptiXPipeline(desc, program_groups);
-
-    return OptiXPipelineHandle::Create(buffer);
-}
-
-OptiXProgramGroupHandle createOptiXProgramGroup(
-    const OptiXProgramGroupDesc& d,
-    OptiXModuleHandle module)
-{
-    OptiXProgramGroupDesc desc = d;
-    auto buffer = new OptiXProgramGroup(desc, module);
-
-    return OptiXProgramGroupHandle::Create(buffer);
-}
-
-OptiXProgramGroupHandle createOptiXProgramGroup(
-    const OptiXProgramGroupDesc& d,
-    std::tuple<OptiXModuleHandle, OptiXModuleHandle, OptiXModuleHandle> modules)
-{
-    OptiXProgramGroupDesc desc = d;
-    auto buffer = new OptiXProgramGroup(desc, modules);
-
-    return OptiXProgramGroupHandle::Create(buffer);
-}
-
-OptiXTraversableHandle createOptiXTraversable(const OptiXTraversableDesc& d)
-{
-    auto buffer = new OptiXTraversable(d);
-
-    return OptiXTraversableHandle::Create(buffer);
-}
-
 [[nodiscard]] OptixDeviceContext OptixContext()
 {
-    cuda::optix_init();
+    optix_init();
     return optixContext;
 }
 
@@ -665,19 +386,6 @@ HANDLE getSharedApiHandle(nvrhi::IDevice* device, ResourceType* texture_handle)
     return texture_handle->getNativeObject(nvrhi::ObjectTypes::SharedHandle);
 }
 
-CUDALinearBuffer::CUDALinearBuffer(const CUDALinearBufferDesc& in_desc)
-    : desc(in_desc)
-{
-    CUDA_CHECK(cudaMalloc(&data, in_desc.size * in_desc.element_size));
-    CUDA_CHECK(cudaMemset(data, 0, in_desc.size * in_desc.element_size));
-}
-
-CUDALinearBuffer::~CUDALinearBuffer()
-{
-    cudaFree(data);
-    data = nullptr;
-}
-
 CUDASurfaceObject::CUDASurfaceObject(const CUDASurfaceObjectDesc& in_desc)
     : desc(in_desc)
 {
@@ -688,6 +396,126 @@ CUDASurfaceObject::~CUDASurfaceObject()
 {
     cudaDestroySurfaceObject(surface_obejct);
 }
+
+int cuda_init()
+{
+    return 0;
+}
+
+int optix_init()
+{
+    if (!isOptiXInitalized) {
+        // Initialize CUDA
+        CUDA_CHECK(cudaFree(0));
+
+        OPTIX_CHECK(optixInit());
+        OptixDeviceContextOptions options = {};
+        options.logCallbackFunction = &context_log_cb;
+        options.logCallbackLevel = 4;
+        OPTIX_CHECK(optixDeviceContextCreate(0, &options, &optixContext));
+        CUDA_CHECK(cudaStreamCreate(&optixStream));
+    }
+    isOptiXInitalized = true;
+
+    return 0;
+}
+
+int cuda_shutdown()
+{
+    return 0;
+}
+
+OptiXTraversableHandle create_optix_traversable(const OptiXTraversableDesc& d)
+{
+    auto buffer = new OptiXTraversable(d);
+
+    return OptiXTraversableHandle::Create(buffer);
+}
+
+OptiXTraversableHandle create_optix_traversable(
+    std::vector<CUdeviceptr> vertexBuffer,
+    unsigned int numVertices,
+    std::vector<CUdeviceptr> widthBuffer,
+    CUdeviceptr indexBuffer,
+    unsigned int numPrimitives,
+    bool rebuilding)
+{
+    OptiXTraversableDesc desc;
+
+    desc.buildInput.type = OPTIX_BUILD_INPUT_TYPE_CURVES;
+
+    OptixBuildInputCurveArray& curveArray = desc.buildInput.curveArray;
+    curveArray.curveType = OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR;
+
+    curveArray.numPrimitives = numPrimitives;
+
+    curveArray.vertexBuffers = vertexBuffer.data();
+    curveArray.numVertices = numVertices;
+    curveArray.vertexStrideInBytes = sizeof(float3);
+    curveArray.widthBuffers = widthBuffer.data();
+    curveArray.widthStrideInBytes = sizeof(float);
+    curveArray.indexBuffer = indexBuffer;
+    curveArray.indexStrideInBytes = sizeof(unsigned int);
+    curveArray.flag = OPTIX_GEOMETRY_FLAG_NONE;
+    curveArray.primitiveIndexOffset = 0;
+    curveArray.endcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT;
+
+    desc.buildOptions.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
+    desc.buildOptions.motionOptions.numKeys = 1;
+
+    if (rebuilding)
+        desc.buildOptions.operation = OPTIX_BUILD_OPERATION_UPDATE;
+    else
+        desc.buildOptions.operation = OPTIX_BUILD_OPERATION_BUILD;
+
+    return create_optix_traversable(desc);
+}
+
+OptiXProgramGroupHandle create_optix_program_group(
+    const OptiXProgramGroupDesc& d,
+    std::tuple<OptiXModuleHandle, OptiXModuleHandle, OptiXModuleHandle> modules)
+{
+    OptiXProgramGroupDesc desc = d;
+    auto buffer = new OptiXProgramGroup(desc, modules);
+
+    return OptiXProgramGroupHandle::Create(buffer);
+}
+
+OptiXProgramGroupHandle create_optix_raygen(
+    const std::string& file_path,
+    const std::string& entry_name)
+{
+
+}
+
+OptiXModuleHandle create_optix_module(const OptiXModuleDesc& d)
+{
+    OptiXModuleDesc desc = d;
+    auto module = new OptiXModule(desc);
+
+    return OptiXModuleHandle::Create(module);
+}
+
+OptiXPipelineHandle create_optix_pipeline(
+    const OptiXPipelineDesc& d,
+    std::vector<OptiXProgramGroupHandle> program_groups)
+{
+    OptiXPipelineDesc desc = d;
+    auto buffer = new OptiXPipeline(desc, program_groups);
+
+    return OptiXPipelineHandle::Create(buffer);
+}
+
+OptiXProgramGroupHandle create_optix_program_group(
+    const OptiXProgramGroupDesc& d,
+    OptiXModuleHandle module)
+{
+    OptiXProgramGroupDesc desc = d;
+    auto buffer = new OptiXProgramGroup(desc, module);
+
+    return OptiXProgramGroupHandle::Create(buffer);
+}
+}  // namespace cuda
 
 //
 // void FetchD3DMemory(
