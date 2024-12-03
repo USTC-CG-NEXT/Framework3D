@@ -100,6 +100,52 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 char optix_log[2048];
 
+static CUstream optixStream;
+static OptixDeviceContext optixContext;
+static bool isOptiXInitalized = false;
+
+static void context_log_cb(
+    unsigned int level,
+    const char* tag,
+    const char* message,
+    void* /*cbdata */)
+{
+    std::cerr << "[" << std::setw(2) << level << "][" << std::setw(12) << tag
+              << "]: " << message << "\n";
+}
+
+namespace cuda {
+
+int cuda_init()
+{
+    return 0;
+}
+
+int optix_init()
+{
+    if (!isOptiXInitalized) {
+        // Initialize CUDA
+        CUDA_CHECK(cudaFree(0));
+
+        OPTIX_CHECK(optixInit());
+        OptixDeviceContextOptions options = {};
+        options.logCallbackFunction = &context_log_cb;
+        options.logCallbackLevel = 4;
+        OPTIX_CHECK(optixDeviceContextCreate(0, &options, &optixContext));
+        CUDA_CHECK(cudaStreamCreate(&optixStream));
+    }
+    isOptiXInitalized = true;
+
+    return 0;
+}
+
+int cuda_shutdown()
+{
+    return 0;
+}
+
+}  // namespace cuda
+
 //////////////////////////////////////////////////////////////////////////
 // CUDA and OptiX
 //////////////////////////////////////////////////////////////////////////
@@ -192,23 +238,22 @@ class OptiXProgramGroupDesc {
     OptixProgramGroupDesc prog_group_desc;
 };
 
-using nvrhi::IResource;
 using nvrhi::RefCountPtr;
 
-class IOptiXProgramGroup : public IResource {
+class IOptiXProgramGroup : public nvrhi::IResource {
    public:
     [[nodiscard]] virtual const OptiXProgramGroupDesc& getDesc() const = 0;
 
     virtual OptixProgramGroup getProgramGroup() const = 0;
 };
 
-class IOptiXModule : public IResource {
+class IOptiXModule : public nvrhi::IResource {
    public:
     [[nodiscard]] virtual const OptiXModuleDesc& getDesc() const = 0;
     virtual OptixModule getModule() const = 0;
 };
 
-class IOptiXPipeline : public IResource {
+class IOptiXPipeline : public nvrhi::IResource {
    public:
     [[nodiscard]] virtual const OptiXPipelineDesc& getDesc() const = 0;
     virtual OptixPipeline getPipeline() const = 0;
@@ -218,7 +263,7 @@ using OptiXPipelineHandle = RefCountPtr<IOptiXPipeline>;
 using OptiXProgramGroupHandle = RefCountPtr<IOptiXProgramGroup>;
 
 class OptiXTraversableDesc;
-class IOptiXTraversable : public IResource {
+class IOptiXTraversable : public nvrhi::IResource {
    public:
     [[nodiscard]] virtual const OptiXTraversableDesc& getDesc() const = 0;
     virtual OptixTraversableHandle getOptiXTraversable() const = 0;
@@ -238,9 +283,7 @@ class OptiXTraversableDesc {
 
 class CUDALinearBuffer : public RefCounter<ICUDALinearBuffer> {
    public:
-    CUDALinearBuffer(
-        const CUDALinearBufferDesc& in_desc,
-        IResource* source_resource);
+    CUDALinearBuffer(const CUDALinearBufferDesc& in_desc);
     ~CUDALinearBuffer() override;
 
     const CUDALinearBufferDesc& getDesc() const override
@@ -260,9 +303,7 @@ class CUDALinearBuffer : public RefCounter<ICUDALinearBuffer> {
 
 class CUDASurfaceObject : public RefCounter<ICUDASurfaceObject> {
    public:
-    CUDASurfaceObject(
-        const CUDASurfaceObjectDesc& in_desc,
-        IResource* source_resource);
+    CUDASurfaceObject(const CUDASurfaceObjectDesc& in_desc);
     ~CUDASurfaceObject() override;
 
     const CUDASurfaceObjectDesc& getDesc() const override
@@ -280,35 +321,6 @@ class CUDASurfaceObject : public RefCounter<ICUDASurfaceObject> {
     cudaSurfaceObject_t surface_obejct;
 };
 
-static CUstream optixStream;
-static OptixDeviceContext optixContext;
-static bool isOptiXInitalized = false;
-
-static void context_log_cb(
-    unsigned int level,
-    const char* tag,
-    const char* message,
-    void* /*cbdata */)
-{
-    std::cerr << "[" << std::setw(2) << level << "][" << std::setw(12) << tag
-              << "]: " << message << "\n";
-}
-
-void OptixPrepare()
-{
-    if (!isOptiXInitalized) {
-        // Initialize CUDA
-        CUDA_CHECK(cudaFree(0));
-
-        OPTIX_CHECK(optixInit());
-        OptixDeviceContextOptions options = {};
-        options.logCallbackFunction = &context_log_cb;
-        options.logCallbackLevel = 4;
-        OPTIX_CHECK(optixDeviceContextCreate(0, &options, &optixContext));
-        CUDA_CHECK(cudaStreamCreate(&optixStream));
-    }
-    isOptiXInitalized = true;
-}
 class OptiXModule : public RefCounter<IOptiXModule> {
    public:
     explicit OptiXModule(const OptiXModuleDesc& desc);
@@ -398,19 +410,15 @@ class OptiXTraversable : public RefCounter<IOptiXTraversable> {
     CUdeviceptr traversableBuffer;
 };
 
-CUDALinearBufferHandle createCUDALinearBuffer(
-    const CUDALinearBufferDesc& d,
-    IResource* source = nullptr)
+CUDALinearBufferHandle createCUDALinearBuffer(const CUDALinearBufferDesc& d)
 {
-    auto buffer = new CUDALinearBuffer(d, source);
+    auto buffer = new CUDALinearBuffer(d);
     return CUDALinearBufferHandle::Create(buffer);
 }
 
-CUDASurfaceObjectHandle createCUDASurfaceObject(
-    const CUDASurfaceObjectDesc& d,
-    IResource* source = nullptr)
+CUDASurfaceObjectHandle createCUDASurfaceObject(const CUDASurfaceObjectDesc& d)
 {
-    auto buffer = new CUDASurfaceObject(d, source);
+    auto buffer = new CUDASurfaceObject(d);
     return CUDASurfaceObjectHandle::Create(buffer);
 }
 
@@ -461,7 +469,7 @@ OptiXTraversableHandle createOptiXTraversable(const OptiXTraversableDesc& d)
 
 [[nodiscard]] OptixDeviceContext OptixContext()
 {
-    OptixPrepare();
+    optix_init();
     return optixContext;
 }
 
@@ -657,9 +665,7 @@ HANDLE getSharedApiHandle(nvrhi::IDevice* device, ResourceType* texture_handle)
     return texture_handle->getNativeObject(nvrhi::ObjectTypes::SharedHandle);
 }
 
-CUDALinearBuffer::CUDALinearBuffer(
-    const CUDALinearBufferDesc& in_desc,
-    IResource* source_resource)
+CUDALinearBuffer::CUDALinearBuffer(const CUDALinearBufferDesc& in_desc)
     : desc(in_desc)
 {
     CUDA_CHECK(cudaMalloc(&data, in_desc.size * in_desc.element_size));
@@ -672,9 +678,7 @@ CUDALinearBuffer::~CUDALinearBuffer()
     data = nullptr;
 }
 
-CUDASurfaceObject::CUDASurfaceObject(
-    const CUDASurfaceObjectDesc& in_desc,
-    IResource* source_resource)
+CUDASurfaceObject::CUDASurfaceObject(const CUDASurfaceObjectDesc& in_desc)
     : desc(in_desc)
 {
     throw std::runtime_error("Not implemented yet");

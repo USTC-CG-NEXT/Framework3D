@@ -7,7 +7,10 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-RHI_API void cuda_init();
-RHI_API void cuda_shutdown();
+namespace cuda {
+RHI_API int cuda_init();
+RHI_API int optix_init();
+RHI_API int cuda_shutdown();
+}  // namespace cuda
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
