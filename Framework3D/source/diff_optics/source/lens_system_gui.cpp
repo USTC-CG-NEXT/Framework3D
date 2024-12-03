@@ -39,8 +39,11 @@ bool NullPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
     // Slider control the center position
 
     bool changed = false;
-    changed |= ImGui::SliderFloat2(
-        UniqueUIName("Center"), get->center_pos.data(), -40, 40);
+    if (ImGui::TreeNode(UniqueUIName("Null"))) {
+        changed |= ImGui::SliderFloat2(
+            UniqueUIName("Center"), get->center_pos.data(), -40, 40);
+        ImGui::TreePop();
+    }
 
     return changed;
 }
@@ -93,15 +96,20 @@ void OccluderPainter::draw(
 bool OccluderPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 {
     // float sliders
-    auto occluder = dynamic_cast<Occluder*>(get);
-
     bool changed = false;
-    // Slider control the center position
-    changed |= ImGui::SliderFloat2(
-        UniqueUIName("Center"), occluder->center_pos.data(), -40, 40);
-    // Slider control the radius
-    changed |=
-        ImGui::SliderFloat(UniqueUIName("Radius"), &occluder->radius, 0, 20);
+
+    if (ImGui::TreeNode(UniqueUIName("Occluder"))) {
+        auto occluder = dynamic_cast<Occluder*>(get);
+
+        // Slider control the center position
+        changed |= ImGui::SliderFloat2(
+            UniqueUIName("Center"), occluder->center_pos.data(), -40, 40);
+        // Slider control the radius
+        changed |= ImGui::SliderFloat(
+            UniqueUIName("Radius"), &occluder->radius, 0, 20);
+        ImGui::TreePop();
+    }
+
     return changed;
 }
 
@@ -150,22 +158,30 @@ bool SphericalLensPainter::control(
     LensLayer* get)
 {
     // float sliders
-    auto film = dynamic_cast<SphericalLens*>(get);
-
     bool changed = false;
 
-    changed |= ImGui::SliderFloat2(
-        UniqueUIName("Center"), film->center_pos.data(), -40, 40);
-    changed |=
-        ImGui::SliderFloat(UniqueUIName("Diameter"), &film->diameter, 0, 20);
-    changed |= ImGui::SliderFloat(
-        UniqueUIName("Radius of Curvature"),
-        &film->radius_of_curvature,
-        -100,
-        100);
+    if (ImGui::TreeNode(UniqueUIName("Spherical Lens"))) {
+        auto film = dynamic_cast<SphericalLens*>(get);
+        // Slider control the center position
+        changed |= ImGui::SliderFloat2(
+            UniqueUIName("Center"), film->center_pos.data(), -40, 40);
+        // Slider control the diameter
+        changed |= ImGui::SliderFloat(
+            UniqueUIName("Diameter"), &film->diameter, 0, 20);
+        // Slider control the radius of curvature
+        changed |= ImGui::SliderFloat(
+            UniqueUIName("Radius of Curvature"),
+            &film->radius_of_curvature,
+            -100,
+            100);
+        // Slider control the theta range
+        changed |= ImGui::SliderFloat(
+            UniqueUIName("Theta Range"), &film->theta_range, 0, M_PI);
+        ImGui::TreePop();
 
-    if (changed) {
-        film->update_info(film->center_pos[0], film->center_pos[1]);
+        if (changed) {
+            film->update_info(film->center_pos[0], film->center_pos[1]);
+        }
     }
 
     return changed;
@@ -203,15 +219,19 @@ void FlatLensPainter::draw(
 
 bool FlatLensPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 {
-    // float sliders
-    auto film = dynamic_cast<FlatLens*>(get);
-
     bool changed = false;
-    // Slider control the center position
-    changed |= ImGui::SliderFloat2(
-        UniqueUIName("Center"), film->center_pos.data(), -40, 40);
-    changed |=
-        ImGui::SliderFloat(UniqueUIName("Diameter"), &film->diameter, 0, 20);
+
+    if (ImGui::TreeNode(UniqueUIName("Flat Lens"))) {
+        // float sliders
+        auto film = dynamic_cast<FlatLens*>(get);
+
+        // Slider control the center position
+        changed |= ImGui::SliderFloat2(
+            UniqueUIName("Center"), film->center_pos.data(), -40, 40);
+        changed |= ImGui::SliderFloat(
+            UniqueUIName("Diameter"), &film->diameter, 0, 20);
+        ImGui::TreePop();
+    }
     return changed;
 }
 
@@ -247,14 +267,19 @@ void SensorPainter::draw(
 
 bool SensorPainter::control(DiffOpticsGUI* diff_optics_gui, LensLayer* get)
 {  // float sliders
-    auto sensor = dynamic_cast<Sensor*>(get);
     bool changed = false;
-    // Slider control the center position
-    changed |= ImGui::SliderFloat2(
-        UniqueUIName("Center"), sensor->center_pos.data(), -40, 40);
-    // Slider control the diameter
-    changed |=
-        ImGui::SliderFloat(UniqueUIName("Diameter"), &sensor->diameter, 0, 50);
+
+    if (ImGui::TreeNode(UniqueUIName("Sensor"))) {
+        auto sensor = dynamic_cast<Sensor*>(get);
+        // Slider control the center position
+        changed |= ImGui::SliderFloat2(
+            UniqueUIName("Center"), sensor->center_pos.data(), -40, 40);
+        // Slider control the diameter
+        changed |= ImGui::SliderFloat(
+            UniqueUIName("Diameter"), &sensor->diameter, 0, 50);
+        ImGui::TreePop();
+    }
+
     return changed;
 }
 
@@ -349,11 +374,8 @@ void LensSystemGUI::control(DiffOpticsGUI* diff_optics_gui)
 
     bool changed = false;
     for (auto&& lens_layer : lens_system->lenses) {
-        if (ImGui::TreeNode(lens_layer->painter->UniqueUIName("Lens Layer"))) {
-            changed |=
-                lens_layer->painter->control(diff_optics_gui, lens_layer.get());
-            ImGui::TreePop();
-        }
+        changed |=
+            lens_layer->painter->control(diff_optics_gui, lens_layer.get());
     }
 }
 USTC_CG_NAMESPACE_CLOSE_SCOPE
