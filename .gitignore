@@ -7,3 +7,4 @@ imgui.ini
 .vs
 *.zip
 */.slangtorch_cache/*
+/Framework3D/source/RHI/source/nvrtc_config.h
