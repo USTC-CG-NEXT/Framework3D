@@ -10,7 +10,7 @@ class ShaderFactory {
     ShaderFactory() : device(RHI::get_device())
     {
         shader_search_path =
-            "C:\\Users\\pengfei\\WorkSpace\\USTC_CG_"
+            "D:\\GithubRepo\\USTC_CG_"
             "24\\Framework3D\\source\\GUI\\source";
     }
 

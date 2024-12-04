@@ -1,6 +1,7 @@
 set(EIGEN_BUILD_DOC OFF CACHE BOOL "" FORCE)
 add_subdirectory(eigen)
-target_compile_options (eigen INTERFACE /wd5054)
+target_compile_options(eigen INTERFACE /wd5054)
+
 # glfw
 add_subdirectory(glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -24,6 +25,7 @@ file(GLOB source
     "${imgui_SOURCE_DIR}/*.h"
     "${imgui_SOURCE_DIR}/*.cpp"
     "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.*"
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.*"
     "${imgui_file_SOURCE_DIR}/*.h"
     "${imgui_file_SOURCE_DIR}/*.cpp"
 )
@@ -47,5 +49,9 @@ add_subdirectory(stb_image)
 add_subdirectory(entt)
 
 add_subdirectory(glm)
+
 set_target_properties(glm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set_target_properties(glm PROPERTIES ${OUTPUT_DIR})
+target_compile_definitions(glm INTERFACE GLM_ENABLE_EXPERIMENTAL)
+set_target_properties(glm PROPERTIES LINKER_LANGUAGE CXX)
+add_subdirectory(polyscope)
