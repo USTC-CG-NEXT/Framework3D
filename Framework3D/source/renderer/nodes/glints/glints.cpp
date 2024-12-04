@@ -112,26 +112,15 @@ ScratchIntersectionContext::intersect_line_with_rays(
         { indices->get_device_ptr() },
         1);
 
-    const int buffer_size = 1024 * 1024;
+    const int buffer_size = ratio * line_count * patch_count;
 
     AppendStructuredBuffer<uint2> append_buffer(buffer_size);
 
-    std::vector<Patch> patches;
-    patches.reserve(1024 * 1024);
+    CUDALinearBufferDesc desc;
+    desc.size = sizeof(Patch);
+    desc.element_count = patch_count;
 
-    for (int i = 0; i < 1024; ++i) {
-        for (int j = 0; j < 1024; ++j) {
-            float step = 2.f / 1024;
-            float x = -1 + i * step;
-            float y = -1 + j * step;
-            patches.push_back({ { x, y },
-                                { x + step, y },
-                                { x + step, y + step },
-                                { x, y + step } });
-        }
-    }
-
-    patches_buffer = create_cuda_linear_buffer<Patch>(patches);
+    patches_buffer = borrow_cuda_linear_buffer(desc, patches);
 
     glints_params =
         create_cuda_linear_buffer<GlintsTracingParams>(GlintsTracingParams{
@@ -146,6 +135,10 @@ ScratchIntersectionContext::intersect_line_with_rays(
 
     optix_trace_ray<GlintsTracingParams>(
         handle, pipeline, glints_params->get_device_ptr(), buffer_size, 1, 1);
+
+    return std::make_tuple(
+        reinterpret_cast<float*>(append_buffer.get_buffer_ptr()),
+        append_buffer.get_size());
 }
 
 void ScratchIntersectionContext::reset()
@@ -164,6 +157,7 @@ void ScratchIntersectionContext::reset()
 
 void ScratchIntersectionContext::set_max_pair_buffer_ratio(float ratio)
 {
+    this->ratio = ratio;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

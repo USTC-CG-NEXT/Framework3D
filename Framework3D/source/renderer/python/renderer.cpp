@@ -9,6 +9,30 @@
 #include "nanobind/nanobind.h"
 #include "nanobind/nb_defs.h"
 
+namespace nb = nanobind;
+
 NB_MODULE(hd_USTC_CG_py, m)
 {
+    nb::class_<USTC_CG::ScratchIntersectionContext>(
+        m, "ScratchIntersectionContext")
+        .def(nb::init<>())
+        .def(
+            "intersect_line_with_rays",
+            [](USTC_CG::ScratchIntersectionContext &self,
+               nb::ndarray<float> lines,
+               nb::ndarray<float> patches,
+               float width) {
+                auto [pairs, size] = self.intersect_line_with_rays(
+                    lines.data(),
+                    lines.shape(0),
+                    patches.data(),
+                    patches.shape(0),
+                    width);
+
+                return nb::ndarray<float>(pairs, { size, 2 });
+            })
+        .def("reset", &USTC_CG::ScratchIntersectionContext::reset)
+        .def(
+            "set_max_pair_buffer_ratio",
+            &USTC_CG::ScratchIntersectionContext::set_max_pair_buffer_ratio);
 }

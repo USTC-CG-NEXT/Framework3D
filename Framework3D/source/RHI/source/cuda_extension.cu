@@ -29,7 +29,7 @@ class CUDALinearBuffer : public nvrhi::RefCounter<cuda::ICUDALinearBuffer> {
 CUDALinearBuffer::CUDALinearBuffer(const cuda::CUDALinearBufferDesc& in_desc)
     : desc(in_desc)
 {
-    d_vec.resize(desc.size * desc.element_size);
+    d_vec.resize(desc.size * desc.element_count);
 }
 
 CUDALinearBuffer::~CUDALinearBuffer()

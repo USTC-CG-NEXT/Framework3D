@@ -6,6 +6,7 @@ namespace USTC_CG {
 
 struct ScratchIntersectionContext {
    public:
+    ScratchIntersectionContext() = default;
     std::tuple<float*, unsigned> intersect_line_with_rays(
         float* lines,
         unsigned line_count,
@@ -43,6 +44,7 @@ struct ScratchIntersectionContext {
     cuda::CUDALinearBufferHandle glints_params;
     float _width = 0;
     unsigned _line_count = 0;
+    float ratio = 1.5f;
 };
 
 }  // namespace USTC_CG

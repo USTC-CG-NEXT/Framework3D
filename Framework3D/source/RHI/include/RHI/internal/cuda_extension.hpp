@@ -55,11 +55,11 @@ RHI_API OptiXTraversableHandle create_optix_traversable(
 
 struct CUDALinearBufferDesc {
     int size;
-    int element_size;
+    int element_count;
 
     CUDALinearBufferDesc(int size = 0, int element_size = 0)
         : size(size),
-          element_size(element_size)
+          element_count(element_size)
     {
     }
 
@@ -147,9 +147,8 @@ CUDALinearBufferHandle create_cuda_linear_buffer(const std::vector<T>& d)
     return ret;
 }
 
-CUDALinearBufferHandle borrow_cuda_linear_buffer(
-    const CUDALinearBufferDesc& desc,
-    void* cuda_ptr);
+RHI_API CUDALinearBufferHandle
+borrow_cuda_linear_buffer(const CUDALinearBufferDesc& desc, void* cuda_ptr);
 
 class RHI_API OptiXProgramGroupDesc {
    public:
@@ -284,6 +283,11 @@ struct AppendStructuredBuffer {
     WorkQueue<T>* get_device_queue_ptr()
     {
         return reinterpret_cast<WorkQueue<T>*>(d_workqueue->get_device_ptr());
+    }
+
+    CUdeviceptr get_buffer_ptr()
+    {
+        return workqueue_buffer->get_device_ptr();
     }
 
     size_t get_size()

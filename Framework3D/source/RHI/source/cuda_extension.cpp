@@ -820,14 +820,14 @@ thrust::host_vector<uint8_t> CUDALinearBufferView::get_host_data()
 {
     thrust::host_vector<uint8_t> host_data(
         reinterpret_cast<uint8_t*>(cuda_ptr),
-        reinterpret_cast<uint8_t*>(cuda_ptr) + desc.size * desc.element_size);
+        reinterpret_cast<uint8_t*>(cuda_ptr) + desc.size * desc.element_count);
     return host_data;
 }
 
 void CUDALinearBufferView::assign_host_data(
     const thrust::host_vector<uint8_t>& data)
 {
-    assert(data.size() == desc.size * desc.element_size);
+    assert(data.size() == desc.size * desc.element_count);
     cudaMemcpy(cuda_ptr, data.data(), data.size(), cudaMemcpyHostToDevice);
 }
 
