@@ -266,6 +266,7 @@ inline int optix_trace_ray(
 
 template<typename T>
 struct AppendStructuredBuffer {
+    AppendStructuredBuffer() = default;
     AppendStructuredBuffer(int max_size)
     {
         workqueue_buffer = create_cuda_linear_buffer<T>(max_size);

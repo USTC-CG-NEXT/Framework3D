@@ -107,9 +107,13 @@ ScratchIntersectionContext::intersect_line_with_rays(
         { indices->get_device_ptr() },
         line_count - 1);
 
-    const int buffer_size = ratio * line_count * patch_count;
+    int buffer_size = ratio * line_count * patch_count;
+    this->_buffer_size = buffer_size;
 
-    AppendStructuredBuffer<uint2> append_buffer(buffer_size);
+    //if (buffer_size != _buffer_size) 
+    {
+        append_buffer = AppendStructuredBuffer<uint2>(buffer_size);
+    }
 
     CUDALinearBufferDesc desc;
     desc.size = sizeof(Patch);

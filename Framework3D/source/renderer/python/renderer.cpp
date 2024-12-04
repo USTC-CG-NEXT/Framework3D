@@ -31,9 +31,11 @@ NB_MODULE(hd_USTC_CG_py, m)
                     patches.shape(0),
                     width);
 
+                std::cout << "size: " << size << std::endl;
+
                 return nb::ndarray<
                     nb::pytorch,
-                    float,
+                    unsigned,
                     nb::ndim<2>,
                     nb::shape<-1, 2>,
                     nb::device::cuda>(pairs, { size, 2 });

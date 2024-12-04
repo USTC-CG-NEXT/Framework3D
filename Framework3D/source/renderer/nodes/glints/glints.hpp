@@ -42,9 +42,11 @@ struct ScratchIntersectionContext {
     cuda::OptiXTraversableHandle handle;
     cuda::CUDALinearBufferHandle patches_buffer;
     cuda::CUDALinearBufferHandle glints_params;
+    cuda::AppendStructuredBuffer<uint2> append_buffer;
     float _width = 0;
     unsigned _line_count = 0;
     float ratio = 1.5f;
+    int _buffer_size = 0;
 };
 
 }  // namespace USTC_CG
