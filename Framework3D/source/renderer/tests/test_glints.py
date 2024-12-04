@@ -25,3 +25,4 @@ def test_run():
 
     result = context.intersect_line_with_rays(lines, patches, 0.5)
     print(result.shape)
+    print(result.cpu().numpy())

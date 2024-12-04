@@ -285,7 +285,7 @@ struct AppendStructuredBuffer {
         return reinterpret_cast<WorkQueue<T>*>(d_workqueue->get_device_ptr());
     }
 
-    CUdeviceptr get_buffer_ptr()
+    CUdeviceptr get_underlying_buffer_ptr()
     {
         return workqueue_buffer->get_device_ptr();
     }

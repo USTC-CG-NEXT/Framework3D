@@ -127,7 +127,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
         handle, pipeline, glints_params->get_device_ptr(), patch_count, 1, 1);
 
     return std::make_tuple(
-        reinterpret_cast<float*>(append_buffer.get_buffer_ptr()),
+        reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
         append_buffer.get_size());
 }
 
