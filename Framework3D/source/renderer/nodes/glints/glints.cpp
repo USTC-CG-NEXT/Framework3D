@@ -88,29 +88,24 @@ ScratchIntersectionContext::intersect_line_with_rays(
     optix_init();
     std::string filename = "glints/glints.cu";
 
+    this->line_end_vertices = borrow_cuda_linear_buffer(
+        { static_cast<int>(line_count), 3 * sizeof(float) }, lines);
+
     create_raygen(filename);
     create_cylinder_intersection_shader();
     create_hitgroup_module(filename);
     create_hitgroup();
     create_miss_group(filename);
     create_pipeline();
-
-    line_end_vertices = borrow_cuda_linear_buffer(
-        { static_cast<int>(line_count), 3 * sizeof(float) }, line_end_vertices);
-
     create_width_buffer(line_count, width);
-
     create_indices(line_count);
-
-    line_end_vertices->assign_host_vector<float>(
-        { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f });
 
     handle = create_optix_traversable(
         { line_end_vertices->get_device_ptr() },
-        2,
+        line_count,
         { widths->get_device_ptr() },
         { indices->get_device_ptr() },
-        1);
+        line_count - 1);
 
     const int buffer_size = ratio * line_count * patch_count;
 
@@ -129,12 +124,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
             append_buffer.get_device_queue_ptr() });
 
     optix_trace_ray<GlintsTracingParams>(
-        handle, pipeline, glints_params->get_device_ptr(), buffer_size, 1, 1);
-
-    append_buffer.reset();
-
-    optix_trace_ray<GlintsTracingParams>(
-        handle, pipeline, glints_params->get_device_ptr(), buffer_size, 1, 1);
+        handle, pipeline, glints_params->get_device_ptr(), patch_count, 1, 1);
 
     return std::make_tuple(
         reinterpret_cast<float*>(append_buffer.get_buffer_ptr()),
@@ -153,6 +143,11 @@ void ScratchIntersectionContext::reset()
     widths = nullptr;
     indices = nullptr;
     handle = nullptr;
+    patches_buffer = nullptr;
+    glints_params = nullptr;
+    _width = 0;
+    _line_count = 0;
+    ratio = 1.5f;
 }
 
 void ScratchIntersectionContext::set_max_pair_buffer_ratio(float ratio)
