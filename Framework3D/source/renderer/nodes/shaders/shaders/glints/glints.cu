@@ -54,7 +54,6 @@ MISS(line)
 AHS(line)
 {
     auto lineid = optixGetPrimitiveIndex();
-
     params.patch_line_pairs->Push({ lineid, GetLaunchID() });
     optixIgnoreIntersection();
 }

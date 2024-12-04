@@ -1,6 +1,10 @@
 #pragma once
 
+#ifndef __CUDACC__
+#include "RHI/internal/optix/WorkQueue.cuh"
+#else
 #include "WorkQueue.cuh"
+#endif
 
 struct Patch {
     float2 uv0;
@@ -13,7 +17,6 @@ struct GlintsTracingParams {
     OptixTraversableHandle handle;
     Patch* patches;
     WorkQueue<uint2>* patch_line_pairs;
-    float width;
 };
 
 extern "C" {

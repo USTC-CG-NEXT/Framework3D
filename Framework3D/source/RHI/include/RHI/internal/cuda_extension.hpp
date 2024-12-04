@@ -85,6 +85,23 @@ class ICUDALinearBuffer : public nvrhi::IResource {
     }
 
     template<typename T>
+    T get_host_value()
+    {
+        auto host_data = get_host_data();
+        auto data_ptr = host_data.data();
+        return *reinterpret_cast<T*>(data_ptr);
+    }
+
+    template<typename T>
+    void assign_host_value(const T& data)
+    {
+        auto host_data = thrust::host_vector<uint8_t>(
+            reinterpret_cast<const uint8_t*>(&data),
+            reinterpret_cast<const uint8_t*>(&data + 1));
+        assign_host_data(host_data);
+    }
+
+    template<typename T>
     void assign_host_vector(const std::vector<T>& data)
     {
         auto host_data = thrust::host_vector<uint8_t>(
@@ -100,6 +117,25 @@ class ICUDALinearBuffer : public nvrhi::IResource {
 using CUDALinearBufferHandle = nvrhi::RefCountPtr<ICUDALinearBuffer>;
 RHI_API CUDALinearBufferHandle
 create_cuda_linear_buffer(const CUDALinearBufferDesc& d);
+
+template<typename T>
+CUDALinearBufferHandle create_cuda_linear_buffer(size_t count = 1)
+{
+    CUDALinearBufferDesc desc(count, sizeof(T));
+    auto ret = create_cuda_linear_buffer(desc);
+    return ret;
+}
+
+template<typename T>
+CUDALinearBufferHandle create_cuda_linear_buffer(
+    const T& init,
+    size_t count = 1)
+{
+    CUDALinearBufferDesc desc(count, sizeof(T));
+    auto ret = create_cuda_linear_buffer(desc);
+    ret->assign_host_vector(std::vector(count, init));
+    return ret;
+}
 
 template<typename T>
 CUDALinearBufferHandle create_cuda_linear_buffer(const std::vector<T>& d)
@@ -202,9 +238,17 @@ RHI_API OptiXPipelineHandle
 create_optix_pipeline(std::vector<OptiXProgramGroupHandle> program_groups = {});
 
 RHI_API cudaStream_t get_optix_stream();
+RHI_API int optix_trace_ray(
+    OptiXTraversableHandle traversable,
+    OptiXPipelineHandle handle,
+    CUdeviceptr launch_params,
+    unsigned launch_params_size,
+    int x,
+    int y,
+    int z);
 
 template<typename OptixLaunchParams>
- int OptiXTrace(
+inline int optix_trace_ray(
     OptiXTraversableHandle traversable,
     OptiXPipelineHandle handle,
     CUdeviceptr launch_params,
@@ -212,16 +256,8 @@ template<typename OptixLaunchParams>
     int y,
     int z)
 {
-    optixLaunch(
-        handle->getPipeline(),
-        get_optix_stream(),
-        launch_params,
-        sizeof(OptixLaunchParams),
-        &handle->getSbt(),
-        x,
-        y,
-        z);
-    return 0;
+    return optix_trace_ray(
+        traversable, handle, launch_params, sizeof(OptixLaunchParams), x, y, z);
 }
 }  // namespace cuda
 

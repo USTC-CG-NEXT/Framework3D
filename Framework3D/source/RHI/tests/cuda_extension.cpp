@@ -49,7 +49,7 @@ TEST(cuda_extension, create_optix_traversable)
 
     auto line_end_vertices = create_cuda_linear_buffer(
         std::vector{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
-    auto widths = create_cuda_linear_buffer(std::vector{ 0.1f, 0.1f });
+    auto widths = create_cuda_linear_buffer(std::vector{ 0.3f, 0.3f });
     auto indices = create_cuda_linear_buffer(std::vector{ 0 });
     auto handle = create_optix_traversable(
         { line_end_vertices->get_device_ptr() },
@@ -115,7 +115,9 @@ TEST(cuda_extension, create_optix_pipeline)
 
 #include "../../renderer/nodes/shaders/shaders/glints/params.h"
 
-TEST(cuda_extension, trace_optix_traversable)
+// TEST(cuda_extension, trace_optix_traversable)
+
+int main()
 {
     optix_init();
 
@@ -129,15 +131,15 @@ TEST(cuda_extension, trace_optix_traversable)
     hg_desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_HITGROUP)
         .set_entry_name(nullptr, AHS_STR(line), CHS_STR(line));
 
-    auto hg =
-        create_optix_program_group(hg_desc, { nullptr, hg_module, hg_module });
+    auto hg = create_optix_program_group(
+        hg_desc, { cylinder_module, hg_module, hg_module });
 
     auto miss_group = create_optix_miss(filename, MISS_STR(line));
     auto pipeline = create_optix_pipeline({ raygen_group, hg, miss_group });
 
     auto line_end_vertices = create_cuda_linear_buffer(
-        std::vector{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
-    auto widths = create_cuda_linear_buffer(std::vector{ 0.1f, 0.1f });
+        std::vector{ -1.f, -1.f, 0.f, 1.0f, 1.0f, 0.f });
+    auto widths = create_cuda_linear_buffer(std::vector{ 0.5f, 0.5f });
     auto indices = create_cuda_linear_buffer(std::vector{ 0 });
     auto handle = create_optix_traversable(
         { line_end_vertices->get_device_ptr() },
@@ -147,15 +149,40 @@ TEST(cuda_extension, trace_optix_traversable)
         1);
 
     line_end_vertices->assign_host_vector<float>(
-        { 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f });
+        { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f });
 
     handle = create_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         2,
         { widths->get_device_ptr() },
         { indices->get_device_ptr() },
-        1,
-        true);
+        1);
+
+    const int buffer_size = 1024 * 1024;
+
+    auto workqueue_buffer = create_cuda_linear_buffer<uint2>(buffer_size);
+
+    auto d_workqueue = create_cuda_linear_buffer<WorkQueue<uint2>>();
+
+    d_workqueue->assign_host_value(WorkQueue{
+        reinterpret_cast<uint2*>(workqueue_buffer->get_device_ptr()) });
+
+    auto patches_buffer = create_cuda_linear_buffer<Patch>(std::vector{
+        buffer_size, Patch{ { 0, 0 }, { 0.1, 0 }, { 0.1, 0.1 }, { 0, 0.1 } } });
+
+    auto glints_params =
+        create_cuda_linear_buffer<GlintsTracingParams>(GlintsTracingParams{
+            handle->getOptiXTraversable(),
+            reinterpret_cast<Patch*>(patches_buffer->get_device_ptr()),
+            reinterpret_cast<WorkQueue<uint2>*>(
+                d_workqueue->get_device_ptr()) });
+
+    optix_trace_ray<GlintsTracingParams>(
+        handle, pipeline, glints_params->get_device_ptr(), buffer_size, 1, 1);
+
+    auto host_workqueue = d_workqueue->get_host_value<WorkQueue<uint2>>();
+
+    std::cout << "Workqueue size: " << host_workqueue.size << std::endl;
 }
 
 #endif

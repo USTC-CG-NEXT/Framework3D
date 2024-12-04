@@ -6,7 +6,7 @@ template<typename T>
 struct WorkQueue {
     T* ptr = nullptr;
 
-    WorkQueue()
+    WorkQueue(T* ptr) : ptr(ptr)
     {
         size.store(0);
     }

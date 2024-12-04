@@ -60,6 +60,29 @@ cudaStream_t get_optix_stream()
     return optixStream;
 }
 
+int optix_trace_ray(
+    OptiXTraversableHandle traversable,
+    OptiXPipelineHandle handle,
+    CUdeviceptr launch_params,
+    unsigned launch_params_size,
+    int x,
+    int y,
+    int z)
+{
+    auto sbt = handle->getSbt();
+    optixLaunch(
+        handle->getPipeline(),
+        get_optix_stream(),
+        launch_params,
+        launch_params_size,
+        &sbt,
+        x,
+        y,
+        z);
+    CUDA_SYNC_CHECK();
+    return 0;
+}
+
 static bool readSourceFile(std::string& str, const std::string& filename)
 {
     // Try to open file
@@ -830,7 +853,7 @@ OptiXTraversableHandle create_optix_traversable(
     curveArray.widthStrideInBytes = sizeof(float);
     curveArray.indexBuffer = indexBuffer;
     curveArray.indexStrideInBytes = sizeof(unsigned int);
-    curveArray.flag = OPTIX_GEOMETRY_FLAG_NONE;
+    curveArray.flag = OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;
     curveArray.primitiveIndexOffset = 0;
     curveArray.endcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT;
 
