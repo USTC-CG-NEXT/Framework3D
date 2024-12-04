@@ -1,5 +1,7 @@
 #pragma once
 
+#include <crt/host_defines.h>
+
 #include <cuda/std/atomic>
 
 template<typename T>

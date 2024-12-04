@@ -49,7 +49,7 @@ TEST(cuda_extension, create_optix_traversable)
 
     auto line_end_vertices = create_cuda_linear_buffer(
         std::vector{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
-    auto widths = create_cuda_linear_buffer(std::vector{ 0.3f, 0.3f });
+    auto widths = create_cuda_linear_buffer(std::vector{ 0.1f, 0.1f });
     auto indices = create_cuda_linear_buffer(std::vector{ 0 });
     auto handle = create_optix_traversable(
         { line_end_vertices->get_device_ptr() },
@@ -115,9 +115,7 @@ TEST(cuda_extension, create_optix_pipeline)
 
 #include "../../renderer/nodes/shaders/shaders/glints/params.h"
 
-// TEST(cuda_extension, trace_optix_traversable)
-
-int main()
+TEST(cuda_extension, trace_optix_traversable)
 {
     optix_init();
 
@@ -160,29 +158,43 @@ int main()
 
     const int buffer_size = 1024 * 1024;
 
-    auto workqueue_buffer = create_cuda_linear_buffer<uint2>(buffer_size);
+    AppendStructuredBuffer<uint2> append_buffer(buffer_size);
 
-    auto d_workqueue = create_cuda_linear_buffer<WorkQueue<uint2>>();
+    std::vector<Patch> patches;
+    patches.reserve(1024 * 1024);
 
-    d_workqueue->assign_host_value(WorkQueue{
-        reinterpret_cast<uint2*>(workqueue_buffer->get_device_ptr()) });
+    for (int i = 0; i < 1024; ++i) {
+        for (int j = 0; j < 1024; ++j) {
+            float step = 2.f / 1024;
+            float x = -1 + i * step;
+            float y = -1 + j * step;
+            patches.push_back({ { x, y },
+                                { x + step, y },
+                                { x + step, y + step },
+                                { x, y + step } });
+        }
+    }
 
-    auto patches_buffer = create_cuda_linear_buffer<Patch>(std::vector{
-        buffer_size, Patch{ { 0, 0 }, { 0.1, 0 }, { 0.1, 0.1 }, { 0, 0.1 } } });
+    auto patches_buffer = create_cuda_linear_buffer<Patch>(patches);
 
     auto glints_params =
         create_cuda_linear_buffer<GlintsTracingParams>(GlintsTracingParams{
             handle->getOptiXTraversable(),
             reinterpret_cast<Patch*>(patches_buffer->get_device_ptr()),
-            reinterpret_cast<WorkQueue<uint2>*>(
-                d_workqueue->get_device_ptr()) });
+            append_buffer.get_device_queue_ptr() });
 
     optix_trace_ray<GlintsTracingParams>(
         handle, pipeline, glints_params->get_device_ptr(), buffer_size, 1, 1);
 
-    auto host_workqueue = d_workqueue->get_host_value<WorkQueue<uint2>>();
+    EXPECT_EQ(408443, append_buffer.get_size());
 
-    std::cout << "Workqueue size: " << host_workqueue.size << std::endl;
+    append_buffer.reset();
+
+    EXPECT_EQ(0, append_buffer.get_size());
+
+    optix_trace_ray<GlintsTracingParams>(
+        handle, pipeline, glints_params->get_device_ptr(), buffer_size, 1, 1);
+    EXPECT_EQ(408443, append_buffer.get_size());
 }
 
 #endif

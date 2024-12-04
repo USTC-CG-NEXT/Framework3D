@@ -1,3 +1,4 @@
+#include <nanobind/ndarray.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>

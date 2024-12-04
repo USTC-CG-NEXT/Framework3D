@@ -1,4 +1,5 @@
 #pragma once
+#include "optix/WorkQueue.cuh"
 #if USTC_CG_WITH_CUDA
 
 #include <RHI/api.h>
@@ -146,6 +147,10 @@ CUDALinearBufferHandle create_cuda_linear_buffer(const std::vector<T>& d)
     return ret;
 }
 
+CUDALinearBufferHandle borrow_cuda_linear_buffer(
+    const CUDALinearBufferDesc& desc,
+    void* cuda_ptr);
+
 class RHI_API OptiXProgramGroupDesc {
    public:
     OptixProgramGroupOptions program_group_options = {};
@@ -259,6 +264,37 @@ inline int optix_trace_ray(
     return optix_trace_ray(
         traversable, handle, launch_params, sizeof(OptixLaunchParams), x, y, z);
 }
+
+template<typename T>
+struct AppendStructuredBuffer {
+    AppendStructuredBuffer(int max_size)
+    {
+        workqueue_buffer = create_cuda_linear_buffer<T>(max_size);
+        d_workqueue = create_cuda_linear_buffer<WorkQueue<T>>();
+        d_workqueue->assign_host_value(WorkQueue{
+            reinterpret_cast<T*>(workqueue_buffer->get_device_ptr()) });
+    }
+
+    void reset()
+    {
+        d_workqueue->assign_host_value(WorkQueue{
+            reinterpret_cast<T*>(workqueue_buffer->get_device_ptr()) });
+    }
+
+    WorkQueue<T>* get_device_queue_ptr()
+    {
+        return reinterpret_cast<WorkQueue<T>*>(d_workqueue->get_device_ptr());
+    }
+
+    size_t get_size()
+    {
+        return d_workqueue->get_host_value<WorkQueue<T>>().size;
+    }
+
+   private:
+    CUDALinearBufferHandle d_workqueue;
+    CUDALinearBufferHandle workqueue_buffer;
+};
 }  // namespace cuda
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -436,6 +436,33 @@ OptiXModule::OptiXModule(const OptiXModuleDesc& desc) : desc(desc)
     }
 }
 
+struct CUDALinearBufferView : RefCounter<ICUDALinearBuffer> {
+    explicit CUDALinearBufferView(const CUDALinearBufferDesc& desc, void* data);
+
+    [[nodiscard]] const CUDALinearBufferDesc& getDesc() const override
+    {
+        return desc;
+    }
+
+    CUdeviceptr get_device_ptr() override;
+
+   protected:
+    thrust::host_vector<uint8_t> get_host_data() override;
+    void assign_host_data(const thrust::host_vector<uint8_t>& data) override;
+
+   private:
+    void* cuda_ptr;
+    CUDALinearBufferDesc desc;
+};
+
+CUDALinearBufferHandle borrow_cuda_linear_buffer(
+    const CUDALinearBufferDesc& desc,
+    void* cuda_ptr)
+{
+    auto buffer = new CUDALinearBufferView(desc, cuda_ptr);
+    return CUDALinearBufferHandle::Create(buffer);
+}
+
 OptiXProgramGroupDesc& OptiXProgramGroupDesc::set_program_group_kind(
     OptixProgramGroupKind kind)
 {
@@ -774,6 +801,34 @@ OptiXTraversable::OptiXTraversable(const OptiXTraversableDesc& desc)
 OptiXTraversable::~OptiXTraversable()
 {
     cudaFree((void*)traversableBuffer);
+}
+
+CUDALinearBufferView::CUDALinearBufferView(
+    const CUDALinearBufferDesc& desc,
+    void* data)
+{
+    this->desc = desc;
+    cuda_ptr = data;
+}
+
+CUdeviceptr CUDALinearBufferView::get_device_ptr()
+{
+    return reinterpret_cast<CUdeviceptr>(cuda_ptr);
+}
+
+thrust::host_vector<uint8_t> CUDALinearBufferView::get_host_data()
+{
+    thrust::host_vector<uint8_t> host_data(
+        reinterpret_cast<uint8_t*>(cuda_ptr),
+        reinterpret_cast<uint8_t*>(cuda_ptr) + desc.size * desc.element_size);
+    return host_data;
+}
+
+void CUDALinearBufferView::assign_host_data(
+    const thrust::host_vector<uint8_t>& data)
+{
+    assert(data.size() == desc.size * desc.element_size);
+    cudaMemcpy(cuda_ptr, data.data(), data.size(), cudaMemcpyHostToDevice);
 }
 
 // Here the resourcetype could be texture or buffer now.
