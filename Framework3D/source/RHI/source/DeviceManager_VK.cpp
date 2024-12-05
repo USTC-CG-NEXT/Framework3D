@@ -864,8 +864,7 @@ bool DeviceManager_VK::createDevice()
     auto shaderAtomicFloatFeatures =
         vk::PhysicalDeviceShaderAtomicFloatFeaturesEXT()
             .setShaderBufferFloat32Atomics(true)
-            .setShaderImageFloat32Atomics(true)
-            .setShaderImageFloat32AtomicAdd(true);
+            .setShaderImageFloat32Atomics(true);
 
     pNext = nullptr;
     APPEND_EXTENSION(accelStructSupported, accelStructFeatures)

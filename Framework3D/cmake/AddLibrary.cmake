@@ -162,6 +162,9 @@ function(USTC_CG_ADD_LIB LIB_NAME)
 
         # target_link_libraries(${name}_py PRIVATE Python3::Python)
         # target_link_libraries(nanobind-static PRIVATE Python3::Python)
+        if(Python3_LIBRARY MATCHES "_d.lib$")
+            target_compile_definitions(${name}_py PRIVATE Py_DEBUG)
+        endif()
         message("Python3_LIBRARY_DIRS: ${Python3_LIBRARY_DIRS}")
         target_link_directories(${name}_py PRIVATE ${Python3_LIBRARY_DIRS})
 
