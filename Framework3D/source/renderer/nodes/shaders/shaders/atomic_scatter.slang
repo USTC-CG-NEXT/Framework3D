@@ -1,7 +1,11 @@
-RWTexture2DArray<float> textures;
+RWStructuredBuffer<float> bufferR;
+RWStructuredBuffer<float> bufferG;
+RWStructuredBuffer<float> bufferB;
+RWStructuredBuffer<float> bufferA;
 StructuredBuffer<float4> inputColor;
 StructuredBuffer<uint2> inputPixelID;
 ConstantBuffer<uint> bufferLength;
+ConstantBuffer<uint2> image_size;
 
 [numthreads(64, 1, 1)]
 void main(uint3 DTid: SV_DispatchThreadID)
@@ -12,8 +16,11 @@ void main(uint3 DTid: SV_DispatchThreadID)
     uint2 pixelID = inputPixelID[DTid.x];
     float4 color = inputColor[DTid.x];
 
-    InterlockedAdd(textures[uint3(pixelID, 0)], color.r);
-    InterlockedAdd(textures[uint3(pixelID, 1)], color.g);
-    InterlockedAdd(textures[uint3(pixelID, 2)], color.b);
-    InterlockedAdd(textures[uint3(pixelID, 3)], color.a);
+    uint index = pixelID.y * image_size.x +
+                 pixelID.x;  // Assuming you have the width of the texture
+
+    InterlockedAdd(bufferR[index], color.r);
+    InterlockedAdd(bufferG[index], color.g);
+    InterlockedAdd(bufferB[index], color.b);
+    InterlockedAdd(bufferA[index], color.a);
 }

@@ -16,6 +16,11 @@ class GPUContext {
     virtual void begin();
     virtual void finish();
 
+    void clear_buffer(
+        nvrhi::IBuffer* buffer,
+        uint32_t clear_value = 0,
+        const nvrhi::BufferRange& range = nvrhi::EntireBuffer);
+
     void clear_texture(
         nvrhi::ITexture* texture,
         nvrhi::Color color = { 0 },

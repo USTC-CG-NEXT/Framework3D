@@ -26,6 +26,14 @@ void GPUContext::finish()
     resource_allocator_.device->executeCommandList(commandList_);
 }
 
+void GPUContext::clear_buffer(
+    nvrhi::IBuffer* buffer,
+    uint32_t clear_value,
+    const nvrhi::BufferRange& range)
+{
+    commandList_->clearBufferUInt(buffer, clear_value);
+}
+
 void GPUContext::clear_texture(
     nvrhi::ITexture* texture,
     nvrhi::Color color,

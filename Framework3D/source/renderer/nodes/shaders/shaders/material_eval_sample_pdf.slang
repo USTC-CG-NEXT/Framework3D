@@ -37,7 +37,9 @@ void RayGen()
     HitObjectInfo hitObject = hitObjects[id];
 
     RayDesc ray_desc = get_ray_desc(hitObject.rays);
+    Payload payload;
 
+#ifdef USE_SER
     HitObject object = HitObject.MakeHit<Attributes>(
         SceneBVH,
         hitObject.InstanceIndex,
@@ -51,8 +53,11 @@ void RayGen()
 
     ReorderThread(object);
 
-    Payload payload;
     object.Invoke(SceneBVH, object, payload);
+#else
+    // If not using SER, we launch the ray, like a normal hlsl shader
+    TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 1, 0, ray_desc, payload);
+#endif
 }
 
 // Closest hit shader

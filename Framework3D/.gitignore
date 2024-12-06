@@ -13,3 +13,4 @@ SDK.zip
 __pycache__/
 .pytest_cache/
 .slangtorch_cache/
+Assets/

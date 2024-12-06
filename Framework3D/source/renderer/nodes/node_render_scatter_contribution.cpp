@@ -1,4 +1,6 @@
 ﻿
+#include <pxr/base/gf/vec2i.h>
+
 #include <cstring>
 
 #include "Logger/Logger.h"
@@ -9,6 +11,7 @@
 #include "renderer/compute_context.hpp"
 #include "shaders/shaders/utils/cpp_shader_macro.h"
 #include "utils/math.h"
+
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(scatter_contribution)
 {
@@ -39,19 +42,38 @@ NODE_EXECUTION_FUNCTION(scatter_contribution)
         MARK_DESTROY_NVRHI_RESOURCE(atomic_scatter_program);
         CHECK_PROGRAM_ERROR(atomic_scatter_program);
 
-        auto source_desc = source_texture->getDesc();
-        source_desc.setFormat(Format::R32_FLOAT);
-        source_desc.dimension = TextureDimension::Texture2DArray;
-        source_desc.arraySize = 4;
+        auto source_texture_size = GfVec2i(
+            source_texture->getDesc().width, source_texture->getDesc().height);
 
-        auto textures = resource_allocator.create(source_desc);
-        MARK_DESTROY_NVRHI_RESOURCE(textures);
+        nvrhi::BufferDesc desc;
+        desc.setStructStride(sizeof(float))
+            .setCanHaveUAVs(true)
+            .setInitialState(ResourceStates::UnorderedAccess)
+            .setByteSize(
+                sizeof(float) * source_texture_size[0] * source_texture_size[1])
+            .setKeepInitialState(true);
 
+        auto bufferR = resource_allocator.create(desc);
+        MARK_DESTROY_NVRHI_RESOURCE(bufferR);
+        auto bufferG = resource_allocator.create(desc);
+        MARK_DESTROY_NVRHI_RESOURCE(bufferG);
+        auto bufferB = resource_allocator.create(desc);
+        MARK_DESTROY_NVRHI_RESOURCE(bufferB);
+        auto bufferA = resource_allocator.create(desc);
+        MARK_DESTROY_NVRHI_RESOURCE(bufferA);
+
+        auto image_size_buffer =
+            create_constant_buffer(params, source_texture_size);
+        MARK_DESTROY_NVRHI_RESOURCE(image_size_buffer);
         auto length_buffer = create_constant_buffer(params, length);
         MARK_DESTROY_NVRHI_RESOURCE(length_buffer);
 
-        ProgramVars program_vars(  resource_allocator, atomic_scatter_program);
-        program_vars["textures"] = textures;
+        ProgramVars program_vars(resource_allocator, atomic_scatter_program);
+        program_vars["bufferR"] = bufferR;
+        program_vars["bufferG"] = bufferG;
+        program_vars["bufferB"] = bufferB;
+        program_vars["bufferA"] = bufferA;
+        program_vars["image_size"] = image_size_buffer;
         program_vars["inputColor"] = eval_buffer;
         program_vars["inputPixelID"] = pixel_target_buffer;
         program_vars["bufferLength"] = length_buffer;
@@ -62,8 +84,10 @@ NODE_EXECUTION_FUNCTION(scatter_contribution)
         {
             PROFILE_SCOPE(scatter_contribution_dispatch);
             context.begin();
-            context.clear_texture(textures);
-            context.uav_barrier(textures);
+            context.clear_buffer(bufferR);
+            context.clear_buffer(bufferG);
+            context.clear_buffer(bufferB);
+            context.clear_buffer(bufferA);
 
             context.dispatch({}, program_vars, length, 64);
             context.finish();
@@ -78,7 +102,13 @@ NODE_EXECUTION_FUNCTION(scatter_contribution)
         CHECK_PROGRAM_ERROR(add_program);
 
         ProgramVars add_program_vars(resource_allocator, add_program);
-        add_program_vars["textures"] = textures;
+        add_program_vars["bufferR"] = bufferR;
+        add_program_vars["bufferG"] = bufferG;
+        add_program_vars["bufferB"] = bufferB;
+        add_program_vars["bufferA"] = bufferA;
+
+        add_program_vars["image_size"] = image_size_buffer;
+
         add_program_vars["outputTexture"] = source_texture;
         add_program_vars.finish_setting_vars();
 
@@ -87,7 +117,6 @@ NODE_EXECUTION_FUNCTION(scatter_contribution)
         {
             PROFILE_SCOPE(scatter_contribution_dispatch);
             add_context.begin();
-            add_context.uav_barrier(textures);
 
             auto width = source_texture->getDesc().width;
             auto height = source_texture->getDesc().height;
