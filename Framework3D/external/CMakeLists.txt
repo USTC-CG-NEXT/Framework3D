@@ -49,3 +49,14 @@ add_subdirectory(entt)
 add_subdirectory(glm)
 set_target_properties(glm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set_target_properties(glm PROPERTIES ${OUTPUT_DIR})
+
+#Catch2
+add_subdirectory(Catch2)
+
+# autodiff
+add_subdirectory(autodiff)
+set(AUTODIFF_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(AUTODIFF_BUILD_PYTHON OFF CACHE BOOL "" FORCE)
+set(AUTODIFF_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(AUTODIFF_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set_target_properties(autodiff PROPERTIES ${OUTPUT_DIR})
