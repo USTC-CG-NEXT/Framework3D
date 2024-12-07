@@ -34,7 +34,7 @@
 import Utils.Math.PackedFormats;
 #endif
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 // Uncomment this define to use uncompressed nodes for debugging purposes.
 // Note that the compression is lossy and may add a slight bias and/or variance.
@@ -197,4 +197,4 @@ struct PackedNode
     }
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

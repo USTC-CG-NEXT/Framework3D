@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 #define VERTEX_POSITION_LOC                             0
 #define VERTEX_PACKED_NORMAL_TANGENT_CURVE_RADIUS_LOC   1
@@ -55,4 +55,4 @@ BEGIN_NAMESPACE_FALCOR
 #define CURVE_VERTEX_RADIUS_NAME                        "RADIUS"
 #define CURVE_VERTEX_TEXCOORD_NAME                      "TEXCOORD"
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

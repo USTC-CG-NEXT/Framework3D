@@ -38,7 +38,7 @@
 
 #include <format>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace settings::detail
 {
@@ -118,4 +118,4 @@ public:
 };
 
 } // namespace settings::detail
-} // namespace Falcor
+} // namespace USTC_CG

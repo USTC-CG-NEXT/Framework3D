@@ -30,7 +30,7 @@
 #include "utils/Math/Vector.h"
 #include <bitset>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace Input
 {
@@ -284,4 +284,4 @@ struct GamepadState
         return buttonIndex < (uint32_t)GamepadButton::Count ? buttons[buttonIndex] : false;
     }
 };
-} // namespace Falcor
+} // namespace USTC_CG

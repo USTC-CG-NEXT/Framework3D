@@ -40,7 +40,7 @@
 
 struct ImFont;
 
-namespace Falcor {
+namespace USTC_CG {
 class RenderContext;
 
 struct MouseEvent;
@@ -61,7 +61,7 @@ struct is_vector<T, std::void_t<typename T::value_type>> : std::true_type { };
 /**
  * A class wrapping the external GUI library
  */
-class FALCOR_API Gui {
+class HD_USTC_CG_API Gui {
    public:
     using GraphCallback = float (*)(void*, int32_t index);
 
@@ -110,9 +110,9 @@ class FALCOR_API Gui {
         Inactive = 0x2,  ///< Inactive widget, disallow edits
     };
 
-    class FALCOR_API Group;
+    class HD_USTC_CG_API Group;
 
-    class FALCOR_API Widgets {
+    class HD_USTC_CG_API Widgets {
        public:
         /**
          * Begin a new group
@@ -554,7 +554,7 @@ class FALCOR_API Gui {
         Gui* mpGui = nullptr;
     };
 
-    class FALCOR_API Menu {
+    class HD_USTC_CG_API Menu {
        public:
         /**
          * Create a new menu
@@ -570,7 +570,7 @@ class FALCOR_API Gui {
          */
         void release();
 
-        class FALCOR_API Dropdown {
+        class HD_USTC_CG_API Dropdown {
            public:
             /**
              * Create a new dropdown menu
@@ -641,7 +641,7 @@ class FALCOR_API Gui {
         Gui* mpGui = nullptr;
     };
 
-    class FALCOR_API Group : public Widgets {
+    class HD_USTC_CG_API Group : public Widgets {
        public:
         Group() = default;
 
@@ -688,7 +688,7 @@ class FALCOR_API Gui {
         void release();
     };
 
-    class FALCOR_API Window : public Widgets {
+    class HD_USTC_CG_API Window : public Widgets {
        public:
         /**
          * Create a new window
@@ -771,7 +771,7 @@ class FALCOR_API Gui {
         void windowSize(uint32_t width, uint32_t height);
     };
 
-    class FALCOR_API MainMenu : public Menu {
+    class HD_USTC_CG_API MainMenu : public Menu {
        public:
         /**
          * Create a new main menu bar.
@@ -842,7 +842,7 @@ class FALCOR_API Gui {
 /**
  * Helper class to create a scope for ImGui IDs using PushID/PopID.
  */
-class FALCOR_API IDScope {
+class HD_USTC_CG_API IDScope {
    public:
     IDScope(const void* id);
     ~IDScope();
@@ -850,4 +850,4 @@ class FALCOR_API IDScope {
 
 FALCOR_ENUM_CLASS_OPERATORS(Gui::WindowFlags);
 FALCOR_ENUM_CLASS_OPERATORS(Gui::TextFlags);
-}  // namespace Falcor
+}  // namespace USTC_CG

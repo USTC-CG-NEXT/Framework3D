@@ -36,7 +36,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Opens a console window and redirects std::cout, std::cerr, and std::cin there.
@@ -117,6 +117,6 @@ private:
 
     bool mWaitForKey = true;
 };
-} // namespace Falcor
+} // namespace USTC_CG
 
 #endif // FALCOR_WINDOWS

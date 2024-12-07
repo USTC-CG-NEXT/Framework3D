@@ -30,7 +30,7 @@
 #include "Core/Object.h"
 #include "Core/Program/ProgramVersion.h"
 
-namespace Falcor {
+namespace USTC_CG {
 #if FALCOR_HAS_D3D12
 class D3D12RootSignature;
 #endif
@@ -47,7 +47,7 @@ struct ComputeStateObjectDesc {
     }
 };
 
-class FALCOR_API ComputeStateObject : public Object {
+class HD_USTC_CG_API ComputeStateObject : public Object {
     FALCOR_OBJECT(ComputeStateObject)
    public:
     ComputeStateObject(ref<Device> pDevice, ComputeStateObjectDesc desc);
@@ -68,4 +68,4 @@ class FALCOR_API ComputeStateObject : public Object {
     ComputeStateObjectDesc mDesc;
     nvrhi::ComputePipelineHandle mGfxPipelineState;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

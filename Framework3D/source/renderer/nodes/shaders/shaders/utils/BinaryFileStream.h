@@ -29,7 +29,7 @@
 #include <filesystem>
 #include <fstream>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Helper class to manage file I/O with binary files
@@ -186,4 +186,4 @@ private:
     std::fstream mStream;
     std::filesystem::path mPath;
 };
-} // namespace Falcor
+} // namespace USTC_CG

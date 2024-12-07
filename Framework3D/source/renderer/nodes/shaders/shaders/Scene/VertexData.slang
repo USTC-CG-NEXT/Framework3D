@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Struct representing interpolated vertex attributes in world space.
     Note the tangent is not guaranteed to be orthogonal to the normal.
@@ -46,4 +46,4 @@ struct VertexData
     float  coneTexLODValue; ///< Texture LOD data for cone tracing. This is zero, unless getVertexDataRayCones() is used.
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -34,7 +34,7 @@
 import Utils.Math.AABB;
 #endif
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 struct SDFSVSVoxel
 {
@@ -57,4 +57,4 @@ struct SDFSVOVoxel
     uint2 packedValues;     ///< The eight corner values of the SDFVoxel, packed as 8-bit snorms.
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

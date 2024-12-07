@@ -38,7 +38,7 @@
 #include <filesystem>
 #include <unordered_map>
 
-namespace Falcor
+namespace USTC_CG
 {
     class RenderContext;
     struct ShaderVar;
@@ -67,7 +67,7 @@ namespace Falcor
             out the AABB buffer constructed by the SDFSVO. This can then be used to intersect rays against the SDFSVO.
             Distances stored in the voxels of the octree are normalized to the range [-1, 1] so that a value of 1 represents half of a voxel diagonal.
     */
-    class FALCOR_API SDFGrid : public Object
+    class HD_USTC_CG_API SDFGrid : public Object
     {
         FALCOR_OBJECT(SDFGrid)
     public:

@@ -34,8 +34,8 @@
 #include "Core/Macros.h"
 #include "Core/Program/Program.h"
 
-namespace Falcor {
-class FALCOR_API RasterPass : public BaseGraphicsPass {
+namespace USTC_CG {
+class HD_USTC_CG_API RasterPass : public BaseGraphicsPass {
    public:
     /**
      * Create a new object.
@@ -100,4 +100,4 @@ class FALCOR_API RasterPass : public BaseGraphicsPass {
         const ProgramDesc& progDesc,
         const DefineList& programDefines);
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

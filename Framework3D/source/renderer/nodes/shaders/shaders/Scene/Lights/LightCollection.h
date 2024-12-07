@@ -39,7 +39,7 @@
 #include "MeshLightData.slang"
 #include "utils/Math/Vector.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class Scene;
 class RenderContext;
 struct ShaderVar;
@@ -52,7 +52,7 @@ struct ShaderVar;
    lights. The LightCollection can be used standalone, but more commonly it will
    be wrapped by an emissive light sampler.
 */
-class FALCOR_API LightCollection : public ILightCollection {
+class HD_USTC_CG_API LightCollection : public ILightCollection {
     FALCOR_OBJECT(LightCollection)
    public:
     /** Creates a light collection for the given scene.
@@ -265,4 +265,4 @@ class FALCOR_API LightCollection : public ILightCollection {
 };
 
 FALCOR_ENUM_CLASS_OPERATORS(LightCollection::CPUOutOfDateFlags);
-}  // namespace Falcor
+}  // namespace USTC_CG

@@ -44,13 +44,13 @@
 #include "TextureHandle.slang"
 #include "utils/UI/Gui.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class MaterialSystem;
 class BasicMaterial;
 
 /** Abstract base class for materials.
  */
-class FALCOR_API Material : public Object {
+class HD_USTC_CG_API Material : public Object {
     FALCOR_OBJECT(Material)
    public:
     /** Flags indicating if and what was updated in the material.
@@ -540,4 +540,4 @@ inline std::string to_string(Material::TextureSlot slot)
 }
 
 FALCOR_ENUM_CLASS_OPERATORS(Material::UpdateFlags);
-}  // namespace Falcor
+}  // namespace USTC_CG

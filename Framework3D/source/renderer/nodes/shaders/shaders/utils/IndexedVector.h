@@ -33,7 +33,7 @@
 #include <vector>
 #include <span>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 /**
@@ -97,4 +97,4 @@ private:
     std::vector<T> mValues;
     std::vector<I> mIndices;
 };
-} // namespace Falcor
+} // namespace USTC_CG

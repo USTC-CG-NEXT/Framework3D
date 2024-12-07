@@ -34,7 +34,7 @@
 #include <filesystem>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 class RenderContext;
@@ -43,7 +43,7 @@ struct ShaderVar;
 /**
  * @brief Utility class for warp-level profiling.
  */
-class FALCOR_API WarpProfiler
+class HD_USTC_CG_API WarpProfiler
 {
 public:
     static constexpr size_t kWarpSize = 32; // Do not change
@@ -103,4 +103,4 @@ private:
     bool mActive = false;      ///< True while inside a begin()/end() section.
     bool mDataWaiting = false; ///< True when data is waiting for readback in the staging buffer.
 };
-} // namespace Falcor
+} // namespace USTC_CG

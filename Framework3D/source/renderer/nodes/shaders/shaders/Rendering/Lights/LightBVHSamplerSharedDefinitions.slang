@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 enum class SolidAngleBoundMethod : uint32_t
 {
@@ -44,4 +44,4 @@ FALCOR_ENUM_INFO(SolidAngleBoundMethod, {
 });
 FALCOR_ENUM_REGISTER(SolidAngleBoundMethod);
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

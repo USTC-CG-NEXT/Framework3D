@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Flags representing the various lobes of a BSDF.
 */
@@ -59,4 +59,4 @@ enum class LobeType // : uint32_t
     All                     = 0xff,
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

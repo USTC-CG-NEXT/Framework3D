@@ -35,8 +35,8 @@
 #include "Core/Program/ShaderVar.h"
 #include "Core/State/GraphicsState.h"
 
-namespace Falcor {
-class FALCOR_API BaseGraphicsPass : public Object {
+namespace USTC_CG {
+class HD_USTC_CG_API BaseGraphicsPass : public Object {
     FALCOR_OBJECT(BaseGraphicsPass)
    public:
     virtual ~BaseGraphicsPass() = default;
@@ -109,4 +109,4 @@ class FALCOR_API BaseGraphicsPass : public Object {
     ref<ProgramVars> mpVars;
     ref<GraphicsState> mpState;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

@@ -36,7 +36,7 @@
 #include "utils/Algorithm/ParallelReduction.h"
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Helper class for collecting runtime stats in the path tracer.
 
@@ -44,7 +44,7 @@ namespace Falcor
         after end() is called. These stats are summarized in a reduction pass, which are
         available in getStats() or printStats() after async readback to the CPU.
     */
-    class FALCOR_API PixelStats
+    class HD_USTC_CG_API PixelStats
     {
     public:
         struct Stats

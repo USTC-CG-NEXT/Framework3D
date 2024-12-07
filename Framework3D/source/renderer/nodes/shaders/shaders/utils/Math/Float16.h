@@ -32,13 +32,13 @@
 #include <cstdint>
 #include <limits>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace math
 {
 
-FALCOR_API uint16_t float32ToFloat16(float value);
-FALCOR_API float float16ToFloat32(uint16_t value);
+HD_USTC_CG_API uint16_t float32ToFloat16(float value);
+HD_USTC_CG_API float float16ToFloat32(uint16_t value);
 
 struct float16_t
 {
@@ -126,27 +126,27 @@ inline float16_t operator""h(long double value)
 #endif
 
 } // namespace math
-} // namespace Falcor
+} // namespace USTC_CG
 
 namespace std
 {
 
 template<>
-class numeric_limits<Falcor::math::float16_t>
+class numeric_limits<USTC_CG::math::float16_t>
 {
 public:
     static constexpr bool is_specialized = true;
-    static constexpr Falcor::math::float16_t min() noexcept { return Falcor::math::float16_t::fromBits(0x0200); }
-    static constexpr Falcor::math::float16_t max() noexcept { return Falcor::math::float16_t::fromBits(0x7bff); }
-    static constexpr Falcor::math::float16_t lowest() noexcept { return Falcor::math::float16_t::fromBits(0xfbff); }
+    static constexpr USTC_CG::math::float16_t min() noexcept { return USTC_CG::math::float16_t::fromBits(0x0200); }
+    static constexpr USTC_CG::math::float16_t max() noexcept { return USTC_CG::math::float16_t::fromBits(0x7bff); }
+    static constexpr USTC_CG::math::float16_t lowest() noexcept { return USTC_CG::math::float16_t::fromBits(0xfbff); }
     static constexpr int digits = 11;
     static constexpr int digits10 = 3;
     static constexpr bool is_signed = true;
     static constexpr bool is_integer = false;
     static constexpr bool is_exact = false;
     static constexpr int radix = 2;
-    static constexpr Falcor::math::float16_t epsilon() noexcept { return Falcor::math::float16_t::fromBits(0x1200); }
-    static constexpr Falcor::math::float16_t round_error() noexcept { return Falcor::math::float16_t::fromBits(0x3c00); }
+    static constexpr USTC_CG::math::float16_t epsilon() noexcept { return USTC_CG::math::float16_t::fromBits(0x1200); }
+    static constexpr USTC_CG::math::float16_t round_error() noexcept { return USTC_CG::math::float16_t::fromBits(0x3c00); }
     static constexpr int min_exponent = -13;
     static constexpr int min_exponent10 = -4;
     static constexpr int max_exponent = 16;
@@ -156,10 +156,10 @@ public:
     static constexpr bool has_signaling_NaN = true;
     static constexpr float_denorm_style has_denorm = denorm_absent;
     static constexpr bool has_denorm_loss = false;
-    static constexpr Falcor::math::float16_t infinity() noexcept { return Falcor::math::float16_t::fromBits(0x7c00); }
-    static constexpr Falcor::math::float16_t quiet_NaN() noexcept { return Falcor::math::float16_t::fromBits(0x7fff); }
-    static constexpr Falcor::math::float16_t signaling_NaN() noexcept { return Falcor::math::float16_t::fromBits(0x7dff); }
-    static constexpr Falcor::math::float16_t denorm_min() noexcept { return Falcor::math::float16_t::fromBits(0); }
+    static constexpr USTC_CG::math::float16_t infinity() noexcept { return USTC_CG::math::float16_t::fromBits(0x7c00); }
+    static constexpr USTC_CG::math::float16_t quiet_NaN() noexcept { return USTC_CG::math::float16_t::fromBits(0x7fff); }
+    static constexpr USTC_CG::math::float16_t signaling_NaN() noexcept { return USTC_CG::math::float16_t::fromBits(0x7dff); }
+    static constexpr USTC_CG::math::float16_t denorm_min() noexcept { return USTC_CG::math::float16_t::fromBits(0); }
     static constexpr bool is_iec559 = false;
     static constexpr bool is_bounded = false;
     static constexpr bool is_modulo = false;

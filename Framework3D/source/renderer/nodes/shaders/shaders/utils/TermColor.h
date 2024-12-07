@@ -29,7 +29,7 @@
 #include <iostream>
 #include <string>
 
-namespace Falcor
+namespace USTC_CG
 {
 enum class TermColor
 {
@@ -49,4 +49,4 @@ enum class TermColor
  * @return Returns string wrapped in color codes if stream is not a terminal, original string otherwise.
  */
 std::string colored(const std::string& str, TermColor color, const std::ostream& stream = std::cout);
-} // namespace Falcor
+} // namespace USTC_CG

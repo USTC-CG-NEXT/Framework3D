@@ -32,13 +32,13 @@
 #include <utility>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Utility class to record a number of timing measurements and print them afterwards.
  * This is mainly intended for measuring longer running tasks on the CPU.
  */
-class FALCOR_API TimeReport
+class HD_USTC_CG_API TimeReport
 {
 public:
     TimeReport();
@@ -76,4 +76,4 @@ private:
     std::vector<std::pair<std::string, double>> mMeasurements;
     double mTotal = 0.0;
 };
-} // namespace Falcor
+} // namespace USTC_CG

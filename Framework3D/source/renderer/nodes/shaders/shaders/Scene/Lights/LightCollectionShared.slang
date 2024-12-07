@@ -34,7 +34,7 @@
 import Utils.Math.PackedFormats;
 #endif
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Per-triangle geometry data for emissive triangles.
 */
@@ -156,4 +156,4 @@ struct EmissiveFlux
     float3  averageRadiance;    ///< Average emitted radiance over the triangle.
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

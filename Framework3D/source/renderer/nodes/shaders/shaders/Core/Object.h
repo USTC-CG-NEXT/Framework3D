@@ -58,7 +58,7 @@
 #include <mutex>
 #endif
 
-namespace Falcor {
+namespace USTC_CG {
 
 /**
  * @brief Base class for reference counted objects.
@@ -85,7 +85,7 @@ namespace Falcor {
  * Finally, if we want to migrate from pybind11 to nanobind at some point in
  * the future, we will need to use a custom reference counting system.
  */
-class FALCOR_API Object {
+class HD_USTC_CG_API Object {
    public:
     /// Default constructor.
     Object() = default;
@@ -589,21 +589,21 @@ class BreakableReference {
     T* mWeakRef = nullptr;
 };
 
-}  // namespace Falcor
+}  // namespace USTC_CG
 
 template<typename T>
-struct std::formatter<Falcor::ref<T>> : formatter<const void*> {
+struct std::formatter<USTC_CG::ref<T>> : formatter<const void*> {
     template<typename FormatContext>
-    auto format(const Falcor::ref<T>& ref, FormatContext& ctx) const
+    auto format(const USTC_CG::ref<T>& ref, FormatContext& ctx) const
     {
         return formatter<const void*>::format(ref.get(), ctx);
     }
 };
 
 template<typename T>
-struct std::formatter<Falcor::BreakableReference<T>> : formatter<const void*> {
+struct std::formatter<USTC_CG::BreakableReference<T>> : formatter<const void*> {
     template<typename FormatContext>
-    auto format(const Falcor::BreakableReference<T>& ref, FormatContext& ctx)
+    auto format(const USTC_CG::BreakableReference<T>& ref, FormatContext& ctx)
         const
     {
         return formatter<const void*>::format(ref.get(), ctx);
@@ -612,14 +612,14 @@ struct std::formatter<Falcor::BreakableReference<T>> : formatter<const void*> {
 
 namespace std {
 template<typename T>
-void swap(::Falcor::ref<T>& x, ::Falcor::ref<T>& y) noexcept
+void swap(::USTC_CG::ref<T>& x, ::USTC_CG::ref<T>& y) noexcept
 {
     return x.swap(y);
 }
 
 template<typename T>
-struct hash<::Falcor::ref<T>> {
-    constexpr size_t operator()(const ::Falcor::ref<T>& r) const
+struct hash<::USTC_CG::ref<T>> {
+    constexpr size_t operator()(const ::USTC_CG::ref<T>& r) const
     {
         return std::hash<T*>()(r.get());
     }

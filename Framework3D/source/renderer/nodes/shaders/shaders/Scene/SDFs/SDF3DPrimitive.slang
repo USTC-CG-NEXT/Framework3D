@@ -34,7 +34,7 @@ import Utils.SDF.SDF3DShapes;
 import Utils.SDF.SDFOperations;
 import Utils.Math.IntervalArithmetic;
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 extension SDF3DPrimitive
 {
@@ -139,4 +139,4 @@ extension SDF3DPrimitive
     }
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

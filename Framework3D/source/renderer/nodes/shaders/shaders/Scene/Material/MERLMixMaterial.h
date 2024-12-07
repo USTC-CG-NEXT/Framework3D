@@ -29,7 +29,7 @@
 #include "Material.h"
 #include "MERLMixMaterialData.slang"
 
-namespace Falcor
+namespace USTC_CG
 {
     class BufferAllocator;
 
@@ -43,7 +43,7 @@ namespace Falcor
         "A Data-Driven Reflectance Model". ACM Transactions on Graphics,
         vol. 22(3), 2003, pages 759-769.
     */
-    class FALCOR_API MERLMixMaterial : public Material
+    class HD_USTC_CG_API MERLMixMaterial : public Material
     {
         FALCOR_OBJECT(MERLMixMaterial)
     public:

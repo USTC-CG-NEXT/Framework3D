@@ -34,14 +34,14 @@
 
 struct ImVec2;
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Helper to draw the profiler UI.
  * This class uses raw calls to ImGui for increased control
  * (most of it cannot be done through the Falcor wrapper).
  */
-class FALCOR_API ProfilerUI
+class HD_USTC_CG_API ProfilerUI
 {
 public:
     enum class GraphMode : uint32_t
@@ -126,4 +126,4 @@ private:
 
     size_t mHighlightIndex = -1; ///< Highlighted event index.
 };
-} // namespace Falcor
+} // namespace USTC_CG

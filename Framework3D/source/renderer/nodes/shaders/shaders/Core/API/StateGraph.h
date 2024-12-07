@@ -31,7 +31,7 @@
 #include <unordered_map>
 #include <cstdint>
 
-namespace Falcor
+namespace USTC_CG
 {
 template<typename NodeType, typename EdgeType, typename EdgeHashType = std::hash<EdgeType>>
 class StateGraph
@@ -110,4 +110,4 @@ private:
     std::vector<Node> mGraph;
     uint32_t mCurrentNode = 0;
 };
-} // namespace Falcor
+} // namespace USTC_CG

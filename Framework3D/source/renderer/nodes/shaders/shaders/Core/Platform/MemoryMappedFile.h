@@ -34,13 +34,13 @@
 #include <filesystem>
 #include <limits>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 /**
  * Utility class for reading memory-mapped files.
  */
-class FALCOR_API MemoryMappedFile
+class HD_USTC_CG_API MemoryMappedFile
 {
 public:
     enum class AccessHint
@@ -127,4 +127,4 @@ private:
     size_t mMappedSize = 0;
 };
 
-} // namespace Falcor
+} // namespace USTC_CG

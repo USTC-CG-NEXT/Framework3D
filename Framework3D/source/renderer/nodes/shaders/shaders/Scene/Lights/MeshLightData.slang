@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Describes a mesh area light.
 
@@ -47,4 +47,4 @@ struct MeshLightData
 };
 
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

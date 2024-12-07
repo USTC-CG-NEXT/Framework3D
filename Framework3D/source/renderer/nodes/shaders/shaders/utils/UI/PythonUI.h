@@ -35,7 +35,7 @@
 #include <string_view>
 #include <functional>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace python_ui
 {
@@ -94,4 +94,4 @@ public:
 // The widgets are implemented in the C++ file as they are only exposed to Python.
 
 } // namespace python_ui
-} // namespace Falcor
+} // namespace USTC_CG

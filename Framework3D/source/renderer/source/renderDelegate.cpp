@@ -1,3 +1,4 @@
+
 //
 // Copyright 2020 Pixar
 //
@@ -247,9 +248,6 @@ HdRprim* Hd_USTC_CG_RenderDelegate::CreateRprim(
     const TfToken& typeId,
     const SdfPath& rprimId)
 {
-    std::cout << "Create Rprim type=" << typeId.GetText() << " id=" << rprimId
-              << std::endl;
-
     if (typeId == HdPrimTypeTokens->mesh) {
         auto mesh = new Hd_USTC_CG_Mesh(rprimId);
         meshes.push_back(mesh);
@@ -426,7 +424,8 @@ void Hd_USTC_CG_RenderDelegate::SetRenderSetting(
 
 {
     if (key == pxr::TfToken("lens_system_ptr")) {
-        _renderParam->lens_system = static_cast<LensSystem*>(value.Get<void*>());
+        _renderParam->lens_system =
+            static_cast<LensSystem*>(value.Get<void*>());
     }
     else {
         HdRenderDelegate::SetRenderSetting(key, value);

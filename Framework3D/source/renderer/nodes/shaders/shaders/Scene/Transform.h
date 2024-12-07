@@ -31,13 +31,13 @@
 #include "utils/Math/Matrix.h"
 #include "utils/Math/Quaternion.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Helper to create transformation matrices based on translation,
         rotation and scaling. These operations are applied in order of
         scaling, rotation, and translation last.
     */
-    class FALCOR_API Transform
+    class HD_USTC_CG_API Transform
     {
     public:
         enum class CompositionOrder

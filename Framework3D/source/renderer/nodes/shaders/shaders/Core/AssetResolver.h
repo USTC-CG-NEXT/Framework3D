@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 /// Asset categories.
@@ -85,7 +85,7 @@ FALCOR_ENUM_REGISTER(SearchPathPriority);
  * for the specified category, and if that fails, it will try to resolve it for the \c AssetCategory::Any category.
  * If no asset category is specified, the \c AssetCategory::Any category is used by default.
  */
-class FALCOR_API AssetResolver
+class HD_USTC_CG_API AssetResolver
 {
 public:
     /// Default constructor.
@@ -159,4 +159,4 @@ private:
 
     std::vector<SearchContext> mSearchContexts;
 };
-} // namespace Falcor
+} // namespace USTC_CG

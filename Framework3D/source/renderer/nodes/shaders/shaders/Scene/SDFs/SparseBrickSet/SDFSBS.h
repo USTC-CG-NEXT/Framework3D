@@ -31,11 +31,11 @@
 #include "Scene/SDFs/SDFGrid.h"
 #include "utils/Algorithm/PrefixSum.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** A single SDF Sparse Brick Set. Can only be utilized on the GPU.
     */
-    class FALCOR_API SDFSBS : public SDFGrid
+    class HD_USTC_CG_API SDFSBS : public SDFGrid
     {
     public:
         struct SharedData;

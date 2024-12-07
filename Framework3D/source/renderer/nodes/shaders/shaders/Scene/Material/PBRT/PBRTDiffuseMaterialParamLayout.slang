@@ -27,7 +27,7 @@
  **************************************************************************/
 #include "../MaterialParamLayout.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 #define MATERIAL_PARAMS(PARAM) PARAM(float3, 0, baseColor, getBaseColor3, setBaseColor3, "diffuse")
 
@@ -35,4 +35,4 @@ DEFINE_MATERIAL_PARAM_LAYOUT(PBRTDiffuseMaterial, MATERIAL_PARAMS)
 
 #undef MATERIAL_PARAMS
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

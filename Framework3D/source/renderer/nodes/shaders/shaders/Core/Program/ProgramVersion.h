@@ -40,10 +40,10 @@
 #include "ProgramReflection.h"
 #include "slang-com-ptr.h"
 
-namespace Falcor {
-class FALCOR_API Program;
-class FALCOR_API ProgramVars;
-class FALCOR_API ProgramVersion;
+namespace USTC_CG {
+class HD_USTC_CG_API Program;
+class HD_USTC_CG_API ProgramVars;
+class HD_USTC_CG_API ProgramVersion;
 
 /**
  * Represents a single program entry point and its associated kernel code.
@@ -58,7 +58,7 @@ class FALCOR_API ProgramVersion;
  * shader kernel code, we defer the call to slang's `getEntryPointCode` function
  * until it is actually needed. to avoid redundant shader compiler invocation.
  */
-class FALCOR_API EntryPointKernel : public Object {
+class HD_USTC_CG_API EntryPointKernel : public Object {
     FALCOR_OBJECT(EntryPointKernel)
    public:
     struct BlobData {
@@ -136,7 +136,7 @@ class FALCOR_API EntryPointKernel : public Object {
 /**
  * A collection of one or more entry points in a program kernels object.
  */
-class FALCOR_API EntryPointGroupKernels : public Object {
+class HD_USTC_CG_API EntryPointGroupKernels : public Object {
     FALCOR_OBJECT(EntryPointGroupKernels)
    public:
     /**
@@ -189,7 +189,7 @@ class FALCOR_API EntryPointGroupKernels : public Object {
  * Low-level program object
  * This class abstracts the API's program creation and management
  */
-class FALCOR_API ProgramKernels : public Object {
+class HD_USTC_CG_API ProgramKernels : public Object {
     FALCOR_OBJECT(ProgramKernels)
    public:
     typedef std::vector<ref<const EntryPointGroupKernels>>
@@ -357,4 +357,4 @@ class ProgramVersion : public Object {
     mutable std::unordered_map<std::string, ref<const ProgramKernels>>
         mpKernels;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

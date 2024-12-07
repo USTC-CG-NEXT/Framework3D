@@ -43,10 +43,10 @@ class dict;
 class list;
 } // namespace pybind11
 
-namespace Falcor
+namespace USTC_CG
 {
 
-class FALCOR_API Settings
+class HD_USTC_CG_API Settings
 {
 public:
     using Options = settings::Attributes;
@@ -220,4 +220,4 @@ private:
     Settings& mSettings;
 };
 
-} // namespace Falcor
+} // namespace USTC_CG

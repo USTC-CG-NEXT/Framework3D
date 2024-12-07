@@ -30,7 +30,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace Falcor
+namespace USTC_CG
 {
 template<typename T>
 class CubicSpline
@@ -191,4 +191,4 @@ private:
     };
     fast_vector<CubicCoeff> mCoefficient;
 };
-} // namespace Falcor
+} // namespace USTC_CG

@@ -31,12 +31,12 @@
 #include "Device.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class ComputeState;
 class ProgramVars;
 class ProgramKernels;
 
-class FALCOR_API ComputeContext : public CopyContext {
+class HD_USTC_CG_API ComputeContext : public CopyContext {
    public:
     /**
      * Constructor.
@@ -98,4 +98,4 @@ class FALCOR_API ComputeContext : public CopyContext {
     const ProgramVars* mpLastBoundComputeVars = nullptr;
 };
 
-}  // namespace Falcor
+}  // namespace USTC_CG

@@ -33,7 +33,7 @@
 
 #include <Utils/json.hpp>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace math
 {
@@ -53,4 +53,4 @@ inline void from_json(const nlohmann::json& j, float16_t& v)
 
 } // namespace math
 
-} // namespace Falcor
+} // namespace USTC_CG

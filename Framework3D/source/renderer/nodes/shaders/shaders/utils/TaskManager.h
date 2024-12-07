@@ -38,10 +38,10 @@
 #include <atomic>
 #include <exception>
 
-namespace Falcor
+namespace USTC_CG
 {
 class RenderContext;
-class FALCOR_API TaskManager
+class HD_USTC_CG_API TaskManager
 {
 public:
     using CpuTask = std::function<void()>;
@@ -81,4 +81,4 @@ private:
     std::exception_ptr mException;
 };
 
-} // namespace Falcor
+} // namespace USTC_CG

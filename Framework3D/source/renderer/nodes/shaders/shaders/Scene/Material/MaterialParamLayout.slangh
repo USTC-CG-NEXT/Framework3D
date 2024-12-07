@@ -33,7 +33,7 @@
 
 #include "MaterialParamLayout.h"
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace detail
 {
@@ -44,7 +44,7 @@ T clampMaterialParam(T value, T min = T(kMaterialParamEpsilon), T max = T(1.f - 
     return math::clamp(value, min, max);
 }
 } // namespace detail
-} // namespace Falcor
+} // namespace USTC_CG
 
 #define _EMIT_MATERIAL_PARAM_LAYOUT_ENTRY(type, offset, name, getter, setter, pythonName, ...) \
     MaterialParamLayoutEntry{#name, pythonName, sizeof(type) / 4, offset},

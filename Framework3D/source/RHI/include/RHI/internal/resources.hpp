@@ -6,10 +6,10 @@
 #include <filesystem>
 #include <map>
 
+#include "RHI/api.h"
 #include "map.h"
 #include "nvrhi/nvrhi.h"
 #include "nvrhi_patch.hpp"
-#include "RHI/api.h"
 #include "slang-com-ptr.h"
 #include "slang-cpp-prelude.h"
 #include "slang-cpp-types.h"
@@ -87,6 +87,7 @@ struct RHI_API ProgramDesc {
 
     friend class ShaderFactory;
     friend class Program;
+    friend class std::hash<ProgramDesc>;
 };
 
 using ProgramHandle = nvrhi::RefCountPtr<Program>;

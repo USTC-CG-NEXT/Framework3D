@@ -29,7 +29,7 @@
 #include "BasicMaterialData.slang"
 #include "Material.h"
 
-namespace Falcor {
+namespace USTC_CG {
 /** Base class for basic non-layered materials.
 
     Texture channel layout:
@@ -40,7 +40,7 @@ namespace Falcor {
 
     See additional texture channels defined in derived classes.
 */
-class FALCOR_API BasicMaterial : public Material {
+class HD_USTC_CG_API BasicMaterial : public Material {
     FALCOR_OBJECT(BasicMaterial)
    public:
     /** Render the UI.
@@ -383,4 +383,4 @@ inline std::string to_string(ShadingModel model)
         default: FALCOR_UNREACHABLE(); return "";
     }
 }
-}  // namespace Falcor
+}  // namespace USTC_CG

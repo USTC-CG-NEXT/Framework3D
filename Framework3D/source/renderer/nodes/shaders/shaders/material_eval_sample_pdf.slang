@@ -60,6 +60,10 @@ void RayGen()
 #endif
 }
 
+struct ShadowPayload {
+    float3 shadow_mask;
+};
+
 // Closest hit shader
 [shader("closesthit")]
 void ClosestHit(
@@ -89,10 +93,23 @@ void ClosestHit(
     result = bsdf.eval(ObjectRayDirection(), ObjectRayDirection(), s, context);
     result = WorldRayDirection();
 
-    Eval[id] = float4(attrib.uv, 1, 1) *
+
+    Eval[id] = float4(result, 1) *
                float4(hitObjects[id].rays.throughput.toFloat3(), 1.0);
 
     // Acquire the material information here.
+}
+
+[shader("closesthit")]
+void ShadowHit(inout ShadowPayload payload: SV_RayPayload)
+{
+    payload.shadow_mask = float3(0, 0, 0);
+}
+
+[shader("miss")]
+void Miss(inout ShadowPayload payload: SV_RayPayload)
+{
+    payload.shadow_mask = float3(1, 1, 1);
 }
 
 // Miss shader

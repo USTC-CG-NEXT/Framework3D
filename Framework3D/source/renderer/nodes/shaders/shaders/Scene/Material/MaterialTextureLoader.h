@@ -32,7 +32,7 @@
 #include <filesystem>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Helper class to load material textures using the texture manager.
 
@@ -42,7 +42,7 @@ namespace Falcor
         `MaterialTextureLoader`, it blocks until all textures are loaded and assigns
         them to the materials.
     */
-    class FALCOR_API MaterialTextureLoader
+    class HD_USTC_CG_API MaterialTextureLoader
     {
     public:
         MaterialTextureLoader(TextureManager& textureManager, bool useSrgb);

@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Parameters for a DiffuseSpecularBRDF approximation.
     The fields represent a best fit diffuse/GGX approximation of a target BRDF.
@@ -58,4 +58,4 @@ struct DiffuseSpecularData
 #endif
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

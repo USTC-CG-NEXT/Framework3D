@@ -28,7 +28,7 @@
 #pragma once
 
 
-namespace Falcor
+namespace USTC_CG
 {
     struct BrickedGrid
     {

@@ -40,7 +40,7 @@
 #include "DefineList.h"
 #include "ProgramVersion.h"
 
-namespace Falcor {
+namespace USTC_CG {
 
 class RtStateObject;
 class RtProgramVars;
@@ -633,7 +633,7 @@ struct ProgramDesc {
  * usage in case different macros are required - for example static vs. animated
  * models.
  */
-class FALCOR_API Program : public Object {
+class HD_USTC_CG_API Program : public Object {
     FALCOR_OBJECT(Program)
    public:
     Program(
@@ -915,4 +915,4 @@ class FALCOR_API Program : public Object {
     // It could get the RTSO here.
 };
 
-}  // namespace Falcor
+}  // namespace USTC_CG

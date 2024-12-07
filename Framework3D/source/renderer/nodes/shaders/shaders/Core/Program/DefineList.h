@@ -31,7 +31,7 @@
 #include <map>
 #include <string>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 class DefineList : public std::map<std::string, std::string>
@@ -83,4 +83,4 @@ public:
     DefineList() = default;
     DefineList(std::initializer_list<std::pair<const std::string, std::string>> il) : std::map<std::string, std::string>(il) {}
 };
-} // namespace Falcor
+} // namespace USTC_CG

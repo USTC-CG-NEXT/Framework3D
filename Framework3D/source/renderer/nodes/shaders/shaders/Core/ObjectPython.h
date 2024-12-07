@@ -30,4 +30,4 @@
 #include "Object.h"
 #include <pybind11/pybind11.h>
 
-PYBIND11_DECLARE_HOLDER_TYPE(T, Falcor::ref<T>, true);
+PYBIND11_DECLARE_HOLDER_TYPE(T, USTC_CG::ref<T>, true);

@@ -45,7 +45,7 @@ namespace pybind11
 class dict;
 }
 
-namespace Falcor
+namespace USTC_CG
 {
 
 namespace settings
@@ -118,4 +118,4 @@ private:
 
 } // namespace settings
 
-} // namespace Falcor
+} // namespace USTC_CG

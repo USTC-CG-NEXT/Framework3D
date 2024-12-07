@@ -32,7 +32,7 @@
 #include <filesystem>
 #include <string>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Helper class to write Python script code including:
@@ -109,4 +109,4 @@ inline std::string ScriptWriter::getArgString(const ScriptWriter::VariableName& 
     return varName.name;
 }
 
-} // namespace Falcor
+} // namespace USTC_CG

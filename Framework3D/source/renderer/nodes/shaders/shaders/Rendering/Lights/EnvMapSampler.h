@@ -30,14 +30,14 @@
 #include "Core/Pass/ComputePass.h"
 #include "Scene/Lights/EnvMap.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class RenderContext;
 
 /** Environment map sampler.
     Utily class for sampling and evaluating radiance stored in an
    omnidirectional environment map.
 */
-class FALCOR_API EnvMapSampler {
+class HD_USTC_CG_API EnvMapSampler {
    public:
     /** Create a new object.
         \param[in] pDevice GPU device.
@@ -78,4 +78,4 @@ class FALCOR_API EnvMapSampler {
         mpImportanceMap;  ///< Hierarchical importance map (luminance).
     nvrhi::SamplerHandle mpImportanceSampler;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

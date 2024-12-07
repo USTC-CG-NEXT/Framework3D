@@ -28,7 +28,7 @@
 #pragma once
 #include <chrono>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Provides CPU timer utilities to the application.
@@ -76,4 +76,4 @@ private:
     TimePoint mCurrentTime;
     std::chrono::duration<double> mElapsedTime;
 };
-} // namespace Falcor
+} // namespace USTC_CG

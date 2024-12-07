@@ -39,7 +39,7 @@ import Utils.Attributes;
 __exported import Scene.VertexData;
 #endif
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Geometry instance ID.
     This uniquely identifies a geometry instance in the scene.
@@ -488,4 +488,4 @@ struct RWSplitVertexBuffer
 
 #endif /// HOST_CODE
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

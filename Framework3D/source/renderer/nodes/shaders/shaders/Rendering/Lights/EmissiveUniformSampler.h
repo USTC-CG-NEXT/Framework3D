@@ -31,13 +31,13 @@
 #include "utils/Properties.h"
 #include "Scene/Lights/LightCollection.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Emissive light sampler using uniform sampling of the lights.
 
         This class wraps a LightCollection object, which holds the set of lights to sample.
     */
-    class FALCOR_API EmissiveUniformSampler : public EmissiveLightSampler
+    class HD_USTC_CG_API EmissiveUniformSampler : public EmissiveLightSampler
     {
     public:
         /** EmissiveUniformSampler configuration.

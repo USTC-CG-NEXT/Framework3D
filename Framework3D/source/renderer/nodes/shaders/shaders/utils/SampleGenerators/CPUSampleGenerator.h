@@ -30,12 +30,12 @@
 #include "Core/Object.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Two-dimensional sample pattern generator on the CPU.
  */
-class FALCOR_API CPUSampleGenerator : public Object
+class HD_USTC_CG_API CPUSampleGenerator : public Object
 {
     FALCOR_OBJECT(CPUSampleGenerator)
 public:
@@ -61,4 +61,4 @@ public:
 protected:
     CPUSampleGenerator() = default;
 };
-} // namespace Falcor
+} // namespace USTC_CG

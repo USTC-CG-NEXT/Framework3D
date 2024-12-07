@@ -30,9 +30,9 @@
 #include "Core/Macros.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor
+namespace USTC_CG
 {
-class FALCOR_API HaltonSamplePattern : public CPUSampleGenerator
+class HD_USTC_CG_API HaltonSamplePattern : public CPUSampleGenerator
 {
 public:
     /**
@@ -55,4 +55,4 @@ protected:
     uint32_t mCurSample = 0;
     uint32_t mSampleCount;
 };
-} // namespace Falcor
+} // namespace USTC_CG

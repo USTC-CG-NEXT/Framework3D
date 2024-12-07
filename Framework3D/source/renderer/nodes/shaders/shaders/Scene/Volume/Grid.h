@@ -50,13 +50,13 @@
 #include <memory>
 #include <string>
 
-namespace Falcor
+namespace USTC_CG
 {
     struct ShaderVar;
 
     /** Voxel grid based on NanoVDB.
     */
-    class FALCOR_API Grid : public Object
+    class HD_USTC_CG_API Grid : public Object
     {
         FALCOR_OBJECT(Grid)
     public:

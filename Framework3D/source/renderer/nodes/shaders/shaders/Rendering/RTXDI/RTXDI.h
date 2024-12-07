@@ -39,7 +39,7 @@
 #include "rtxdi/RTXDI.h"
 #endif
 
-namespace Falcor
+namespace USTC_CG
 {
     class RenderContext;
 
@@ -83,7 +83,7 @@ namespace Falcor
 
         Also see the Source/RenderPasses/RTXDIPass/RTXDIPass.cpp for a minimal example on how to use the module.
     */
-    class FALCOR_API RTXDI
+    class HD_USTC_CG_API RTXDI
     {
     public:
         /** RTXDI sampling modes.

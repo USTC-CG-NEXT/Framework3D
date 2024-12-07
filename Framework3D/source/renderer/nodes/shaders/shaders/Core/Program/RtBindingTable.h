@@ -33,7 +33,7 @@
 #include <memory>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * This class describes the binding of ray tracing shaders for raygen/miss/hits.
@@ -45,7 +45,7 @@ namespace Falcor
  * The user is responsible for creating a binding table for use with a particular
  * Program and Scene before creating an RtProgramVars object.
  */
-class FALCOR_API RtBindingTable : public Object
+class HD_USTC_CG_API RtBindingTable : public Object
 {
     FALCOR_OBJECT(RtBindingTable)
 public:
@@ -148,4 +148,4 @@ private:
 
     std::vector<ShaderID> mShaderTable; ///< Table of all shader IDs. The default value is a null entry (no shader).
 };
-} // namespace Falcor
+} // namespace USTC_CG

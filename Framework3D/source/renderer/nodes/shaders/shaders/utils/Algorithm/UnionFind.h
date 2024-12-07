@@ -29,7 +29,7 @@
 #include <vector>
 #include <cstddef>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 /**
@@ -91,4 +91,4 @@ private:
     size_t mSetCount{0};
 };
 
-} // namespace Falcor
+} // namespace USTC_CG

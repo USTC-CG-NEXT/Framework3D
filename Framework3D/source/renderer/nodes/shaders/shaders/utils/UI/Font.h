@@ -34,7 +34,7 @@
 #include <memory>
 #include <string>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * This class holds data and texture used to render text.
@@ -106,4 +106,4 @@ private:
     float mTabWidth;
     float mLetterSpacing;
 };
-} // namespace Falcor
+} // namespace USTC_CG

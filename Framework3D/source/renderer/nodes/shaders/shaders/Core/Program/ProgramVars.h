@@ -34,7 +34,7 @@
 #include "Core/Macros.h"
 #include "RtBindingTable.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class Program;
 class ComputeContext;
 
@@ -43,7 +43,7 @@ class ComputeContext;
  * It's a high-level abstraction of variables-related concepts such as CBs,
  * texture and sampler assignments, root-signature, descriptor tables, etc.
  */
-class FALCOR_API ProgramVars : public ParameterBlock {
+class HD_USTC_CG_API ProgramVars : public ParameterBlock {
    public:
     /**
      * Create a new graphics vars object.
@@ -90,7 +90,7 @@ class RtStateObject;
 /**
  * This class manages a raytracing program's reflection and variable assignment.
  */
-class FALCOR_API RtProgramVars : public ProgramVars {
+class HD_USTC_CG_API RtProgramVars : public ProgramVars {
    public:
     /**
      * Create a new ray tracing vars object.
@@ -164,4 +164,4 @@ class FALCOR_API RtProgramVars : public ProgramVars {
     VarsVector mHitVars;
 };
 
-}  // namespace Falcor
+}  // namespace USTC_CG

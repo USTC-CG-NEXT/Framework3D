@@ -85,14 +85,14 @@
 #define FALCOR_D3D12_AGILITY_SDK_PATH    ".\\D3D12\\"
 // To enable the D3D12 Agility SDK, this macro needs to be added to the main
 // source file of the executable.
-#define FALCOR_EXPORT_D3D12_AGILITY_SDK                           \
-    extern "C" {                                                  \
-    FALCOR_API_EXPORT extern const unsigned int D3D12SDKVersion = \
-        FALCOR_D3D12_AGILITY_SDK_VERSION;                         \
-    }                                                             \
-    extern "C" {                                                  \
-    FALCOR_API_EXPORT extern const char* D3D12SDKPath =           \
-        FALCOR_D3D12_AGILITY_SDK_PATH;                            \
+#define FALCOR_EXPORT_D3D12_AGILITY_SDK                               \
+    extern "C" {                                                      \
+    HD_USTC_CG_API_EXPORT extern const unsigned int D3D12SDKVersion = \
+        FALCOR_D3D12_AGILITY_SDK_VERSION;                             \
+    }                                                                 \
+    extern "C" {                                                      \
+    HD_USTC_CG_API_EXPORT extern const char* D3D12SDKPath =           \
+        FALCOR_D3D12_AGILITY_SDK_PATH;                                \
     }
 #else
 #define FALCOR_EXPORT_D3D12_AGILITY_SDK
@@ -102,23 +102,6 @@
  * Define for checking if NVAPI is available.
  */
 #define FALCOR_NVAPI_AVAILABLE (1 && FALCOR_HAS_NVAPI)
-
-/**
- * Shared library (DLL) export and import.
- */
-#if FALCOR_WINDOWS
-#define FALCOR_API_EXPORT __declspec(dllexport)
-#define FALCOR_API_IMPORT __declspec(dllimport)
-#elif FALCOR_LINUX
-#define FALCOR_API_EXPORT __attribute__((visibility("default")))
-#define FALCOR_API_IMPORT
-#endif
-
-#ifdef FALCOR_DLL
-#define FALCOR_API FALCOR_API_EXPORT
-#else  // FALCOR_DLL
-#define FALCOR_API FALCOR_API_IMPORT
-#endif  // FALCOR_DLL
 
 /**
  * Force inline.

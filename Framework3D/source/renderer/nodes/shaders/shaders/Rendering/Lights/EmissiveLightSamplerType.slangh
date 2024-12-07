@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** This enum is shared between CPU/GPU.
     It enumerates the different emissive light samplers that are available.
@@ -64,4 +64,4 @@ static_assert((uint32_t)EmissiveLightSamplerType::Power == EMISSIVE_LIGHT_SAMPLE
 static_assert((uint32_t)EmissiveLightSamplerType::Null == EMISSIVE_LIGHT_SAMPLER_NULL);
 #endif
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

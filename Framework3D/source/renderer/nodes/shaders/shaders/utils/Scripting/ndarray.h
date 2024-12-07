@@ -64,10 +64,10 @@ struct ndarray_handle;
 struct ndarray_req;
 
 // Try to import a reference-counted ndarray object via DLPack
-FALCOR_API ndarray_handle* ndarray_import(PyObject* o, const ndarray_req* req, bool convert) noexcept;
+HD_USTC_CG_API ndarray_handle* ndarray_import(PyObject* o, const ndarray_req* req, bool convert) noexcept;
 
 // Describe a local tensor object using a DLPack capsule
-FALCOR_API ndarray_handle* ndarray_create(
+HD_USTC_CG_API ndarray_handle* ndarray_create(
     void* value,
     size_t ndim,
     const size_t* shape,
@@ -80,13 +80,13 @@ FALCOR_API ndarray_handle* ndarray_create(
 
 /// Increase the reference count of the given tensor object; returns a pointer
 /// to the underlying DLtensor
-FALCOR_API dlpack::dltensor* ndarray_inc_ref(ndarray_handle*) noexcept;
+HD_USTC_CG_API dlpack::dltensor* ndarray_inc_ref(ndarray_handle*) noexcept;
 
 /// Decrease the reference count of the given tensor object
-FALCOR_API void ndarray_dec_ref(ndarray_handle*) noexcept;
+HD_USTC_CG_API void ndarray_dec_ref(ndarray_handle*) noexcept;
 
 /// Wrap a ndarray_handle* into a PyCapsule
-FALCOR_API PyObject* ndarray_wrap(ndarray_handle*, int framework, return_value_policy policy) noexcept;
+HD_USTC_CG_API PyObject* ndarray_wrap(ndarray_handle*, int framework, return_value_policy policy) noexcept;
 
 } // namespace detail
 } // namespace pybind11

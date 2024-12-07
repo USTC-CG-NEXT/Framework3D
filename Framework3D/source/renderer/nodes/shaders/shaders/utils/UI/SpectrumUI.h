@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace
 {
@@ -48,7 +48,7 @@ Gui::DropdownList kInterpolationDropdownList = {
  * renderSpectrumUI(...).
  */
 template<typename T>
-class FALCOR_API SpectrumUI
+class HD_USTC_CG_API SpectrumUI
 {
 public:
     SpectrumUI();
@@ -180,4 +180,4 @@ bool renderSpectrumUI(
     // False in the last parameter means that the UI for changing parameters will be shown.
     return spectrumUI.render(w, label, spectra, false);
 }
-} // namespace Falcor
+} // namespace USTC_CG

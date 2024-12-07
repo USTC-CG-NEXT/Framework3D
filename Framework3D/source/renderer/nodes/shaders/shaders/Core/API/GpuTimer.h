@@ -29,14 +29,14 @@
 #include "Core/Macros.h"
 #include "Core/Object.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class Device;
 /**
  * Abstracts GPU timer queries.
  * This class provides mechanism to get elapsed time in milliseconds between a
  * pair of begin()/end() calls.
  */
-class FALCOR_API GpuTimer : public Object {
+class HD_USTC_CG_API GpuTimer : public Object {
     FALCOR_OBJECT(GpuTimer)
    public:
     /**
@@ -100,4 +100,4 @@ class FALCOR_API GpuTimer : public Object {
         mpResolveStagingBuffer;  ///< CPU mappable memory for readback of
                                  ///< resolved timings.
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

@@ -31,14 +31,14 @@
 
 #include <filesystem>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 /**
  * Helper class abstracting lock files.
  * Uses LockFileEx() on Windows systems and flock() on POSIX systems.
  */
-class FALCOR_API LockFile
+class HD_USTC_CG_API LockFile
 {
 public:
     enum class LockType
@@ -109,4 +109,4 @@ private:
     bool mIsOpen = false;
 };
 
-} // namespace Falcor
+} // namespace USTC_CG

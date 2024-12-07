@@ -32,11 +32,11 @@
 
 #include "Core/Pass/ComputePass.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** A single SDF Sparse Voxel Set. Can only be utilized on the GPU.
     */
-    class FALCOR_API SDFSVS : public SDFGrid
+    class HD_USTC_CG_API SDFSVS : public SDFGrid
     {
     public:
         static ref<SDFSVS> create(ref<Device> pDevice) { return make_ref<SDFSVS>(pDevice); }

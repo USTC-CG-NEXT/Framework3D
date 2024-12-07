@@ -32,9 +32,9 @@
 #include "Program.h"
 #include "Core/API/Device.h"
 
-namespace Falcor {
+namespace USTC_CG {
 
-class FALCOR_API ProgramManager {
+class HD_USTC_CG_API ProgramManager {
    public:
     ProgramManager(Device* pDevice);
 
@@ -173,4 +173,4 @@ class FALCOR_API ProgramManager {
     mutable uint32_t mHitGroupID = 0;
 };
 
-}  // namespace Falcor
+}  // namespace USTC_CG

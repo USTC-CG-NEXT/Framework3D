@@ -33,6 +33,8 @@
 #include "renderParam.h"
 #include "renderer.h"
 
+#include "../nodes/shaders/shaders/Scene/SceneTypes.slang"
+
 namespace USTC_CG {
 class LensSystem;
 struct RenderGlobalPayload;

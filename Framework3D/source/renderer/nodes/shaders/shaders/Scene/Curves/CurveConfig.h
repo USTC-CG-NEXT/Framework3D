@@ -27,7 +27,7 @@
  **************************************************************************/
 #pragma once
 
-namespace Falcor
+namespace USTC_CG
 {
     enum class CurveTessellationMode
     {

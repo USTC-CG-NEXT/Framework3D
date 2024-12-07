@@ -34,7 +34,7 @@
 #include <string>
 #include <cstdint>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace math
 {
@@ -135,14 +135,14 @@ using math::operator""h;
 #pragma warning(pop)
 #endif
 
-} // namespace Falcor
+} // namespace USTC_CG
 
 // Formatter for the float16_t.
 template<>
-struct std::formatter<Falcor::math::float16_t> : formatter<float>
+struct std::formatter<USTC_CG::math::float16_t> : formatter<float>
 {
     template<typename FormatContext>
-    auto format(Falcor::math::float16_t value, FormatContext& ctx) const
+    auto format(USTC_CG::math::float16_t value, FormatContext& ctx) const
     {
         return formatter<float>::format(float(value), ctx);
     }

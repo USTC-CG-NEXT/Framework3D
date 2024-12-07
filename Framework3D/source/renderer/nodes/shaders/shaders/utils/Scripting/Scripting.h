@@ -34,9 +34,9 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
-class FALCOR_API Scripting
+class HD_USTC_CG_API Scripting
 {
 public:
     static const FileDialogFilterVec kFileExtensionFilters;
@@ -177,4 +177,4 @@ private:
     static bool sRunning;                            // TODO: REMOVEGLOBAL
     static std::unique_ptr<Context> sDefaultContext; // TODO: REMOVEGLOBAL
 };
-} // namespace Falcor
+} // namespace USTC_CG

@@ -51,10 +51,10 @@ void UsdFileViewer::ShowPrimInfo()
         ImGui::TableHeadersRow();
         UsdPrim prim = stage->get_usd_stage()->GetPrimAtPath(selected);
         if (prim) {
-            auto properties = prim.GetAttributes();
+            auto attributes = prim.GetAttributes();
             std::vector<std::future<std::string>> futures;
 
-            for (auto&& attr : properties) {
+            for (auto&& attr : attributes) {
                 futures.push_back(std::async(std::launch::async, [&attr]() {
                     VtValue v;
                     attr.Get(&v);
@@ -146,16 +146,46 @@ void UsdFileViewer::ShowPrimInfo()
                 }));
             }
 
-            for (size_t i = 0; i < properties.size(); ++i) {
+            auto relations = prim.GetRelationships();
+            std::vector<std::future<std::string>> relation_futures;
+            for (auto&& relation : relations) {
+                relation_futures.push_back(
+                    std::async(std::launch::async, [&relation]() {
+                        std::string displayString;
+                        SdfPathVector relation_targets;
+                        relation.GetTargets(&relation_targets);
+                        for (auto&& target : relation_targets) {
+                            displayString += target.GetString() + ",\n";
+                        }
+                        if (!displayString.empty()) {
+                            displayString.pop_back();
+                            displayString.pop_back();
+                        }
+                        return displayString;
+                    }));
+            }
+            auto displayRow = [](const char* type,
+                                 const std::string& name,
+                                 const std::string& value) {
                 ImGui::TableNextRow();
-
                 ImGui::TableSetColumnIndex(0);
-                ImGui::TextUnformatted("A");
+                ImGui::TextUnformatted(type);
                 ImGui::TableSetColumnIndex(1);
-                ImGui::TextUnformatted(properties[i].GetName().GetText());
-
+                ImGui::TextUnformatted(name.c_str());
                 ImGui::TableSetColumnIndex(2);
-                ImGui::TextUnformatted(futures[i].get().c_str());
+                ImGui::TextUnformatted(value.c_str());
+            };
+
+            for (size_t i = 0; i < attributes.size(); ++i) {
+                displayRow(
+                    "A", attributes[i].GetName().GetString(), futures[i].get());
+            }
+
+            for (size_t i = 0; i < relations.size(); ++i) {
+                displayRow(
+                    "R",
+                    relations[i].GetName().GetString(),
+                    relation_futures[i].get());
             }
         }
         ImGui::EndTable();

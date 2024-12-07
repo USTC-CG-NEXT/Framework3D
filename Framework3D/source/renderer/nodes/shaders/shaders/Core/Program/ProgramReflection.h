@@ -42,7 +42,7 @@
 #include <string_view>
 #include <vector>
 
-namespace Falcor {
+namespace USTC_CG {
 class ProgramVersion;
 class ReflectionVar;
 class ReflectionType;
@@ -702,7 +702,7 @@ struct TypedShaderVarOffset : ShaderVarOffset {
 /**
  * Reflection and layout information for a type in shader code.
  */
-class FALCOR_API ReflectionType : public Object {
+class HD_USTC_CG_API ReflectionType : public Object {
     FALCOR_OBJECT(ReflectionType)
    public:
     virtual ~ReflectionType() = default;
@@ -935,7 +935,7 @@ class FALCOR_API ReflectionType : public Object {
 /**
  * Represents an array type in shader code.
  */
-class FALCOR_API ReflectionArrayType : public ReflectionType {
+class HD_USTC_CG_API ReflectionArrayType : public ReflectionType {
    public:
     /**
      * Create a new object
@@ -996,7 +996,7 @@ class FALCOR_API ReflectionArrayType : public ReflectionType {
 /**
  * Represents a `struct` type in shader code.
  */
-class FALCOR_API ReflectionStructType : public ReflectionType {
+class HD_USTC_CG_API ReflectionStructType : public ReflectionType {
    public:
     /**
      * Get the name of the struct type
@@ -1091,7 +1091,7 @@ class FALCOR_API ReflectionStructType : public ReflectionType {
 /**
  * Reflection object for scalars, vectors and matrices
  */
-class FALCOR_API ReflectionBasicType : public ReflectionType {
+class HD_USTC_CG_API ReflectionBasicType : public ReflectionType {
    public:
     /**
      * The type of the object
@@ -1299,7 +1299,7 @@ class FALCOR_API ReflectionBasicType : public ReflectionType {
 /**
  * Reflection object for resources
  */
-class FALCOR_API ReflectionResourceType : public ReflectionType {
+class HD_USTC_CG_API ReflectionResourceType : public ReflectionType {
    public:
     /**
      * Describes how the shader will access the resource
@@ -1518,7 +1518,7 @@ class FALCOR_API ReflectionResourceType : public ReflectionType {
 /**
  * Reflection object for resources
  */
-class FALCOR_API ReflectionInterfaceType : public ReflectionType {
+class HD_USTC_CG_API ReflectionInterfaceType : public ReflectionType {
    public:
     static ref<ReflectionInterfaceType> create(
         slang::TypeLayoutReflection* pSlangTypeLayout);
@@ -1548,7 +1548,7 @@ class FALCOR_API ReflectionInterfaceType : public ReflectionType {
 /**
  * An object describing a variable
  */
-class FALCOR_API ReflectionVar : public Object {
+class HD_USTC_CG_API ReflectionVar : public Object {
     FALCOR_OBJECT(ReflectionVar)
    public:
     /**
@@ -1617,7 +1617,7 @@ class ProgramReflection;
 /**
  * A reflection object describing a parameter block
  */
-class FALCOR_API ParameterBlockReflection : public Object {
+class HD_USTC_CG_API ParameterBlockReflection : public Object {
     FALCOR_OBJECT(ParameterBlockReflection)
    public:
     static constexpr uint32_t kInvalidIndex = 0xffffffff;
@@ -1819,7 +1819,7 @@ class FALCOR_API ParameterBlockReflection : public Object {
     ProgramVersion const* mpProgramVersion = nullptr;
 };
 
-class FALCOR_API EntryPointGroupReflection : public ParameterBlockReflection {
+class HD_USTC_CG_API EntryPointGroupReflection : public ParameterBlockReflection {
    public:
     static ref<EntryPointGroupReflection> create(
         ProgramVersion const* pProgramVersion,
@@ -1836,7 +1836,7 @@ typedef EntryPointGroupReflection EntryPointBaseReflection;
  * Reflection object for an entire program. Essentially, it's a collection of
  * ParameterBlocks
  */
-class FALCOR_API ProgramReflection : public Object {
+class HD_USTC_CG_API ProgramReflection : public Object {
     FALCOR_OBJECT(ProgramReflection)
    public:
     /**
@@ -1990,4 +1990,4 @@ FALCOR_ENUM_REGISTER(ReflectionResourceType::Dimensions);
 FALCOR_ENUM_REGISTER(ReflectionResourceType::StructuredType);
 FALCOR_ENUM_REGISTER(ReflectionResourceType::Type);
 
-}  // namespace Falcor
+}  // namespace USTC_CG

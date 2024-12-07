@@ -32,7 +32,7 @@
 #include <memory>
 #include <string>
 
-namespace Falcor
+namespace USTC_CG
 {
 class Dictionary
 {
@@ -98,4 +98,4 @@ public:
 private:
     Container mContainer;
 };
-} // namespace Falcor
+} // namespace USTC_CG

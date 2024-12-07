@@ -32,7 +32,7 @@
 #include "Core/Error.h"
 #include "utils/Logger.h"
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Generate a vector that is orthogonal to the input vector
@@ -145,4 +145,4 @@ inline float4x4 validateTransformMatrix(const float4x4& transform)
 
     return newMatrix;
 }
-} // namespace Falcor
+} // namespace USTC_CG

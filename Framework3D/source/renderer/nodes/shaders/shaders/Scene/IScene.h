@@ -33,7 +33,7 @@
 
 #include <sigs/sigs.h>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 struct AABB;
@@ -46,7 +46,7 @@ class MaterialSystem;
 class Sampler;
 struct ShaderVar;
 
-class FALCOR_API IScene : public Object
+class HD_USTC_CG_API IScene : public Object
 {
 public:
     /** Flags indicating if and what was updated in the scene.
@@ -193,4 +193,4 @@ public: /// Compatibility calls
 
 FALCOR_ENUM_CLASS_OPERATORS(IScene::UpdateFlags);
 FALCOR_ENUM_CLASS_OPERATORS(IScene::TypeConformancesKind);
-} // namespace Falcor
+} // namespace USTC_CG

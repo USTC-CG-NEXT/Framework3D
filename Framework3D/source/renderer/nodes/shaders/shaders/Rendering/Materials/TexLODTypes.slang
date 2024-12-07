@@ -32,7 +32,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** This enum is shared between CPU/GPU.
     It enumerates the different the different texture LOD modes.
@@ -70,4 +70,4 @@ FALCOR_ENUM_INFO(RayConeMode, {
 });
 FALCOR_ENUM_REGISTER(RayConeMode);
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 ///  Define the basic types that print() supports.
 enum class PrintValueType
@@ -54,4 +54,4 @@ struct AssertRecord
     uint msgHash;      ///< String hash of assert message.
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -31,7 +31,7 @@
 #include "utils/Math/Vector.h"
 #include <array>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 struct SerializedMaterialParams : public std::array<float, 20>
@@ -67,4 +67,4 @@ struct SerializedMaterialParams : public std::array<float, 20>
     }
 };
 
-} // namespace Falcor
+} // namespace USTC_CG

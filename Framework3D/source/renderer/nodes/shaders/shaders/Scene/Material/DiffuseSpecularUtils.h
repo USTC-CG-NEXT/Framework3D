@@ -30,7 +30,7 @@
 #include <Utils/json.hpp>
 #include <filesystem>
 
-namespace Falcor
+namespace USTC_CG
 {
     struct DiffuseSpecularData;
 

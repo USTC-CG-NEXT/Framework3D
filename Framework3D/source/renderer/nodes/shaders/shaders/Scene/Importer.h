@@ -38,13 +38,13 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Base class for importers.
         Importers are bound to a set of file extensions. This allows the right importer to
         be called when importing an asset file.
     */
-    class FALCOR_API Importer
+    class HD_USTC_CG_API Importer
     {
     public:
         using PluginCreate = std::function<std::unique_ptr<Importer>()>;

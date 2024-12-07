@@ -31,7 +31,7 @@
 #include <bit> // TODO C++20: Replace with <bit>
 #include <cmath>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace math
 {
@@ -273,4 +273,4 @@ template<typename T, std::enable_if_t<is_floating_point_v<T>, bool> = false>
 // clang-format on
 
 } // namespace math
-} // namespace Falcor
+} // namespace USTC_CG

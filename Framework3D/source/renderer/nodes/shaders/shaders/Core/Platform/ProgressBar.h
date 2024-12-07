@@ -31,12 +31,12 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Creates a progress bar visual and manages a new thread for it.
  */
-class FALCOR_API ProgressBar
+class HD_USTC_CG_API ProgressBar
 {
 public:
     struct Window;
@@ -64,4 +64,4 @@ public:
 private:
     std::unique_ptr<Window> mpWindow;
 };
-} // namespace Falcor
+} // namespace USTC_CG

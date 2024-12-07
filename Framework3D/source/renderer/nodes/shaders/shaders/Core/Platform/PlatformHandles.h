@@ -28,7 +28,7 @@
 #pragma once
 #include "Core/Macros.h"
 
-namespace Falcor
+namespace USTC_CG
 {
 #if FALCOR_WINDOWS
 using SharedLibraryHandle = void*; // HANDLE
@@ -43,4 +43,4 @@ struct WindowHandle
 #else
 #error "Platform not specified!"
 #endif
-} // namespace Falcor
+} // namespace USTC_CG

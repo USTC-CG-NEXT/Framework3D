@@ -33,14 +33,14 @@
 #include "Scene/Material/RGLFile.h"
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
     /** This class allows taking a virtual measurement of a BRDF
         and converting it into the parametrization proposed by
         Dupuy & Jakob,  "An Adaptive Parameterization for Efficient
         Material Acquisition and Rendering".
     */
-    class FALCOR_API RGLAcquisition
+    class HD_USTC_CG_API RGLAcquisition
     {
     public:
         /// Constructor.

@@ -32,7 +32,7 @@
 
 #include <cstdint>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 namespace detail
@@ -139,4 +139,4 @@ inline uint32_t fnvHashArray32(const void* data, size_t size)
     return hash.get();
 }
 
-} // namespace Falcor
+} // namespace USTC_CG

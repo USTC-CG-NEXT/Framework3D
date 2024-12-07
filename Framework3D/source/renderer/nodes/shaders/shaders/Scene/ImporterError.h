@@ -34,12 +34,12 @@
 
 /// ImporterError split from the Importer.h file to allow using it without bringing in pybind11 types (via SceneBuilder)
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Exception thrown during scene import.
         Holds the path of the imported asset and a description of the exception.
     */
-    class FALCOR_API ImporterError : public Exception
+    class HD_USTC_CG_API ImporterError : public Exception
     {
     public:
         ImporterError() noexcept

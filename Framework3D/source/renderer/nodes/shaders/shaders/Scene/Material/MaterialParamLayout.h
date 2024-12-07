@@ -29,7 +29,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 struct MaterialParamLayoutEntry
@@ -42,4 +42,4 @@ struct MaterialParamLayoutEntry
 
 using MaterialParamLayout = std::vector<MaterialParamLayoutEntry>;
 
-} // namespace Falcor
+} // namespace USTC_CG

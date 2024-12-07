@@ -32,14 +32,14 @@
 #include <random>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
     class RenderContext;
     struct ShaderVar;
 
     /** Sample geometry proportionally to its emissive power.
     */
-    class FALCOR_API EmissivePowerSampler : public EmissiveLightSampler
+    class HD_USTC_CG_API EmissivePowerSampler : public EmissiveLightSampler
     {
     public:
         struct AliasTable

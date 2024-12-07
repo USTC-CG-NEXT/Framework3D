@@ -33,7 +33,7 @@
 #include <string>
 #include <filesystem>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 using EnvVarResolver = std::optional<std::string>(const std::string&);
@@ -59,7 +59,7 @@ static bool checkFileExists(const std::filesystem::path& path)
  * @param endToken Token marking the end of the env variable. Env variable is between the two tokens, e.g., `${VARIABLE}`.
  * @return false if the begin/end tokens do not match, true otherwise. Not resolving an env variable does not result in false.
  */
-FALCOR_API
+HD_USTC_CG_API
 bool resolveEnvVariables(
     std::string& str,
     EnvVarResolver envResolver = getEnvironmentVariable,
@@ -94,7 +94,7 @@ struct ResolvedPaths
  * @param envResolver Optionally provided custom env variable resolver, used for testing.
  * @return Returns vector of strings that haven't been found as valid search paths (i.e., not absolute)
  */
-FALCOR_API
+HD_USTC_CG_API
 ResolvedPaths resolveSearchPaths(
     const std::vector<std::filesystem::path>& current,
     const std::vector<std::string>& update,
@@ -117,7 +117,7 @@ ResolvedPaths resolveSearchPaths(
  * @param fileChecker Function that checks if the file path is valid.
  * @return Returns the fully resolved absolute path, or empty path when it could not be resolved.
  */
-FALCOR_API
+HD_USTC_CG_API
 std::filesystem::path resolvePath(
     const std::vector<std::filesystem::path>& searchPaths,
     const std::filesystem::path& currentWorkingDirectory,
@@ -125,4 +125,4 @@ std::filesystem::path resolvePath(
     FileChecker fileChecker = checkFileExists
 );
 
-} // namespace Falcor
+} // namespace USTC_CG

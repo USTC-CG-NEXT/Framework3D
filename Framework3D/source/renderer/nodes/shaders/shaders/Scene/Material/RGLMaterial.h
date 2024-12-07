@@ -30,7 +30,7 @@
 #include "RGLMaterialData.slang"
 #include <filesystem>
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Class representing a measured material from the RGL BRDF database.
 
@@ -39,7 +39,7 @@ namespace Falcor
         "An Adaptive Parameterization for Efficient Material Acquisition and Rendering".
         Transactions on Graphics (Proc. SIGGRAPH Asia 2018)
     */
-    class FALCOR_API RGLMaterial : public Material
+    class HD_USTC_CG_API RGLMaterial : public Material
     {
         FALCOR_OBJECT(RGLMaterial)
     public:

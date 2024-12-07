@@ -31,7 +31,7 @@
 #include "ParameterBlock.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class Device;
 class FullScreenPass;
 
@@ -64,4 +64,4 @@ struct BlitContext {
 
     BlitContext(Device* pDevice);
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

@@ -30,9 +30,9 @@
 #include "RenderGraph/RenderPass.h"
 #include "SharedTypes.slang"
 
-namespace Falcor
+namespace USTC_CG
 {
-class FALCOR_API SceneGradients : public Object
+class HD_USTC_CG_API SceneGradients : public Object
 {
     FALCOR_OBJECT(SceneGradients);
 
@@ -97,4 +97,4 @@ private:
 
     ref<ComputePass> mpAggregatePass;
 };
-} // namespace Falcor
+} // namespace USTC_CG

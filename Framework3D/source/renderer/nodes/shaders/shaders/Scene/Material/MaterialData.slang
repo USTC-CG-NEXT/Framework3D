@@ -36,7 +36,7 @@ __exported import MaterialTypes;
 __exported import TextureHandle;
 #endif
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** This is a host/device structure for material header data for all material types (16B).
 */
@@ -217,4 +217,4 @@ struct MaterialDataBlob
     MaterialPayload payload; // 112B
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

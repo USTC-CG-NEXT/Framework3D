@@ -32,7 +32,7 @@
 #include "Core/Program/ProgramVars.h"
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
 class RenderContext;
 
@@ -45,7 +45,7 @@ class RenderContext;
  *
  * This code requires an NVIDIA GPU and NVAPI.
  */
-class FALCOR_API BitonicSort
+class HD_USTC_CG_API BitonicSort
 {
 public:
     /// Constructor. Throws an exception on error.
@@ -74,4 +74,4 @@ private:
         ref<ProgramVars> pVars;
     } mSort;
 };
-} // namespace Falcor
+} // namespace USTC_CG

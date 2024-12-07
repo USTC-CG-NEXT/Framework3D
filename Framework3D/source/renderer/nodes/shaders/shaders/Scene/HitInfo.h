@@ -29,7 +29,7 @@
 #include "Core/Macros.h"
 #include "Core/Program/DefineList.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class Scene;
 
 /** Host side utility to setup the bit allocations for device side HitInfo.
@@ -42,7 +42,7 @@ class Scene;
 
     See HitInfo.slang for more information.
 */
-class FALCOR_API HitInfo {
+class HD_USTC_CG_API HitInfo {
    public:
     static constexpr uint32_t kMaxPackedSizeInBytes = 16;
     static constexpr nvrhi::Format kDefaultFormat = nvrhi::Format::RGBA32_UINT;
@@ -72,4 +72,4 @@ class FALCOR_API HitInfo {
     uint32_t mPrimitiveIndexBits =
         0;  ///< Number of bits to store primitive index.
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

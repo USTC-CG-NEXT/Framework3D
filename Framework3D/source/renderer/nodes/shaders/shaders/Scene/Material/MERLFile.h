@@ -33,14 +33,14 @@
 #include <filesystem>
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
     class Device;
 
     /** Class for loading a measured material from the MERL BRDF database.
         Additional metadata is loaded along with the BRDF if available.
     */
-    class FALCOR_API MERLFile
+    class HD_USTC_CG_API MERLFile
     {
     public:
         struct Desc

@@ -29,7 +29,7 @@
 #include "utils/Math/Vector.h"
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
     /** This class represents a 2D table of 2D distributions.
         The basic model is that given coordinates x, y,

@@ -35,7 +35,7 @@
 #include <vector>
 #include <functional>
 
-namespace Falcor
+namespace USTC_CG
 {
     class Device;
     class Scene;
@@ -50,7 +50,7 @@ namespace Falcor
         The LightCollection can be used standalone, but more commonly it will be wrapped
         by an emissive light sampler.
     */
-    class FALCOR_API ILightCollection : public Object
+    class HD_USTC_CG_API ILightCollection : public Object
     {
     public:
         enum class UpdateFlags : uint32_t

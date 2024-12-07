@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Represents a task to compute AABBs for a list of triangles.
 */
@@ -42,4 +42,4 @@ struct DisplacementUpdateTask
     uint count;             ///< Number of triangles to process.
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -36,13 +36,13 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
     /** Simple indexed triangle mesh.
         Vertices have position, normal and texture coordinate attributes.
         This class is used as a utility to pass simple geometry to the SceneBuilder.
     */
-    class FALCOR_API TriangleMesh : public Object
+    class HD_USTC_CG_API TriangleMesh : public Object
     {
         FALCOR_OBJECT(TriangleMesh)
     public:

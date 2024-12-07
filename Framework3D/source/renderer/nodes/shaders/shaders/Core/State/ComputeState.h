@@ -35,7 +35,7 @@
 #include "Core/Program/Program.h"
 #include "StateGraph.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class ProgramVars;
 
 /**
@@ -45,7 +45,7 @@ class ProgramVars;
  * recommended way to use it is to create multiple ComputeState objects
  * (ideally, a single object per program)
  */
-class FALCOR_API ComputeState : public Object {
+class HD_USTC_CG_API ComputeState : public Object {
     FALCOR_OBJECT(ComputeState)
    public:
     ~ComputeState() = default;
@@ -94,4 +94,4 @@ class FALCOR_API ComputeState : public Object {
     using ComputeStateGraph = StateGraph<ref<ComputeStateObject>, void*>;
     std::unique_ptr<ComputeStateGraph> mpCsoGraph;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

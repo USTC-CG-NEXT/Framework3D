@@ -33,7 +33,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Calculates a world-space ray direction from a screen-space mouse pos.
@@ -206,4 +206,4 @@ inline float smoothstep(const float start, const float end, const float t)
     return smoothstep(s);
 }
 
-} // namespace Falcor
+} // namespace USTC_CG

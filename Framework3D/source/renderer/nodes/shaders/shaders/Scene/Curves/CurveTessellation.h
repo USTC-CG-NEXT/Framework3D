@@ -32,9 +32,9 @@
 #include "utils/fast_vector.h"
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
-    class FALCOR_API CurveTessellation
+    class HD_USTC_CG_API CurveTessellation
     {
     public:
         // Swept spheres

@@ -36,7 +36,7 @@
 #include "utils/Math/AABB.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class LightBVHBuilder;
 
 /** Utility class representing a light sampling BVH.
@@ -55,7 +55,7 @@ class LightBVHBuilder;
     TODO: Rename all things 'triangle' to 'light' as the BVH can be used for
    other light types.
 */
-class FALCOR_API LightBVH {
+class HD_USTC_CG_API LightBVH {
    public:
     struct NodeLocation {
         uint32_t nodeIndex;
@@ -214,4 +214,4 @@ class FALCOR_API LightBVH {
 
     friend LightBVHBuilder;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

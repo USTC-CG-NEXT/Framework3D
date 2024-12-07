@@ -33,7 +33,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 class DirectedGraph
 {
@@ -229,4 +229,4 @@ private:
         FALCOR_UNREACHABLE();
     }
 };
-} // namespace Falcor
+} // namespace USTC_CG

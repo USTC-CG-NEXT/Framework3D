@@ -71,38 +71,38 @@
 /// CUDA device pointer.
 typedef unsigned long long CUdeviceptr;
 
-namespace Falcor {
+namespace USTC_CG {
 
 namespace cuda_utils {
-    FALCOR_API void deviceSynchronize();
+    HD_USTC_CG_API void deviceSynchronize();
 
-    FALCOR_API void* mallocDevice(size_t size);
-    FALCOR_API void freeDevice(void* devPtr);
+    HD_USTC_CG_API void* mallocDevice(size_t size);
+    HD_USTC_CG_API void freeDevice(void* devPtr);
 
-    FALCOR_API void
+    HD_USTC_CG_API void
     memcpyDeviceToDevice(void* dst, const void* src, size_t count);
-    FALCOR_API void
+    HD_USTC_CG_API void
     memcpyHostToDevice(void* dst, const void* src, size_t count);
-    FALCOR_API void
+    HD_USTC_CG_API void
     memcpyDeviceToHost(void* dst, const void* src, size_t count);
 
-    FALCOR_API void memsetDevice(void* devPtr, int value, size_t count);
+    HD_USTC_CG_API void memsetDevice(void* devPtr, int value, size_t count);
 
-    FALCOR_API cudaExternalMemory_t importExternalMemory(const Buffer* buffer);
-    FALCOR_API void destroyExternalMemory(cudaExternalMemory_t extMem);
-    FALCOR_API void* externalMemoryGetMappedBuffer(
+    HD_USTC_CG_API cudaExternalMemory_t importExternalMemory(const Buffer* buffer);
+    HD_USTC_CG_API void destroyExternalMemory(cudaExternalMemory_t extMem);
+    HD_USTC_CG_API void* externalMemoryGetMappedBuffer(
         cudaExternalMemory_t extMem,
         size_t offset,
         size_t size);
 
-    FALCOR_API cudaExternalSemaphore_t
+    HD_USTC_CG_API cudaExternalSemaphore_t
     importExternalSemaphore(const Fence* fence);
-    FALCOR_API void destroyExternalSemaphore(cudaExternalSemaphore_t extSem);
-    FALCOR_API void signalExternalSemaphore(
+    HD_USTC_CG_API void destroyExternalSemaphore(cudaExternalSemaphore_t extSem);
+    HD_USTC_CG_API void signalExternalSemaphore(
         cudaExternalSemaphore_t extSem,
         uint64_t value,
         cudaStream_t stream = 0);
-    FALCOR_API void waitExternalSemaphore(
+    HD_USTC_CG_API void waitExternalSemaphore(
         cudaExternalSemaphore_t extSem,
         uint64_t value,
         cudaStream_t stream = 0);
@@ -110,7 +110,7 @@ namespace cuda_utils {
     /**
      * Calls cudaFree() on the provided pointer.
      */
-    FALCOR_API bool freeSharedDevicePtr(void* ptr);
+    HD_USTC_CG_API bool freeSharedDevicePtr(void* ptr);
 
     /**
      * Maps a texture to a surface object which can be read and written within a
@@ -121,11 +121,11 @@ namespace cuda_utils {
      * mipmapped array that will be used to create the surface object
      * @return The surface object that the input texture is bound to.
      */
-    FALCOR_API cudaSurfaceObject_t
+    HD_USTC_CG_API cudaSurfaceObject_t
     mapTextureToSurface(nvrhi::TextureHandle pTex, uint32_t usageFlags);
 
     /// Wraps a CUDA device, context and stream.
-    class FALCOR_API CudaDevice : public Object {
+    class HD_USTC_CG_API CudaDevice : public Object {
         FALCOR_OBJECT(cuda_utils::CudaDevice)
        public:
         /// Constructor.
@@ -251,4 +251,4 @@ inline InteropBuffer createInteropBuffer(ref<Device> pDevice, size_t byteSize)
 
     return interop;
 }
-}  // namespace Falcor
+}  // namespace USTC_CG

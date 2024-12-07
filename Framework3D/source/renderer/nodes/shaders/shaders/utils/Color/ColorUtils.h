@@ -61,7 +61,7 @@
  *
  */
 
-namespace Falcor
+namespace USTC_CG
 {
 // Transform from RGB color in Rec.709 to CIE XYZ.
 static const float3x3 kColorTransform_RGBtoXYZ_Rec709 = {
@@ -223,4 +223,4 @@ static float3x3 calculateWhiteBalanceTransformRGB_Rec709(float T)
 
     return mul(mul(invMA, D), MA);
 }
-} // namespace Falcor
+} // namespace USTC_CG

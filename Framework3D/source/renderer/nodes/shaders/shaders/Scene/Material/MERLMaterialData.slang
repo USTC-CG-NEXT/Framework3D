@@ -36,7 +36,7 @@ __exported import Scene.Material.TextureHandle;
 __exported import Scene.Material.DiffuseSpecularData;
 #endif
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** This is a host/device structure that describes a measured MERL material.
 */
@@ -51,4 +51,4 @@ struct MERLMaterialData
     static constexpr uint kAlbedoLUTSize = 256;
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -37,7 +37,7 @@
  * functions, but numerical differences are possible.
  */
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Helper function to reflect the folds of the lower hemisphere
@@ -92,4 +92,4 @@ inline float3 decodeNormal2x16(uint32_t packedNormal)
     float2 octNormal = unpackSnorm2x16(packedNormal);
     return oct_to_ndir_snorm(octNormal);
 }
-} // namespace Falcor
+} // namespace USTC_CG

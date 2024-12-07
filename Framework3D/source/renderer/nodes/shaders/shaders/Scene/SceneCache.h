@@ -45,7 +45,7 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
     template<typename T, bool TUseByteAddressBuffer>
     class SplitBuffer;
@@ -54,7 +54,7 @@ namespace Falcor
         The scene cache is used to heavily reduce load times of more complex assets.
         The cache stores a binary representation of `Scene::SceneData` which contains everything to re-create a `Scene`.
     */
-    class FALCOR_API SceneCache
+    class HD_USTC_CG_API SceneCache
     {
     public:
         using Key = SHA1::MD;

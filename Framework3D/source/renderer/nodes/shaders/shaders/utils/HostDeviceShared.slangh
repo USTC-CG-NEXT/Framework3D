@@ -49,12 +49,6 @@
 /*******************************************************************
                     CPU declarations
 *******************************************************************/
-#define BEGIN_NAMESPACE(name) \
-    namespace name            \
-    {
-#define END_NAMESPACE }
-#define BEGIN_NAMESPACE_FALCOR BEGIN_NAMESPACE(Falcor)
-#define END_NAMESPACE_FALCOR END_NAMESPACE
 /// Check if the type is either a multiple of ALIGNMENT, or multiples of it fit exactly into ALIGNMENT
 #define FALCOR_ASSERT_ALIGNMENT_FOR(T, ALIGNMENT) \
     static_assert((sizeof(T) >= ALIGNMENT) ? ((sizeof(T) % ALIGNMENT) == 0) : ((ALIGNMENT % sizeof(T)) == 0))
@@ -69,7 +63,7 @@
 #include "utils/Math/Matrix.h"
 #include <algorithm>
 
-namespace Falcor
+namespace USTC_CG
 {
     using math::sign;
     using math::f16tof32;
@@ -88,8 +82,8 @@ namespace Falcor
 *******************************************************************/
 #define inline
 #define constexpr const
-#define BEGIN_NAMESPACE_FALCOR
-#define END_NAMESPACE_FALCOR
+#define USTC_CG_NAMESPACE_OPEN_SCOPE
+#define USTC_CG_NAMESPACE_CLOSE_SCOPE
 #define BEGIN_NAMESPACE(name)
 #define END_NAMESPACE
 #define SETTER_DECL [mutating]

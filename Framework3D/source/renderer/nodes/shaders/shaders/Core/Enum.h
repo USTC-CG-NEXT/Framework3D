@@ -37,7 +37,7 @@
 #include <vector>
 #include <format>
 
-namespace Falcor
+namespace USTC_CG
 {
 // Helper using ADL to find EnumInfo in other namespaces.
 template<typename T>
@@ -128,7 +128,7 @@ inline T stringListToFlags(const std::vector<std::string>& list)
     return flags;
 }
 
-} // namespace Falcor
+} // namespace USTC_CG
 
 /**
  * Define enum information. This is expected to be used as follows:
@@ -178,11 +178,11 @@ inline T stringListToFlags(const std::vector<std::string>& list)
 
 /// Enum formatter.
 template<typename T>
-struct std::formatter<T, std::enable_if_t<Falcor::has_enum_info_v<T>, char>> : formatter<std::string>
+struct std::formatter<T, std::enable_if_t<USTC_CG::has_enum_info_v<T>, char>> : formatter<std::string>
 {
     template<typename FormatContext>
     auto format(const T& e, FormatContext& ctx)
     {
-        return formatter<std::string>::format(Falcor::enumToString(e), ctx);
+        return formatter<std::string>::format(USTC_CG::enumToString(e), ctx);
     }
 };

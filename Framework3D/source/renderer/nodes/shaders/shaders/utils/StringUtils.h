@@ -35,7 +35,7 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Check is a string starts with another string
@@ -44,7 +44,7 @@ namespace Falcor
  * @param[in] caseSensitive Whether comparison should be case-sensitive
  * @return Returns true if string starts with the specified prefix.
  */
-FALCOR_API bool hasPrefix(const std::string& str, const std::string& prefix, bool caseSensitive = true);
+HD_USTC_CG_API bool hasPrefix(const std::string& str, const std::string& prefix, bool caseSensitive = true);
 
 /**
  * Check is a string ends with another string
@@ -53,7 +53,7 @@ FALCOR_API bool hasPrefix(const std::string& str, const std::string& prefix, boo
  * @param[in] caseSensitive Whether comparison should be case-sensitive
  * @return Returns true if string ends with the specified suffix
  */
-FALCOR_API bool hasSuffix(const std::string& str, const std::string& suffix, bool caseSensitive = true);
+HD_USTC_CG_API bool hasSuffix(const std::string& str, const std::string& suffix, bool caseSensitive = true);
 
 /**
  * Split a string into a vector of strings based on d delimiter
@@ -61,7 +61,7 @@ FALCOR_API bool hasSuffix(const std::string& str, const std::string& suffix, boo
  * @param[in] delim Delimiter to split strings by
  * @return Array of split strings excluding delimiters.
  */
-FALCOR_API std::vector<std::string> splitString(const std::string& str, const std::string& delim);
+HD_USTC_CG_API std::vector<std::string> splitString(const std::string& str, const std::string& delim);
 
 /**
  * Join an array of strings separated by another set string
@@ -69,7 +69,7 @@ FALCOR_API std::vector<std::string> splitString(const std::string& str, const st
  * @param[in] separator String placed between each string to be joined.
  * @return Joined string.
  */
-FALCOR_API std::string joinStrings(const std::vector<std::string>& strings, const std::string& separator);
+HD_USTC_CG_API std::string joinStrings(const std::vector<std::string>& strings, const std::string& separator);
 
 /**
  * Remove leading whitespace.
@@ -77,7 +77,7 @@ FALCOR_API std::string joinStrings(const std::vector<std::string>& strings, cons
  * @param[in] whitespace Whitespace characters.
  * @return String with leading whitespace removed.
  */
-FALCOR_API std::string removeLeadingWhitespace(const std::string& str, const char* whitespace = " \n\r\t");
+HD_USTC_CG_API std::string removeLeadingWhitespace(const std::string& str, const char* whitespace = " \n\r\t");
 
 /**
  * Remove trailing whitespace.
@@ -85,7 +85,7 @@ FALCOR_API std::string removeLeadingWhitespace(const std::string& str, const cha
  * @param[in] whitespace Whitespace characters.
  * @return String with trailing whitespace removed.
  */
-FALCOR_API std::string removeTrailingWhitespace(const std::string& str, const char* whitespace = " \n\r\t");
+HD_USTC_CG_API std::string removeTrailingWhitespace(const std::string& str, const char* whitespace = " \n\r\t");
 
 /**
  * Remove leading and trailing whitespace.
@@ -93,7 +93,7 @@ FALCOR_API std::string removeTrailingWhitespace(const std::string& str, const ch
  * @param[in] whitespace Whitespace characters.
  * @return String with leading and trailing whitespace removed.
  */
-FALCOR_API std::string removeLeadingTrailingWhitespace(const std::string& str, const char* whitespace = " \n\r\t");
+HD_USTC_CG_API std::string removeLeadingTrailingWhitespace(const std::string& str, const char* whitespace = " \n\r\t");
 
 /**
  * Replace a set of character.
@@ -103,12 +103,12 @@ FALCOR_API std::string removeLeadingTrailingWhitespace(const std::string& str, c
  * @param[in] replacement Character to use as a replacement.
  * @return String with characeters replaced.
  */
-FALCOR_API std::string replaceCharacters(const std::string& str, const char* characters, const char replacement);
+HD_USTC_CG_API std::string replaceCharacters(const std::string& str, const char* characters, const char replacement);
 
 /**
  * Pad string to minimum length.
  */
-FALCOR_API std::string padStringToLength(const std::string& str, size_t length, char padding = ' ');
+HD_USTC_CG_API std::string padStringToLength(const std::string& str, size_t length, char padding = ' ');
 
 /**
  * Replace all occurrences of a substring in a string. The function doesn't change the original string.
@@ -116,12 +116,12 @@ FALCOR_API std::string padStringToLength(const std::string& str, size_t length, 
  * @param src The substring to replace
  * @param dst The substring to replace Src with
  */
-FALCOR_API std::string replaceSubstring(const std::string& input, const std::string& src, const std::string& dst);
+HD_USTC_CG_API std::string replaceSubstring(const std::string& input, const std::string& src, const std::string& dst);
 
 /**
  * Decode an URI string.
  */
-FALCOR_API std::string decodeURI(const std::string& input);
+HD_USTC_CG_API std::string decodeURI(const std::string& input);
 
 /**
  * Parses a string in the format <name>[<index>]. If format is valid, outputs the base name and the array index.
@@ -130,12 +130,12 @@ FALCOR_API std::string decodeURI(const std::string& input);
  * @param[out] index Becomes set to the index value parsed from the string
  * @return Whether string was successfully parsed.
  */
-FALCOR_API bool parseArrayIndex(const std::string& name, std::string& nonArray, uint32_t& index);
+HD_USTC_CG_API bool parseArrayIndex(const std::string& name, std::string& nonArray, uint32_t& index);
 
 /**
  * Copy text from a std::string to a char buffer, ensures null termination.
  */
-FALCOR_API void copyStringToBuffer(char* buffer, uint32_t bufferSize, const std::string& s);
+HD_USTC_CG_API void copyStringToBuffer(char* buffer, uint32_t bufferSize, const std::string& s);
 
 /**
  * Converts a size in bytes to a human readable string:
@@ -147,7 +147,7 @@ FALCOR_API void copyStringToBuffer(char* buffer, uint32_t bufferSize, const std:
  * @param[in] size Size in bytes
  * @return Returns a human readable string.
  */
-FALCOR_API std::string formatByteSize(size_t size);
+HD_USTC_CG_API std::string formatByteSize(size_t size);
 
 /**
  * Convert an ASCII string to lower case.
@@ -191,7 +191,7 @@ inline std::string utf32ToUtf8(uint32_t codepoint)
 /**
  * Encode data into base 64 encoding.
  */
-FALCOR_API std::string encodeBase64(const void* data, size_t len);
+HD_USTC_CG_API std::string encodeBase64(const void* data, size_t len);
 
 /**
  * Encode data into base 64 encoding.
@@ -204,5 +204,5 @@ inline std::string encodeBase64(const std::vector<uint8_t>& in)
 /**
  * Decode data from base 64 encoding.
  */
-FALCOR_API std::vector<uint8_t> decodeBase64(const std::string& in);
-}; // namespace Falcor
+HD_USTC_CG_API std::vector<uint8_t> decodeBase64(const std::string& in);
+}; // namespace USTC_CG

@@ -45,7 +45,7 @@
 #include "utils/Math/VectorTypes.h"
 #include "slang-com-ptr.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class RtStateObject;
 class GraphicsStateObject;
 struct GraphicsStateObjectDesc;
@@ -99,7 +99,7 @@ struct AdapterLUID {
     }
 };
 
-class FALCOR_API Device : public Object {
+class HD_USTC_CG_API Device : public Object {
     FALCOR_OBJECT(Device)
 
     auto getGraphicsAPI()
@@ -440,4 +440,4 @@ inline constexpr uint32_t getMaxViewportCount()
     return 8;
 }
 
-}  // namespace Falcor
+}  // namespace USTC_CG

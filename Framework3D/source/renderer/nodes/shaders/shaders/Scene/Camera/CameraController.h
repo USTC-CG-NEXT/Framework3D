@@ -34,7 +34,7 @@
 #include <bitset>
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
     struct MouseEvent;
     struct KeyboardEvent;
@@ -42,7 +42,7 @@ namespace Falcor
 
     /** Camera controller interface. Camera controllers should inherit from this object.
     */
-    class FALCOR_API CameraController
+    class HD_USTC_CG_API CameraController
     {
     public:
         enum class UpDirection
@@ -111,7 +111,7 @@ namespace Falcor
         * Left mouse click + movement will orbit around the model.
         * Mouse wheel zooms in/out.
     */
-    class FALCOR_API OrbiterCameraController : public CameraController
+    class HD_USTC_CG_API OrbiterCameraController : public CameraController
     {
     public:
         OrbiterCameraController(const ref<Camera>& pCamera) : CameraController(pCamera) {}
@@ -159,7 +159,7 @@ namespace Falcor
         - Ctrl for slower movement.
     */
     template<bool b6DoF>
-    class FALCOR_API FirstPersonCameraControllerCommon : public CameraController
+    class HD_USTC_CG_API FirstPersonCameraControllerCommon : public CameraController
     {
     public:
         FirstPersonCameraControllerCommon(const ref<Camera>& pCamera);

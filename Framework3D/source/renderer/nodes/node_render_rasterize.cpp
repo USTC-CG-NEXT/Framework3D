@@ -97,6 +97,10 @@ NODE_EXECUTION_FUNCTION(rasterize)
                 state.addVertexBuffer(nvrhi::VertexBufferBinding{
                     mesh->GetTexcoordBuffer(pxr::TfToken("UVMap")), 2, 0 });
             }
+            else {
+                state.addVertexBuffer(
+                    nvrhi::VertexBufferBinding{ nullptr, 2, 0 });
+            }
 
             context.draw(state, program_vars, mesh->IndexCount());
         }

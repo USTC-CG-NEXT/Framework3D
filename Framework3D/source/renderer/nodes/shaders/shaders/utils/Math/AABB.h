@@ -32,7 +32,7 @@
 #include "utils/Math/Matrix.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor {
+namespace USTC_CG {
 /**
  * Axis-aligned bounding box (AABB) stored by its min/max points.
  *
@@ -244,4 +244,4 @@ struct AABB {
         return bb &= rhs;
     }
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /**
  * This file contains host/device shared color utility functions.
@@ -422,4 +422,4 @@ inline float3 linearRGBToYCxCz(float3 lColor)
     return XYZToYCxCz(linearRGBToXYZ(lColor));
 }
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

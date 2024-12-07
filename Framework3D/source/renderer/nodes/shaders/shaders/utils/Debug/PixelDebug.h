@@ -36,7 +36,7 @@
 #include "PixelDebugTypes.slang"
 #include "utils/UI/Gui.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class RenderContext;
 
 /**
@@ -63,7 +63,7 @@ class RenderContext;
  * The shader code is disabled (using macros) when debugging is off.
  * When enabled, async readback is used but expect a minor perf loss.
  */
-class FALCOR_API PixelDebug {
+class HD_USTC_CG_API PixelDebug {
    public:
     /**
      * Constructor. Throws an exception on error.
@@ -138,4 +138,4 @@ class FALCOR_API PixelDebug {
     const uint32_t mAssertCapacity =
         0;  ///< Capacity of the assert buffer in elements.
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

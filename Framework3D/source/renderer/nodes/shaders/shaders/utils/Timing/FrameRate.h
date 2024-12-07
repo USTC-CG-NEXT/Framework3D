@@ -32,12 +32,12 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Helper class for calculating framerate.
  */
-class FALCOR_API FrameRate
+class HD_USTC_CG_API FrameRate
 {
 public:
     FrameRate()
@@ -106,4 +106,4 @@ inline std::string to_string(const FrameRate& fr, bool vsyncOn = false)
 {
     return fr.getMsg(vsyncOn);
 }
-} // namespace Falcor
+} // namespace USTC_CG

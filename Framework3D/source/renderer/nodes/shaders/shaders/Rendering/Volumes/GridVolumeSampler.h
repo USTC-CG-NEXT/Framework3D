@@ -32,7 +32,7 @@
 #include "utils/Properties.h"
 #include "Scene/Scene.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     class RenderContext;
     struct ShaderVar;
@@ -40,7 +40,7 @@ namespace Falcor
     /** Grid volume sampler.
         Utily class for evaluating transmittance and sampling scattering in grid volumes.
     */
-    class FALCOR_API GridVolumeSampler
+    class HD_USTC_CG_API GridVolumeSampler
     {
     public:
         /** Grid volume sampler configuration options.

@@ -29,7 +29,7 @@
 #include "Material.h"
 #include "MERLMaterialData.slang"
 
-namespace Falcor
+namespace USTC_CG
 {
     class MERLFile;
 
@@ -40,7 +40,7 @@ namespace Falcor
         "A Data-Driven Reflectance Model". ACM Transactions on Graphics,
         vol. 22(3), 2003, pages 759-769.
     */
-    class FALCOR_API MERLMaterial : public Material
+    class HD_USTC_CG_API MERLMaterial : public Material
     {
         FALCOR_OBJECT(MERLMaterial)
     public:

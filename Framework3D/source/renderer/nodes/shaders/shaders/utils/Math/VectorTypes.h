@@ -29,7 +29,7 @@
 
 #include "ScalarTypes.h"
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace math
 {
@@ -291,4 +291,4 @@ using float16_t2 = math::float16_t2;
 using float16_t3 = math::float16_t3;
 using float16_t4 = math::float16_t4;
 
-} // namespace Falcor
+} // namespace USTC_CG

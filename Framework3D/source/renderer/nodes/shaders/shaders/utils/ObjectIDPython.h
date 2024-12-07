@@ -33,9 +33,9 @@
 namespace pybind11::detail
 {
 template<typename TKindEnum, TKindEnum TKind, typename TIntType>
-struct type_caster<Falcor::ObjectID<TKindEnum, TKind, TIntType>>
+struct type_caster<USTC_CG::ObjectID<TKindEnum, TKind, TIntType>>
 {
-    using ObjectID = Falcor::ObjectID<TKindEnum, TKind, TIntType>;
+    using ObjectID = USTC_CG::ObjectID<TKindEnum, TKind, TIntType>;
 
 public:
     PYBIND11_TYPE_CASTER(ObjectID, const_name("ObjectID"));

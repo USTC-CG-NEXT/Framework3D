@@ -34,14 +34,14 @@
 #include <memory>
 #include <string>
 
-namespace Falcor
+namespace USTC_CG
 {
     class Scene;
     struct ShaderVar;
 
     /** Base class for light sources. All light sources should inherit from this.
     */
-    class FALCOR_API Light : public Animatable
+    class HD_USTC_CG_API Light : public Animatable
     {
         FALCOR_OBJECT(Light)
     public:
@@ -139,7 +139,7 @@ namespace Falcor
     /** Point light source.
         Simple infinitely-small point light with quadratic attenuation.
     */
-    class FALCOR_API PointLight : public Light
+    class HD_USTC_CG_API PointLight : public Light
     {
     public:
         static ref<PointLight> create(const std::string& name = "") { return make_ref<PointLight>(name); }
@@ -192,7 +192,7 @@ namespace Falcor
 
     /** Directional light source.
     */
-    class FALCOR_API DirectionalLight : public Light
+    class HD_USTC_CG_API DirectionalLight : public Light
     {
     public:
         static ref<DirectionalLight> create(const std::string& name = "") { return make_ref<DirectionalLight>(name); }
@@ -223,7 +223,7 @@ namespace Falcor
     /** Distant light source.
         Same as directional light source but subtending a non-zero solid angle.
     */
-    class FALCOR_API DistantLight : public Light
+    class HD_USTC_CG_API DistantLight : public Light
     {
     public:
         static ref<DistantLight> create(const std::string& name = "") { return make_ref<DistantLight>(name); }
@@ -264,7 +264,7 @@ namespace Falcor
 
     /** Analytic area light source.
     */
-    class FALCOR_API AnalyticAreaLight : public Light
+    class HD_USTC_CG_API AnalyticAreaLight : public Light
     {
     public:
         ~AnalyticAreaLight() = default;
@@ -306,7 +306,7 @@ namespace Falcor
 
     /** Rectangular area light source.
     */
-    class FALCOR_API RectLight : public AnalyticAreaLight
+    class HD_USTC_CG_API RectLight : public AnalyticAreaLight
     {
     public:
         static ref<RectLight> create(const std::string& name = "") { return make_ref<RectLight>(name); }
@@ -320,7 +320,7 @@ namespace Falcor
 
     /** Disc area light source.
     */
-    class FALCOR_API DiscLight : public AnalyticAreaLight
+    class HD_USTC_CG_API DiscLight : public AnalyticAreaLight
     {
     public:
         static ref<DiscLight> create(const std::string& name = "") { return make_ref<DiscLight>(name); }
@@ -334,7 +334,7 @@ namespace Falcor
 
     /** Sphere area light source.
     */
-    class FALCOR_API SphereLight : public AnalyticAreaLight
+    class HD_USTC_CG_API SphereLight : public AnalyticAreaLight
     {
     public:
         static ref<SphereLight> create(const std::string& name = "") { return make_ref<SphereLight>(name); }

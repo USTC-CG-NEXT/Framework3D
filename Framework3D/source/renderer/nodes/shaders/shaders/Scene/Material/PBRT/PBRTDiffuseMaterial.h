@@ -28,7 +28,7 @@
 #pragma once
 #include "Scene/Material/BasicMaterial.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** This class implements a Lambertian diffuse material, where
         reflectance does not depend on wo.
@@ -45,7 +45,7 @@ namespace Falcor
 
         See additional texture channels defined in BasicMaterial.
     */
-    class FALCOR_API PBRTDiffuseMaterial : public BasicMaterial
+    class HD_USTC_CG_API PBRTDiffuseMaterial : public BasicMaterial
     {
         FALCOR_OBJECT(PBRTDiffuseMaterial)
     public:

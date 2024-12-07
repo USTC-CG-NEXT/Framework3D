@@ -40,7 +40,7 @@
 #include "MathConstants.slangh"
 #include "Core/Error.h"
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace math
 {
@@ -487,30 +487,30 @@ template<typename T>
 }
 
 } // namespace math
-} // namespace Falcor
+} // namespace USTC_CG
 
 template<typename T>
-struct std::equal_to<::Falcor::math::quat<T>>
+struct std::equal_to<::USTC_CG::math::quat<T>>
 {
-    constexpr bool operator()(const ::Falcor::math::quat<T>& lhs, const ::Falcor::math::quat<T>& rhs) const
+    constexpr bool operator()(const ::USTC_CG::math::quat<T>& lhs, const ::USTC_CG::math::quat<T>& rhs) const
     {
         return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
     }
 };
 
 template<typename T>
-struct std::not_equal_to<::Falcor::math::quat<T>>
+struct std::not_equal_to<::USTC_CG::math::quat<T>>
 {
-    constexpr bool operator()(const ::Falcor::math::quat<T>& lhs, const ::Falcor::math::quat<T>& rhs) const
+    constexpr bool operator()(const ::USTC_CG::math::quat<T>& lhs, const ::USTC_CG::math::quat<T>& rhs) const
     {
         return lhs.x != rhs.x || lhs.y != rhs.y || lhs.z != rhs.z || lhs.w != rhs.w;
     }
 };
 
 template<typename T>
-struct std::hash<::Falcor::math::quat<T>>
+struct std::hash<::USTC_CG::math::quat<T>>
 {
-    constexpr size_t operator()(const ::Falcor::math::quat<T>& v) const
+    constexpr size_t operator()(const ::USTC_CG::math::quat<T>& v) const
     {
         size_t result = 0;
         for (size_t i = 0; i < 4; ++i)
@@ -521,10 +521,10 @@ struct std::hash<::Falcor::math::quat<T>>
 
 /// Quaternion string formatter.
 template<typename T>
-struct std::formatter<Falcor::math::quat<T>> : formatter<T>
+struct std::formatter<USTC_CG::math::quat<T>> : formatter<T>
 {
     template<typename FormatContext>
-    auto format(const Falcor::math::quat<T>& v, FormatContext& ctx) const
+    auto format(const USTC_CG::math::quat<T>& v, FormatContext& ctx) const
     {
         auto out = ctx.out();
         out = std::format_to(out, "{{{}, {}, {}, {}}}", v.x, v.y, v.z, v.w);

@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Enumeration of available volume transmittance estimators.
 */
@@ -63,4 +63,4 @@ inline bool requiresBrickedGrid(DistanceSampler d) { return d == DistanceSampler
 inline bool requiresBrickedGrid(TransmittanceEstimator t) { return t == TransmittanceEstimator::RatioTrackingLocalMajorant; }
 #endif
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

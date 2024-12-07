@@ -30,7 +30,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace Falcor
+namespace USTC_CG
 {
 /// This is a very rudimentary drop in replacement for STL vector that,
 /// unlike MSVC STL vector does not have a global lock on every push_back,
@@ -137,4 +137,4 @@ private:
     size_t m_size{0};
     std::unique_ptr<T[]> m_data;
 };
-} // namespace Falcor
+} // namespace USTC_CG

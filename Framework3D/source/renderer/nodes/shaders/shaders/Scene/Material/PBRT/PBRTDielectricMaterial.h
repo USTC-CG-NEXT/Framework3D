@@ -28,7 +28,7 @@
 #pragma once
 #include "Scene/Material/BasicMaterial.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** This class implements a dielectric material. This means the
         surface has both (uncolored) reflection and refraction lobes.
@@ -49,7 +49,7 @@ namespace Falcor
 
         See additional texture channels defined in BasicMaterial.
     */
-    class FALCOR_API PBRTDielectricMaterial : public BasicMaterial
+    class HD_USTC_CG_API PBRTDielectricMaterial : public BasicMaterial
     {
         FALCOR_OBJECT(PBRTDielectricMaterial)
     public:

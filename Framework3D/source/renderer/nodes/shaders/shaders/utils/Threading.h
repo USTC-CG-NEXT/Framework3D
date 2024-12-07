@@ -33,9 +33,9 @@
 #include <thread>
 #include <cstdint>
 
-namespace Falcor
+namespace USTC_CG
 {
-class FALCOR_API Threading
+class HD_USTC_CG_API Threading
 {
 public:
     const static uint32_t kDefaultThreadCount = 16;
@@ -92,7 +92,7 @@ public:
  * TODO: Once we move to C++20, we should change users of Barrier to use std::barrier instead.
  * The only change necessary will be to use std::barrier::arrive_and_wait() in place of Barrier::wait().
  */
-class FALCOR_API Barrier
+class HD_USTC_CG_API Barrier
 {
 public:
     Barrier(size_t threadCount, std::function<void()> completionFunc = nullptr)
@@ -130,4 +130,4 @@ private:
     std::mutex mMutex;
     std::condition_variable mCondition;
 };
-} // namespace Falcor
+} // namespace USTC_CG

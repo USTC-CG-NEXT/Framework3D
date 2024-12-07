@@ -29,7 +29,7 @@
 
 /**
  * CUDA runtime defines vector types in the global namespace. Some of these
- * types clash with the vector types in Falcor, which live in the Falcor::math
+ * types clash with the vector types in Falcor, which live in the USTC_CG::math
  * and Falcor namespace. To avoid this clash, we rename the CUDA types here.
  * Falcor code should includle this header instead of <cuda_runtime.h>.
  */

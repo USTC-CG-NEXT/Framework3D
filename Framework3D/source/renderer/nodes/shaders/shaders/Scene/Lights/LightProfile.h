@@ -37,11 +37,11 @@
 #include <string>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
     struct ShaderVar;
 
-    class FALCOR_API LightProfile : public Object
+    class HD_USTC_CG_API LightProfile : public Object
     {
         FALCOR_OBJECT(LightProfile)
     public:

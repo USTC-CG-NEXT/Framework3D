@@ -38,7 +38,7 @@
 #include "Scene/SceneIDs.h"
 #include "utils/UI/Gui.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class LightProfile;
 
 /** This class represents a material system.
@@ -53,7 +53,7 @@ class LightProfile;
     The update() function must be called before using the material system.
     It ensures all GPU data is uploaded and ready for use.
 */
-class FALCOR_API MaterialSystem {
+class HD_USTC_CG_API MaterialSystem {
    public:
     struct MaterialStats {
         uint64_t materialTypeCount = 0;  ///< Number of material types.
@@ -385,4 +385,4 @@ class FALCOR_API MaterialSystem {
     friend class Material;
     friend class SceneCache;
 };
-};  // namespace Falcor
+};  // namespace USTC_CG

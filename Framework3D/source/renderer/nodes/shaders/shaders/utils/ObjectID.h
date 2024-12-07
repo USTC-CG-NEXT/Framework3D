@@ -33,7 +33,7 @@
 #include <functional>
 #include <type_traits>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 /**
@@ -176,19 +176,19 @@ inline std::string to_string(const ObjectID<TKindEnum, TKind, TIntType>& v)
     return std::to_string(v.get());
 }
 
-} // namespace Falcor
+} // namespace USTC_CG
 
 template<typename TKindEnum, TKindEnum TKind, typename TIntType>
-struct std::hash<Falcor::ObjectID<TKindEnum, TKind, TIntType>>
+struct std::hash<USTC_CG::ObjectID<TKindEnum, TKind, TIntType>>
 {
-    using ObjectID = Falcor::ObjectID<TKindEnum, TKind, TIntType>;
+    using ObjectID = USTC_CG::ObjectID<TKindEnum, TKind, TIntType>;
     std::size_t operator()(const ObjectID& id) const noexcept { return std::hash<typename ObjectID::IntType>{}(id.get()); }
 };
 
 template<typename TKindEnum, TKindEnum TKind, typename TIntType>
-struct std::formatter<Falcor::ObjectID<TKindEnum, TKind, TIntType>>
+struct std::formatter<USTC_CG::ObjectID<TKindEnum, TKind, TIntType>>
 {
-    using ObjectID = Falcor::ObjectID<TKindEnum, TKind, TIntType>;
+    using ObjectID = USTC_CG::ObjectID<TKindEnum, TKind, TIntType>;
 
     template<typename ParseContext>
     constexpr auto parse(ParseContext& ctx)

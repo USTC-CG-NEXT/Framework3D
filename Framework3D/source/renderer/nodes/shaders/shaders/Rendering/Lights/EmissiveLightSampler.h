@@ -31,7 +31,7 @@
 #include "Core/Program/DefineList.h"
 #include "Scene/Lights/LightCollection.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     class RenderContext;
     struct ShaderVar;
@@ -41,7 +41,7 @@ namespace Falcor
         All light samplers follows the same interface to make them interchangeable.
         If an unrecoverable error occurs, these functions may throw exceptions.
     */
-    class FALCOR_API EmissiveLightSampler
+    class HD_USTC_CG_API EmissiveLightSampler
     {
     public:
         virtual ~EmissiveLightSampler() = default;

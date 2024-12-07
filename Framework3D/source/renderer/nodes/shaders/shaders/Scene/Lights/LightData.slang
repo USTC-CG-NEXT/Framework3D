@@ -29,7 +29,7 @@
 #include "utils/HostDeviceShared.slangh"
 #include "utils/Math/MathConstants.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** Types of light sources. Used in LightData structure.
 */
@@ -66,4 +66,4 @@ struct LightData
     float4x4 transMatIT         = {};               ///< Inverse-transpose of transformation matrix of the light shape
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

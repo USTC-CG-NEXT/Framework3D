@@ -34,7 +34,7 @@
 #include "ProgramReflection.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class ParameterBlock;
 
 /**
@@ -70,7 +70,7 @@ class ParameterBlock;
  *
  * pObj["someTexture"].setTexture(pMyTexture);
  */
-struct FALCOR_API ShaderVar {
+struct HD_USTC_CG_API ShaderVar {
     /**
      * Create a null/invalid shader variable pointer.
      */
@@ -502,4 +502,4 @@ struct FALCOR_API ShaderVar {
     template<typename T>
     void setImpl(const T& val) const;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

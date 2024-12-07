@@ -40,12 +40,12 @@ struct CUstream_st;
 typedef CUstream_st* cudaStream_t;
 #endif
 
-namespace Falcor {
+namespace USTC_CG {
 class Profiler;
 
-class FALCOR_API CopyContext {
+class HD_USTC_CG_API CopyContext {
    public:
-    class FALCOR_API ReadTextureTask {
+    class HD_USTC_CG_API ReadTextureTask {
        public:
         using SharedPtr = std::shared_ptr<ReadTextureTask>;
         static SharedPtr
@@ -251,4 +251,4 @@ class FALCOR_API CopyContext {
     Device* mpDevice;
     nvrhi::CommandListHandle mpLowLevelData;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

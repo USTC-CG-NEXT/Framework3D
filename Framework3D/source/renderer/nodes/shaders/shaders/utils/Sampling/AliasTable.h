@@ -32,12 +32,12 @@
 #include <memory>
 #include <random>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Implements the alias method for sampling from a discrete probability distribution.
  */
-class FALCOR_API AliasTable
+class HD_USTC_CG_API AliasTable
 {
 public:
     /**
@@ -80,4 +80,4 @@ private:
     nvrhi::BufferHandle mpItems;   ///< Buffer containing table items.
     nvrhi::BufferHandle mpWeights; ///< Buffer containing item weights.
 };
-} // namespace Falcor
+} // namespace USTC_CG

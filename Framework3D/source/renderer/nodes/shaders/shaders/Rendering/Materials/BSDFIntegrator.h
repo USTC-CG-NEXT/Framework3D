@@ -33,10 +33,10 @@
 #include "Scene/SceneIDs.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor {
+namespace USTC_CG {
 /** Utility class for BSDF integration.
  */
-class FALCOR_API BSDFIntegrator {
+class HD_USTC_CG_API BSDFIntegrator {
    public:
     /// Constructor.
     BSDFIntegrator(ref<Device> pDevice);
@@ -86,4 +86,4 @@ class FALCOR_API BSDFIntegrator {
     uint32_t
         mResultCount;  ///< Number of intermediate results per integration grid.
 };
-}  // namespace Falcor
+}  // namespace USTC_CG

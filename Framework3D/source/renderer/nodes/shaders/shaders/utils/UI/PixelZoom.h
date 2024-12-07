@@ -30,7 +30,7 @@
 #include "utils/Math/Vector.h"
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
 class RenderContext;
 struct MouseEvent;
@@ -81,4 +81,4 @@ private:
     float2 mMousePos = {};
     bool mShouldZoom = false;
 };
-} // namespace Falcor
+} // namespace USTC_CG

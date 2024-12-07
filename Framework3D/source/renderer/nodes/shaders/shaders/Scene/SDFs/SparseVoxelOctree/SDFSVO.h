@@ -32,11 +32,11 @@
 
 #include "Core/Pass/ComputePass.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** SDF Sparse Voxel Octree. Can only be utilized on the GPU.
     */
-    class FALCOR_API SDFSVO : public SDFGrid
+    class HD_USTC_CG_API SDFSVO : public SDFGrid
     {
     public:
         struct SharedData;

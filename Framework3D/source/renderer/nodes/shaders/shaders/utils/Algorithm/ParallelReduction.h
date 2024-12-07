@@ -33,7 +33,7 @@
 #include "Core/Program/ProgramVars.h"
 #include <memory>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Class that performs parallel reduction over all pixels in a texture.
@@ -45,7 +45,7 @@ namespace Falcor
  * The numerical error for the summation operation lies between pairwise
  * summation (blocks of size n = 2) and naive running summation.
  */
-class FALCOR_API ParallelReduction
+class HD_USTC_CG_API ParallelReduction
 {
 public:
     enum class Type
@@ -105,4 +105,4 @@ private:
 
     nvrhi::BufferHandle mpBuffers[2]; ///< Intermediate buffers for reduction iterations.
 };
-} // namespace Falcor
+} // namespace USTC_CG

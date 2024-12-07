@@ -32,7 +32,7 @@
 #include <random>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Stratified random sample pattern generator.
@@ -45,7 +45,7 @@ namespace Falcor
  * The order in which samples are generated is randomly permuted to avoid
  * correlation artefacts with low-discrepancy sample generators.
  */
-class FALCOR_API StratifiedSamplePattern : public CPUSampleGenerator
+class HD_USTC_CG_API StratifiedSamplePattern : public CPUSampleGenerator
 {
 public:
     /**
@@ -69,4 +69,4 @@ protected:
     std::mt19937 mRng;
     std::vector<uint32_t> mPermutation;
 };
-} // namespace Falcor
+} // namespace USTC_CG

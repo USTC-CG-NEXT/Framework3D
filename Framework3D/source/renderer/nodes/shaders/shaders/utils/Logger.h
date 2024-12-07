@@ -32,13 +32,13 @@
 #include <string_view>
 #include <filesystem>
 
-namespace Falcor
+namespace USTC_CG
 {
 /**
  * Container class for logging messages.
  * Messages are only printed to the selected outputs if they match the verbosity level.
  */
-class FALCOR_API Logger
+class HD_USTC_CG_API Logger
 {
 public:
     /// Log message severity.
@@ -203,10 +203,10 @@ inline void logFatal(std::format_string<Args...> format, Args&&... args)
     Logger::log(Logger::Level::Fatal, std::format(format, std::forward<Args>(args)...));
 }
 
-} // namespace Falcor
+} // namespace USTC_CG
 
 #define FALCOR_PRINT(x)                      \
     do                                       \
     {                                        \
-        ::Falcor::logInfo("{} = {}", #x, x); \
+        ::USTC_CG::logInfo("{} = {}", #x, x); \
     } while (0)

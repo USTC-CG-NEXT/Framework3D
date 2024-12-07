@@ -42,7 +42,7 @@
 
 #include <format>
 
-namespace Falcor
+namespace USTC_CG
 {
 namespace math
 {
@@ -773,15 +773,15 @@ bool lex_lt(const matrix<T, R, C>& lhs, const matrix<T, R, C>& rhs)
     return false;
 }
 } // namespace math
-} // namespace Falcor
+} // namespace USTC_CG
 
 template<typename T, int R, int C>
-struct std::formatter<Falcor::math::matrix<T, R, C>> : formatter<typename Falcor::math::matrix<T, R, C>::RowType>
+struct std::formatter<USTC_CG::math::matrix<T, R, C>> : formatter<typename USTC_CG::math::matrix<T, R, C>::RowType>
 {
-    using MatrixRowType = typename Falcor::math::matrix<T, R, C>::RowType;
+    using MatrixRowType = typename USTC_CG::math::matrix<T, R, C>::RowType;
 
     template<typename FormatContext>
-    auto format(const Falcor::math::matrix<T, R, C>& matrix, FormatContext& ctx) const
+    auto format(const USTC_CG::math::matrix<T, R, C>& matrix, FormatContext& ctx) const
     {
         auto out = ctx.out();
         for (int r = 0; r < R; ++r)

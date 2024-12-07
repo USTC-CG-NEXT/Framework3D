@@ -9,9 +9,10 @@
 #include "nodes/core/api.hpp"
 #endif
 #include "RHI/ShaderFactory/shader.hpp"
-#include "RHI/internal/nvrhi_equality.hpp"
-#include "RHI/internal/resources.hpp"
 #include "RHI/api.h"
+#include "RHI/internal/nvrhi_equality.hpp"
+#include "RHI/internal/nvrhi_hash.hpp"
+#include "RHI/internal/resources.hpp"
 
 #ifdef USTC_CG_BACKEND_NVRHI
 #include <nvrhi/nvrhi.h>
@@ -52,13 +53,13 @@ class ResourceAllocator {
             INUSE_NAME(RESOURCE));                    \
     }
 
-#define RESOLVE_DESTROY(RESOURCE)                      \
-    PAYLOAD_NAME(RESOURCE) payload{ handle, mAge, 0 }; \
-    resolveCacheDestroy(                               \
-        handle,                                        \
-        CACHE_SIZE(RESOURCE),                          \
-        payload,                                       \
-        CACHE_NAME(RESOURCE),                          \
+#define RESOLVE_DESTROY(RESOURCE)                       \
+    PAYLOAD_NAME(RESOURCE) payload { handle, mAge, 0 }; \
+    resolveCacheDestroy(                                \
+        handle,                                         \
+        CACHE_SIZE(RESOURCE),                           \
+        payload,                                        \
+        CACHE_NAME(RESOURCE),                           \
         INUSE_NAME(RESOURCE));
 
    public:
@@ -85,10 +86,7 @@ class ResourceAllocator {
     }                                            \
     CACHE_NAME(RESOURCE).clear();
 
-    void terminate() noexcept
-    {
-        MACRO_MAP(CLEAR_CACHE, RESOURCE_LIST)
-    }
+    void terminate() noexcept { MACRO_MAP(CLEAR_CACHE, RESOURCE_LIST) }
 
 #define FOREACH_DESTROY_DYNAMIC(RESOURCE) \
     JUDGE_RESOURCE_DYNAMIC(RESOURCE)      \
@@ -130,10 +128,7 @@ class ResourceAllocator {
 
 #define GC_TYPE(RSC) gc_type<RSC##Handle>(CACHE_SIZE(RSC), CACHE_NAME(RSC));
 
-    void gc() noexcept
-    {
-        MACRO_MAP(GC_TYPE, RESOURCE_LIST)
-    }
+    void gc() noexcept { MACRO_MAP(GC_TYPE, RESOURCE_LIST) }
 
 #define RESOLVE_CREATE(RESOURCE) \
     resolveCacheCreate(          \
@@ -295,7 +290,7 @@ class ResourceAllocator {
             using ContainerType = std::remove_cvref_t<decltype(cache_in)>;
             using Vector = std::vector<std::pair<
                 typename ContainerType::key_type,
-                typename ContainerType::value_type>>;
+                typename ContainerType::mapped_type>>;
             auto cache = Vector();
             std::copy(
                 cache_in.begin(),
@@ -336,6 +331,11 @@ class ResourceAllocator {
 
     void dump(bool brief = false, uint32_t cacheSize = 0) const noexcept;
 
+#define USE_STD_MAP
+#ifdef USE_STD_MAP
+    template<typename Key, typename Value>
+    using AssociativeContainer = std::unordered_multimap<Key, Value>;
+#else
     template<typename Key, typename Value, typename Hasher = Hasher<Key>>
     class AssociativeContainer {
         // We use a std::vector instead of a std::multimap because we don't
@@ -351,7 +351,7 @@ class ResourceAllocator {
         using iterator = typename Container::iterator;
         using const_iterator = typename Container::const_iterator;
         using key_type = typename Container::value_type::first_type;
-        using value_type = typename Container::value_type::second_type;
+        using mapped_type = typename Container::value_type::second_type;
 
         size_t size() const
         {
@@ -388,6 +388,7 @@ class ResourceAllocator {
         template<typename... ARGS>
         void emplace(ARGS&&... args);
     };
+#endif
 
 #define CONTAINER_RELATED(RESOURCE) \
     DEFINEContainer(RESOURCE);      \
@@ -398,6 +399,8 @@ class ResourceAllocator {
     size_t mAge = 0;
     static constexpr bool mEnabled = true;
 };
+
+#ifndef USE_STD_MAP
 
 template<typename K, typename V, typename H>
 ResourceAllocator::AssociativeContainer<K, V, H>::AssociativeContainer()
@@ -443,8 +446,10 @@ void ResourceAllocator::AssociativeContainer<K, V, H>::emplace(ARGS&&... args)
 {
     mContainer.emplace_back(std::forward<ARGS>(args)...);
 }
+#endif
 
 inline ResourceAllocator::ResourceAllocator() noexcept
 {
 }
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

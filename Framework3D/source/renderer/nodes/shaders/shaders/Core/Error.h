@@ -35,7 +35,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace Falcor
+namespace USTC_CG
 {
 
 //
@@ -50,7 +50,7 @@ namespace Falcor
 /**
  * Base class for all Falcor exceptions.
  */
-class FALCOR_API Exception : public std::exception
+class HD_USTC_CG_API Exception : public std::exception
 {
 public:
     Exception() noexcept {}
@@ -71,7 +71,7 @@ protected:
 /**
  * Exception to be thrown when an error happens at runtime.
  */
-class FALCOR_API RuntimeError : public Exception
+class HD_USTC_CG_API RuntimeError : public Exception
 {
 public:
     RuntimeError() noexcept {}
@@ -83,7 +83,7 @@ public:
 /**
  * Exception to be thrown on FALCOR_ASSERT.
  */
-class FALCOR_API AssertionError : public Exception
+class HD_USTC_CG_API AssertionError : public Exception
 {
 public:
     AssertionError() noexcept {}
@@ -99,30 +99,30 @@ public:
 /// Throw a RuntimeError exception.
 /// If ErrorDiagnosticFlags::AppendStackTrace is set, a stack trace will be appended to the exception message.
 /// If ErrorDiagnosticFlags::BreakOnThrow is set, the debugger will be broken into (if attached).
-[[noreturn]] FALCOR_API void throwException(const std::source_location& loc, std::string_view msg);
+[[noreturn]] HD_USTC_CG_API void throwException(const std::source_location& loc, std::string_view msg);
 
 namespace detail
 {
 /// Overload to allow FALCOR_THROW to be called with a message only.
 [[noreturn]] inline void throwException(const std::source_location& loc, std::string_view msg)
 {
-    ::Falcor::throwException(loc, msg);
+    ::USTC_CG::throwException(loc, msg);
 }
 
 /// Overload to allow FALCOR_THROW to be called with a format string and arguments.
 template<typename... Args>
 [[noreturn]] inline void throwException(const std::source_location& loc, std::format_string<Args...> fmt, Args&&... args)
 {
-    ::Falcor::throwException(loc, std::format(fmt, std::forward<Args>(args)...));
+    ::USTC_CG::throwException(loc, std::format(fmt, std::forward<Args>(args)...));
 }
 } // namespace detail
-} // namespace Falcor
+} // namespace USTC_CG
 
 /// Helper for throwing a RuntimeError exception.
 /// Accepts either a string or a format string and arguments:
 /// FALCOR_THROW("This is an error message.");
 /// FALCOR_THROW("Expected {} items, got {}.", expectedCount, actualCount);
-#define FALCOR_THROW(...) ::Falcor::detail::throwException(std::source_location::current(), __VA_ARGS__)
+#define FALCOR_THROW(...) ::USTC_CG::detail::throwException(std::source_location::current(), __VA_ARGS__)
 
 /// Helper for throwing a RuntimeError exception if condition isn't met.
 /// Accepts either a string or a format string and arguments.
@@ -145,25 +145,25 @@ template<typename... Args>
 // Assertions.
 //
 
-namespace Falcor
+namespace USTC_CG
 {
 /// Report an assertion.
 /// If ErrorDiagnosticFlags::AppendStackTrace is set, a stack trace will be appended to the exception message.
 /// If ErrorDiagnosticFlags::BreakOnAssert is set, the debugger will be broken into (if attached).
-[[noreturn]] FALCOR_API void reportAssertion(const std::source_location& loc, std::string_view cond, std::string_view msg = {});
+[[noreturn]] HD_USTC_CG_API void reportAssertion(const std::source_location& loc, std::string_view cond, std::string_view msg = {});
 
 namespace detail
 {
 /// Overload to allow FALCOR_ASSERT to be called without a message.
 [[noreturn]] inline void reportAssertion(const std::source_location& loc, std::string_view cond)
 {
-    ::Falcor::reportAssertion(loc, cond);
+    ::USTC_CG::reportAssertion(loc, cond);
 }
 
 /// Overload to allow FALCOR_ASSERT to be called with a message only.
 [[noreturn]] inline void reportAssertion(const std::source_location& loc, std::string_view cond, std::string_view msg)
 {
-    ::Falcor::reportAssertion(loc, cond, msg);
+    ::USTC_CG::reportAssertion(loc, cond, msg);
 }
 
 /// Overload to allow FALCOR_ASSERT to be called with a format string and arguments.
@@ -175,10 +175,10 @@ template<typename... Args>
     Args&&... args
 )
 {
-    ::Falcor::reportAssertion(loc, cond, std::format(fmt, std::forward<Args>(args)...));
+    ::USTC_CG::reportAssertion(loc, cond, std::format(fmt, std::forward<Args>(args)...));
 }
 } // namespace detail
-} // namespace Falcor
+} // namespace USTC_CG
 
 #if FALCOR_ENABLE_ASSERTS
 
@@ -190,7 +190,7 @@ template<typename... Args>
 #define FALCOR_ASSERT(cond, ...)                                                                   \
     if (!(cond))                                                                                   \
     {                                                                                              \
-        ::Falcor::detail::reportAssertion(std::source_location::current(), #cond, ##__VA_ARGS__); \
+        ::USTC_CG::detail::reportAssertion(std::source_location::current(), #cond, ##__VA_ARGS__); \
     }
 
 /// Helper for asserting a binary comparison between two variables.
@@ -198,7 +198,7 @@ template<typename... Args>
 #define FALCOR_ASSERT_OP(a, b, OP)                                                                                                       \
     if (!(a OP b))                                                                                                                       \
     {                                                                                                                                    \
-        ::Falcor::detail::reportAssertion(std::source_location::current(), std::format("{} {} {} ({} {} {})", #a, #OP, #b, a, #OP, b)); \
+        ::USTC_CG::detail::reportAssertion(std::source_location::current(), std::format("{} {} {} ({} {} {})", #a, #OP, #b, a, #OP, b)); \
     }
 
 #define FALCOR_ASSERT_EQ(a, b) FALCOR_ASSERT_OP(a, b, ==)
@@ -227,7 +227,7 @@ template<typename... Args>
 // Error reporting.
 //
 
-namespace Falcor
+namespace USTC_CG
 {
 
 /// Flags controlling the error diagnostic behavior.
@@ -246,17 +246,17 @@ enum class ErrorDiagnosticFlags
 FALCOR_ENUM_CLASS_OPERATORS(ErrorDiagnosticFlags);
 
 /// Set the global error diagnostic flags.
-FALCOR_API void setErrorDiagnosticFlags(ErrorDiagnosticFlags flags);
+HD_USTC_CG_API void setErrorDiagnosticFlags(ErrorDiagnosticFlags flags);
 
 /// Get the global error diagnostic flags.
-FALCOR_API ErrorDiagnosticFlags getErrorDiagnosticFlags();
+HD_USTC_CG_API ErrorDiagnosticFlags getErrorDiagnosticFlags();
 
 /**
  * Report an error by logging it and optionally showing a message box.
  * The message box is only shown if ErrorDiagnosticFlags::ShowMessageBoxOnError is set.
  * @param msg Error message.
  */
-FALCOR_API void reportErrorAndContinue(std::string_view msg);
+HD_USTC_CG_API void reportErrorAndContinue(std::string_view msg);
 
 /**
  * Report an error by logging it and optionally showing a message box with the option to abort or retry.
@@ -265,7 +265,7 @@ FALCOR_API void reportErrorAndContinue(std::string_view msg);
  * @param msg Error message.
  * @return Returns true if the user chose to retry.
  */
-FALCOR_API bool reportErrorAndAllowRetry(std::string_view msg);
+HD_USTC_CG_API bool reportErrorAndAllowRetry(std::string_view msg);
 
 /**
  * Report a fatal error.
@@ -280,7 +280,7 @@ FALCOR_API bool reportErrorAndAllowRetry(std::string_view msg);
  * - The application is immediately terminated (std::quick_exit(1)).
  * @param msg Error message.
  */
-[[noreturn]] FALCOR_API void reportFatalErrorAndTerminate(std::string_view msg);
+[[noreturn]] HD_USTC_CG_API void reportFatalErrorAndTerminate(std::string_view msg);
 
 /// Helper to run a callback and catch/report all exceptions.
 /// This is typically used in main() to guard the entire application.
@@ -303,4 +303,4 @@ int catchAndReportAllExceptions(CallbackT callback, ResultT errorResult = 1)
     return result;
 }
 
-} // namespace Falcor
+} // namespace USTC_CG

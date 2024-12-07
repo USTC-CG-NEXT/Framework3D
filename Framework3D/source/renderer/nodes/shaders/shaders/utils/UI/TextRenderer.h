@@ -33,14 +33,14 @@
 #include "Core/Pass/RasterPass.h"
 #include "utils/Math/Vector.h"
 
-namespace Falcor
+namespace USTC_CG
 {
 class Font;
 
 /**
  * Class that renders text into the screen.
  */
-class FALCOR_API TextRenderer
+class HD_USTC_CG_API TextRenderer
 {
 public:
     enum class Flags
@@ -101,4 +101,4 @@ private:
 };
 
 FALCOR_ENUM_CLASS_OPERATORS(TextRenderer::Flags);
-} // namespace Falcor
+} // namespace USTC_CG

@@ -28,7 +28,7 @@
 #pragma once
 #include "Scene/Material/BasicMaterial.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** This class implements a coated conductor material, i.e. a
         dielectric coating on top of a conductor base. Both conductor
@@ -55,7 +55,7 @@ namespace Falcor
 
         See additional texture channels defined in BasicMaterial.
     */
-    class FALCOR_API PBRTCoatedConductorMaterial : public BasicMaterial
+    class HD_USTC_CG_API PBRTCoatedConductorMaterial : public BasicMaterial
     {
         FALCOR_OBJECT(PBRTCoatedConductorMaterial)
     public:

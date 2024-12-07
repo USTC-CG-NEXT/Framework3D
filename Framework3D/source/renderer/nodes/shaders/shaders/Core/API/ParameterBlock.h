@@ -42,7 +42,7 @@
 #include "Core/Program/ShaderVar.h"
 #include "Device.h"
 
-namespace Falcor {
+namespace USTC_CG {
 class ProgramVersion;
 class CopyContext;
 
@@ -50,7 +50,7 @@ class CopyContext;
  * A parameter block. This block stores all the parameter data associated with a
  * specific type in shader code
  */
-class FALCOR_API ParameterBlock : public Object {
+class HD_USTC_CG_API ParameterBlock : public Object {
     FALCOR_OBJECT(ParameterBlock)
    public:
     ~ParameterBlock();
@@ -480,4 +480,4 @@ void ShaderVar::setImpl(const T& val) const
 {
     mpBlock->setVariable(mOffset, val);
 }
-}  // namespace Falcor
+}  // namespace USTC_CG

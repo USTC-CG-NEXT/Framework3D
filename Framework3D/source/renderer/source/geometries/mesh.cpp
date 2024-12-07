@@ -146,12 +146,14 @@ void Hd_USTC_CG_Mesh::_UpdatePrimvarSources(
         for (const HdPrimvarDescriptor& pv : primvars) {
             if (HdChangeTracker::IsPrimvarDirty(dirtyBits, id, pv.name) &&
                 pv.name != HdTokens->points) {
-                log::info(("Primvar source " + pv.name.GetString()).c_str());
                 _primvarSourceMap[pv.name] = {
                     GetPrimvar(sceneDelegate, pv.name), interp
                 };
 
-                if (pv.name == pxr::TfToken("UVMap")) {
+                if (pv.name == pxr::TfToken("UVMap") ||
+                    pv.name == pxr::TfToken("st")
+
+                ) {
                     auto device = RHI::get_device();
                     nvrhi::BufferDesc buffer_desc =
                         nvrhi::BufferDesc{}
@@ -352,6 +354,12 @@ void Hd_USTC_CG_Mesh::Sync(
         if (HdChangeTracker::IsInstancerDirty(*dirtyBits, id) ||
             HdChangeTracker::IsTransformDirty(*dirtyBits, id)) {
             transform = GfMatrix4f(sceneDelegate->GetTransform(id));
+
+            auto device = RHI::get_device();
+            auto buffer = device->mapBuffer(
+                model_transform_buffer, nvrhi::CpuAccessMode::Write);
+            memcpy(buffer, &transform, sizeof(GfMatrix4f));
+            device->unmapBuffer(model_transform_buffer);
         }
 
         if (HdChangeTracker::IsPrimvarDirty(
@@ -461,12 +469,6 @@ nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetNormalBuffer()
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetModelTransformBuffer()
 {
     // fill it
-
-    auto device = RHI::get_device();
-    auto buffer =
-        device->mapBuffer(model_transform_buffer, nvrhi::CpuAccessMode::Write);
-    memcpy(buffer, &transform, sizeof(GfMatrix4f));
-    device->unmapBuffer(model_transform_buffer);
 
     return model_transform_buffer;
 }

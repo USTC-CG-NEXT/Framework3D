@@ -37,7 +37,7 @@
 #include <string>
 #include <type_traits>
 
-namespace Falcor::ScriptBindings
+namespace USTC_CG::ScriptBindings
 {
 /**
  * Callback function to add python bindings to a module.
@@ -51,14 +51,14 @@ using RegisterBindingFunc = std::function<void(pybind11::module& m)>;
  * Next, it stores a reference to the python module to allow further bindings to be added at runtime.
  * The reference to the module is automatically released when the module is unloaded.
  */
-FALCOR_API void initModule(pybind11::module& m);
+HD_USTC_CG_API void initModule(pybind11::module& m);
 
 /**
  * Register a script binding function.
  * The binding function will be called when scripting is initialized.
  * @param[in] f Function to be called for registering the binding.
  */
-FALCOR_API void registerBinding(RegisterBindingFunc f);
+HD_USTC_CG_API void registerBinding(RegisterBindingFunc f);
 
 /**
  * Register a deferred script binding function.
@@ -69,7 +69,7 @@ FALCOR_API void registerBinding(RegisterBindingFunc f);
  * @param[in] name Name if the binding.
  * @param[in] f Function to be called for registering the binding.
  */
-FALCOR_API void registerDeferredBinding(const std::string& name, RegisterBindingFunc f);
+HD_USTC_CG_API void registerDeferredBinding(const std::string& name, RegisterBindingFunc f);
 
 /**
  * Resolve a deferred script binding by name.
@@ -80,7 +80,7 @@ FALCOR_API void registerDeferredBinding(const std::string& name, RegisterBinding
  * @param[in] name Name of the binding to resolve.
  * @param[in] m Python module.
  */
-FALCOR_API void resolveDeferredBinding(const std::string& name, pybind11::module& m);
+HD_USTC_CG_API void resolveDeferredBinding(const std::string& name, pybind11::module& m);
 
 /************************************************************************/
 /* Helpers                                                              */
@@ -131,7 +131,7 @@ static std::string repr(const T& value)
     );
 #endif // _staticlibrary
 
-} // namespace Falcor::ScriptBindings
+} // namespace USTC_CG::ScriptBindings
 
 namespace pybind11
 {
@@ -140,14 +140,14 @@ template<typename T>
 class falcor_enum : public enum_<T>
 {
 public:
-    static_assert(::Falcor::has_enum_info_v<T>, "pybind11::falcor_enum<> requires an enumeration type with infos!");
+    static_assert(::USTC_CG::has_enum_info_v<T>, "pybind11::falcor_enum<> requires an enumeration type with infos!");
 
     using Base = enum_<T>;
 
     template<typename... Extra>
     explicit falcor_enum(const handle& scope, const char* name, const Extra&... extra) : Base(scope, name, extra...)
     {
-        for (const auto& item : ::Falcor::EnumInfo<T>::items())
+        for (const auto& item : ::USTC_CG::EnumInfo<T>::items())
         {
             const char* value_name = item.second.c_str();
             // Handle reserved Python keywords.

@@ -28,7 +28,7 @@
 #pragma once
 #include "Scene/Material/BasicMaterial.h"
 
-namespace Falcor
+namespace USTC_CG
 {
     /** This class implements a conductor material. This means the
         surface is purely reflective, and its albedo is dictated by
@@ -55,7 +55,7 @@ namespace Falcor
 
         See additional texture channels defined in BasicMaterial.
     */
-    class FALCOR_API PBRTConductorMaterial : public BasicMaterial
+    class HD_USTC_CG_API PBRTConductorMaterial : public BasicMaterial
     {
         FALCOR_OBJECT(PBRTConductorMaterial)
     public:

@@ -50,7 +50,7 @@
 #include <execution>
 #include <vector>
 
-namespace Falcor
+namespace USTC_CG
 {
     template <typename TexelType, unsigned int kBitsPerTexel> struct NanoVDBToBricksConverter;
     using NanoVDBConverterBC4 = NanoVDBToBricksConverter<uint64_t, 4>;

@@ -34,11 +34,11 @@
 // Forward declaration.
 struct ImGuiInputTextCallbackData;
 
-namespace Falcor
+namespace USTC_CG
 {
 class Gui;
 
-class FALCOR_API Console
+class HD_USTC_CG_API Console
 {
 public:
     /**
@@ -74,4 +74,4 @@ private:
     int32_t mHistoryIndex = -1;
     bool mScrollToBottom = true;
 };
-} // namespace Falcor
+} // namespace USTC_CG

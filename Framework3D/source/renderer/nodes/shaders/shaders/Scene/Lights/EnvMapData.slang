@@ -28,7 +28,7 @@
 #pragma once
 #include "utils/HostDeviceShared.slangh"
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** This is a host/device structure that describes the environment map proeprties.
 */
@@ -41,4 +41,4 @@ struct EnvMapData
     float       intensity = 1.f;        ///< Radiance scale
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

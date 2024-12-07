@@ -38,7 +38,7 @@ __exported import Scene.Material.MaterialTypes;
 __exported import Scene.Material.MaterialData;
 #endif
 
-BEGIN_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_OPEN_SCOPE
 
 /** This is a host/device structure that describes a measured MERLMix material.
 */
@@ -73,4 +73,4 @@ struct MERLMixMaterialData
     uint getIndexSamplerID() CONST_FUNCTION { return EXTRACT_BITS(MaterialHeader::kSamplerIDBits, kIndexSamplerIDOffset, flags); }
 };
 
-END_NAMESPACE_FALCOR
+USTC_CG_NAMESPACE_CLOSE_SCOPE

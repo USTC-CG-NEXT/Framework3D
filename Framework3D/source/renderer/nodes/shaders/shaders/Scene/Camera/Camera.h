@@ -36,12 +36,12 @@
 #include "utils/Math/Vector.h"
 #include "utils/SampleGenerators/CPUSampleGenerator.h"
 
-namespace Falcor {
+namespace USTC_CG {
 struct ShaderVar;
 
 /** Camera class.
  */
-class FALCOR_API Camera : public Object {
+class HD_USTC_CG_API Camera : public Object {
     FALCOR_OBJECT(Camera)
    public:
     // Default dimensions of full frame cameras and 35mm film
@@ -453,4 +453,4 @@ class FALCOR_API Camera : public Object {
 };
 
 FALCOR_ENUM_CLASS_OPERATORS(Camera::Changes);
-}  // namespace Falcor
+}  // namespace USTC_CG

@@ -36,8 +36,8 @@
 #include "Core/Program/ShaderVar.h"
 #include "Core/State/ComputeState.h"
 
-namespace Falcor {
-class FALCOR_API ComputePass : public Object {
+namespace USTC_CG {
+class HD_USTC_CG_API ComputePass : public Object {
     FALCOR_OBJECT(ComputePass)
    public:
     /**
@@ -192,4 +192,4 @@ class FALCOR_API ComputePass : public Object {
     ref<ProgramVars> mpVars;
     ref<ComputeState> mpState;
 };
-}  // namespace Falcor
+}  // namespace USTC_CG
