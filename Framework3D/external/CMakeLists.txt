@@ -75,6 +75,7 @@ set_target_properties(igl_core PROPERTIES ${OUTPUT_DIR})
 set_target_properties(polyscope PROPERTIES ${OUTPUT_DIR})
 
 # autodiff
+add_subdirectory(autodiff)
 set(AUTODIFF_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(AUTODIFF_BUILD_PYTHON OFF CACHE BOOL "" FORCE)
 set(AUTODIFF_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
