@@ -72,3 +72,12 @@ set_target_properties(polyscope PROPERTIES ${OUTPUT_DIR})
 set(LIBIGL_RESTRICTED_TRIANGLE ON CACHE BOOL "" FORCE)
 add_subdirectory(libigl)
 set_target_properties(igl_core PROPERTIES ${OUTPUT_DIR})
+set_target_properties(polyscope PROPERTIES ${OUTPUT_DIR})
+
+# autodiff
+set(AUTODIFF_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(AUTODIFF_BUILD_PYTHON OFF CACHE BOOL "" FORCE)
+set(AUTODIFF_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(AUTODIFF_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+add_subdirectory(autodiff)
+set_target_properties(autodiff PROPERTIES ${OUTPUT_DIR})
