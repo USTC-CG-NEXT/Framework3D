@@ -43,9 +43,3 @@
 [submodule "Framework3D/external/autodiff"]
 	path = Framework3D/external/autodiff
 	url = https://github.com/autodiff/autodiff.git
-[submodule "Framework3D/external/autodiff"]
-	path = Framework3D/external/autodiff
-	url = https://github.com/autodiff/autodiff.git
-[submodule "Framework3D/external/autodiff"]
-	path = Framework3D/external/autodiff
-	url = https://github.com/autodiff/autodiff.git
