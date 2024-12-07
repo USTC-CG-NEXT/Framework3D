@@ -50,7 +50,6 @@ add_subdirectory(glm)
 set_target_properties(glm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set_target_properties(glm PROPERTIES ${OUTPUT_DIR})
 
-
 # autodiff
 set(AUTODIFF_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(AUTODIFF_BUILD_PYTHON OFF CACHE BOOL "" FORCE)
