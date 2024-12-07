@@ -6,6 +6,8 @@
 #include <iostream>
 #include <vector>
 
+#include "GUI/ImGuiFileDialog.h"
+#include "Logger/Logger.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "pxr/base/gf/matrix4f.h"
@@ -160,6 +162,17 @@ void UsdFileViewer::ShowPrimInfo()
     }
 }
 
+void UsdFileViewer::select_file()
+{
+    auto instance = IGFD::FileDialog::Instance();
+    if (instance->Display("SelectFile")) {
+        auto selected = instance->GetFilePathName();
+        log::info(selected.c_str());
+
+        is_selecting_file = false;
+    }
+}
+
 void UsdFileViewer::show_right_click_menu()
 {
     if (ImGui::BeginPopupContextWindow("Prim Operation")) {
@@ -177,6 +190,11 @@ void UsdFileViewer::show_right_click_menu()
             ImGui::EndMenu();
         }
 
+        if (ImGui::MenuItem("Import...")) {
+            is_selecting_file = true;
+            selecting_file_base = selected;
+        }
+
         if (ImGui::MenuItem("Edit")) {
             stage->create_editor_at_path(selected);
         }
@@ -184,6 +202,7 @@ void UsdFileViewer::show_right_click_menu()
         if (ImGui::MenuItem("Delete")) {
             stage->remove_prim(selected);
         }
+
         ImGui::EndPopup();
     }
 }
@@ -236,6 +255,9 @@ void UsdFileViewer::DrawChild(const pxr::UsdPrim& prim)
 
     if (prim.GetPath() == selected) {
         show_right_click_menu();
+    }
+    if (is_selecting_file) {
+        select_file();
     }
 }
 

@@ -14,7 +14,7 @@
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
 #include "nodes/ui/imgui.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
+// #define STB_IMAGE_IMPLEMENTATION
 
 #include <fstream>
 
@@ -23,7 +23,7 @@
 #include "nodes/core/node_tree.hpp"
 #include "nodes/core/socket.hpp"
 #include "nodes/system/node_system.hpp"
-#include "stb_image.h"
+#include "stb/stb_image.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace ed = ax::NodeEditor;

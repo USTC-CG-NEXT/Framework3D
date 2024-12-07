@@ -6,6 +6,7 @@
 #include <RHI/rhi.hpp>
 #include <format>
 
+#include "GUI/ImGuiFileDialog.h"
 #include "RHI/DeviceManager/DeviceManager.h"
 #include "RHI/ShaderFactory/shader.hpp"
 #include "imgui_renderer.h"
@@ -240,6 +241,11 @@ Window::Window()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     ImGui::StyleColorsDark();
+
+    auto instance = IGFD::FileDialog::Instance();
+    IGFD::FileDialogConfig config;
+    config.path = "../../Assets";
+    instance->OpenDialog("SelectFile", "Select File", ".usd", config);
 
     manager->AddRenderPassToBack(imguiRenderPass.get());
 }

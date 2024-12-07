@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include <memory>
 
 #include "GUI/widget.h"
@@ -30,11 +31,14 @@ class UsdFileViewer : public IWidget {
    private:
     void ShowFileTree();
     void ShowPrimInfo();
+    void select_file();
 
     void show_right_click_menu();
     void DrawChild(const pxr::UsdPrim& prim);
 
     pxr::SdfPath selected;
     Stage* stage;
+    bool is_selecting_file = false;
+    pxr::SdfPath selecting_file_base;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE
