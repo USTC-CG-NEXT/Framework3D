@@ -74,7 +74,7 @@ RayInfo setupPrimaryRay(
     ray.Origin += offset;
     ray.Direction = normalize(focusPoint - ray.Origin);
     ray.TMin = 0;
-    ray.TMax = 1000;
+    ray.TMax = 10000;
     return ray;
 }
 

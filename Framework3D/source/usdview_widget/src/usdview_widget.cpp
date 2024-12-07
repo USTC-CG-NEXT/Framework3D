@@ -73,9 +73,9 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 
     ChooseRenderer(plugins, engine_status.renderer_id);
 
-    free_camera_->CreateFocusDistanceAttr().Set(2.0f);
+    free_camera_->CreateFocusDistanceAttr().Set(10.0f);
     free_camera_->CreateClippingRangeAttr(
-        pxr::VtValue(pxr::GfVec2f{ 0.1f, 1000.f }));
+        pxr::VtValue(pxr::GfVec2f{ 0.1f, 2000.f }));
 }
 
 void UsdviewEngine::ChooseRenderer(
