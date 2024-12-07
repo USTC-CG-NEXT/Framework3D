@@ -37,3 +37,6 @@
 [submodule "Framework3D/external/polyscope"]
 	path = Framework3D/external/polyscope
 	url = https://github.com/USTC-CG-NEXT/polyscope.git
+[submodule "Framework3D/external/autodiff"]
+	path = Framework3D/external/autodiff
+	url = https://github.com/autodiff/autodiff.git
