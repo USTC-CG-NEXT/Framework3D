@@ -40,3 +40,6 @@
 [submodule "Framework3D/external/libigl"]
 	path = Framework3D/external/libigl
 	url = https://github.com/libigl/libigl.git
+[submodule "Framework3D/external/autodiff"]
+	path = Framework3D/external/autodiff
+	url = https://github.com/autodiff/autodiff.git
