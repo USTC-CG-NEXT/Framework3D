@@ -42,28 +42,36 @@ extension MaterialSystem
 {
     /** Create an `IMaterial` instance for the given material.
         Note the type conformances must have been set on the host-side for any
-        program that calls this function. See MaterialSystem::getTypeConformances().
+        program that calls this function. See
+       MaterialSystem::getTypeConformances().
         \param[in] materialID The material ID.
         \return A material instance representing the material.
     */
     IMaterial getMaterial(const uint materialID)
     {
         MaterialType type = getMaterialType(materialID);
-        return createDynamicObject<IMaterial, MaterialDataBlob>(int(type), materialData[materialID]);
+        return createDynamicObject<IMaterial, MaterialDataBlob>(
+            int(type), materialData[materialID]);
     }
 
     /** Create a `IMaterialInstance` instance for the given shading location.
         This operation first creates a material for the shading location.
-        Then the material is queried to create the material instance, in which step
-        pattern generation is performed to pre-compute all material parameters.
-        This may involve sampling textures, executing procedural functions, etc.
-        This step also computes the final shading frame used by the material instance.
+        Then the material is queried to create the material instance, in which
+       step pattern generation is performed to pre-compute all material
+       parameters. This may involve sampling textures, executing procedural
+       functions, etc. This step also computes the final shading frame used by
+       the material instance.
         \param[in] sd Shading data.
-        \param[in] lod Method for computing texture level-of-detail, must implement the `ITextureSampler` interface.
-        \param[in] hints Optional hints to control the behavior of the material instance. Combination of `MaterialInstanceHints` flags.
+        \param[in] lod Method for computing texture level-of-detail, must
+       implement the `ITextureSampler` interface.
+        \param[in] hints Optional hints to control the behavior of the material
+       instance. Combination of `MaterialInstanceHints` flags.
         \return A material instance.
     */
-    IMaterialInstance getMaterialInstance<L:ITextureSampler>(const ShadingData sd, L lod, const uint hints = (uint)MaterialInstanceHints::None)
+    IMaterialInstance getMaterialInstance<L : ITextureSampler>(
+        const ShadingData sd,
+        L lod,
+        const uint hints = (uint)MaterialInstanceHints::None)
     {
         let material = getMaterial(sd.materialID);
         return material.setupMaterialInstance(this, sd, lod, hints);
@@ -75,7 +83,8 @@ extension MaterialSystem
         \param[in] viewDir View direction.
         \return Shading data struct.
     */
-    ShadingData prepareShadingData(const VertexData v, const uint materialID, const float3 viewDir)
+    ShadingData prepareShadingData(
+        const VertexData v, const uint materialID, const float3 viewDir)
     {
         ShadingData sd = {};
 
@@ -83,8 +92,10 @@ extension MaterialSystem
         sd.uv = v.texC;
         sd.V = viewDir;
 
-        // Compute shading frame based on the interpolated normal and given tangent (xyz) and sign (w).
-        // We keep around the original tangent for later orthogonalization operations if valid, otherwise the invented tangent.
+        // Compute shading frame based on the interpolated normal and given
+        // tangent (xyz) and sign (w). We keep around the original tangent for
+        // later orthogonalization operations if valid, otherwise the invented
+        // tangent.
         bool valid;
         sd.frame = ShadingFrame::createSafe(v.normalW, v.tangentW, valid);
         sd.tangentW = valid ? v.tangentW : float4(sd.frame.T, 1.f);

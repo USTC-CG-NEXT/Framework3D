@@ -23,6 +23,7 @@
 //
 #pragma once
 
+#include "DescriptorTableManager.h"
 #include "RHI/rhi.hpp"
 #include "api.h"
 #include "nodes/system/node_system.hpp"
@@ -69,6 +70,9 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
 
     NodeSystem *node_system;
     std::unique_ptr<Hd_USTC_CG_RenderTLAS> TLAS;
+
+    std::unique_ptr<DescriptorTableManager> descriptorTableManager;
+
     nvrhi::TextureHandle presented_texture;
     LensSystem *lens_system;
 
