@@ -30,7 +30,7 @@ void UsdFileViewer::ShowFileTree()
     if (ImGui::BeginTable("stage_table", 2, flags)) {
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthStretch);
-        DrawChild(root);
+        DrawChild(root, true);
 
         ImGui::EndTable();
     }
@@ -170,6 +170,8 @@ void UsdFileViewer::select_file()
         log::info(selected.c_str());
 
         is_selecting_file = false;
+
+        stage->import_usd(selected, selecting_file_base);
     }
 }
 
@@ -207,11 +209,13 @@ void UsdFileViewer::show_right_click_menu()
     }
 }
 
-void UsdFileViewer::DrawChild(const pxr::UsdPrim& prim)
+void UsdFileViewer::DrawChild(const pxr::UsdPrim& prim, bool is_root)
 {
-    auto flags = ImGuiTreeNodeFlags_DefaultOpen |
-                 ImGuiTreeNodeFlags_SpanAvailWidth |
-                 ImGuiTreeNodeFlags_OpenOnArrow;
+    auto flags =
+        ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnArrow;
+    if (is_root) {
+        flags |= ImGuiTreeNodeFlags_DefaultOpen;
+    }
 
     bool is_leaf = prim.GetChildren().empty();
     if (is_leaf) {

@@ -143,6 +143,21 @@ std::string Stage::load_string_from_usd(const pxr::SdfPath& path)
     return data;
 }
 
+void Stage::import_usd(
+    const std::string& path_string,
+    const pxr::SdfPath& sdf_path)
+{
+    auto prim = stage->GetPrimAtPath(sdf_path);
+    if (!prim) {
+        return;
+    }
+
+    // path_string should point to a usd file, add reference to it
+    prim.GetReferences().AddReference(path_string);
+
+    stage->Save();
+}
+
 std::unique_ptr<Stage> create_global_stage()
 {
     return std::make_unique<Stage>();

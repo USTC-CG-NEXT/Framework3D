@@ -40,6 +40,7 @@ class STAGE_API Stage {
         bool fully_consume = true);
     void save_string_to_usd(const pxr::SdfPath& path, const std::string& data);
     std::string load_string_from_usd(const pxr::SdfPath& path);
+    void import_usd(const std::string& path_string, const pxr::SdfPath& sdf_path);
 
 private:
     pxr::UsdStageRefPtr stage;

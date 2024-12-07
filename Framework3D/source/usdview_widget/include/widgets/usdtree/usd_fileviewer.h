@@ -34,7 +34,7 @@ class UsdFileViewer : public IWidget {
     void select_file();
 
     void show_right_click_menu();
-    void DrawChild(const pxr::UsdPrim& prim);
+    void DrawChild(const pxr::UsdPrim& prim, bool is_root = false);
 
     pxr::SdfPath selected;
     Stage* stage;
