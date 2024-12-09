@@ -256,12 +256,12 @@ class ResourceAllocator {
         }
 
         // move it to the cache
-        auto key = it->second;
+        auto desc = std::move(it->second);
 
-        cachePayload.size = calcSize<RESOURCE>(key);
+        cachePayload.size = calcSize<RESOURCE>(desc);
 
         // cache.emplace(key, CachePayload{ handle, mAge, size });
-        cache.emplace(key, cachePayload);
+        cache.emplace(std::move(desc), std::move(cachePayload));
         cacheSize += cachePayload.size;
 
         // remove it from the in-use list
