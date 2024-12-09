@@ -236,6 +236,7 @@ void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
             m_CommandList, BLAS, blas_desc);
         m_CommandList->close();
         device->executeCommandList(m_CommandList);
+        device->runGarbageCollection();
     }
 }
 
