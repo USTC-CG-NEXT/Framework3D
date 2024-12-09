@@ -2,8 +2,9 @@
 
 #include "RHI/rhi.hpp"
 
-USTC_CG::Hd_USTC_CG_RenderInstanceCollection::
-    Hd_USTC_CG_RenderInstanceCollection()
+USTC_CG_NAMESPACE_OPEN_SCOPE
+
+Hd_USTC_CG_RenderInstanceCollection::Hd_USTC_CG_RenderInstanceCollection()
 {
     nvrhi::rt::AccelStructDesc tlasDesc;
     tlasDesc.isTopLevel = true;
@@ -11,13 +12,11 @@ USTC_CG::Hd_USTC_CG_RenderInstanceCollection::
     TLAS = RHI::get_device()->createAccelStruct(tlasDesc);
 }
 
-USTC_CG::Hd_USTC_CG_RenderInstanceCollection::
-    ~Hd_USTC_CG_RenderInstanceCollection()
+Hd_USTC_CG_RenderInstanceCollection::~Hd_USTC_CG_RenderInstanceCollection()
 {
 }
 
-nvrhi::rt::IAccelStruct*
-USTC_CG::Hd_USTC_CG_RenderInstanceCollection::get_tlas()
+nvrhi::rt::IAccelStruct* Hd_USTC_CG_RenderInstanceCollection::get_tlas()
 {
     if (require_rebuild_tlas) {
         rebuild_tlas();
@@ -27,8 +26,7 @@ USTC_CG::Hd_USTC_CG_RenderInstanceCollection::get_tlas()
     return TLAS;
 }
 
-void USTC_CG::Hd_USTC_CG_RenderInstanceCollection::removeInstance(
-    HdRprim* rPrim)
+void Hd_USTC_CG_RenderInstanceCollection::removeInstance(HdRprim* rPrim)
 {
     if (instances.contains(rPrim)) {
         instances.erase(rPrim);
@@ -36,7 +34,7 @@ void USTC_CG::Hd_USTC_CG_RenderInstanceCollection::removeInstance(
     require_rebuild_tlas = true;
 }
 
-USTC_CG::Hd_USTC_CG_RenderInstanceCollection::BindlessData::BindlessData()
+Hd_USTC_CG_RenderInstanceCollection::BindlessData::BindlessData()
 {
     auto device = RHI::get_device();
     nvrhi::BindlessLayoutDesc desc;
@@ -47,15 +45,15 @@ USTC_CG::Hd_USTC_CG_RenderInstanceCollection::BindlessData::BindlessData()
         std::make_unique<DescriptorTableManager>(device, bindlessLayout);
 }
 
-std::vector<USTC_CG::InstanceDescription>&
-USTC_CG::Hd_USTC_CG_RenderInstanceCollection::acquire_instances_to_edit(
-    HdRprim* mesh)
+std::vector<InstanceDescription>&
+Hd_USTC_CG_RenderInstanceCollection::acquire_instances_to_edit(HdRprim* mesh)
 {
     require_rebuild_tlas = true;
     return instances[mesh];
 }
 
-void USTC_CG::Hd_USTC_CG_RenderInstanceCollection::rebuild_tlas()
+
+void Hd_USTC_CG_RenderInstanceCollection::rebuild_tlas()
 {
     std::vector<nvrhi::rt::InstanceDesc> instances_vec;
 
@@ -82,3 +80,5 @@ void USTC_CG::Hd_USTC_CG_RenderInstanceCollection::rebuild_tlas()
 
     nvrhi_device->waitForIdle();
 }
+
+USTC_CG_NAMESPACE_CLOSE_SCOPE

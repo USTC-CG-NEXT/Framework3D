@@ -30,6 +30,11 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
     std::vector<InstanceDescription> &acquire_instances_to_edit(HdRprim *mesh);
     void removeInstance(HdRprim *hd_ustc_cg_mesh);
 
+    uint64_t get_geometry_id(HdRprim *mesh)
+    {
+        
+    }
+
     std::mutex edit_instances_mutex;
 
    private:
@@ -44,7 +49,9 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
     BindlessData bindlessData;
 
     nvrhi::rt::AccelStructHandle TLAS;
-    std::map<HdRprim *, std::vector<InstanceDescription>> instances;
+    std::map<HdRprim *, std::vector<InstanceDescription>>
+        instances;  // Real instances
+
     bool require_rebuild_tlas = true;
 };
 
