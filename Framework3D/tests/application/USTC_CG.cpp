@@ -40,7 +40,7 @@ int main()
         if (node_system) {
             FileBasedNodeWidgetSettings desc;
             desc.system = *node_system;
-            desc.json_path = "render_nodes_save.json";
+            desc.json_path = "../../Assets/render_nodes_save.json";
 
             std::unique_ptr<IWidget> node_widget =
                 std::move(create_node_imgui_widget(desc));

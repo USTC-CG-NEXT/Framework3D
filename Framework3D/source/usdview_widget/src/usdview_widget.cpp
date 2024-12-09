@@ -60,15 +60,23 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 
     renderer_->SetEnablePresentation(false);
     free_camera_ = std::make_unique<FirstPersonCamera>();
-    static_cast<pxr::UsdGeomCamera&>(*free_camera_) =
-        pxr::UsdGeomCamera::Define(root_stage_, pxr::SdfPath("/FreeCamera"));
 
-    static_cast<FirstPersonCamera*>(free_camera_.get())
-        ->LookAt(
-            pxr::GfVec3d{ -10, 0, 0 },
-            pxr::GfVec3d{ 0, 0, 0 },
-            pxr::GfVec3d{ 0, 0, 1 });
+    auto prim =
+        pxr::UsdGeomCamera::Get(root_stage_, pxr::SdfPath("/FreeCamera"));
+    if (prim) {
+        *free_camera_ = prim;
+    }
+    else {
+        static_cast<pxr::UsdGeomCamera&>(*free_camera_) =
+            pxr::UsdGeomCamera::Define(
+                root_stage_, pxr::SdfPath("/FreeCamera"));
 
+        static_cast<FirstPersonCamera*>(free_camera_.get())
+            ->LookAt(
+                pxr::GfVec3d{ -10, 0, 0 },
+                pxr::GfVec3d{ 0, 0, 0 },
+                pxr::GfVec3d{ 0, 0, 1 });
+    }
     auto plugins = renderer_->GetRendererPlugins();
 
     ChooseRenderer(plugins, engine_status.renderer_id);

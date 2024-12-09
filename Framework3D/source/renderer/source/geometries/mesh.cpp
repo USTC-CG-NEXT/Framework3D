@@ -227,15 +227,16 @@ void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
     blas_desc.isTopLevel = false;
     BLAS = device->createAccelStruct(blas_desc);
 
-    auto m_CommandList = device->createCommandList();
     {
         std::lock_guard lock(render_param->TLAS->edit_instances_mutex);
+        auto m_CommandList = device->createCommandList();
+
         m_CommandList->open();
         nvrhi::utils::BuildBottomLevelAccelStruct(
             m_CommandList, BLAS, blas_desc);
         m_CommandList->close();
+        device->executeCommandList(m_CommandList);
     }
-    device->executeCommandList(m_CommandList);
 }
 
 void Hd_USTC_CG_Mesh::updateTLAS(

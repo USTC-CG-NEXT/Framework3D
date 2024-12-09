@@ -41,6 +41,25 @@ void BaseCamera::UpdateWorldToView()
     xform_op.Set(m_MatWorldToView.GetInverse());
 }
 
+BaseCamera::BaseCamera(const pxr::UsdGeomCamera& camera)
+    : pxr::UsdGeomCamera(camera)
+{
+    pxr::UsdGeomXformOp transform_op = camera.GetTransformOp();
+    if (transform_op) {
+        pxr::GfMatrix4d transform_mat;
+        transform_op.Get(&transform_mat);
+
+        m_CameraPos = transform_mat.ExtractTranslation();
+        m_CameraDir = -transform_mat.ExtractRotation().TransformDir(
+            pxr::GfVec3d(0.0, 0.0, 1.0));
+        m_CameraUp = transform_mat.ExtractRotation().TransformDir(
+            pxr::GfVec3d(0.0, 1.0, 0.0));
+        m_CameraRight = transform_mat.ExtractRotation().TransformDir(
+            pxr::GfVec3d(1.0, 0.0, 0.0));
+        m_MatWorldToView = transform_mat.GetInverse();
+    }
+}
+
 void BaseCamera::BaseLookAt(
     pxr::GfVec3d cameraPos,
     pxr::GfVec3d cameraTarget,

@@ -21,6 +21,10 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 class BaseCamera : public pxr::UsdGeomCamera {
    public:
+    BaseCamera() = default;
+
+    BaseCamera(const pxr::UsdGeomCamera& camera);
+
     virtual void KeyboardUpdate(int key, int scancode, int action, int mods)
     {
     }
@@ -90,6 +94,13 @@ class BaseCamera : public pxr::UsdGeomCamera {
 
 class FirstPersonCamera : public BaseCamera {
    public:
+    FirstPersonCamera() = default;
+
+    explicit FirstPersonCamera(const pxr::UsdGeomCamera& camera)
+        : BaseCamera(camera)
+    {
+    }
+
     void KeyboardUpdate(int key, int scancode, int action, int mods) override;
     void MousePosUpdate(double xpos, double ypos) override;
     void MouseButtonUpdate(int button, int action, int mods) override;
