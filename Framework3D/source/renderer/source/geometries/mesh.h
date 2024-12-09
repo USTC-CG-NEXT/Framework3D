@@ -24,6 +24,7 @@
 #ifndef Hd_USTC_CG_MESH_H
 #define Hd_USTC_CG_MESH_H
 
+#include "../DescriptorTableManager.h"
 #include "../api.h"
 #include "nvrhi/nvrhi.h"
 #include "pxr/base/gf/matrix4f.h"
@@ -53,7 +54,6 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
 
     void Finalize(HdRenderParam* renderParam) override;
 
-
     nvrhi::IBuffer* GetVertexBuffer();
     nvrhi::IBuffer* GetIndexBuffer();
     nvrhi::IBuffer* GetTexcoordBuffer(pxr::TfToken texcoord_name);
@@ -70,12 +70,16 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
 
     nvrhi::rt::AccelStructHandle BLAS;
 
-protected:
-    nvrhi::BufferHandle vertexBuffer;
-    nvrhi::BufferHandle indexBuffer;
-    nvrhi::BufferHandle texcoord_buffer;
-    nvrhi::BufferHandle normal_buffer;
-    nvrhi::BufferHandle model_transform_buffer;
+   protected:
+    struct BufferWithDescriptorIndex {
+        nvrhi::BufferHandle buffer = nullptr;
+        DescriptorIndex index = -1;
+    };
+
+    BufferWithDescriptorIndex vertexBuffer;
+    BufferWithDescriptorIndex indexBuffer;
+    BufferWithDescriptorIndex texcoordBuffer;
+    BufferWithDescriptorIndex normalBuffer;
 
     GfMatrix4f transform;
     VtArray<GfVec3i> triangulatedIndices;
@@ -85,7 +89,7 @@ protected:
     static constexpr GLuint normalLocation = 1;
     static constexpr GLuint texcoordLocation = 2;
 
-    void updateBLAS(Hd_USTC_CG_RenderParam* render_param);
+    void create_gpu_resources(Hd_USTC_CG_RenderParam* render_param);
     void updateTLAS(
         Hd_USTC_CG_RenderParam* render_param,
         HdSceneDelegate* sceneDelegate,

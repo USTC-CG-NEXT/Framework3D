@@ -24,6 +24,21 @@ nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_RenderTLAS::get_tlas()
     return TLAS;
 }
 
+nvrhi::IBuffer* USTC_CG::Hd_USTC_CG_RenderTLAS::update_model_transforms()
+{
+    std::vector<GfMatrix4f> model_transforms;
+
+    for (const auto& pair : instances) {
+        const HdRprim* rPrim = pair.first;
+        const std::vector<nvrhi::rt::InstanceDesc>& vec = pair.second;
+
+        for (const auto& instance : vec) {
+            const nvrhi::rt::AffineTransform& affine_transform =
+                instance.transform;
+        }
+    }
+}
+
 void USTC_CG::Hd_USTC_CG_RenderTLAS::removeInstance(HdRprim* rPrim)
 {
     if (instances.contains(rPrim)) {
@@ -49,6 +64,8 @@ void USTC_CG::Hd_USTC_CG_RenderTLAS::rebuild_tlas()
         instances_vec.insert(instances_vec.end(), vec.begin(), vec.end());
     }
     auto nvrhi_device = RHI::get_device();
+
+    update_model_transforms();
 
     auto command_list = nvrhi_device->createCommandList();
 

@@ -15,6 +15,8 @@ class Hd_USTC_CG_RenderTLAS {
 
     nvrhi::rt::AccelStructHandle get_tlas();
 
+    nvrhi::IBuffer* update_model_transforms();
+
     std::vector<nvrhi::rt::InstanceDesc> &acquire_instances_to_edit(
         HdRprim *mesh);
     void removeInstance(HdRprim *hd_ustc_cg_mesh);

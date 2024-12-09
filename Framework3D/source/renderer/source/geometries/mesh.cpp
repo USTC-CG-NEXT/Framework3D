@@ -58,8 +58,6 @@ Hd_USTC_CG_Mesh::Hd_USTC_CG_Mesh(const SdfPath& id)
             .setInitialState(nvrhi::ResourceStates::ShaderResource)
             .setCpuAccess(nvrhi::CpuAccessMode::Write)
             .setDebugName("modelBuffer");
-
-    model_transform_buffer = device->createBuffer(buffer_desc);
 }
 
 Hd_USTC_CG_Mesh::~Hd_USTC_CG_Mesh()
@@ -163,24 +161,24 @@ void Hd_USTC_CG_Mesh::_UpdatePrimvarSources(
                             .setInitialState(nvrhi::ResourceStates::Common)
                             .setCpuAccess(nvrhi::CpuAccessMode::Write)
                             .setDebugName("texcoordBuffer");
-                    texcoord_buffer = device->createBuffer(buffer_desc);
+                    texcoordBuffer.buffer = device->createBuffer(buffer_desc);
 
                     auto buffer = device->mapBuffer(
-                        texcoord_buffer, nvrhi::CpuAccessMode::Write);
+                        texcoordBuffer.buffer, nvrhi::CpuAccessMode::Write);
                     memcpy(
                         buffer,
                         _primvarSourceMap[pv.name]
                             .data.Get<VtVec2fArray>()
                             .data(),
                         points.size() * 2 * sizeof(float));
-                    device->unmapBuffer(texcoord_buffer);
+                    device->unmapBuffer(texcoordBuffer.buffer);
                 }
             }
         }
     }
 }
 
-void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
+void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
 {
     auto device = RHI::get_device();
 
@@ -192,31 +190,57 @@ void Hd_USTC_CG_Mesh::updateBLAS(Hd_USTC_CG_RenderParam* render_param)
     buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
     buffer_desc.debugName = "vertexBuffer";
     buffer_desc.isVertexBuffer = true;
-    vertexBuffer = device->createBuffer(buffer_desc);
+    vertexBuffer.buffer = device->createBuffer(buffer_desc);
+
+    auto buffer =
+        device->mapBuffer(vertexBuffer.buffer, nvrhi::CpuAccessMode::Write);
+    memcpy(buffer, points.data(), points.size() * 3 * sizeof(float));
+    device->unmapBuffer(vertexBuffer.buffer);
+
+    auto descriptor_table = render_param->get_descriptor_table();
+    vertexBuffer.index = descriptor_table->CreateDescriptor(
+        nvrhi::BindingSetItem::RawBuffer_SRV(0, vertexBuffer.buffer));
 
     buffer_desc.byteSize = triangulatedIndices.size() * 3 * sizeof(unsigned);
     buffer_desc.format = nvrhi::Format ::R32_UINT;
     buffer_desc.isVertexBuffer = false;
     buffer_desc.isIndexBuffer = true;
-    indexBuffer = device->createBuffer(buffer_desc);
+    indexBuffer.buffer = device->createBuffer(buffer_desc);
 
-    auto buffer = device->mapBuffer(vertexBuffer, nvrhi::CpuAccessMode::Write);
-    memcpy(buffer, points.data(), points.size() * 3 * sizeof(float));
-    device->unmapBuffer(vertexBuffer);
-
-    buffer = device->mapBuffer(indexBuffer, nvrhi::CpuAccessMode::Write);
+    buffer = device->mapBuffer(indexBuffer.buffer, nvrhi::CpuAccessMode::Write);
     memcpy(
         buffer,
         triangulatedIndices.data(),
         triangulatedIndices.size() * 3 * sizeof(unsigned));
-    device->unmapBuffer(indexBuffer);
+    device->unmapBuffer(indexBuffer.buffer);
+
+    indexBuffer.index = descriptor_table->CreateDescriptor(
+        nvrhi::BindingSetItem::RawBuffer_SRV(0, indexBuffer.buffer));
+
+    nvrhi::BufferDesc normal_buffer_desc =
+        nvrhi::BufferDesc{}
+            .setByteSize(points.size() * 3 * sizeof(float))
+            .setFormat(nvrhi::Format::RGB32_FLOAT)
+            .setIsVertexBuffer(true)
+            .setInitialState(nvrhi::ResourceStates::Common)
+            .setCpuAccess(nvrhi::CpuAccessMode::Write)
+            .setDebugName("normalBuffer");
+    normalBuffer.buffer = device->createBuffer(normal_buffer_desc);
+
+    buffer =
+        device->mapBuffer(normalBuffer.buffer, nvrhi::CpuAccessMode::Write);
+    memcpy(buffer, computedNormals.data(), points.size() * 3 * sizeof(float));
+    device->unmapBuffer(normalBuffer.buffer);
+
+    normalBuffer.index = descriptor_table->CreateDescriptor(
+        nvrhi::BindingSetItem::RawBuffer_SRV(0, normalBuffer.buffer));
 
     nvrhi::rt::AccelStructDesc blas_desc;
     nvrhi::rt::GeometryDesc geometry_desc;
     geometry_desc.geometryType = nvrhi::rt::GeometryType::Triangles;
     nvrhi::rt::GeometryTriangles triangles;
-    triangles.setVertexBuffer(vertexBuffer)
-        .setIndexBuffer(indexBuffer)
+    triangles.setVertexBuffer(vertexBuffer.buffer)
+        .setIndexBuffer(indexBuffer.buffer)
         .setIndexCount(triangulatedIndices.size() * 3)
         .setVertexCount(points.size())
         .setVertexStride(3 * sizeof(float))
@@ -357,6 +381,8 @@ void Hd_USTC_CG_Mesh::Sync(
             HdChangeTracker::IsTransformDirty(*dirtyBits, id)) {
             transform = GfMatrix4f(sceneDelegate->GetTransform(id));
 
+
+
             auto device = RHI::get_device();
             auto buffer = device->mapBuffer(
                 model_transform_buffer, nvrhi::CpuAccessMode::Write);
@@ -386,33 +412,13 @@ void Hd_USTC_CG_Mesh::Sync(
 
             assert(points.size() == computedNormals.size());
 
-            // Build Normal Buffer
-
-            auto device = RHI::get_device();
-            nvrhi::BufferDesc normal_buffer_desc =
-                nvrhi::BufferDesc{}
-                    .setByteSize(points.size() * 3 * sizeof(float))
-                    .setFormat(nvrhi::Format::RGB32_FLOAT)
-                    .setIsVertexBuffer(true)
-                    .setInitialState(nvrhi::ResourceStates::Common)
-                    .setCpuAccess(nvrhi::CpuAccessMode::Write)
-                    .setDebugName("normalBuffer");
-            normal_buffer = device->createBuffer(normal_buffer_desc);
-
-            auto buffer =
-                device->mapBuffer(normal_buffer, nvrhi::CpuAccessMode::Write);
-            memcpy(
-                buffer,
-                computedNormals.data(),
-                points.size() * 3 * sizeof(float));
-            device->unmapBuffer(normal_buffer);
-
             _normalsValid = true;
         }
         _UpdateComputedPrimvarSources(sceneDelegate, *dirtyBits);
         if (!points.empty()) {
             if (requires_rebuild_blas) {
-                updateBLAS(static_cast<Hd_USTC_CG_RenderParam*>(renderParam));
+                create_gpu_resources(
+                    static_cast<Hd_USTC_CG_RenderParam*>(renderParam));
             }
 
             if (requires_rebuild_tlas) {
@@ -440,17 +446,17 @@ void Hd_USTC_CG_Mesh::Finalize(HdRenderParam* renderParam)
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetVertexBuffer()
 {
-    return vertexBuffer;
+    return vertexBuffer.buffer;
 }
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetIndexBuffer()
 {
-    return indexBuffer;
+    return indexBuffer.buffer;
 }
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetTexcoordBuffer(pxr::TfToken texcoord_name)
 {
-    return texcoord_buffer;
+    return texcoordBuffer.buffer;
 }
 
 uint32_t Hd_USTC_CG_Mesh::IndexCount()
@@ -465,7 +471,7 @@ uint32_t Hd_USTC_CG_Mesh::PointCount()
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetNormalBuffer()
 {
-    return normal_buffer;
+    return normalBuffer.buffer;
 }
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetModelTransformBuffer()
