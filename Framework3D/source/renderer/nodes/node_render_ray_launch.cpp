@@ -1,5 +1,6 @@
 
 #include <cassert>
+
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
@@ -8,6 +9,7 @@
 
 #define WITH_NVAPI 1
 
+#include "../source/renderTLAS.h"
 #include "nodes/core/def/node_def.hpp"
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(scene_ray_launch)
@@ -37,7 +39,7 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
 
     BufferDesc hit_objects_desc;
     const auto maximum_hit_object_count = size[0] * size[1];
-    assert(maximum_hit_object_count==length);
+    assert(maximum_hit_object_count == length);
     hit_objects_desc =
         BufferDesc{}
             .setByteSize(maximum_hit_object_count * sizeof(HitObjectInfo))
@@ -145,8 +147,8 @@ NODE_EXECUTION_FUNCTION(scene_ray_launch)
             nullptr,  // bindingLayout
             false     // isProceduralPrimitive
         } };
-        auto m_TopLevelAS =
-            params.get_global_payload<RenderGlobalPayload&>().TLAS;
+        auto m_TopLevelAS = params.get_global_payload<RenderGlobalPayload&>()
+                                .InstanceCollection->get_tlas();
         auto raytracing_pipeline = resource_allocator.create(pipeline_desc);
 
         BindingSetDesc binding_set_desc;

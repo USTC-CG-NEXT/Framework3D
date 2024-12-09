@@ -1,4 +1,5 @@
 ﻿
+#include "../source/renderTLAS.h"
 #include "nodes/core/def/node_def.hpp"
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
@@ -148,8 +149,8 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
 
         pipeline_desc.setHlslExtensionsUAV(127);
 
-        auto m_TopLevelAS =
-            params.get_global_payload<RenderGlobalPayload&>().TLAS;
+        auto m_TopLevelAS = params.get_global_payload<RenderGlobalPayload&>()
+                                .InstanceCollection->get_tlas();
         auto raytracing_pipeline = resource_allocator.create(pipeline_desc);
         MARK_DESTROY_NVRHI_RESOURCE(raytracing_pipeline);
 

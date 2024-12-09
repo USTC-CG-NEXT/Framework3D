@@ -5,6 +5,7 @@
 #include "pxr/usd/sdf/path.h"
 
 namespace USTC_CG {
+class Hd_USTC_CG_RenderInstanceCollection;
 class LensSystem;
 class Hd_USTC_CG_Light;
 class Hd_USTC_CG_Camera;
@@ -67,7 +68,7 @@ struct RenderGlobalPayload {
     ResourceAllocator resource_allocator;
     ShaderFactory shader_factory;
     nvrhi::IDevice* nvrhi_device;
-    nvrhi::rt::IAccelStruct* TLAS = nullptr;
+    Hd_USTC_CG_RenderInstanceCollection* InstanceCollection;
     bool reset_accumulation = false;
 
     auto& get_cameras() const

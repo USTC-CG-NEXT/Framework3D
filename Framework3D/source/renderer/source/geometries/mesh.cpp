@@ -197,7 +197,8 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
     memcpy(buffer, points.data(), points.size() * 3 * sizeof(float));
     device->unmapBuffer(vertexBuffer.buffer);
 
-    auto descriptor_table = render_param->get_descriptor_table();
+    auto descriptor_table =
+        render_param->InstanceCollection->get_descriptor_table();
     vertexBuffer.index = descriptor_table->CreateDescriptor(
         nvrhi::BindingSetItem::RawBuffer_SRV(0, vertexBuffer.buffer));
 
@@ -252,7 +253,8 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
     BLAS = device->createAccelStruct(blas_desc);
 
     {
-        std::lock_guard lock(render_param->TLAS->edit_instances_mutex);
+        std::lock_guard lock(
+            render_param->InstanceCollection->edit_instances_mutex);
         auto m_CommandList = device->createCommandList();
 
         m_CommandList->open();
@@ -289,7 +291,8 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         transforms.push_back(GfMatrix4d(1.0));
     }
 
-    auto& instances = render_param->TLAS->acquire_instances_to_edit(this);
+    auto& instances =
+        render_param->InstanceCollection->acquire_instances_to_edit(this);
     instances.clear();
     instances.resize(transforms.size());
 
@@ -308,7 +311,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
             instanceDesc.transform,
             matf.data(),
             sizeof(nvrhi::rt::AffineTransform));
-        instances[i] = instanceDesc;
+        instances[i].rt_instance_desc = instanceDesc;
     }
 }
 
@@ -379,15 +382,7 @@ void Hd_USTC_CG_Mesh::Sync(
         }
         if (HdChangeTracker::IsInstancerDirty(*dirtyBits, id) ||
             HdChangeTracker::IsTransformDirty(*dirtyBits, id)) {
-            transform = GfMatrix4f(sceneDelegate->GetTransform(id));
-
-
-
-            auto device = RHI::get_device();
-            auto buffer = device->mapBuffer(
-                model_transform_buffer, nvrhi::CpuAccessMode::Write);
-            memcpy(buffer, &transform, sizeof(GfMatrix4f));
-            device->unmapBuffer(model_transform_buffer);
+            // TODO: fill instance matrix buffer
         }
 
         if (HdChangeTracker::IsPrimvarDirty(
@@ -430,7 +425,7 @@ void Hd_USTC_CG_Mesh::Sync(
                 }
                 else {
                     static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
-                        ->TLAS->removeInstance(this);
+                        ->InstanceCollection->removeInstance(this);
                 }
             }
         }
@@ -441,7 +436,7 @@ void Hd_USTC_CG_Mesh::Sync(
 void Hd_USTC_CG_Mesh::Finalize(HdRenderParam* renderParam)
 {
     static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
-        ->TLAS->removeInstance(this);
+        ->InstanceCollection->removeInstance(this);
 }
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetVertexBuffer()
@@ -477,8 +472,8 @@ nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetNormalBuffer()
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetModelTransformBuffer()
 {
     // fill it
-
-    return model_transform_buffer;
+    throw std::runtime_error("Not implemented");
+    return nullptr;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

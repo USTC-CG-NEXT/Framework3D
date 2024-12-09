@@ -2,19 +2,22 @@
 
 #include "RHI/rhi.hpp"
 
-USTC_CG::Hd_USTC_CG_RenderTLAS::Hd_USTC_CG_RenderTLAS()
+USTC_CG::Hd_USTC_CG_RenderInstanceCollection::
+    Hd_USTC_CG_RenderInstanceCollection()
 {
     nvrhi::rt::AccelStructDesc tlasDesc;
     tlasDesc.isTopLevel = true;
-    tlasDesc.topLevelMaxInstances = 114514;
+    tlasDesc.topLevelMaxInstances = 1024 * 1024;
     TLAS = RHI::get_device()->createAccelStruct(tlasDesc);
 }
 
-USTC_CG::Hd_USTC_CG_RenderTLAS::~Hd_USTC_CG_RenderTLAS()
+USTC_CG::Hd_USTC_CG_RenderInstanceCollection::
+    ~Hd_USTC_CG_RenderInstanceCollection()
 {
 }
 
-nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_RenderTLAS::get_tlas()
+nvrhi::rt::IAccelStruct*
+USTC_CG::Hd_USTC_CG_RenderInstanceCollection::get_tlas()
 {
     if (require_rebuild_tlas) {
         rebuild_tlas();
@@ -24,22 +27,8 @@ nvrhi::rt::AccelStructHandle USTC_CG::Hd_USTC_CG_RenderTLAS::get_tlas()
     return TLAS;
 }
 
-nvrhi::IBuffer* USTC_CG::Hd_USTC_CG_RenderTLAS::update_model_transforms()
-{
-    std::vector<GfMatrix4f> model_transforms;
-
-    for (const auto& pair : instances) {
-        const HdRprim* rPrim = pair.first;
-        const std::vector<nvrhi::rt::InstanceDesc>& vec = pair.second;
-
-        for (const auto& instance : vec) {
-            const nvrhi::rt::AffineTransform& affine_transform =
-                instance.transform;
-        }
-    }
-}
-
-void USTC_CG::Hd_USTC_CG_RenderTLAS::removeInstance(HdRprim* rPrim)
+void USTC_CG::Hd_USTC_CG_RenderInstanceCollection::removeInstance(
+    HdRprim* rPrim)
 {
     if (instances.contains(rPrim)) {
         instances.erase(rPrim);
@@ -47,25 +36,37 @@ void USTC_CG::Hd_USTC_CG_RenderTLAS::removeInstance(HdRprim* rPrim)
     require_rebuild_tlas = true;
 }
 
-std::vector<nvrhi::rt::InstanceDesc>&
-USTC_CG::Hd_USTC_CG_RenderTLAS::acquire_instances_to_edit(HdRprim* mesh)
+USTC_CG::Hd_USTC_CG_RenderInstanceCollection::BindlessData::BindlessData()
+{
+    auto device = RHI::get_device();
+    nvrhi::BindlessLayoutDesc desc;
+    desc.visibility = nvrhi::ShaderType::All;
+    desc.maxCapacity = 8 * 1024;
+    bindlessLayout = device->createBindlessLayout(desc);
+    descriptorTableManager =
+        std::make_unique<DescriptorTableManager>(device, bindlessLayout);
+}
+
+std::vector<USTC_CG::InstanceDescription>&
+USTC_CG::Hd_USTC_CG_RenderInstanceCollection::acquire_instances_to_edit(
+    HdRprim* mesh)
 {
     require_rebuild_tlas = true;
     return instances[mesh];
 }
 
-void USTC_CG::Hd_USTC_CG_RenderTLAS::rebuild_tlas()
+void USTC_CG::Hd_USTC_CG_RenderInstanceCollection::rebuild_tlas()
 {
     std::vector<nvrhi::rt::InstanceDesc> instances_vec;
 
     // Iterate through the map and concatenate all vectors
     for (const auto& pair : instances) {
-        const std::vector<nvrhi::rt::InstanceDesc>& vec = pair.second;
-        instances_vec.insert(instances_vec.end(), vec.begin(), vec.end());
+        const std::vector<InstanceDescription>& vec = pair.second;
+        for (const auto& instance : vec) {
+            instances_vec.push_back(instance.rt_instance_desc);
+        }
     }
     auto nvrhi_device = RHI::get_device();
-
-    update_model_transforms();
 
     auto command_list = nvrhi_device->createCommandList();
 

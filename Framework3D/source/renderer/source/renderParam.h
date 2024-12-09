@@ -43,24 +43,6 @@ struct RenderGlobalPayload;
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace pxr;
 
-struct BindlessData {
-    BindlessData()
-    {
-        auto device = RHI::get_device();
-        nvrhi::BindlessLayoutDesc desc;
-        desc.visibility = nvrhi::ShaderType::All;
-        desc.maxCapacity = 8 * 1024;
-        bindlessLayout = device->createBindlessLayout(desc);
-        descriptorTableManager =
-            std::make_unique<DescriptorTableManager>(device, bindlessLayout);
-    }
-
-    std::unique_ptr<DescriptorTableManager> descriptorTableManager;
-
-   private:
-    nvrhi::BindingLayoutHandle bindlessLayout;
-};
-
 ///
 /// \class Hd_USTC_CG_RenderParam
 ///
@@ -78,18 +60,17 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
           _sceneVersion(sceneVersion),
           node_system(node_system)
     {
-        TLAS = std::make_unique<Hd_USTC_CG_RenderTLAS>();
+        InstanceCollection =
+            std::make_unique<Hd_USTC_CG_RenderInstanceCollection>();
     }
     ~Hd_USTC_CG_RenderParam()
     {
     }
 
-    DescriptorTableManager *get_descriptor_table() const;
-
     HdRenderThread *_renderThread = nullptr;
 
     NodeSystem *node_system;
-    std::unique_ptr<Hd_USTC_CG_RenderTLAS> TLAS;
+    std::unique_ptr<Hd_USTC_CG_RenderInstanceCollection> InstanceCollection;
 
     nvrhi::TextureHandle presented_texture;
     LensSystem *lens_system;
@@ -98,13 +79,6 @@ class Hd_USTC_CG_RenderParam final : public HdRenderParam {
     /// A handle to the global render thread.
     /// A version counter for edits to _scene.
     std::atomic<int> *_sceneVersion;
-    BindlessData bindlessData;
 };
-
-inline DescriptorTableManager *Hd_USTC_CG_RenderParam::get_descriptor_table()
-    const
-{
-    return bindlessData.descriptorTableManager.get();
-}
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
