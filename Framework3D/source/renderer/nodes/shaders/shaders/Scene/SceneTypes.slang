@@ -112,12 +112,7 @@ struct GeometryInstanceData
     uint globalMatrixID;    ///< This is actually CPU-side NodeID, with a confusing name.
     uint materialID;
     uint geometryID;
-
-    uint vbOffset; ///< Offset into vertex buffer.
-    uint ibOffset; ///< Offset into index buffer, or zero if non-indexed.
-
-    uint instanceIndex; ///< InstanceIndex in TLAS.
-    uint geometryIndex; ///< GeometryIndex in BLAS.
+    float4x4 transform; ///< Instance transform.
 
 #ifdef HOST_CODE
     GeometryInstanceData() = default;

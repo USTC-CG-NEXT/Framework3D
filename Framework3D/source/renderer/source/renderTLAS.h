@@ -8,8 +8,11 @@
 
 // SceneTypes
 #include "../nodes/shaders/shaders/Scene/SceneTypes.slang"
-
+#include "internal/memory/DeviceObjectPool.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
+template<typename T>
+struct DeviceVector { };
 
 struct InstanceDescription {
     nvrhi::rt::InstanceDesc rt_instance_desc;
@@ -32,7 +35,7 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
 
     uint64_t get_geometry_id(HdRprim *mesh)
     {
-        
+        return 0;
     }
 
     std::mutex edit_instances_mutex;

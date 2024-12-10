@@ -7,4 +7,6 @@ USTC_CG_ADD_LIB(
 		NOMINMAX 
 )
 
-target_compile_options(render_nodes_facilities PRIVATE -fPIC)
+if (NOT WIN32)
+	target_compile_options(glints PRIVATE -fPIC)
+endif()
