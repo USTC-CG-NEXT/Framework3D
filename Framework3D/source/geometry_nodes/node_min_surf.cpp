@@ -2,7 +2,6 @@
 #include "GCore/util_openmesh_bind.h"
 #include "geom_node_base.h"
 #include <cmath>
-#include <time.h>
 #include <Eigen/Sparse>
 
 /*
@@ -47,7 +46,6 @@ NODE_DECLARATION_FUNCTION(min_surf)
 
     // Output-1: Minimal surface with fixed boundary
     b.add_output<Geometry>("Output");
-    b.add_output<double>("Runtime");
 }
 
 NODE_EXECUTION_FUNCTION(min_surf)
@@ -58,7 +56,6 @@ NODE_EXECUTION_FUNCTION(min_surf)
     // (TO BE UPDATED) Avoid processing the node when there is no input
     if (!input.get_component<MeshComponent>()) {
         throw std::runtime_error("Minimal Surface: Need Geometry Input.");
-        return false;
     }
 
     /* ----------------------------- Preprocess -------------------------------
@@ -81,19 +78,17 @@ NODE_EXECUTION_FUNCTION(min_surf)
     ** (Recall the Poisson equation with Dirichlet Boundary Condition in HW3)
     */
 
-    // Initialization
-    clock_t start_time = clock();
     int n_vertices = halfedge_mesh->n_vertices();
-    std::vector<int> ori2mat(n_vertices, 0);
+    std::vector<int> ori2mat(n_vertices);
+    for (const auto& vertex_handle : halfedge_mesh->vertices())
+        ori2mat[vertex_handle.idx()] = 0;
 
-    // Label the boundary vertecies
     for (const auto& halfedge_handle : halfedge_mesh->halfedges())
         if (halfedge_handle.is_boundary()) {
             ori2mat[halfedge_handle.to().idx()] = -1;
             ori2mat[halfedge_handle.from().idx()] = -1;
         }
 
-    // Construct a dictionary of internal points
     int n_internals = 0;
     for (int i = 0; i < n_vertices; i++)
         if (ori2mat[i] != -1)
@@ -104,11 +99,8 @@ NODE_EXECUTION_FUNCTION(min_surf)
     Eigen::VectorXd by(n_internals);
     Eigen::VectorXd bz(n_internals);
 
-    // Construct coefficient matrix and vector
     for (const auto& vertex_handle : halfedge_mesh->vertices()) {
         int mat_idx = ori2mat[vertex_handle.idx()];
-        if (mat_idx == -1)
-            continue;
         bx(mat_idx) = 0;
         by(mat_idx) = 0;
         bz(mat_idx) = 0;
@@ -116,16 +108,14 @@ NODE_EXECUTION_FUNCTION(min_surf)
         int Aii = 0;
         for (const auto& halfedge_handle : vertex_handle.outgoing_halfedges()) {
             const auto& v1 = halfedge_handle.to();
-            int mat_idx1 = ori2mat[v1.idx()];
+            int mat_idx1 = v1.idx();
             Aii++;
             if (mat_idx1 == -1) {
-                // Boundary points
                 bx(mat_idx) += halfedge_mesh->point(v1)[0];
                 by(mat_idx) += halfedge_mesh->point(v1)[1];
                 bz(mat_idx) += halfedge_mesh->point(v1)[2];
             }
             else
-                // Internal points
                 A.coeffRef(mat_idx, mat_idx1) = -1;
         }
         A.coeffRef(mat_idx, mat_idx) = Aii;
@@ -140,7 +130,6 @@ NODE_EXECUTION_FUNCTION(min_surf)
     Eigen::VectorXd uz = bz;
     uz = solver.solve(uz);
 
-    // Update new positions
     for (const auto& vertex_handle : halfedge_mesh->vertices()) {
         int idx = ori2mat[vertex_handle.idx()];
         if (idx != -1) {
@@ -150,7 +139,6 @@ NODE_EXECUTION_FUNCTION(min_surf)
         }
     }
 
-    clock_t end_time = clock();
 
     /*
     ** Algorithm Pseudocode for Minimal Surface Calculation
@@ -187,8 +175,6 @@ NODE_EXECUTION_FUNCTION(min_surf)
 
     // Set the output of the nodes
     params.set_output("Output", std::move(*geometry));
-    params.set_output("Runtime", double(end_time - start_time) / 1000);
-    return true;
 }
 
 NODE_DECLARATION_UI(min_surf);
