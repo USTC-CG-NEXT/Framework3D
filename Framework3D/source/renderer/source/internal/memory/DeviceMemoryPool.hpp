@@ -45,7 +45,7 @@ class DeviceMemoryPool {
     void destroy();
     ~DeviceMemoryPool();
 
-    void gc();
+    void compress();
     void reserve(size_t size);
     MemoryHandle allocate(size_t count);
 
@@ -234,7 +234,7 @@ void DeviceMemoryPool<T>::clear()
 }
 
 template<typename T>
-void DeviceMemoryPool<T>::gc()
+void DeviceMemoryPool<T>::compress()
 {
     // Create another DeviceMemoryPool and copy into it...
     DeviceMemoryPool<T> new_pool;

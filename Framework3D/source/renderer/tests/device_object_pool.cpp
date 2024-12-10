@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../source/internal/memory/DeviceObjectPool.hpp"
+#include "../source/internal/memory/DeviceMemoryPool.hpp"
 // SceneTypes
 #include <random>
 
@@ -85,6 +85,6 @@ TEST_F(MemoryPoolTest, fragmetation_cleansing)
     }
 
     ASSERT_FALSE(pool.sanitize());
-    pool.gc();
+    pool.compress();
     ASSERT_TRUE(pool.sanitize());
 }
