@@ -132,7 +132,8 @@ TfTokenVector Hd_USTC_CG_Mesh::_UpdateComputedPrimvarSources(
 
 void Hd_USTC_CG_Mesh::_UpdatePrimvarSources(
     HdSceneDelegate* sceneDelegate,
-    HdDirtyBits dirtyBits)
+    HdDirtyBits dirtyBits,
+    HdRenderParam* param)
 {
     HD_TRACE_FUNCTION();
     const SdfPath& id = GetId();
@@ -152,26 +153,13 @@ void Hd_USTC_CG_Mesh::_UpdatePrimvarSources(
                     pv.name == pxr::TfToken("st")
 
                 ) {
-                    auto device = RHI::get_device();
-                    nvrhi::BufferDesc buffer_desc =
-                        nvrhi::BufferDesc{}
-                            .setByteSize(points.size() * 2 * sizeof(float))
-                            .setFormat(nvrhi::Format::RG32_FLOAT)
-                            .setIsVertexBuffer(true)
-                            .setInitialState(nvrhi::ResourceStates::Common)
-                            .setCpuAccess(nvrhi::CpuAccessMode::Write)
-                            .setDebugName("texcoordBuffer");
-                    texcoordBuffer.buffer = device->createBuffer(buffer_desc);
-
-                    auto buffer = device->mapBuffer(
-                        texcoordBuffer.buffer, nvrhi::CpuAccessMode::Write);
-                    memcpy(
-                        buffer,
-                        _primvarSourceMap[pv.name]
-                            .data.Get<VtVec2fArray>()
-                            .data(),
-                        points.size() * 2 * sizeof(float));
-                    device->unmapBuffer(texcoordBuffer.buffer);
+                    texcoordBuffer =
+                        static_cast<Hd_USTC_CG_RenderParam*>(param)
+                            ->InstanceCollection->vertex_pool.allocate(
+                                points.size() * 2);
+                    texcoordBuffer->write_data(_primvarSourceMap[pv.name]
+                                                   .data.Get<VtVec2fArray>()
+                                                   .data());
                 }
             }
         }
@@ -182,66 +170,28 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
 {
     auto device = RHI::get_device();
 
-    nvrhi::BufferDesc buffer_desc;
-
-    buffer_desc.byteSize = points.size() * 3 * sizeof(float);
-    buffer_desc.format = nvrhi::Format::RGB32_FLOAT;
-    buffer_desc.isAccelStructBuildInput = true;
-    buffer_desc.cpuAccess = nvrhi::CpuAccessMode::Write;
-    buffer_desc.debugName = "vertexBuffer";
-    buffer_desc.isVertexBuffer = true;
-    vertexBuffer.buffer = device->createBuffer(buffer_desc);
-
-    auto buffer =
-        device->mapBuffer(vertexBuffer.buffer, nvrhi::CpuAccessMode::Write);
-    memcpy(buffer, points.data(), points.size() * 3 * sizeof(float));
-    device->unmapBuffer(vertexBuffer.buffer);
-
     auto descriptor_table =
         render_param->InstanceCollection->get_descriptor_table();
-    vertexBuffer.index = descriptor_table->CreateDescriptor(
-        nvrhi::BindingSetItem::RawBuffer_SRV(0, vertexBuffer.buffer));
 
-    buffer_desc.byteSize = triangulatedIndices.size() * 3 * sizeof(unsigned);
-    buffer_desc.format = nvrhi::Format ::R32_UINT;
-    buffer_desc.isVertexBuffer = false;
-    buffer_desc.isIndexBuffer = true;
-    indexBuffer.buffer = device->createBuffer(buffer_desc);
+    auto& vertex_buffer_pool = render_param->InstanceCollection->vertex_pool;
+    vertexBuffer = vertex_buffer_pool.allocate(points.size() * 3);
+    vertexBuffer->write_data(points.data());
 
-    buffer = device->mapBuffer(indexBuffer.buffer, nvrhi::CpuAccessMode::Write);
-    memcpy(
-        buffer,
-        triangulatedIndices.data(),
-        triangulatedIndices.size() * 3 * sizeof(unsigned));
-    device->unmapBuffer(indexBuffer.buffer);
+    indexBuffer = render_param->InstanceCollection->index_pool.allocate(
+        triangulatedIndices.size() * 3);
+    indexBuffer->write_data(triangulatedIndices.data());
 
-    indexBuffer.index = descriptor_table->CreateDescriptor(
-        nvrhi::BindingSetItem::RawBuffer_SRV(0, indexBuffer.buffer));
-
-    nvrhi::BufferDesc normal_buffer_desc =
-        nvrhi::BufferDesc{}
-            .setByteSize(points.size() * 3 * sizeof(float))
-            .setFormat(nvrhi::Format::RGB32_FLOAT)
-            .setIsVertexBuffer(true)
-            .setInitialState(nvrhi::ResourceStates::Common)
-            .setCpuAccess(nvrhi::CpuAccessMode::Write)
-            .setDebugName("normalBuffer");
-    normalBuffer.buffer = device->createBuffer(normal_buffer_desc);
-
-    buffer =
-        device->mapBuffer(normalBuffer.buffer, nvrhi::CpuAccessMode::Write);
-    memcpy(buffer, computedNormals.data(), points.size() * 3 * sizeof(float));
-    device->unmapBuffer(normalBuffer.buffer);
-
-    normalBuffer.index = descriptor_table->CreateDescriptor(
-        nvrhi::BindingSetItem::RawBuffer_SRV(0, normalBuffer.buffer));
+    normalBuffer = render_param->InstanceCollection->vertex_pool.allocate(
+        points.size() * 3);
 
     nvrhi::rt::AccelStructDesc blas_desc;
     nvrhi::rt::GeometryDesc geometry_desc;
     geometry_desc.geometryType = nvrhi::rt::GeometryType::Triangles;
     nvrhi::rt::GeometryTriangles triangles;
-    triangles.setVertexBuffer(vertexBuffer.buffer)
-        .setIndexBuffer(indexBuffer.buffer)
+    triangles.setVertexBuffer(vertexBuffer->get_device_buffer())
+        .setVertexOffset(vertexBuffer->offset)
+        .setIndexBuffer(indexBuffer->get_device_buffer())
+        .setIndexOffset(indexBuffer->offset)
         .setIndexCount(triangulatedIndices.size() * 3)
         .setVertexCount(points.size())
         .setVertexStride(3 * sizeof(float))
@@ -252,18 +202,21 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
     blas_desc.isTopLevel = false;
     BLAS = device->createAccelStruct(blas_desc);
 
-    {
-        std::lock_guard lock(
-            render_param->InstanceCollection->edit_instances_mutex);
-        auto m_CommandList = device->createCommandList();
+    auto m_CommandList = device->createCommandList();
 
-        m_CommandList->open();
-        nvrhi::utils::BuildBottomLevelAccelStruct(
-            m_CommandList, BLAS, blas_desc);
-        m_CommandList->close();
-        device->executeCommandList(m_CommandList);
-        device->runGarbageCollection();
-    }
+    m_CommandList->open();
+    nvrhi::utils::BuildBottomLevelAccelStruct(m_CommandList, BLAS, blas_desc);
+    m_CommandList->close();
+    device->executeCommandList(m_CommandList);
+    device->runGarbageCollection();
+
+    MeshDesc mesh_desc;
+    mesh_desc.vbOffset = vertexBuffer->offset;
+    mesh_desc.ibOffset = indexBuffer->offset;
+    mesh_desc.normalOffset = normalBuffer->offset;
+
+    mesh_desc_buffer = render_param->InstanceCollection->mesh_pool.allocate(1);
+    mesh_desc_buffer->write_data(&mesh_desc);
 }
 
 void Hd_USTC_CG_Mesh::updateTLAS(
@@ -291,9 +244,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         transforms.push_back(GfMatrix4d(1.0));
     }
 
-    auto& instances =
-        render_param->InstanceCollection->acquire_instances_to_edit(this);
-    instances.clear();
+    std::vector<nvrhi::rt::InstanceDesc> instances;
     instances.resize(transforms.size());
 
     for (int i = 0; i < transforms.size(); ++i) {
@@ -311,7 +262,9 @@ void Hd_USTC_CG_Mesh::updateTLAS(
             instanceDesc.transform,
             matf.data(),
             sizeof(nvrhi::rt::AffineTransform));
-        instances[i].rt_instance_desc = instanceDesc;
+
+        instanceDesc.instanceID = mesh_desc_buffer->index();
+        instances[i] = instanceDesc;
     }
 }
 
@@ -390,7 +343,7 @@ void Hd_USTC_CG_Mesh::Sync(
             HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->widths) ||
             HdChangeTracker::IsPrimvarDirty(
                 *dirtyBits, id, HdTokens->primvar)) {
-            _UpdatePrimvarSources(sceneDelegate, *dirtyBits);
+            _UpdatePrimvarSources(sceneDelegate, *dirtyBits, renderParam);
             _texcoordsClean = false;
         }
 
@@ -423,35 +376,36 @@ void Hd_USTC_CG_Mesh::Sync(
                         sceneDelegate,
                         dirtyBits);
                 }
-                else {
-                    static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
-                        ->InstanceCollection->removeInstance(this);
-                }
             }
         }
+
         *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
     }
 }
 
 void Hd_USTC_CG_Mesh::Finalize(HdRenderParam* renderParam)
 {
-    static_cast<Hd_USTC_CG_RenderParam*>(renderParam)
-        ->InstanceCollection->removeInstance(this);
+    vertexBuffer = nullptr;
+    indexBuffer = nullptr;
+    texcoordBuffer = nullptr;
+    normalBuffer = nullptr;
+    BLAS = nullptr;
 }
 
-nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetVertexBuffer()
+nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetVertexBuffer()
 {
-    return vertexBuffer.buffer;
+    return vertexBuffer->get_descriptor();
 }
 
-nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetIndexBuffer()
+nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetIndexBuffer()
 {
-    return indexBuffer.buffer;
+    return indexBuffer->get_descriptor();
 }
 
-nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetTexcoordBuffer(pxr::TfToken texcoord_name)
+nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetTexcoordBuffer(
+    pxr::TfToken texcoord_name)
 {
-    return texcoordBuffer.buffer;
+    return texcoordBuffer->get_descriptor();
 }
 
 uint32_t Hd_USTC_CG_Mesh::IndexCount()
@@ -464,9 +418,9 @@ uint32_t Hd_USTC_CG_Mesh::PointCount()
     return points.size();
 }
 
-nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetNormalBuffer()
+nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetNormalBuffer()
 {
-    return normalBuffer.buffer;
+    return normalBuffer->get_descriptor();
 }
 
 nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetModelTransformBuffer()

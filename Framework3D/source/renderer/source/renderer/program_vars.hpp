@@ -18,6 +18,10 @@ class ProgramVars {
     void finish_setting_vars();
 
     nvrhi::IResource*& operator[](const std::string& name);
+
+    void set_descriptor_table(
+        const std::string& name,
+        nvrhi::IDescriptorTable* table);
     // This is for setting extra settings
     void set_binding(
         const std::string& name,

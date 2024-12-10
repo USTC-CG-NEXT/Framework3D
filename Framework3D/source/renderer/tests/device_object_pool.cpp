@@ -31,33 +31,33 @@ TEST_F(MemoryPoolTest, allocate)
 {
     auto handle = pool.allocate(10);
     EXPECT_TRUE(handle != nullptr);
-    EXPECT_EQ(pool.size(), 10);
+    EXPECT_EQ(pool.count(), 10);
     EXPECT_EQ(pool.pool_size(), 16);
     EXPECT_EQ(pool.max_memory_offset(), 10 * sizeof(int));
 
     auto handle2 = pool.allocate(30);
     EXPECT_TRUE(handle2 != nullptr);
 
-    EXPECT_EQ(pool.size(), 40);
+    EXPECT_EQ(pool.count(), 40);
     EXPECT_EQ(pool.pool_size(), 64);
     EXPECT_EQ(pool.max_memory_offset(), 40 * sizeof(int));
     handle2 = nullptr;
 
-    EXPECT_EQ(pool.size(), 10);
+    EXPECT_EQ(pool.count(), 10);
     EXPECT_EQ(pool.pool_size(), 64);
     EXPECT_EQ(pool.max_memory_offset(), 40 * sizeof(int));
 
     auto handle3 = pool.allocate(20);
     EXPECT_TRUE(handle3 != nullptr);
     EXPECT_EQ(handle3->offset, 10 * sizeof(int));
-    EXPECT_EQ(pool.size(), 30);
+    EXPECT_EQ(pool.count(), 30);
     EXPECT_EQ(pool.pool_size(), 64);
     EXPECT_EQ(pool.max_memory_offset(), 40 * sizeof(int));
 
     auto handle4 = pool.allocate(35);
     EXPECT_EQ(handle4->offset, 40 * sizeof(int));
     EXPECT_TRUE(handle4 != nullptr);
-    EXPECT_EQ(pool.size(), 65);
+    EXPECT_EQ(pool.count(), 65);
     EXPECT_EQ(pool.pool_size(), 128);
     EXPECT_EQ(pool.max_memory_offset(), 75 * sizeof(int));
 

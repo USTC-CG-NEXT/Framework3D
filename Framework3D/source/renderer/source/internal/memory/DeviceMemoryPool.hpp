@@ -1,6 +1,7 @@
 #pragma once
 #include <RHI/rhi.hpp>
 #include <algorithm>
+#include <mutex>
 #include <unordered_map>
 
 #include "../../api.h"
@@ -14,23 +15,25 @@ class DeviceMemoryPool {
         size_t offset = INVALID;
         size_t size = 0;
 
-        void write_data(void* data);
+        void write_data(const void* data);
+
+        size_t index() const
+        {
+            return offset / sizeof(T);
+        }
+
+        size_t count() const
+        {
+            return size / sizeof(T);
+        }
 
         ~MemoryHandleData();
 
         nvrhi::BindingSetItem get_descriptor(
             nvrhi::ResourceType type =
-                nvrhi::ResourceType::StructuredBuffer_UAV)
-        {
-            nvrhi::BindingSetItem item;
-            item.resourceHandle = pool->device_buffer;
-            item.range = nvrhi::BufferRange{
-                .offset = offset,
-                .size = size,
-            };
-            item.type = type;
-            return item;
-        }
+                nvrhi::ResourceType::StructuredBuffer_UAV) const;
+
+        nvrhi::IBuffer* get_device_buffer() const;
 
        private:
         static constexpr size_t INVALID = -1;
@@ -41,18 +44,42 @@ class DeviceMemoryPool {
     using MemoryHandle = std::shared_ptr<MemoryHandleData>;
 
     DeviceMemoryPool();
+    DeviceMemoryPool(const DeviceMemoryPool&) = delete;
+    DeviceMemoryPool(DeviceMemoryPool&& other) noexcept
+    {
+        this->device_buffer = other.device_buffer;
+        this->h_free_list = other.h_free_list;
+        this->max_count = other.max_count;
+        this->targeted_max_count = other.targeted_max_count;
+        this->current_count = other.current_count;
+        this->current_max_memory_offset = other.current_max_memory_offset;
+        this->handles_allocated = other.handles_allocated;
+    }
+    DeviceMemoryPool& operator=(const DeviceMemoryPool&) = delete;
+    DeviceMemoryPool& operator=(DeviceMemoryPool&& other) noexcept
+    {
+        this->device_buffer = other.device_buffer;
+        this->h_free_list = other.h_free_list;
+        this->max_count = other.max_count;
+        this->targeted_max_count = other.targeted_max_count;
+        this->current_count = other.current_count;
+        this->current_max_memory_offset = other.current_max_memory_offset;
+        this->handles_allocated = other.handles_allocated;
+        return *this;
+    }
+
     void clear();
     void destroy();
     ~DeviceMemoryPool();
 
-    void compress();
+    bool compress();
     void reserve(size_t size);
     MemoryHandle allocate(size_t count);
 
     nvrhi::IBuffer* get_device_buffer() const;
     size_t max_memory_offset() const;
     size_t pool_size() const;
-    size_t size() const;
+    size_t count() const;
 
     std::string info(bool free_list = true) const;
 
@@ -60,6 +87,7 @@ class DeviceMemoryPool {
     bool sanitize();
 
    private:
+    std::mutex buffer_write_mutex_;
     void relocate_buffer();
     void erase(MemoryHandleData* handle);
 
@@ -69,7 +97,6 @@ class DeviceMemoryPool {
 
     nvrhi::BufferHandle device_buffer;
     std::vector<std::pair<size_t, size_t>> h_free_list;  // offset, size
-    nvrhi::BufferHandle compact_buffer_cache;
     size_t max_count = 1;
     size_t targeted_max_count = 1;
     size_t current_count = 0;
@@ -107,8 +134,9 @@ DeviceMemoryPool<T>::MemoryHandleData::create()
 }
 
 template<typename T>
-void DeviceMemoryPool<T>::MemoryHandleData::write_data(void* data)
+void DeviceMemoryPool<T>::MemoryHandleData::write_data(const void* data)
 {
+    std::lock_guard<std::mutex> lock(pool->buffer_write_mutex_);
     auto device = pool->get_device_buffer();
     pool->commandList->open();
     pool->commandList->writeBuffer(device, data, size, offset);
@@ -121,6 +149,26 @@ template<typename T>
 DeviceMemoryPool<T>::MemoryHandleData::~MemoryHandleData()
 {
     pool->erase(this);
+}
+
+template<typename T>
+nvrhi::BindingSetItem DeviceMemoryPool<T>::MemoryHandleData::get_descriptor(
+    nvrhi::ResourceType type) const
+{
+    nvrhi::BindingSetItem item;
+    item.resourceHandle = pool->device_buffer;
+    item.range = nvrhi::BufferRange{
+        offset,
+        size,
+    };
+    item.type = type;
+    return item;
+}
+
+template<typename T>
+nvrhi::IBuffer* DeviceMemoryPool<T>::MemoryHandleData::get_device_buffer() const
+{
+    return pool->device_buffer;
 }
 
 template<typename T>
@@ -145,7 +193,6 @@ void DeviceMemoryPool<T>::destroy()
     clear();
     commandList = nullptr;
     device_buffer = nullptr;
-    compact_buffer_cache = nullptr;
 }
 
 template<typename T>
@@ -234,8 +281,12 @@ void DeviceMemoryPool<T>::clear()
 }
 
 template<typename T>
-void DeviceMemoryPool<T>::compress()
+bool DeviceMemoryPool<T>::compress()
 {
+    if (h_free_list.empty()) {
+        return false;
+    }
+
     // Create another DeviceMemoryPool and copy into it...
     DeviceMemoryPool<T> new_pool;
     new_pool.reserve(max_count);
@@ -250,6 +301,7 @@ void DeviceMemoryPool<T>::compress()
     device->runGarbageCollection();
 
     *this = std::move(new_pool);
+    return true;
 }
 
 template<typename T>
@@ -311,7 +363,7 @@ size_t DeviceMemoryPool<T>::pool_size() const
 }
 
 template<typename T>
-size_t DeviceMemoryPool<T>::size() const
+size_t DeviceMemoryPool<T>::count() const
 {
     return current_count;
 }

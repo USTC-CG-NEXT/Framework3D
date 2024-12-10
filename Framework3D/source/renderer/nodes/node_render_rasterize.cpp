@@ -3,6 +3,7 @@
 #include "nvrhi/nvrhi.h"
 #include "pxr/imaging/hd/tokens.h"
 #include "pxr/imaging/hgiGL/computeCmds.h"
+#include "renderTLAS.h"
 #include "render_node_base.h"
 #include "renderer/graphics_context.hpp"
 #include "renderer/program_vars.hpp"
@@ -57,6 +58,9 @@ NODE_EXECUTION_FUNCTION(rasterize)
 
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
     program_vars["viewConstant"] = view_cb;
+    program_vars["t_BindlessBuffers"] =
+        global_payload.InstanceCollection->bindlessData.descriptorTableManager
+            ->GetDescriptorTable();
 
     GraphicsContext context(resource_allocator, program_vars);
     context.set_render_target(0, output_position)
@@ -73,10 +77,16 @@ NODE_EXECUTION_FUNCTION(rasterize)
         .set_viewport(get_size(params))
         .finish_setting_pso();
 
+    instance_collection->draw_indirect_pool.compress();
+    auto indirect_buffer =
+        instance_collection->draw_indirect_pool.get_device_buffer();
+
     // find the named mesh
     context.begin();
+    GraphicsRenderState state;
+    context.draw_indirect()
 
-    auto& meshes =
+        auto& meshes =
         params.get_global_payload<RenderGlobalPayload&>().get_meshes();
     for (Hd_USTC_CG_Mesh*& mesh : meshes) {
         if (mesh->GetVertexBuffer()) {
@@ -84,10 +94,11 @@ NODE_EXECUTION_FUNCTION(rasterize)
             program_vars["modelMatrixBuffer"] = model_matrix;
             program_vars.finish_setting_vars();
 
-            GraphicsRenderState state;
             state
-                .addVertexBuffer(
-                    nvrhi::VertexBufferBinding{ mesh->GetVertexBuffer(), 0, 0 })
+                .addVertexBuffer(nvrhi::VertexBufferBinding{
+                    (nvrhi::IBuffer*)mesh->GetVertexBuffer().resourceHandle,
+                    0,
+                    mesh->GetVertexBuffer().range.byteOffset })
                 .addVertexBuffer(
                     nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1, 0 })
                 .setIndexBuffer(nvrhi::IndexBufferBinding{
@@ -95,14 +106,17 @@ NODE_EXECUTION_FUNCTION(rasterize)
 
             if (mesh->GetTexcoordBuffer(pxr::TfToken("UVMap"))) {
                 state.addVertexBuffer(nvrhi::VertexBufferBinding{
-                    mesh->GetTexcoordBuffer(pxr::TfToken("UVMap")), 2, 0 });
+                    mesh->GetTexcoordBuffer(pxr::TfToken("UVMap"))
+                        .resourceHandle,
+                    2,
+                    0 });
             }
             else {
                 state.addVertexBuffer(
                     nvrhi::VertexBufferBinding{ nullptr, 2, 0 });
             }
 
-            context.draw(state, program_vars, mesh->IndexCount());
+            context.dr(state, program_vars, mesh->IndexCount());
         }
     }
     context.finish();

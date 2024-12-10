@@ -1,10 +1,13 @@
 #include "utils/view_cb.h"
+import Scene.SceneTypes;
 
 // ---[ Constant Buffers ]---
 ConstantBuffer<PlanarViewConstants> viewConstant;
 
 // Using a StructuredBuffer to hold the model matrices
 StructuredBuffer<float4x4> modelMatrixBuffer;
+
+ByteAddressBuffer t_BindlessBuffers[] : register(t0, space1);
 
 // Function to get the model matrix for a given instance
 float4x4 GetModelMatrix(uint instanceID)

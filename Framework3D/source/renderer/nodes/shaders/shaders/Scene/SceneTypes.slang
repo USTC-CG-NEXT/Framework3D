@@ -154,31 +154,16 @@ struct MeshDesc
 {
     uint vbOffset;          ///< Offset into global vertex buffer.
     uint ibOffset;          ///< Offset into global index buffer, or zero if non-indexed.
-    uint vertexCount;       ///< Vertex count.
-    uint indexCount;        ///< Index count, or zero if non-indexed.
+    uint normalOffset;      ///< Offset into normal buffer, or zero if no normals.
     uint skinningVbOffset;  ///< Offset into skinning data buffer, or zero if no skinning data.
     uint prevVbOffset;      ///< Offset into previous vertex data buffer, or zero if neither skinned or animated.
     uint materialID;        ///< Material ID.
     uint flags;             ///< See MeshFlags.
 
-    uint getVertexCount() CONST_FUNCTION
-    {
-        return vertexCount;
-    }
-
-    uint getTriangleCount() CONST_FUNCTION
-    {
-        return (indexCount > 0 ? indexCount : vertexCount) / 3;
-    }
 
     bool use16BitIndices() CONST_FUNCTION
     {
         return (flags & (uint)MeshFlags::Use16BitIndices) != 0;
-    }
-
-    bool useVertexIndices() CONST_FUNCTION
-    {
-        return indexCount > 0;
     }
 
     bool isSkinned() CONST_FUNCTION

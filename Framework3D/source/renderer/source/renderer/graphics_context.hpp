@@ -53,6 +53,11 @@ class GraphicsContext : public GPUContext {
         int32_t baseVertexLocation = 0,
         uint32_t startInstanceLocation = 0);
 
+    void draw_indirect(
+        const GraphicsRenderState& state,
+        const ProgramVars& program_vars,
+        nvrhi::IBuffer* indirect_buffer);
+
     GraphicsContext& finish_setting_frame_buffer();
     GraphicsContext& set_viewport(pxr::GfVec2f size);
 

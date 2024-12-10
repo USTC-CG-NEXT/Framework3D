@@ -107,6 +107,26 @@ void GraphicsContext::draw_instanced(
     commandList_->drawIndexed(args);
 }
 
+void GraphicsContext::draw_indirect(
+    const GraphicsRenderState& state,
+    const ProgramVars& program_vars,
+    nvrhi::IBuffer* indirect_buffer)
+{
+    nvrhi::GraphicsState graphics_state;
+
+    graphics_state.vertexBuffers = state.vertexBuffers;
+    graphics_state.indexBuffer = state.indexBuffer;
+    graphics_state.bindings = program_vars.get_binding_sets();
+    graphics_state.framebuffer = framebuffer_;
+    graphics_state.pipeline = graphics_pipeline;
+    graphics_state.viewport = viewport;
+    graphics_state.indirectParams = indirect_buffer;
+
+    commandList_->setGraphicsState(graphics_state);
+
+    commandList_->drawIndexedIndirect(0,draw_count);
+}
+
 GraphicsContext& GraphicsContext::finish_setting_frame_buffer()
 {
     if (framebuffer_) {

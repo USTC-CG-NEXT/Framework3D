@@ -117,6 +117,16 @@ nvrhi::IResource*& ProgramVars::operator[](const std::string& name)
         .resourceHandle;
 }
 
+void ProgramVars::set_descriptor_table(
+    const std::string& name,
+    nvrhi::IDescriptorTable* table)
+{
+    auto [binding_space_id, binding_set_location] = get_binding_location(name);
+    auto& binding_space = binding_spaces[binding_space_id];
+    binding_space.push_back()
+    binding_set = *table;
+}
+
 void ProgramVars::set_binding(
     const std::string& name,
     nvrhi::ITexture* resource,

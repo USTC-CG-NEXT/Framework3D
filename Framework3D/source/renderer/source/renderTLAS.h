@@ -8,15 +8,8 @@
 
 // SceneTypes
 #include "../nodes/shaders/shaders/Scene/SceneTypes.slang"
+#include "internal/memory/DeviceMemoryPool.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
-
-template<typename T>
-struct DeviceVector { };
-
-struct InstanceDescription {
-    nvrhi::rt::InstanceDesc rt_instance_desc;
-    GeometryInstanceData geometry_instance_data;
-};
 
 class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
    public:
@@ -29,17 +22,14 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
         return bindlessData.descriptorTableManager.get();
     }
 
-    std::vector<InstanceDescription> &acquire_instances_to_edit(HdRprim *mesh);
-    void removeInstance(HdRprim *hd_ustc_cg_mesh);
+    DeviceMemoryPool<unsigned> index_pool;
+    DeviceMemoryPool<float> vertex_pool;
 
-    uint64_t get_geometry_id(HdRprim *mesh)
-    {
-        return 0;
-    }
+    DeviceMemoryPool<GeometryInstanceData> instance_pool;
+    DeviceMemoryPool<nvrhi::rt::InstanceDesc> rt_instance_pool;
+    DeviceMemoryPool<MeshDesc> mesh_pool;
+    DeviceMemoryPool<nvrhi::DrawIndexedIndirectArguments> draw_indirect_pool;
 
-    std::mutex edit_instances_mutex;
-
-   private:
     struct BindlessData {
         BindlessData();
         std::unique_ptr<DescriptorTableManager> descriptorTableManager;
@@ -47,14 +37,13 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
        private:
         nvrhi::BindingLayoutHandle bindlessLayout;
     };
-    void rebuild_tlas();
     BindlessData bindlessData;
 
+   private:
     nvrhi::rt::AccelStructHandle TLAS;
-    std::map<HdRprim *, std::vector<InstanceDescription>>
-        instances;  // Real instances
 
     bool require_rebuild_tlas = true;
+    void rebuild_tlas();
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

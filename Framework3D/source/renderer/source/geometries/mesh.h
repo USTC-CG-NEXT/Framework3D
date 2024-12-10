@@ -26,13 +26,16 @@
 
 #include "../DescriptorTableManager.h"
 #include "../api.h"
+#include "internal/memory/DeviceMemoryPool.hpp"
 #include "nvrhi/nvrhi.h"
 #include "pxr/base/gf/matrix4f.h"
 #include "pxr/imaging/garch/glApi.h"
 #include "pxr/imaging/hd/mesh.h"
 #include "pxr/imaging/hd/vertexAdjacency.h"
 #include "pxr/pxr.h"
-
+// SceneTypes
+#include "../nodes/shaders/shaders/Scene/SceneTypes.slang"
+#include "internal/memory/DeviceMemoryPool.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Hd_USTC_CG_RenderParam;
 using namespace pxr;
@@ -54,9 +57,9 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
 
     void Finalize(HdRenderParam* renderParam) override;
 
-    nvrhi::IBuffer* GetVertexBuffer();
-    nvrhi::IBuffer* GetIndexBuffer();
-    nvrhi::IBuffer* GetTexcoordBuffer(pxr::TfToken texcoord_name);
+    nvrhi::BindingSetItem GetVertexBuffer();
+    nvrhi::BindingSetItem GetIndexBuffer();
+    nvrhi::BindingSetItem GetTexcoordBuffer(pxr::TfToken texcoord_name);
 
     pxr::GfMatrix4f GetTransform()
     {
@@ -65,21 +68,24 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
 
     uint32_t IndexCount();
     uint32_t PointCount();
-    nvrhi::IBuffer* GetNormalBuffer();
+    nvrhi::BindingSetItem GetNormalBuffer();
     nvrhi::IBuffer* GetModelTransformBuffer();
 
     nvrhi::rt::AccelStructHandle BLAS;
 
    protected:
-    struct BufferWithDescriptorIndex {
-        nvrhi::BufferHandle buffer = nullptr;
-        DescriptorIndex index = -1;
-    };
+    DeviceMemoryPool<unsigned>::MemoryHandle indexBuffer;
 
-    BufferWithDescriptorIndex vertexBuffer;
-    BufferWithDescriptorIndex indexBuffer;
-    BufferWithDescriptorIndex texcoordBuffer;
-    BufferWithDescriptorIndex normalBuffer;
+    DeviceMemoryPool<float>::MemoryHandle vertexBuffer;
+    DeviceMemoryPool<float>::MemoryHandle texcoordBuffer;
+    DeviceMemoryPool<float>::MemoryHandle normalBuffer;
+
+    DeviceMemoryPool<GeometryInstanceData>::MemoryHandle instanceBuffer;
+    DeviceMemoryPool<nvrhi::rt::InstanceDesc>::MemoryHandle rt_instanceBuffer;
+    DeviceMemoryPool<MeshDesc>::MemoryHandle mesh_desc_buffer;
+
+    DeviceMemoryPool<nvrhi::DrawIndexedIndirectArguments>::MemoryHandle
+        draw_indirect;
 
     GfMatrix4f transform;
     VtArray<GfVec3i> triangulatedIndices;
@@ -109,7 +115,7 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
         HdDirtyBits dirtyBits);
     void _UpdatePrimvarSources(
         HdSceneDelegate* sceneDelegate,
-        HdDirtyBits dirtyBits);
+        HdDirtyBits dirtyBits, HdRenderParam* param);
 
     // This class does not support copying.
     Hd_USTC_CG_Mesh(const Hd_USTC_CG_Mesh&) = delete;

@@ -31,12 +31,11 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
     auto node_system = render_param->node_system;
 
     {
-        std::lock_guard lock(render_param->InstanceCollection->edit_instances_mutex);
-
         auto& global_payload = node_system->get_node_tree_executor()
                                    ->get_global_payload<RenderGlobalPayload&>();
 
-        global_payload.InstanceCollection = render_param->InstanceCollection.get();
+        global_payload.InstanceCollection =
+            render_param->InstanceCollection.get();
         global_payload.lens_system = render_param->lens_system;
 
         global_payload.reset_accumulation = false;
