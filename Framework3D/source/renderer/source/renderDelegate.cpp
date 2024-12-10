@@ -129,7 +129,7 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     nvrhi_device = RHI::get_device();
 
     RenderGlobalPayload global_payload = RenderGlobalPayload(
-        &cameras, &lights, &meshes, &materials, nvrhi_device);
+        &cameras, &lights, &materials, nvrhi_device);
 
     std::unique_ptr<NodeTreeExecutor> render_executor =
         std::make_unique<EagerNodeTreeExecutorRender>();

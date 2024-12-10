@@ -22,7 +22,7 @@ target_link_libraries(hd_USTC_CG PUBLIC glints)
 add_nodes(
 	TARGET_NAME render_nodes 
 	SRC_DIRS nodes
-	DEP_LIBS usd RHI hd_USTC_CG render_nodes_facilities
+	DEP_LIBS usd RHI hd_USTC_CG usdImaging
 	COMPILE_DEFS NOMINMAX 
 	EXTRA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/source
 )

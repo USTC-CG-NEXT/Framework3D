@@ -34,6 +34,7 @@ class DeviceMemoryPool {
                 nvrhi::ResourceType::StructuredBuffer_UAV) const;
 
         nvrhi::IBuffer* get_device_buffer() const;
+        void read_data(void* data);
 
        private:
         static constexpr size_t INVALID = -1;
@@ -112,6 +113,9 @@ class DeviceMemoryPool {
         desc.byteSize = max_count * sizeof(U);
         desc.setCanHaveUAVs(true);
         desc.keepInitialState = true;
+        desc.isAccelStructBuildInput = true;
+        desc.isDrawIndirectArgs = true;
+
         return desc;
     }
 };
@@ -142,6 +146,7 @@ void DeviceMemoryPool<T>::MemoryHandleData::write_data(const void* data)
     pool->commandList->writeBuffer(device, data, size, offset);
     pool->commandList->close();
     RHI::get_device()->executeCommandList(pool->commandList);
+    RHI::get_device()->waitForIdle();
     RHI::get_device()->runGarbageCollection();
 }
 
@@ -172,9 +177,32 @@ nvrhi::IBuffer* DeviceMemoryPool<T>::MemoryHandleData::get_device_buffer() const
 }
 
 template<typename T>
+void DeviceMemoryPool<T>::MemoryHandleData::read_data(void* data)
+{
+    nvrhi::BufferDesc desc = pool->buffer_desc<T>();
+    desc.byteSize = size;
+    desc.debugName = "StagingBuffer";
+    desc.cpuAccess = nvrhi::CpuAccessMode::Read;
+    desc.initialState = nvrhi::ResourceStates::CopyDest;
+    auto staging = RHI::get_device()->createBuffer(desc);
+
+    pool->commandList->open();
+    pool->commandList->copyBuffer(
+        staging, 0, pool->device_buffer, offset, size);
+    pool->commandList->close();
+    RHI::get_device()->executeCommandList(pool->commandList);
+    RHI::get_device()->waitForIdle();
+    RHI::get_device()->runGarbageCollection();
+
+    auto mapped_data =
+        RHI::get_device()->mapBuffer(staging, nvrhi::CpuAccessMode::Read);
+    memcpy(data, mapped_data, size);
+    RHI::get_device()->unmapBuffer(staging);
+}
+
+template<typename T>
 DeviceMemoryPool<T>::DeviceMemoryPool()
 {
-    RHI::init();
     nvrhi::IDevice* device = RHI::get_device();
     commandList = device->createCommandList();
 

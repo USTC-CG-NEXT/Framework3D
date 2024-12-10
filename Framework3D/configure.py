@@ -291,7 +291,7 @@ def main():
 
     if os.name == 'nt':
         urls = {
-            "slang": "https://github.com/shader-slang/slang/releases/download/v2024.14.3/slang-2024.14.3-windows-x86_64.zip",
+            "slang": "https://github.com/shader-slang/slang/releases/download/v2024.15.2/slang-2024.15.2-windows-x86_64.zip",
         }
     else:
         urls = {

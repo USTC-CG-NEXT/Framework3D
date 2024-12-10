@@ -25,7 +25,7 @@ struct GraphicsRenderState {
     }
 };
 
-class GraphicsContext : public GPUContext {
+class HD_USTC_CG_API GraphicsContext : public GPUContext {
    public:
     explicit GraphicsContext(ResourceAllocator& r, ProgramVars& vars);
     ~GraphicsContext() override;
@@ -56,7 +56,8 @@ class GraphicsContext : public GPUContext {
     void draw_indirect(
         const GraphicsRenderState& state,
         const ProgramVars& program_vars,
-        nvrhi::IBuffer* indirect_buffer);
+        nvrhi::IBuffer* indirect_buffer,
+        uint32_t draw_count);
 
     GraphicsContext& finish_setting_frame_buffer();
     GraphicsContext& set_viewport(pxr::GfVec2f size);

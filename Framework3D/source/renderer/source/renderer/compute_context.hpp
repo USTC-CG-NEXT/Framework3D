@@ -11,7 +11,7 @@ struct GraphicsComputeState {
     nvrhi::IBuffer* indirectParams;
 };
 
-class ComputeContext : public GPUContext {
+class HD_USTC_CG_API ComputeContext : public GPUContext {
    public:
     explicit ComputeContext(ResourceAllocator& r, ProgramVars& vars);
     ~ComputeContext() override;

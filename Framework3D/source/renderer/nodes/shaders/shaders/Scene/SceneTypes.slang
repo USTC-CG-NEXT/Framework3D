@@ -109,7 +109,6 @@ struct GeometryInstanceData
     static const uint kTypeOffset = 32 - kTypeBits;
 
     uint flags;             ///< Upper kTypeBits bits are reserved for storing the type.
-    uint globalMatrixID;    ///< This is actually CPU-side NodeID, with a confusing name.
     uint materialID;
     uint geometryID;
     float4x4 transform; ///< Instance transform.
@@ -154,6 +153,10 @@ struct MeshDesc
 {
     uint vbOffset;          ///< Offset into global vertex buffer.
     uint ibOffset;          ///< Offset into global index buffer, or zero if non-indexed.
+
+    uint ibBufferIndex; // For the cases when the buffer is larger than 4GB, this is the index of the buffer.
+    uint vbBufferIndex; // For the cases when the buffer is larger than 4GB, this is the index of the buffer.
+
     uint normalOffset;      ///< Offset into normal buffer, or zero if no normals.
     uint skinningVbOffset;  ///< Offset into skinning data buffer, or zero if no skinning data.
     uint prevVbOffset;      ///< Offset into previous vertex data buffer, or zero if neither skinned or animated.

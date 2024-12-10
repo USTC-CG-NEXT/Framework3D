@@ -11,7 +11,6 @@
 #include "slang-com-ptr.h"
 #include "slang.h"
 
-
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 std::string ShaderFactory::shader_search_path = "";
@@ -223,6 +222,10 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
     slang::ShaderReflection* programReflection =
         slang::ShaderReflection::get(request);
 
+    Slang::ComPtr<slang::IBlob> outBlob;
+    programReflection->toJson(outBlob.writeRef());
+    std::string json = (const char*)outBlob->getBufferPointer();
+
     // slang::EntryPointReflection* entryPoint =
     //     programReflection->findEntryPointByName(entryPointName);
     auto parameterCount = programReflection->getParameterCount();
@@ -237,14 +240,18 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         slang::TypeReflection* type_reflection = parameter->getType();
         SlangResourceShape resource_shape = type_reflection->getResourceShape();
 
+        slang::ParameterCategory category = parameter->getCategory();
         std::string name = parameter->getName();
 
         auto categoryCount = parameter->getCategoryCount();
-        auto category = SlangParameterCategory(
-            parameter->getCategoryByIndex(categoryCount - 1));
 
         auto index = parameter->getBindingIndex();
-        auto space = parameter->getBindingSpace(category);
+        auto space = parameter->getBindingSpace() +
+                     parameter->getOffset(
+                         SLANG_PARAMETER_CATEGORY_SUB_ELEMENT_REGISTER_SPACE);
+        if (name == "t_BindlessBuffers") {
+            assert(space != 0);
+        }
 
         binding_locations[name] = std::make_tuple(space, pp);
 

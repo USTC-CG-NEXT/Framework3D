@@ -23,20 +23,6 @@ NODE_EXECUTION_FUNCTION(debug_info)
         std::cout << light->Get(HdTokens->transform).Cast<GfMatrix4d>()
                   << std::endl;
     }
-
-    for (auto&& mesh : global_payload.get_meshes()) {
-        std::cout << mesh->GetId() << std::endl;
-        auto names = mesh->GetBuiltinPrimvarNames();
-        for (auto&& name : names) {
-            std::cout << name.GetString() << std::endl;
-        }
-        log::info(
-            "Mesh contained material: %s",
-            global_payload.get_materials()[mesh->GetMaterialId()]
-                ->GetId()
-                .GetString()
-                .c_str());
-    }
     return true;
 }
 

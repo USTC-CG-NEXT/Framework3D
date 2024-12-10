@@ -14,6 +14,7 @@ class MemoryPoolTest : public ::testing::Test {
     {
         // Code here will be called immediately after the constructor (right
         // before each test).
+        RHI::init();
     }
 
     void TearDown() override
@@ -87,4 +88,15 @@ TEST_F(MemoryPoolTest, fragmetation_cleansing)
     ASSERT_FALSE(pool.sanitize());
     pool.compress();
     ASSERT_TRUE(pool.sanitize());
+}
+
+TEST_F(MemoryPoolTest, data_io)
+{
+    auto handle = pool.allocate(10);
+    std::vector<int> data(10, 42);
+    handle->write_data(data.data());
+
+    std::vector<int> read_data(10);
+    handle->read_data(read_data.data());
+    EXPECT_EQ(data, read_data);
 }

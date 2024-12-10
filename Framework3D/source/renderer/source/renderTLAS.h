@@ -24,7 +24,6 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
 
     DeviceMemoryPool<unsigned> index_pool;
     DeviceMemoryPool<float> vertex_pool;
-
     DeviceMemoryPool<GeometryInstanceData> instance_pool;
     DeviceMemoryPool<nvrhi::rt::InstanceDesc> rt_instance_pool;
     DeviceMemoryPool<MeshDesc> mesh_pool;

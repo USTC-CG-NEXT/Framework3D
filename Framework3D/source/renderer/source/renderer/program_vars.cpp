@@ -78,6 +78,9 @@ std::tuple<unsigned, unsigned> ProgramVars::get_binding_location(
     if (binding_spaces.size() <= binding_space_id) {
         binding_spaces.resize(binding_space_id + 1);
     }
+    if (descriptor_tables.size() <= binding_space_id) {
+        descriptor_tables.resize(binding_space_id + 1);
+    }
 
     auto& binding_space = binding_spaces[binding_space_id];
 
@@ -122,9 +125,7 @@ void ProgramVars::set_descriptor_table(
     nvrhi::IDescriptorTable* table)
 {
     auto [binding_space_id, binding_set_location] = get_binding_location(name);
-    auto& binding_space = binding_spaces[binding_space_id];
-    binding_space.push_back()
-    binding_set = *table;
+    descriptor_tables[binding_space_id] = table;
 }
 
 void ProgramVars::set_binding(

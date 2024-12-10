@@ -110,7 +110,8 @@ void GraphicsContext::draw_instanced(
 void GraphicsContext::draw_indirect(
     const GraphicsRenderState& state,
     const ProgramVars& program_vars,
-    nvrhi::IBuffer* indirect_buffer)
+    nvrhi::IBuffer* indirect_buffer,
+    uint32_t draw_count)
 {
     nvrhi::GraphicsState graphics_state;
 
@@ -124,7 +125,7 @@ void GraphicsContext::draw_indirect(
 
     commandList_->setGraphicsState(graphics_state);
 
-    commandList_->drawIndexedIndirect(0,draw_count);
+    commandList_->drawIndexedIndirect(0, draw_count);
 }
 
 GraphicsContext& GraphicsContext::finish_setting_frame_buffer()

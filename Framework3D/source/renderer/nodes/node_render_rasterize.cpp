@@ -83,42 +83,12 @@ NODE_EXECUTION_FUNCTION(rasterize)
 
     // find the named mesh
     context.begin();
-    GraphicsRenderState state;
-    context.draw_indirect()
+    context.draw_indirect(
+        {},
+        program_vars,
+        indirect_buffer,
+        instance_collection->draw_indirect_pool.count());
 
-        auto& meshes =
-        params.get_global_payload<RenderGlobalPayload&>().get_meshes();
-    for (Hd_USTC_CG_Mesh*& mesh : meshes) {
-        if (mesh->GetVertexBuffer()) {
-            auto model_matrix = mesh->GetModelTransformBuffer();
-            program_vars["modelMatrixBuffer"] = model_matrix;
-            program_vars.finish_setting_vars();
-
-            state
-                .addVertexBuffer(nvrhi::VertexBufferBinding{
-                    (nvrhi::IBuffer*)mesh->GetVertexBuffer().resourceHandle,
-                    0,
-                    mesh->GetVertexBuffer().range.byteOffset })
-                .addVertexBuffer(
-                    nvrhi::VertexBufferBinding{ mesh->GetNormalBuffer(), 1, 0 })
-                .setIndexBuffer(nvrhi::IndexBufferBinding{
-                    mesh->GetIndexBuffer(), nvrhi::Format::R32_UINT, 0 });
-
-            if (mesh->GetTexcoordBuffer(pxr::TfToken("UVMap"))) {
-                state.addVertexBuffer(nvrhi::VertexBufferBinding{
-                    mesh->GetTexcoordBuffer(pxr::TfToken("UVMap"))
-                        .resourceHandle,
-                    2,
-                    0 });
-            }
-            else {
-                state.addVertexBuffer(
-                    nvrhi::VertexBufferBinding{ nullptr, 2, 0 });
-            }
-
-            context.dr(state, program_vars, mesh->IndexCount());
-        }
-    }
     context.finish();
 
     params.set_output("Position", output_position);

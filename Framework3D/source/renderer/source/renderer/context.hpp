@@ -1,5 +1,5 @@
 #pragma once
-
+#include "api.h"
 #include "RHI/ResourceManager/resource_allocator.hpp"
 #include "nvrhi/nvrhi.h"
 #include "program_vars.hpp"
@@ -7,7 +7,7 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-class GPUContext {
+class HD_USTC_CG_API GPUContext {
    public:
     virtual ~GPUContext();
 

@@ -35,6 +35,8 @@ Hd_USTC_CG_RenderInstanceCollection::BindlessData::BindlessData()
     nvrhi::BindlessLayoutDesc desc;
     desc.visibility = nvrhi::ShaderType::All;
     desc.maxCapacity = 8 * 1024;
+    desc.addRegisterSpace(nvrhi::BindingLayoutItem::RawBuffer_UAV(1));
+    desc.addRegisterSpace(nvrhi::BindingLayoutItem::Texture_SRV(2));
     bindlessLayout = device->createBindlessLayout(desc);
     descriptorTableManager =
         std::make_unique<DescriptorTableManager>(device, bindlessLayout);

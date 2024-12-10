@@ -1,9 +1,9 @@
 #pragma once
-
+#include "api.h"
 #include "RHI/ResourceManager/resource_allocator.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class ProgramVars {
+class HD_USTC_CG_API ProgramVars {
    public:
     ProgramVars(ResourceAllocator& r);
 
@@ -39,6 +39,10 @@ class ProgramVars {
 
     nvrhi::static_vector<nvrhi::BindingSetHandle, nvrhi::c_MaxBindingLayouts>
         binding_sets_solid;
+
+    nvrhi::static_vector<nvrhi::IDescriptorTable*, nvrhi::c_MaxBindingLayouts>
+        descriptor_tables;
+
     ResourceAllocator& resource_allocator_;
     std::vector<IProgram*> programs;
 

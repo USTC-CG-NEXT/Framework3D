@@ -244,8 +244,11 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         transforms.push_back(GfMatrix4d(1.0));
     }
 
+    auto& rt_instance_pool = render_param->InstanceCollection->rt_instance_pool;
     std::vector<nvrhi::rt::InstanceDesc> instances;
     instances.resize(transforms.size());
+
+    rt_instanceBuffer = rt_instance_pool.allocate(instances.size());
 
     for (int i = 0; i < transforms.size(); ++i) {
         // Combine the local transform and the instance transform.
@@ -253,7 +256,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
             (transform * GfMatrix4f(transforms[i])).GetTranspose();
 
         nvrhi::rt::InstanceDesc instanceDesc;
-        instanceDesc.bottomLevelAS = BLAS;
+        instanceDesc.blasDeviceAddress = BLAS->getDeviceAddress();
         instanceDesc.instanceMask = 1;
         instanceDesc.flags =
             nvrhi::rt::InstanceFlags::TriangleFrontCounterclockwise;
@@ -266,6 +269,8 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         instanceDesc.instanceID = mesh_desc_buffer->index();
         instances[i] = instanceDesc;
     }
+
+    rt_instanceBuffer->write_data(instances.data());
 }
 
 void Hd_USTC_CG_Mesh::_InitRepr(
@@ -336,6 +341,7 @@ void Hd_USTC_CG_Mesh::Sync(
         if (HdChangeTracker::IsInstancerDirty(*dirtyBits, id) ||
             HdChangeTracker::IsTransformDirty(*dirtyBits, id)) {
             // TODO: fill instance matrix buffer
+            transform = GfMatrix4f(sceneDelegate->GetTransform(id));
         }
 
         if (HdChangeTracker::IsPrimvarDirty(
