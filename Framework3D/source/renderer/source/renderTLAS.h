@@ -8,7 +8,6 @@
 
 // SceneTypes
 #include "../nodes/shaders/shaders/Scene/SceneTypes.slang"
-#include "internal/memory/DeviceObjectPool.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 template<typename T>
