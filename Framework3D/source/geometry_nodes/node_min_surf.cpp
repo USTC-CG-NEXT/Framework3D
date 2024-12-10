@@ -78,17 +78,20 @@ NODE_EXECUTION_FUNCTION(min_surf)
     ** (Recall the Poisson equation with Dirichlet Boundary Condition in HW3)
     */
 
+    // Initialization
     int n_vertices = halfedge_mesh->n_vertices();
     std::vector<int> ori2mat(n_vertices);
     for (const auto& vertex_handle : halfedge_mesh->vertices())
         ori2mat[vertex_handle.idx()] = 0;
 
+    // Label the boundary vertecies
     for (const auto& halfedge_handle : halfedge_mesh->halfedges())
         if (halfedge_handle.is_boundary()) {
             ori2mat[halfedge_handle.to().idx()] = -1;
             ori2mat[halfedge_handle.from().idx()] = -1;
         }
 
+    // Construct a dictionary of internal points
     int n_internals = 0;
     for (int i = 0; i < n_vertices; i++)
         if (ori2mat[i] != -1)
@@ -99,6 +102,7 @@ NODE_EXECUTION_FUNCTION(min_surf)
     Eigen::VectorXd by(n_internals);
     Eigen::VectorXd bz(n_internals);
 
+    // Construct coefficient matrix and vector
     for (const auto& vertex_handle : halfedge_mesh->vertices()) {
         int mat_idx = ori2mat[vertex_handle.idx()];
         bx(mat_idx) = 0;
@@ -111,11 +115,13 @@ NODE_EXECUTION_FUNCTION(min_surf)
             int mat_idx1 = v1.idx();
             Aii++;
             if (mat_idx1 == -1) {
+                // Boundary points
                 bx(mat_idx) += halfedge_mesh->point(v1)[0];
                 by(mat_idx) += halfedge_mesh->point(v1)[1];
                 bz(mat_idx) += halfedge_mesh->point(v1)[2];
             }
             else
+                // Internal points
                 A.coeffRef(mat_idx, mat_idx1) = -1;
         }
         A.coeffRef(mat_idx, mat_idx) = Aii;
@@ -130,6 +136,7 @@ NODE_EXECUTION_FUNCTION(min_surf)
     Eigen::VectorXd uz = bz;
     uz = solver.solve(uz);
 
+    // Update new positions
     for (const auto& vertex_handle : halfedge_mesh->vertices()) {
         int idx = ori2mat[vertex_handle.idx()];
         if (idx != -1) {
