@@ -177,40 +177,6 @@ static nvrhi::ResourceType convertBindingTypeToResourceType(
     return ret;
 }
 
-void ShaderFactory::modify_vulkan_binding_shift(
-    nvrhi::BindingLayoutItem& item) const
-{
-    switch (item.type) {
-        case nvrhi::ResourceType::None: break;
-        case nvrhi::ResourceType::Texture_SRV: item.slot -= SRV_OFFSET; break;
-        case nvrhi::ResourceType::Texture_UAV: item.slot -= UAV_OFFSET; break;
-        case nvrhi::ResourceType::TypedBuffer_SRV:
-            item.slot -= SRV_OFFSET;
-            break;
-        case nvrhi::ResourceType::TypedBuffer_UAV:
-            item.slot -= UAV_OFFSET;
-            break;
-        case nvrhi::ResourceType::StructuredBuffer_SRV:
-            item.slot -= SRV_OFFSET;
-            break;
-        case nvrhi::ResourceType::StructuredBuffer_UAV:
-            item.slot -= UAV_OFFSET;
-            break;
-        case nvrhi::ResourceType::RawBuffer_SRV: item.slot -= SRV_OFFSET; break;
-        case nvrhi::ResourceType::RawBuffer_UAV: item.slot -= UAV_OFFSET; break;
-        case nvrhi::ResourceType::ConstantBuffer:
-            item.slot -= CONSTANT_BUFFER_OFFSET;
-            break;
-        case nvrhi::ResourceType::VolatileConstantBuffer:
-            item.slot -= CONSTANT_BUFFER_OFFSET;
-            break;
-        case nvrhi::ResourceType::Sampler: item.slot -= SAMPLER_OFFSET; break;
-        case nvrhi::ResourceType::RayTracingAccelStruct:
-            item.slot -= SRV_OFFSET;
-            break;
-    }
-}
-
 ShaderReflectionInfo ShaderFactory::shader_reflect(
     slang::IComponentType* component,
     nvrhi::ShaderType shader_type) const
@@ -228,6 +194,8 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
     auto binding_set_count = g_layout->getDescriptorSetCount();
     // auto parameterCount = entryPoint->getParameterCount();
     nvrhi::BindingLayoutDescVector& layout_vector = ret.binding_spaces;
+
+    std::vector<unsigned> indices;
 
     for (int pp = 0; pp < parameterCount; ++pp) {
         slang::VariableLayoutReflection* parameter =
@@ -248,8 +216,6 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
                      parameter->getOffset(
                          SLANG_PARAMETER_CATEGORY_SUB_ELEMENT_REGISTER_SPACE);
 
-        binding_locations[name] = std::make_tuple(space, index);
-
         auto bindingRangeCount = typeLayout->getBindingRangeCount();
         assert(bindingRangeCount == 1);
         slang::BindingType type = typeLayout->getBindingRangeType(0);
@@ -258,11 +224,13 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         item.type = convertBindingTypeToResourceType(type, resource_shape);
         item.slot = index;
 
-        modify_vulkan_binding_shift(item);
-
         if (layout_vector.size() < space + 1) {
             layout_vector.resize(space + 1);
+            indices.resize(space + 1, 0);
         }
+
+        binding_locations[name] = std::make_tuple(space, indices[space]++);
+
         assert(categoryCount == 1);
 
         layout_vector[space].addItem(item);
@@ -428,6 +396,11 @@ void ShaderFactory::populate_vk_options(
         { slang::CompilerOptionName::VulkanBindShiftAll,
           slang::CompilerOptionValue{
               slang::CompilerOptionValueKind::Int, 0, UAV_OFFSET } });
+
+    vk_compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanUseEntryPointName,
+          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
+                                      1 } });
 }
 
 #define CHECK_REPORTED_ERROR()                                           \
@@ -588,6 +561,7 @@ void ShaderFactory::SlangCompile(
             0, ppResultBlob.writeRef(), diagnostics.writeRef());
 
         CHECK_REPORTED_ERROR();
+        assert(result == SLANG_OK);
     }
 }
 

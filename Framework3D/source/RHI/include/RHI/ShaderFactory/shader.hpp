@@ -65,7 +65,6 @@ class RHI_API ShaderFactory {
         std::string& error_string,
         SlangCompileTarget target) const;
 
-    void modify_vulkan_binding_shift(nvrhi::BindingLayoutItem& item) const;
     static void populate_vk_options(
         std::vector<slang::CompilerOptionEntry>& vk_compiler_options);
     ShaderReflectionInfo shader_reflect(

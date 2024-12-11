@@ -24,6 +24,7 @@ void ProgramVars::finish_setting_vars()
         resource_allocator_.destroy(binding_sets_solid[i]);
     }
     binding_sets_solid.resize(0);
+    binding_sets_solid.resize(binding_spaces.size());
 
     for (int i = 0; i < binding_spaces.size(); ++i) {
         BindingSetDesc desc{};
@@ -39,8 +40,10 @@ void ProgramVars::finish_setting_vars()
                 desc.bindings[i].subresources = nvrhi::AllSubresources;
             }
         }
-        binding_sets_solid.push_back(
-            resource_allocator_.create(desc, binding_layouts[i].Get()));
+
+        if (!descriptor_tables[i])
+            binding_sets_solid[i] =
+                resource_allocator_.create(desc, binding_layouts[i].Get());
     }
 }
 
@@ -122,10 +125,16 @@ nvrhi::IResource*& ProgramVars::operator[](const std::string& name)
 
 void ProgramVars::set_descriptor_table(
     const std::string& name,
-    nvrhi::IDescriptorTable* table)
+    nvrhi::IDescriptorTable* table,
+    BindingLayoutHandle layout_handle)
 {
     auto [binding_space_id, binding_set_location] = get_binding_location(name);
     descriptor_tables[binding_space_id] = table;
+
+    if (binding_layouts[binding_space_id]) {
+        resource_allocator_.destroy(binding_layouts[binding_space_id]);
+        binding_layouts[binding_space_id] = layout_handle;
+    }
 }
 
 void ProgramVars::set_binding(
@@ -146,8 +155,15 @@ void ProgramVars::set_binding(
 nvrhi::BindingSetVector ProgramVars::get_binding_sets() const
 {
     nvrhi::BindingSetVector result;
+
+    result.resize(binding_sets_solid.size());
     for (int i = 0; i < binding_sets_solid.size(); ++i) {
-        result.push_back(binding_sets_solid[i].Get());
+        if (binding_sets_solid[i]) {
+            result[i] = binding_sets_solid[i].Get();
+        }
+        if (descriptor_tables[i]) {
+            result[i] = descriptor_tables[i];
+        }
     }
     return result;
 }

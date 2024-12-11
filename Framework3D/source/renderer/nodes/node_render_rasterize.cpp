@@ -58,10 +58,16 @@ NODE_EXECUTION_FUNCTION(rasterize)
 
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
     program_vars["viewConstant"] = view_cb;
+    program_vars["instanceDescBuffer"] =
+        instance_collection->instance_pool.get_device_buffer();
+    program_vars["meshDescBuffer"] =
+        instance_collection->mesh_pool.get_device_buffer();
+
     program_vars.set_descriptor_table(
         "t_BindlessBuffers",
         global_payload.InstanceCollection->bindlessData.descriptorTableManager
-            ->GetDescriptorTable());
+            ->GetDescriptorTable(),
+        global_payload.InstanceCollection->bindlessData.bindlessLayout);
 
     program_vars.finish_setting_vars();
 

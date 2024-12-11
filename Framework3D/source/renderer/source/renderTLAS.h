@@ -33,7 +33,6 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
         BindlessData();
         std::unique_ptr<DescriptorTableManager> descriptorTableManager;
 
-       private:
         nvrhi::BindingLayoutHandle bindlessLayout;
     };
     BindlessData bindlessData;
@@ -43,7 +42,7 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
         require_rebuild_tlas = true;
     }
 
-private:
+   private:
     nvrhi::rt::AccelStructHandle TLAS;
 
     bool require_rebuild_tlas = true;

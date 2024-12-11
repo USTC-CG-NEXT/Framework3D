@@ -7,7 +7,7 @@ ConstantBuffer<PlanarViewConstants> viewConstant;
 StructuredBuffer<GeometryInstanceData> instanceDescBuffer;
 StructuredBuffer<MeshDesc> meshDescBuffer;
 
-[[vk::binding(0, 1)]] StructuredBuffer<float> t_BindlessBuffers[] : register(space1);
+[[vk::binding(0, 1)]] StructuredBuffer<float> t_BindlessBuffers[] : register(t0, space1);
 
 // Vertex shader output structure
 struct VSOutput {

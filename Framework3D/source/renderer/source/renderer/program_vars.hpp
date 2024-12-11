@@ -21,7 +21,7 @@ class HD_USTC_CG_API ProgramVars {
 
     void set_descriptor_table(
         const std::string& name,
-        nvrhi::IDescriptorTable* table);
+        nvrhi::IDescriptorTable* table, BindingLayoutHandle layout_handle);
     // This is for setting extra settings
     void set_binding(
         const std::string& name,
