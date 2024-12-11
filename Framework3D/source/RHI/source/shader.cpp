@@ -469,6 +469,7 @@ void ShaderFactory::SlangCompile(
     sessionDesc.targetCount = 1;
     sessionDesc.compilerOptionEntries = compiler_options.data();
     sessionDesc.compilerOptionEntryCount = (SlangInt)compiler_options.size();
+    sessionDesc.allowGLSLSyntax = true;
     std::vector<std::string> searchPaths = { shader_search_path };
     searchPaths.push_back("./");
     searchPaths.push_back(shader_search_path + "/shaders/");
