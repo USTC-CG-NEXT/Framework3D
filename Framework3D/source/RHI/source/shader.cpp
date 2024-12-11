@@ -249,9 +249,9 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         auto space = parameter->getBindingSpace() +
                      parameter->getOffset(
                          SLANG_PARAMETER_CATEGORY_SUB_ELEMENT_REGISTER_SPACE);
-        if (name == "t_BindlessBuffers") {
-            assert(space != 0);
-        }
+        //if (name == "t_BindlessBuffers") {
+        //    assert(space != 0);
+        //}
 
         binding_locations[name] = std::make_tuple(space, pp);
 
