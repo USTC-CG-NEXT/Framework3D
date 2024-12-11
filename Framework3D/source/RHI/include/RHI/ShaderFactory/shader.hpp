@@ -1,12 +1,13 @@
 #pragma once
+#include <nvrhi/nvrhi.h>
+
 #include <filesystem>
 #include <map>
 
+#include "RHI/api.h"
 #include "RHI/internal/resources.hpp"
 #include "RHI/rhi.hpp"
-#include "RHI/api.h"
 #include "shader_reflection.hpp"
-#include <nvrhi/nvrhi.h>
 
 namespace USTC_CG {
 class ResourceAllocator;
@@ -33,7 +34,7 @@ class RHI_API ShaderFactory {
         std::string& error_string,
         const std::vector<ShaderMacro>& macro_defines = {},
         const std::string& source_code = {});
-        
+
     ProgramHandle compile_cpu_executable(
         const std::string& entryName,
         nvrhi::ShaderType shader_type,
@@ -61,10 +62,12 @@ class RHI_API ShaderFactory {
         ShaderReflectionInfo& shader_reflection,
         Slang::ComPtr<ISlangBlob>& ppResultBlob,
         Slang::ComPtr<ISlangSharedLibrary>& ppSharedLirary,
-        std::string& error_string, SlangCompileTarget target) const;
+        std::string& error_string,
+        SlangCompileTarget target) const;
 
     void modify_vulkan_binding_shift(nvrhi::BindingLayoutItem& item) const;
-
+    static void populate_vk_options(
+        std::vector<slang::CompilerOptionEntry>& vk_compiler_options);
     ShaderReflectionInfo shader_reflect(
         slang::IComponentType* component,
         nvrhi::ShaderType shader_type) const;

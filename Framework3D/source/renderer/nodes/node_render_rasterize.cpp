@@ -58,9 +58,12 @@ NODE_EXECUTION_FUNCTION(rasterize)
 
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
     program_vars["viewConstant"] = view_cb;
-    program_vars["t_BindlessBuffers"] =
+    program_vars.set_descriptor_table(
+        "t_BindlessBuffers",
         global_payload.InstanceCollection->bindlessData.descriptorTableManager
-            ->GetDescriptorTable();
+            ->GetDescriptorTable());
+
+    program_vars.finish_setting_vars();
 
     GraphicsContext context(resource_allocator, program_vars);
     context.set_render_target(0, output_position)
@@ -71,11 +74,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
         .set_depth_stencil_target(output_depth)
         .finish_setting_frame_buffer();
 
-    context.add_vertex_buffer_desc("POSITION", 0, nvrhi::Format::RGB32_FLOAT)
-        .add_vertex_buffer_desc("NORMAL", 1, nvrhi::Format::RGB32_FLOAT)
-        .add_vertex_buffer_desc("TEXCOORD", 2, nvrhi::Format::RG32_FLOAT)
-        .set_viewport(get_size(params))
-        .finish_setting_pso();
+    context.set_viewport(get_size(params)).finish_setting_pso();
 
     instance_collection->draw_indirect_pool.compress();
     auto indirect_buffer =

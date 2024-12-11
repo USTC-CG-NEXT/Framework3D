@@ -221,13 +221,11 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
 
     slang::ShaderReflection* programReflection = component->getLayout(0);
 
-    Slang::ComPtr<slang::IBlob> outBlob;
-    programReflection->toJson(outBlob.writeRef());
-    std::string json = (const char*)outBlob->getBufferPointer();
-
     // slang::EntryPointReflection* entryPoint =
     //     programReflection->findEntryPointByName(entryPointName);
     auto parameterCount = programReflection->getParameterCount();
+    auto g_layout = programReflection->getGlobalParamsTypeLayout();
+    auto binding_set_count = g_layout->getDescriptorSetCount();
     // auto parameterCount = entryPoint->getParameterCount();
     nvrhi::BindingLayoutDescVector& layout_vector = ret.binding_spaces;
 
@@ -238,6 +236,7 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         slang::TypeLayoutReflection* typeLayout = parameter->getTypeLayout();
         slang::TypeReflection* type_reflection = parameter->getType();
         SlangResourceShape resource_shape = type_reflection->getResourceShape();
+        auto d_set_count = typeLayout->getDescriptorSetCount();
 
         slang::ParameterCategory category = parameter->getCategory();
         std::string name = parameter->getName();
@@ -248,11 +247,8 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         auto space = parameter->getBindingSpace() +
                      parameter->getOffset(
                          SLANG_PARAMETER_CATEGORY_SUB_ELEMENT_REGISTER_SPACE);
-        // if (name == "t_BindlessBuffers") {
-        //     assert(space != 0);
-        // }
 
-        binding_locations[name] = std::make_tuple(space, pp);
+        binding_locations[name] = std::make_tuple(space, index);
 
         auto bindingRangeCount = typeLayout->getBindingRangeCount();
         assert(bindingRangeCount == 1);
@@ -310,10 +306,10 @@ nvrhi::ShaderHandle ShaderFactory::compile_shader(
     const std::string& source_code)
 {
     ProgramDesc program_desc;
+    program_desc.set_entry_name(entryName);
 
     if (shader_path != "") {
         program_desc.set_path(shader_path);
-        program_desc.set_entry_name(entryName);
     }
     for (const auto& macro_define : macro_defines) {
         program_desc.define(macro_define.name, macro_define.definition);
@@ -412,6 +408,36 @@ ProgramHandle ShaderFactory::compile_cpu_executable(
     return program_handle;
 }
 
+void ShaderFactory::populate_vk_options(
+    std::vector<slang::CompilerOptionEntry>& vk_compiler_options)
+{
+    vk_compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShiftAll,
+          slang::CompilerOptionValue{
+              slang::CompilerOptionValueKind::Int, 2, SRV_OFFSET } });
+    vk_compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShiftAll,
+          slang::CompilerOptionValue{
+              slang::CompilerOptionValueKind::Int, 1, SAMPLER_OFFSET } });
+    vk_compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShiftAll,
+          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
+                                      3,
+                                      CONSTANT_BUFFER_OFFSET } });
+    vk_compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanBindShiftAll,
+          slang::CompilerOptionValue{
+              slang::CompilerOptionValueKind::Int, 0, UAV_OFFSET } });
+}
+
+#define CHECK_REPORTED_ERROR()                                           \
+    if (SLANG_FAILED(result)) {                                          \
+        if (diagnostics) {                                               \
+            error_string = (const char*)diagnostics->getBufferPointer(); \
+        }                                                                \
+        return;                                                          \
+    }
+
 void ShaderFactory::SlangCompile(
     const std::filesystem::path& path,
     const std::string& sourceCode,
@@ -431,42 +457,19 @@ void ShaderFactory::SlangCompile(
         globalSession = createGlobal();
     }
 
-    std::vector<slang::CompilerOptionEntry> compiler_options;
-    compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanBindShift,
-          slang::CompilerOptionValue{
-              slang::CompilerOptionValueKind::Int, 2 << 24, SRV_OFFSET } });
-    compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanBindShift,
-          slang::CompilerOptionValue{
-              slang::CompilerOptionValueKind::Int, 1 << 24, SAMPLER_OFFSET } });
-    compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanBindShift,
-          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
-                                      3 << 24,
-                                      CONSTANT_BUFFER_OFFSET } });
-    compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanBindShift,
-          slang::CompilerOptionValue{
-              slang::CompilerOptionValueKind::Int, 0 << 24, UAV_OFFSET } });
+    std::vector<slang::CompilerOptionEntry> vk_compiler_options;
 
-    compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanUseEntryPointName,
-          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
-                                      1 } });
-
-    
-    compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanEmitReflection,
-          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
-                                      1 } });
+    if (target == SLANG_SPIRV) {
+        populate_vk_options(vk_compiler_options);
+    }
 
     auto profile_id = globalSession->findProfile(profile);
 
     slang::TargetDesc desc;
     desc.format = target;
     desc.profile = profile_id;
-    desc.flags = SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM;
+    desc.flags = SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM |
+                 SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY;
 
     std::vector<slang::PreprocessorMacroDesc> macros;
 
@@ -474,17 +477,15 @@ void ShaderFactory::SlangCompile(
         macros.push_back({ define.name.c_str(), define.definition.c_str() });
     }
 
-    Slang::ComPtr<slang::ISession> pSlangSession;
+    Slang::ComPtr<slang::ISession> p_compile_session;
 
-    slang::SessionDesc sessionDesc;
-    sessionDesc.targets = &desc;
-    sessionDesc.targetCount = 1;
-    sessionDesc.compilerOptionEntries = compiler_options.data();
-    sessionDesc.compilerOptionEntryCount =
-        static_cast<SlangInt>(compiler_options.size());
-    sessionDesc.allowGLSLSyntax = true;
-    sessionDesc.preprocessorMacros = macros.data();
-    sessionDesc.preprocessorMacroCount = static_cast<SlangInt>(macros.size());
+    slang::SessionDesc compile_session_desc;
+    compile_session_desc.targets = &desc;
+    compile_session_desc.targetCount = 1;
+
+    compile_session_desc.preprocessorMacros = macros.data();
+    compile_session_desc.preprocessorMacroCount =
+        static_cast<SlangInt>(macros.size());
 
     std::vector<std::string> searchPaths = { shader_search_path };
     searchPaths.push_back("./");
@@ -494,11 +495,17 @@ void ShaderFactory::SlangCompile(
     for (auto& path : searchPaths) {
         slangSearchPaths.push_back(path.data());
     }
-    sessionDesc.searchPaths = slangSearchPaths.data();
-    sessionDesc.searchPathCount = (SlangInt)slangSearchPaths.size();
-    auto result =
-        globalSession->createSession(sessionDesc, pSlangSession.writeRef());
-    assert(result == SLANG_OK);
+    compile_session_desc.searchPaths = slangSearchPaths.data();
+    compile_session_desc.searchPathCount = (SlangInt)slangSearchPaths.size();
+
+    slang::SessionDesc reflection_session_desc = compile_session_desc;
+
+    compile_session_desc.compilerOptionEntries = vk_compiler_options.data();
+    compile_session_desc.compilerOptionEntryCount =
+        static_cast<SlangInt>(vk_compiler_options.size());
+
+    auto result = globalSession->createSession(
+        compile_session_desc, p_compile_session.writeRef());
 
     Slang::ComPtr<slang::IModule> module;
     Slang::ComPtr<slang::IBlob> diagnostics;
@@ -508,34 +515,80 @@ void ShaderFactory::SlangCompile(
         assert(result == SLANG_OK);
     }
 
-    std::string s = sourceCode;
+    auto load_module = [&](slang::ISession* session) {
+        slang::IModule* ret;
+        if (!sourceCode.empty())
+            ret = session->loadModuleFromSourceString(
+                path.filename().generic_string().c_str(),
+                path.generic_string().c_str(),
+                sourceCode.c_str(),
+                diagnostics.writeRef());
 
-    if (sourceCode.empty()) {
-        std::ifstream file(path);
-        if (!file.is_open()) {
-            error_string = "File not found";
-            return;
+        else {
+            ret = session->loadModule(
+                path.generic_string().c_str(), diagnostics.writeRef());
         }
-        s = std::string(
-            (std::istreambuf_iterator<char>(file)),
-            std::istreambuf_iterator<char>());
+
+        return ret;
+    };
+
+    module = load_module(p_compile_session.get());
+
+    if (!module.get()) {
+        if (diagnostics) {
+            error_string = (const char*)diagnostics->getBufferPointer();
+        }
+        return;
     }
 
-    module = pSlangSession->loadModuleFromSourceString(
-        "shader", "shader", s.c_str(), diagnostics.writeRef());
+    Slang::ComPtr<slang::IEntryPoint> entry;
+
+    result = module->findAndCheckEntryPoint(
+        entryPoint, stage, entry.writeRef(), diagnostics.writeRef());
+    CHECK_REPORTED_ERROR();
+
+    std::vector<slang::IComponentType*> components;
+
+    components.push_back(module.get());
+    components.push_back(entry.get());
 
     Slang::ComPtr<slang::IComponentType> program;
-    result = module->link(program.writeRef(), diagnostics.writeRef());
+    result = p_compile_session->createCompositeComponentType(
+        components.data(), components.size(), program.writeRef());
 
-    shader_reflection = shader_reflect(program.get(), shaderType);
-    if (target == SLANG_SHADER_HOST_CALLABLE) {
-        result = module->getEntryPointHostCallable(
-            0, target, ppSharedLirary.writeRef());
+    Slang::ComPtr<slang::IComponentType> linkedProgram;
+    result = program->link(linkedProgram.writeRef());
+
+    CHECK_REPORTED_ERROR();
+
+    if (target == SLANG_SPIRV) {
+        Slang::ComPtr<slang::ISession> p_reflection_session;
+        result = globalSession->createSession(
+            reflection_session_desc, p_reflection_session.writeRef());
+        assert(result == SLANG_OK);
+
+        Slang::ComPtr<slang::IModule> reflection_module;
+
+        reflection_module = load_module(p_reflection_session.get());
+
+        shader_reflection = shader_reflect(reflection_module.get(), shaderType);
     }
     else {
-        result = module->getTargetCode(0, ppResultBlob.writeRef());
+        shader_reflection = shader_reflect(linkedProgram.get(), shaderType);
     }
-    assert(result == SLANG_OK);
+
+    if (target == SLANG_SHADER_HOST_CALLABLE) {
+        result = linkedProgram->getEntryPointHostCallable(
+            0, target, ppSharedLirary.writeRef(), diagnostics.writeRef());
+        CHECK_REPORTED_ERROR();
+        assert(result == SLANG_OK);
+    }
+    else {
+        result = linkedProgram->getTargetCode(
+            0, ppResultBlob.writeRef(), diagnostics.writeRef());
+
+        CHECK_REPORTED_ERROR();
+    }
 }
 
 ProgramHandle ShaderFactory::createProgram(const ProgramDesc& desc) const

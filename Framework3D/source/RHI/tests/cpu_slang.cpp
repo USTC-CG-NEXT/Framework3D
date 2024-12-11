@@ -9,7 +9,7 @@ using namespace USTC_CG;
 const char* str = R"(
 
 RWStructuredBuffer<float> ioBuffer;
-RWStructuredBuffer<float> t_BindlessBuffers[] : register(space1);
+RWStructuredBuffer<float> t_BindlessBuffers[] : register(t0, space1);
 
 [shader("compute")]
 [numthreads(4, 1, 1)]
