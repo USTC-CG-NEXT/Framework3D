@@ -66,7 +66,7 @@ class RHI_API ShaderFactory {
     void modify_vulkan_binding_shift(nvrhi::BindingLayoutItem& item) const;
 
     ShaderReflectionInfo shader_reflect(
-        SlangCompileRequest* request,
+        slang::IComponentType* component,
         nvrhi::ShaderType shader_type) const;
 
     static constexpr int SRV_OFFSET = 0;

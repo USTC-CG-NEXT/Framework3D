@@ -9,7 +9,7 @@ using namespace USTC_CG;
 const char* str = R"(
 
 RWStructuredBuffer<float> ioBuffer;
-[[vk::binding(0, 1)]] StructuredBuffer<float> t_BindlessBuffers[] : register(space1);
+RWStructuredBuffer<float> t_BindlessBuffers[] : register(space1);
 
 [shader("compute")]
 [numthreads(4, 1, 1)]
@@ -33,7 +33,7 @@ TEST(cpu_call, gen_shader)
 
     ShaderReflectionInfo reflection;
     std::string error_string;
-    auto program_handle = shader_factory.compile_cpu_executable(
+    auto program_handle = shader_factory.compile_shader(
         "computeMain",
         nvrhi::ShaderType::Compute,
         "",
