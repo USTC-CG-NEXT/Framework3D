@@ -26,18 +26,17 @@ StaticVertexData load_vertex(MeshDesc mesh_data, uint vertex_id)
     var vb_offset = mesh_data.vbOffset;
     var normal_offset = mesh_data.normalOffset;
 
+    var id = vertex_id;
+
     float3 pos = float3(
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vertex_id + vb_offset + 0],
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vertex_id + vb_offset + 1],
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vertex_id + vb_offset + 2]);
+        t_BindlessBuffers[0][3 * vertex_id + vb_offset + 0],
+        t_BindlessBuffers[0][3 * vertex_id + vb_offset + 1],
+        t_BindlessBuffers[0][3 * vertex_id + vb_offset + 2]);
 
     float3 normal = float3(
-        t_BindlessBuffers[mesh_data.vbBufferIndex]
-                         [vertex_id + normal_offset + 0],
-        t_BindlessBuffers[mesh_data.vbBufferIndex]
-                         [vertex_id + normal_offset + 1],
-        t_BindlessBuffers[mesh_data.vbBufferIndex]
-                         [vertex_id + normal_offset + 2]);
+        t_BindlessBuffers[0][3 * vertex_id + normal_offset + 0],
+        t_BindlessBuffers[0][3 * vertex_id + normal_offset + 1],
+        t_BindlessBuffers[0][3 * vertex_id + normal_offset + 2]);
 
     StaticVertexData data =
         StaticVertexData(pos, normal, float4(0, 0, 0, 0), float2(0, 0), 0);
@@ -51,6 +50,7 @@ void vs_main(
 {
     var InstanceData = instanceDescBuffer[i_instanceID];
     var MeshData = meshDescBuffer[InstanceData.geometryID];
+
     // Get the model matrix for the current instance
     float4x4 modelMatrix = InstanceData.transform;
 
@@ -60,10 +60,11 @@ void vs_main(
 
     // Transform the vertex position to world space
     float4 worldPos = mul(float4(vertex.position, 1.0), modelMatrix);
-    worldPos = float4(vertex.position, 1.0);
 
     // Transform the vertex position to clip space
     o_output.position = mul(worldPos, viewConstant.matWorldToClip);
+    // o_output.position = float4(vertex.position, 1.0);
+
     o_output.worldPos = worldPos.xyz;
     // Pass through the normal
     o_output.position.y *= -1;
@@ -87,7 +88,7 @@ void ps_main(
 {
     // Simply output the color passed from the vertex shader
     o_pos = float4(input.worldPos, 1.0);
-    o_normal = float4(1, 1, 1, 1.0);
+    o_normal = float4(0.5+0.5*input.normal, 1.0);
     depth = input.position.z;
     o_diffuse_color = float4(1, 0, 1, 1);
     o_metallic_roughness = float4(0.5, 0.5, 0, 1);

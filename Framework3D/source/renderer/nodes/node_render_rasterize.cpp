@@ -91,8 +91,6 @@ NODE_EXECUTION_FUNCTION(rasterize)
     context.set_viewport(get_size(params)).finish_setting_pso();
 
     instance_collection->draw_indirect_pool.compress();
-    auto indirect_buffer =
-        instance_collection->draw_indirect_pool.get_device_buffer();
 
     GraphicsRenderState state;
     state.indexBuffer = { instance_collection->index_pool.get_device_buffer(),
@@ -103,7 +101,7 @@ NODE_EXECUTION_FUNCTION(rasterize)
     context.draw_indirect(
         state,
         program_vars,
-        indirect_buffer,
+        instance_collection->draw_indirect_pool.get_device_buffer(),
         instance_collection->draw_indirect_pool.count());
 
     context.finish();

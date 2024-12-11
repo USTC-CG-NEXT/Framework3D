@@ -184,6 +184,8 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
 
     normalBuffer = render_param->InstanceCollection->vertex_pool.allocate(
         points.size() * 3);
+
+    normalBuffer->write_data(computedNormals.data());
     {
         std::lock_guard lock(execution_launch_mutex);
         nvrhi::rt::AccelStructDesc blas_desc;

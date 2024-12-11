@@ -154,8 +154,7 @@ void DeviceMemoryPool<T>::MemoryHandleData::write_data(
             device_buffer, data, sizeof(T), offset + bias_count * sizeof(T));
     }
     else {
-        pool->commandList->writeBuffer(
-            device_buffer, data, size, offset);
+        pool->commandList->writeBuffer(device_buffer, data, size, offset);
     }
 
     pool->commandList->close();
@@ -228,11 +227,9 @@ void DeviceMemoryPool<T>::Initialize()
 
     // Initialize device buffer and valid mask
     nvrhi::BufferDesc bufferDesc = buffer_desc<T>();
-    bufferDesc.debugName = "DeviceObjectPoolBuffer";
+    bufferDesc.debugName =
+        "DeviceObjectPoolBuffer " + std::string(typeid(T).name());
     device_buffer = device->createBuffer(bufferDesc);
-
-    nvrhi::BufferDesc maskDesc = buffer_desc<uint8_t>();
-    maskDesc.debugName = "DeviceObjectPoolValidMask";
 }
 
 template<typename T>
@@ -366,7 +363,7 @@ bool DeviceMemoryPool<T>::compress()
     }
 
     // Create another DeviceMemoryPool and copy into it...
-    DeviceMemoryPool<T> new_pool;
+    DeviceMemoryPool<T> new_pool(this->base_desc_);
     new_pool.reserve(max_count);
 
     commandList->open();

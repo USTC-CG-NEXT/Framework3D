@@ -113,6 +113,9 @@ void GraphicsContext::draw_indirect(
     nvrhi::IBuffer* indirect_buffer,
     uint32_t draw_count)
 {
+    if (draw_count == 0) {
+        return;
+    }
     nvrhi::GraphicsState graphics_state;
 
     graphics_state.vertexBuffers = state.vertexBuffers;

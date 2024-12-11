@@ -17,7 +17,6 @@ Hd_USTC_CG_RenderInstanceCollection::Hd_USTC_CG_RenderInstanceCollection()
     tlasDesc.isTopLevel = true;
     tlasDesc.topLevelMaxInstances = 1024 * 1024;
     TLAS = RHI::get_device()->createAccelStruct(tlasDesc);
-
 }
 
 Hd_USTC_CG_RenderInstanceCollection::~Hd_USTC_CG_RenderInstanceCollection()
@@ -43,7 +42,7 @@ Hd_USTC_CG_RenderInstanceCollection::BindlessData::BindlessData()
     nvrhi::BindlessLayoutDesc desc;
     desc.visibility = nvrhi::ShaderType::All;
     desc.maxCapacity = 8 * 1024;
-    desc.addRegisterSpace(nvrhi::BindingLayoutItem::RawBuffer_UAV(1));
+    desc.addRegisterSpace(nvrhi::BindingLayoutItem::StructuredBuffer_SRV(1));
     desc.addRegisterSpace(nvrhi::BindingLayoutItem::Texture_SRV(2));
     bindlessLayout = device->createBindlessLayout(desc);
     descriptorTableManager =

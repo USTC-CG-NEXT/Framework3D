@@ -111,6 +111,7 @@ struct GeometryInstanceData
     uint flags;             ///< Upper kTypeBits bits are reserved for storing the type.
     uint materialID;
     uint geometryID;
+    uint padding;
     float4x4 transform; ///< Instance transform.
 
 #ifdef HOST_CODE
@@ -160,7 +161,7 @@ struct MeshDesc
     uint normalOffset;      ///< Offset into normal buffer, or zero if no normals.
     uint skinningVbOffset;  ///< Offset into skinning data buffer, or zero if no skinning data.
     uint prevVbOffset;      ///< Offset into previous vertex data buffer, or zero if neither skinned or animated.
-    uint materialID;        ///< Material ID.
+    //uint materialID;        ///< Material ID.
     uint flags;             ///< See MeshFlags.
 
 

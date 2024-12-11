@@ -894,7 +894,8 @@ bool DeviceManager_VK::createDevice()
                               .setTextureCompressionBC(true)
                               .setGeometryShader(true)
                               .setImageCubeArray(true)
-                              .setDualSrcBlend(true);
+                              .setDualSrcBlend(true)
+                              .setMultiDrawIndirect(true);
 
     auto vulkan12features =
         vk::PhysicalDeviceVulkan12Features()
