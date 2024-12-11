@@ -1,11 +1,15 @@
 #pragma once
 #include <RHI/rhi.hpp>
 #include <algorithm>
+#include <iostream>
 #include <mutex>
+#include <sstream>
 #include <unordered_map>
 
 #include "../../api.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
+HD_USTC_CG_API extern std::mutex execution_launch_mutex;
 
 template<typename T>
 class DeviceMemoryPool {
@@ -89,6 +93,7 @@ class DeviceMemoryPool {
 
    private:
     std::mutex buffer_write_mutex_;
+
     void relocate_buffer();
     void erase(MemoryHandleData* handle);
 
@@ -140,14 +145,17 @@ DeviceMemoryPool<T>::MemoryHandleData::create()
 template<typename T>
 void DeviceMemoryPool<T>::MemoryHandleData::write_data(const void* data)
 {
-    std::lock_guard<std::mutex> lock(pool->buffer_write_mutex_);
+    std::lock_guard lock(execution_launch_mutex);
     auto device = pool->get_device_buffer();
+
     pool->commandList->open();
     pool->commandList->writeBuffer(device, data, size, offset);
     pool->commandList->close();
-    RHI::get_device()->executeCommandList(pool->commandList);
-    RHI::get_device()->waitForIdle();
-    RHI::get_device()->runGarbageCollection();
+
+    RHI::get_device()->executeCommandList(
+        pool->commandList, nvrhi::CommandQueue::Copy);
+    // RHI::get_device()->waitForIdle();
+    // RHI::get_device()->runGarbageCollection();
 }
 
 template<typename T>
@@ -190,9 +198,10 @@ void DeviceMemoryPool<T>::MemoryHandleData::read_data(void* data)
     pool->commandList->copyBuffer(
         staging, 0, pool->device_buffer, offset, size);
     pool->commandList->close();
-    RHI::get_device()->executeCommandList(pool->commandList);
-    RHI::get_device()->waitForIdle();
-    RHI::get_device()->runGarbageCollection();
+    RHI::get_device()->executeCommandList(
+        pool->commandList, nvrhi::CommandQueue::Copy);
+    // RHI::get_device()->waitForIdle();
+    // RHI::get_device()->runGarbageCollection();
 
     auto mapped_data =
         RHI::get_device()->mapBuffer(staging, nvrhi::CpuAccessMode::Read);
@@ -204,7 +213,10 @@ template<typename T>
 DeviceMemoryPool<T>::DeviceMemoryPool()
 {
     nvrhi::IDevice* device = RHI::get_device();
-    commandList = device->createCommandList();
+    nvrhi::CommandListParameters cmd_desc;
+    cmd_desc.enableImmediateExecution = false;
+    cmd_desc.queueType = nvrhi::CommandQueue::Copy;
+    commandList = device->createCommandList(cmd_desc);
 
     // Initialize device buffer and valid mask
     nvrhi::BufferDesc bufferDesc = buffer_desc<T>();
@@ -233,10 +245,13 @@ template<typename T>
 typename DeviceMemoryPool<T>::MemoryHandle DeviceMemoryPool<T>::allocate(
     size_t count)
 {
-    auto size = count * sizeof(T);
     MemoryHandle handle = MemoryHandleData::create();
+
+    auto size = count * sizeof(T);
     handle->size = size;
     handle->pool = this;
+
+    std::lock_guard lock(buffer_write_mutex_);
 
     for (auto free_handle = h_free_list.begin();
          free_handle != h_free_list.end();
@@ -275,6 +290,8 @@ typename DeviceMemoryPool<T>::MemoryHandle DeviceMemoryPool<T>::allocate(
 template<typename T>
 void DeviceMemoryPool<T>::erase(MemoryHandleData* handle)
 {
+    std::lock_guard lock(buffer_write_mutex_);
+
     h_free_list.push_back(std::make_pair(handle->offset, handle->size));
     current_count -= handle->size / sizeof(T);
     handles_allocated.erase(
@@ -325,8 +342,11 @@ bool DeviceMemoryPool<T>::compress()
     }
     commandList->close();
     auto device = RHI::get_device();
-    device->executeCommandList(commandList);
-    device->runGarbageCollection();
+
+    std::lock_guard lock(execution_launch_mutex);
+    device->executeCommandList(commandList, nvrhi::CommandQueue::Copy);
+    // device->waitForIdle();
+    // device->runGarbageCollection();
 
     *this = std::move(new_pool);
     return true;
@@ -405,14 +425,18 @@ void DeviceMemoryPool<T>::relocate_buffer()
         bufferDesc.debugName = "DeviceObjectPoolBuffer";
         auto new_device_buffer = RHI::get_device()->createBuffer(bufferDesc);
 
+        std::lock_guard lock(execution_launch_mutex);
+
+
         commandList->open();
         commandList->copyBuffer(
             new_device_buffer, 0, device_buffer, 0, max_count * sizeof(T));
 
         commandList->close();
-
-        RHI::get_device()->executeCommandList(commandList);
-        RHI::get_device()->runGarbageCollection();
+        RHI::get_device()->executeCommandList(
+            commandList, nvrhi::CommandQueue::Copy);
+        // RHI::get_device()->waitForIdle();
+        // RHI::get_device()->runGarbageCollection();
 
         max_count = targeted_max_count;
 

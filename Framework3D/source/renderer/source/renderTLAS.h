@@ -38,7 +38,12 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
     };
     BindlessData bindlessData;
 
-   private:
+    void set_require_rebuild_tlas()
+    {
+        require_rebuild_tlas = true;
+    }
+
+private:
     nvrhi::rt::AccelStructHandle TLAS;
 
     bool require_rebuild_tlas = true;

@@ -74,24 +74,24 @@ void vs_main(
 #endif
 }
 
-//void ps_main(
-//    in VSOutput input,
-//    out float4 o_pos: SV_Target0,
-//    out float2 o_texcoord: SV_Target1,
-//    out float4 o_diffuse_color: SV_Target2,
-//    out float4 o_metallic_roughness: SV_Target3,
-//    out float4 o_normal: SV_Target4,
-//    out float depth: SV_Depth)
-//{
-//    // Simply output the color passed from the vertex shader
-//    o_pos = float4(input.worldPos, 1.0);
-//    o_normal = float4(input.normal, 1.0);
-//    depth = input.position.z;
-//    o_diffuse_color = float4(1, 0, 1, 1);
-//    o_metallic_roughness = float4(0.5, 0.5, 0, 1);
+void ps_main(
+    in VSOutput input,
+    out float4 o_pos: SV_Target0,
+    out float2 o_texcoord: SV_Target1,
+    out float4 o_diffuse_color: SV_Target2,
+    out float4 o_metallic_roughness: SV_Target3,
+    out float4 o_normal: SV_Target4,
+    out float depth: SV_Depth)
+{
+    // Simply output the color passed from the vertex shader
+    o_pos = float4(input.worldPos, 1.0);
+    o_normal = float4(input.normal, 1.0);
+    depth = input.position.z;
+    o_diffuse_color = float4(1, 0, 1, 1);
+    o_metallic_roughness = float4(0.5, 0.5, 0, 1);
 
-//#if defined(ENABLE_TEXCOORD)
-//    o_texcoord = input.texcoord;
-//#endif
-//    // Write depth using the position
-//}
+#if defined(ENABLE_TEXCOORD)
+    o_texcoord = input.texcoord;
+#endif
+    // Write depth using the position
+}

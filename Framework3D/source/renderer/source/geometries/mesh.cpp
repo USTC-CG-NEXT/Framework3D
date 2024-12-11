@@ -39,6 +39,7 @@
 #include "pxr/imaging/hd/smoothNormals.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+std::mutex Hd_USTC_CG_Mesh::_mutex_blas;
 class Hd_USTC_CG_RenderParam;
 using namespace pxr;
 Hd_USTC_CG_Mesh::Hd_USTC_CG_Mesh(const SdfPath& id)
@@ -183,32 +184,36 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
 
     normalBuffer = render_param->InstanceCollection->vertex_pool.allocate(
         points.size() * 3);
+    {
+        std::lock_guard lock(execution_launch_mutex);
+        nvrhi::rt::AccelStructDesc blas_desc;
+        nvrhi::rt::GeometryDesc geometry_desc;
+        geometry_desc.geometryType = nvrhi::rt::GeometryType::Triangles;
+        nvrhi::rt::GeometryTriangles triangles;
+        triangles.setVertexBuffer(vertexBuffer->get_device_buffer())
+            .setVertexOffset(vertexBuffer->offset)
+            .setIndexBuffer(indexBuffer->get_device_buffer())
+            .setIndexOffset(indexBuffer->offset)
+            .setIndexCount(triangulatedIndices.size() * 3)
+            .setVertexCount(points.size())
+            .setVertexStride(3 * sizeof(float))
+            .setVertexFormat(nvrhi::Format::RGB32_FLOAT)
+            .setIndexFormat(nvrhi::Format::R32_UINT);
+        geometry_desc.setTriangles(triangles);
+        blas_desc.addBottomLevelGeometry(geometry_desc);
+        blas_desc.isTopLevel = false;
+        BLAS = device->createAccelStruct(blas_desc);
 
-    nvrhi::rt::AccelStructDesc blas_desc;
-    nvrhi::rt::GeometryDesc geometry_desc;
-    geometry_desc.geometryType = nvrhi::rt::GeometryType::Triangles;
-    nvrhi::rt::GeometryTriangles triangles;
-    triangles.setVertexBuffer(vertexBuffer->get_device_buffer())
-        .setVertexOffset(vertexBuffer->offset)
-        .setIndexBuffer(indexBuffer->get_device_buffer())
-        .setIndexOffset(indexBuffer->offset)
-        .setIndexCount(triangulatedIndices.size() * 3)
-        .setVertexCount(points.size())
-        .setVertexStride(3 * sizeof(float))
-        .setVertexFormat(nvrhi::Format::RGB32_FLOAT)
-        .setIndexFormat(nvrhi::Format::R32_UINT);
-    geometry_desc.setTriangles(triangles);
-    blas_desc.addBottomLevelGeometry(geometry_desc);
-    blas_desc.isTopLevel = false;
-    BLAS = device->createAccelStruct(blas_desc);
+        auto m_CommandList = device->createCommandList();
 
-    auto m_CommandList = device->createCommandList();
-
-    m_CommandList->open();
-    nvrhi::utils::BuildBottomLevelAccelStruct(m_CommandList, BLAS, blas_desc);
-    m_CommandList->close();
-    device->executeCommandList(m_CommandList);
-    device->runGarbageCollection();
+        m_CommandList->open();
+        nvrhi::utils::BuildBottomLevelAccelStruct(
+            m_CommandList, BLAS, blas_desc);
+        m_CommandList->close();
+        device->executeCommandList(m_CommandList);
+        device->waitForIdle();
+        device->runGarbageCollection();
+    }
 
     MeshDesc mesh_desc;
     mesh_desc.vbOffset = vertexBuffer->offset;
@@ -269,7 +274,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         instanceDesc.instanceID = mesh_desc_buffer->index();
         instances[i] = instanceDesc;
     }
-
+    render_param->InstanceCollection->set_require_rebuild_tlas();
     rt_instanceBuffer->write_data(instances.data());
 }
 

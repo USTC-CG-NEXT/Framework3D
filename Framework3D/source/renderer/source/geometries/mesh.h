@@ -74,6 +74,8 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
     nvrhi::rt::AccelStructHandle BLAS;
 
    protected:
+    static std::mutex _mutex_blas;
+
     DeviceMemoryPool<unsigned>::MemoryHandle indexBuffer;
 
     DeviceMemoryPool<float>::MemoryHandle vertexBuffer;
