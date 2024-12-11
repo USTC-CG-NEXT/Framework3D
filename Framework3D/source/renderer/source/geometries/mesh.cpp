@@ -216,9 +216,10 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
     }
 
     MeshDesc mesh_desc;
-    mesh_desc.vbOffset = vertexBuffer->offset;
-    mesh_desc.ibOffset = indexBuffer->offset;
-    mesh_desc.normalOffset = normalBuffer->offset;
+    mesh_desc.vbOffset = vertexBuffer->index();
+    mesh_desc.ibOffset = indexBuffer->index();
+    mesh_desc.normalOffset = normalBuffer->index();
+    mesh_desc.vbBufferIndex = 0;
 
     mesh_desc_buffer = render_param->InstanceCollection->mesh_pool.allocate(1);
     mesh_desc_buffer->write_data(&mesh_desc);
@@ -255,6 +256,9 @@ void Hd_USTC_CG_Mesh::updateTLAS(
 
     rt_instanceBuffer = rt_instance_pool.allocate(instances.size());
 
+    instanceBuffer = render_param->InstanceCollection->instance_pool.allocate(
+        transforms.size());
+
     for (int i = 0; i < transforms.size(); ++i) {
         // Combine the local transform and the instance transform.
         GfMatrix4f matf =
@@ -271,11 +275,28 @@ void Hd_USTC_CG_Mesh::updateTLAS(
             matf.data(),
             sizeof(nvrhi::rt::AffineTransform));
 
-        instanceDesc.instanceID = mesh_desc_buffer->index();
+        instanceDesc.instanceID = instanceBuffer->index() + i;
         instances[i] = instanceDesc;
+
+        GeometryInstanceData instance_data;
+        instance_data.geometryID = mesh_desc_buffer->index();
+        instance_data.materialID = 0;
+        memcpy(&instance_data.transform, matf.data(), sizeof(pxr::GfMatrix4f));
+        instanceBuffer->write_data(&instance_data, i);
     }
     render_param->InstanceCollection->set_require_rebuild_tlas();
     rt_instanceBuffer->write_data(instances.data());
+
+    draw_indirect =
+        render_param->InstanceCollection->draw_indirect_pool.allocate(1);
+    nvrhi::DrawIndexedIndirectArguments args;
+    args.indexCount = triangulatedIndices.size() * 3;
+    args.instanceCount = instances.size();
+    args.startIndexLocation = indexBuffer->index();
+    args.baseVertexLocation = 0;
+    args.startInstanceLocation = instanceBuffer->index();
+
+    draw_indirect->write_data(&args);
 }
 
 void Hd_USTC_CG_Mesh::_InitRepr(

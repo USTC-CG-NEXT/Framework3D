@@ -85,7 +85,6 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
     DeviceMemoryPool<GeometryInstanceData>::MemoryHandle instanceBuffer;
     DeviceMemoryPool<nvrhi::rt::InstanceDesc>::MemoryHandle rt_instanceBuffer;
     DeviceMemoryPool<MeshDesc>::MemoryHandle mesh_desc_buffer;
-
     DeviceMemoryPool<nvrhi::DrawIndexedIndirectArguments>::MemoryHandle
         draw_indirect;
 

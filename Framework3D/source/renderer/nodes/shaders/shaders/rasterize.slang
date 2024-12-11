@@ -7,7 +7,8 @@ ConstantBuffer<PlanarViewConstants> viewConstant;
 StructuredBuffer<GeometryInstanceData> instanceDescBuffer;
 StructuredBuffer<MeshDesc> meshDescBuffer;
 
-[[vk::binding(0, 1)]] StructuredBuffer<float> t_BindlessBuffers[] : register(t0, space1);
+[[vk::binding(0, 1)]]
+StructuredBuffer<float> t_BindlessBuffers[] : register(t0, space1);
 
 // Vertex shader output structure
 struct VSOutput {
@@ -20,23 +21,23 @@ struct VSOutput {
 #endif
 };
 
-StaticVertexData get_data(MeshDesc mesh_data, uint vertex_id)
+StaticVertexData load_vertex(MeshDesc mesh_data, uint vertex_id)
 {
     var vb_offset = mesh_data.vbOffset;
     var normal_offset = mesh_data.normalOffset;
-    var ib_offset = mesh_data.ibOffset;
-    var index_id = vertex_id + ib_offset;
-    uint vIndice = t_BindlessBuffers[mesh_data.ibBufferIndex][index_id * 3];
+
     float3 pos = float3(
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vIndice + vb_offset + 0],
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vIndice + vb_offset + 1],
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vIndice + vb_offset + 2]);
+        t_BindlessBuffers[mesh_data.vbBufferIndex][vertex_id + vb_offset + 0],
+        t_BindlessBuffers[mesh_data.vbBufferIndex][vertex_id + vb_offset + 1],
+        t_BindlessBuffers[mesh_data.vbBufferIndex][vertex_id + vb_offset + 2]);
 
     float3 normal = float3(
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vIndice + normal_offset + 0],
-        t_BindlessBuffers[mesh_data.vbBufferIndex][vIndice + normal_offset + 1],
         t_BindlessBuffers[mesh_data.vbBufferIndex]
-                         [vIndice + normal_offset + 2]);
+                         [vertex_id + normal_offset + 0],
+        t_BindlessBuffers[mesh_data.vbBufferIndex]
+                         [vertex_id + normal_offset + 1],
+        t_BindlessBuffers[mesh_data.vbBufferIndex]
+                         [vertex_id + normal_offset + 2]);
 
     StaticVertexData data =
         StaticVertexData(pos, normal, float4(0, 0, 0, 0), float2(0, 0), 0);
@@ -53,12 +54,13 @@ void vs_main(
     // Get the model matrix for the current instance
     float4x4 modelMatrix = InstanceData.transform;
 
-    StaticVertexData i_input = get_data(MeshData, i_vertexID);
+    StaticVertexData vertex = load_vertex(MeshData, i_vertexID);
 
     // Get the vertex position from the bindless buffer
 
     // Transform the vertex position to world space
-    float4 worldPos = mul(float4(i_input.position, 1.0), modelMatrix);
+    float4 worldPos = mul(float4(vertex.position, 1.0), modelMatrix);
+    worldPos = float4(vertex.position, 1.0);
 
     // Transform the vertex position to clip space
     o_output.position = mul(worldPos, viewConstant.matWorldToClip);
@@ -67,10 +69,10 @@ void vs_main(
     o_output.position.y *= -1;
 
     o_output.normal =
-        normalize(mul(float4(i_input.normal, 0.0), modelMatrix).xyz);
+        normalize(mul(float4(vertex.normal, 0.0), modelMatrix).xyz);
 
 #if defined(ENABLE_TEXCOORD)
-    o_output.texcoord = i_input.texCrd;
+    o_output.texcoord = vertex.texCrd;
 #endif
 }
 
@@ -85,7 +87,7 @@ void ps_main(
 {
     // Simply output the color passed from the vertex shader
     o_pos = float4(input.worldPos, 1.0);
-    o_normal = float4(input.normal, 1.0);
+    o_normal = float4(1, 1, 1, 1.0);
     depth = input.position.z;
     o_diffuse_color = float4(1, 0, 1, 1);
     o_metallic_roughness = float4(0.5, 0.5, 0, 1);

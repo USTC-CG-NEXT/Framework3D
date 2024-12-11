@@ -67,6 +67,7 @@ class RHI_API ShaderFactory {
 
     static void populate_vk_options(
         std::vector<slang::CompilerOptionEntry>& vk_compiler_options);
+    void modify_vulkan_binding_shift(nvrhi::BindingLayoutItem& item) const;
     ShaderReflectionInfo shader_reflect(
         slang::IComponentType* component,
         nvrhi::ShaderType shader_type) const;

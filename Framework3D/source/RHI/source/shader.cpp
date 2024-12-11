@@ -177,6 +177,39 @@ static nvrhi::ResourceType convertBindingTypeToResourceType(
     return ret;
 }
 
+void ShaderFactory::modify_vulkan_binding_shift(
+    nvrhi::BindingLayoutItem& item) const
+{
+    switch (item.type) {
+        case nvrhi::ResourceType::None: break;
+        case nvrhi::ResourceType::Texture_SRV: item.slot -= SRV_OFFSET; break;
+        case nvrhi::ResourceType::Texture_UAV: item.slot -= UAV_OFFSET; break;
+        case nvrhi::ResourceType::TypedBuffer_SRV:
+            item.slot -= SRV_OFFSET;
+            break;
+        case nvrhi::ResourceType::TypedBuffer_UAV:
+            item.slot -= UAV_OFFSET;
+            break;
+        case nvrhi::ResourceType::StructuredBuffer_SRV:
+            item.slot -= SRV_OFFSET;
+            break;
+        case nvrhi::ResourceType::StructuredBuffer_UAV:
+            item.slot -= UAV_OFFSET;
+            break;
+        case nvrhi::ResourceType::RawBuffer_SRV: item.slot -= SRV_OFFSET; break;
+        case nvrhi::ResourceType::RawBuffer_UAV: item.slot -= UAV_OFFSET; break;
+        case nvrhi::ResourceType::ConstantBuffer:
+            item.slot -= CONSTANT_BUFFER_OFFSET;
+            break;
+        case nvrhi::ResourceType::VolatileConstantBuffer:
+            item.slot -= CONSTANT_BUFFER_OFFSET;
+            break;
+        case nvrhi::ResourceType::Sampler: item.slot -= SAMPLER_OFFSET; break;
+        case nvrhi::ResourceType::RayTracingAccelStruct:
+            item.slot -= SRV_OFFSET;
+            break;
+    }
+}
 ShaderReflectionInfo ShaderFactory::shader_reflect(
     slang::IComponentType* component,
     nvrhi::ShaderType shader_type) const
@@ -223,7 +256,7 @@ ShaderReflectionInfo ShaderFactory::shader_reflect(
         nvrhi::BindingLayoutItem item;
         item.type = convertBindingTypeToResourceType(type, resource_shape);
         item.slot = index;
-
+        modify_vulkan_binding_shift(item);
         if (layout_vector.size() < space + 1) {
             layout_vector.resize(space + 1);
             indices.resize(space + 1, 0);
@@ -380,6 +413,10 @@ void ShaderFactory::populate_vk_options(
     std::vector<slang::CompilerOptionEntry>& vk_compiler_options)
 {
     vk_compiler_options.push_back(
+        { slang::CompilerOptionName::VulkanUseEntryPointName,
+          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
+                                      1 } });
+    vk_compiler_options.push_back(
         { slang::CompilerOptionName::VulkanBindShiftAll,
           slang::CompilerOptionValue{
               slang::CompilerOptionValueKind::Int, 2, SRV_OFFSET } });
@@ -396,11 +433,6 @@ void ShaderFactory::populate_vk_options(
         { slang::CompilerOptionName::VulkanBindShiftAll,
           slang::CompilerOptionValue{
               slang::CompilerOptionValueKind::Int, 0, UAV_OFFSET } });
-
-    vk_compiler_options.push_back(
-        { slang::CompilerOptionName::VulkanUseEntryPointName,
-          slang::CompilerOptionValue{ slang::CompilerOptionValueKind::Int,
-                                      1 } });
 }
 
 #define CHECK_REPORTED_ERROR()                                           \
@@ -471,9 +503,8 @@ void ShaderFactory::SlangCompile(
     compile_session_desc.searchPaths = slangSearchPaths.data();
     compile_session_desc.searchPathCount = (SlangInt)slangSearchPaths.size();
 
-    slang::SessionDesc reflection_session_desc = compile_session_desc;
-
     compile_session_desc.compilerOptionEntries = vk_compiler_options.data();
+
     compile_session_desc.compilerOptionEntryCount =
         static_cast<SlangInt>(vk_compiler_options.size());
 
@@ -514,19 +545,21 @@ void ShaderFactory::SlangCompile(
         return;
     }
 
-    Slang::ComPtr<slang::IEntryPoint> entry;
-
-    result = module->findAndCheckEntryPoint(
-        entryPoint, stage, entry.writeRef(), diagnostics.writeRef());
-    CHECK_REPORTED_ERROR();
-
     std::vector<slang::IComponentType*> components;
 
     components.push_back(module.get());
-    components.push_back(entry.get());
+
+    Slang::ComPtr<slang::IEntryPoint> entry;
+
+    if (!std::string(entryPoint).empty()) {
+        result = module->findAndCheckEntryPoint(
+            entryPoint, stage, entry.writeRef(), diagnostics.writeRef());
+        CHECK_REPORTED_ERROR();
+        components.push_back(entry.get());
+    }
 
     Slang::ComPtr<slang::IComponentType> program;
-    result = p_compile_session->createCompositeComponentType(
+    p_compile_session->createCompositeComponentType(
         components.data(), components.size(), program.writeRef());
 
     Slang::ComPtr<slang::IComponentType> linkedProgram;
@@ -534,25 +567,11 @@ void ShaderFactory::SlangCompile(
 
     CHECK_REPORTED_ERROR();
 
-    if (target == SLANG_SPIRV) {
-        Slang::ComPtr<slang::ISession> p_reflection_session;
-        result = globalSession->createSession(
-            reflection_session_desc, p_reflection_session.writeRef());
-        assert(result == SLANG_OK);
-
-        Slang::ComPtr<slang::IModule> reflection_module;
-
-        reflection_module = load_module(p_reflection_session.get());
-
-        shader_reflection = shader_reflect(reflection_module.get(), shaderType);
-    }
-    else {
-        shader_reflection = shader_reflect(linkedProgram.get(), shaderType);
-    }
+    shader_reflection = shader_reflect(linkedProgram.get(), shaderType);
 
     if (target == SLANG_SHADER_HOST_CALLABLE) {
         result = linkedProgram->getEntryPointHostCallable(
-            0, target, ppSharedLirary.writeRef(), diagnostics.writeRef());
+            0, 0, ppSharedLirary.writeRef(), diagnostics.writeRef());
         CHECK_REPORTED_ERROR();
         assert(result == SLANG_OK);
     }

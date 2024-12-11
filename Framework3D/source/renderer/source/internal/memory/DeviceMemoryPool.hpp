@@ -19,7 +19,7 @@ class DeviceMemoryPool {
         size_t offset = INVALID;
         size_t size = 0;
 
-        void write_data(const void* data);
+        void write_data(const void* data, size_t bias_count = 0);
 
         size_t index() const
         {
@@ -48,7 +48,11 @@ class DeviceMemoryPool {
 
     using MemoryHandle = std::shared_ptr<MemoryHandleData>;
 
+    void Initialize();
     DeviceMemoryPool();
+
+    explicit DeviceMemoryPool(const nvrhi::BufferDesc& buffer_desc);
+
     DeviceMemoryPool(const DeviceMemoryPool&) = delete;
     DeviceMemoryPool(DeviceMemoryPool&& other) noexcept
     {
@@ -59,6 +63,7 @@ class DeviceMemoryPool {
         this->current_count = other.current_count;
         this->current_max_memory_offset = other.current_max_memory_offset;
         this->handles_allocated = other.handles_allocated;
+        this->base_desc_ = other.base_desc_;
     }
     DeviceMemoryPool& operator=(const DeviceMemoryPool&) = delete;
     DeviceMemoryPool& operator=(DeviceMemoryPool&& other) noexcept
@@ -70,6 +75,7 @@ class DeviceMemoryPool {
         this->current_count = other.current_count;
         this->current_max_memory_offset = other.current_max_memory_offset;
         this->handles_allocated = other.handles_allocated;
+        this->base_desc_ = other.base_desc_;
         return *this;
     }
 
@@ -110,19 +116,11 @@ class DeviceMemoryPool {
     nvrhi::CommandListHandle commandList;
 
     // Utility functions
-    template<typename U>
-    nvrhi::BufferDesc buffer_desc()
-    {
-        nvrhi::BufferDesc desc;
-        desc.structStride = sizeof(U);
-        desc.byteSize = max_count * sizeof(U);
-        desc.setCanHaveUAVs(true);
-        desc.keepInitialState = true;
-        desc.isAccelStructBuildInput = true;
-        desc.isDrawIndirectArgs = true;
 
-        return desc;
-    }
+    template<typename U>
+    nvrhi::BufferDesc buffer_desc() const;
+
+    nvrhi::BufferDesc base_desc_;
 };
 
 template<typename T>
@@ -143,13 +141,23 @@ DeviceMemoryPool<T>::MemoryHandleData::create()
 }
 
 template<typename T>
-void DeviceMemoryPool<T>::MemoryHandleData::write_data(const void* data)
+void DeviceMemoryPool<T>::MemoryHandleData::write_data(
+    const void* data,
+    size_t bias_count)
 {
     std::lock_guard lock(execution_launch_mutex);
-    auto device = pool->get_device_buffer();
+    auto device_buffer = pool->get_device_buffer();
 
     pool->commandList->open();
-    pool->commandList->writeBuffer(device, data, size, offset);
+    if (bias_count > 0) {
+        pool->commandList->writeBuffer(
+            device_buffer, data, sizeof(T), offset + bias_count * sizeof(T));
+    }
+    else {
+        pool->commandList->writeBuffer(
+            device_buffer, data, size, offset);
+    }
+
     pool->commandList->close();
 
     RHI::get_device()->executeCommandList(
@@ -210,7 +218,7 @@ void DeviceMemoryPool<T>::MemoryHandleData::read_data(void* data)
 }
 
 template<typename T>
-DeviceMemoryPool<T>::DeviceMemoryPool()
+void DeviceMemoryPool<T>::Initialize()
 {
     nvrhi::IDevice* device = RHI::get_device();
     nvrhi::CommandListParameters cmd_desc;
@@ -225,6 +233,19 @@ DeviceMemoryPool<T>::DeviceMemoryPool()
 
     nvrhi::BufferDesc maskDesc = buffer_desc<uint8_t>();
     maskDesc.debugName = "DeviceObjectPoolValidMask";
+}
+
+template<typename T>
+DeviceMemoryPool<T>::DeviceMemoryPool()
+{
+    Initialize();
+}
+
+template<typename T>
+DeviceMemoryPool<T>::DeviceMemoryPool(const nvrhi::BufferDesc& buffer_desc)
+    : base_desc_(buffer_desc)
+{
+    Initialize();
 }
 
 template<typename T>
@@ -315,6 +336,18 @@ void DeviceMemoryPool<T>::adopt(MemoryHandleData* handle_from_another_pool)
     handles_allocated.push_back(handle_from_another_pool);
     handle_from_another_pool->offset = current_max_memory_offset;
     current_max_memory_offset += handle_from_another_pool->size;
+}
+
+template<typename T>
+template<typename U>
+nvrhi::BufferDesc DeviceMemoryPool<T>::buffer_desc() const
+{
+    nvrhi::BufferDesc desc = this->base_desc_;
+    desc.structStride = sizeof(U);
+    desc.byteSize = max_count * sizeof(U);
+    desc.setCanHaveUAVs(true);
+    desc.keepInitialState = true;
+    return desc;
 }
 
 template<typename T>
@@ -426,7 +459,6 @@ void DeviceMemoryPool<T>::relocate_buffer()
         auto new_device_buffer = RHI::get_device()->createBuffer(bufferDesc);
 
         std::lock_guard lock(execution_launch_mutex);
-
 
         commandList->open();
         commandList->copyBuffer(

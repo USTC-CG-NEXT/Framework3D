@@ -37,7 +37,7 @@ typedef int DescriptorIndex;
 
 // Stores a descriptor index in a descriptor table. Releases the descriptor when
 // destroyed.
-class DescriptorHandle {
+class HD_USTC_CG_API DescriptorHandle {
    private:
     std::weak_ptr<DescriptorTableManager> m_Manager;
     DescriptorIndex m_DescriptorIndex;
@@ -72,7 +72,7 @@ class DescriptorHandle {
     DescriptorHandle& operator=(DescriptorHandle&&) = default;
 };
 
-class DescriptorTableManager
+class HD_USTC_CG_API DescriptorTableManager
     : public std::enable_shared_from_this<DescriptorTableManager> {
    protected:
     nvrhi::DeviceHandle m_Device;

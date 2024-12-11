@@ -130,6 +130,9 @@ struct RHI_API Program : nvrhi::RefCounter<IProgram> {
                 throw std::runtime_error("Function not found.");
             }
         }
+        else {
+            throw std::runtime_error("Library not found.");
+        }
     }
 
    private:

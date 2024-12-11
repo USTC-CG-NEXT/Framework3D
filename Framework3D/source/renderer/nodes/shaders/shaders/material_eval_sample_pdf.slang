@@ -110,7 +110,7 @@ void ShadowHit(inout ShadowPayload payload: SV_RayPayload)
 }
 
 [shader("miss")]
-void Miss(inout ShadowPayload payload: SV_RayPayload)
+void MissShadow(inout ShadowPayload payload: SV_RayPayload)
 {
     payload.shadow_mask = float3(1, 1, 1);
 }

@@ -31,7 +31,7 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderInstanceCollection {
 
     struct BindlessData {
         BindlessData();
-        std::unique_ptr<DescriptorTableManager> descriptorTableManager;
+        std::shared_ptr<DescriptorTableManager> descriptorTableManager;
 
         nvrhi::BindingLayoutHandle bindlessLayout;
     };
