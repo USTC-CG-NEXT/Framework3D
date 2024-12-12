@@ -39,7 +39,7 @@ void RayGen()
     RayDesc ray_desc = get_ray_desc(hitObject.rays);
     Payload payload;
     
-//#define USE_SER
+#define USE_SER
 
 #ifdef USE_SER
     HitObject object = HitObject.MakeHit<Attributes>(
