@@ -31,6 +31,7 @@ class UsdFileViewer : public IWidget {
    private:
     void ShowFileTree();
     void ShowPrimInfo();
+    void EditValue();
     void select_file();
 
     void show_right_click_menu();

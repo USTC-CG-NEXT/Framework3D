@@ -192,6 +192,116 @@ void UsdFileViewer::ShowPrimInfo()
     }
 }
 
+void UsdFileViewer::EditValue()
+{
+    using namespace pxr;
+    UsdPrim prim = stage->get_usd_stage()->GetPrimAtPath(selected);
+    if (prim) {
+        auto attributes = prim.GetAttributes();
+        for (auto&& attr : attributes) {
+            VtValue v;
+            attr.Get(&v);
+            std::string label =
+                attr.GetName().GetString() + "##" + attr.GetName().GetString();
+            if (v.IsHolding<double>()) {
+                double value = v.Get<double>();
+                double min_double = 0;
+                double max_double = 1;
+                if (ImGui::SliderScalar(
+                        label.c_str(),
+                        ImGuiDataType_Double,
+                        &value,
+                        &min_double,
+                        &max_double)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<float>()) {
+                float value = v.Get<float>();
+                float min_float = 0;
+                float max_float = 1;
+                if (ImGui::SliderFloat(
+                        label.c_str(), &value, min_float, max_float)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<int>()) {
+                int value = v.Get<int>();
+                int min_int = -10;
+                int max_int = 10;
+                if (ImGui::SliderInt(label.c_str(), &value, min_int, max_int)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<unsigned int>()) {
+                unsigned int value = v.Get<unsigned int>();
+                unsigned int min_uint = 0;
+                unsigned int max_uint = 10;
+                if (ImGui::SliderScalar(
+                        label.c_str(),
+                        ImGuiDataType_U32,
+                        &value,
+                        &min_uint,
+                        &max_uint)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<int64_t>()) {
+                int64_t value = v.Get<int64_t>();
+                int64_t min_int64 = -10;
+                int64_t max_int64 = 10;
+                if (ImGui::SliderScalar(
+                        label.c_str(),
+                        ImGuiDataType_S64,
+                        &value,
+                        &min_int64,
+                        &max_int64)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<GfVec2f>()) {
+                GfVec2f value = v.Get<GfVec2f>();
+                if (ImGui::SliderFloat2(
+                        label.c_str(), value.data(), 0.0f, 1.0f)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<GfVec3f>()) {
+                GfVec3f value = v.Get<GfVec3f>();
+                if (ImGui::SliderFloat3(
+                        label.c_str(), value.data(), 0.0f, 1.0f)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<GfVec4f>()) {
+                GfVec4f value = v.Get<GfVec4f>();
+                if (ImGui::SliderFloat4(
+                        label.c_str(), value.data(), 0.0f, 1.0f)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<GfVec2i>()) {
+                GfVec2i value = v.Get<GfVec2i>();
+                if (ImGui::SliderInt2(label.c_str(), value.data(), -10, 10)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<GfVec3i>()) {
+                GfVec3i value = v.Get<GfVec3i>();
+                if (ImGui::SliderInt3(label.c_str(), value.data(), -10, 10)) {
+                    attr.Set(value);
+                }
+            }
+            else if (v.IsHolding<GfVec4i>()) {
+                GfVec4i value = v.Get<GfVec4i>();
+                if (ImGui::SliderInt4(label.c_str(), value.data(), -10, 10)) {
+                    attr.Set(value);
+                }
+            }
+        }
+    }
+}
+
 void UsdFileViewer::select_file()
 {
     auto instance = IGFD::FileDialog::Instance();
@@ -303,6 +413,10 @@ bool UsdFileViewer::BuildUI()
 
     ImGui::Begin("Prim Info", nullptr, ImGuiWindowFlags_None);
     ShowPrimInfo();
+    ImGui::End();
+
+    ImGui::Begin("Edit Value", nullptr, ImGuiWindowFlags_None);
+    EditValue();
     ImGui::End();
 
     return true;

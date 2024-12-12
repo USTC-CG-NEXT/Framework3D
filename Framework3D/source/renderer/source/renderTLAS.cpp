@@ -17,6 +17,9 @@ Hd_USTC_CG_RenderInstanceCollection::Hd_USTC_CG_RenderInstanceCollection()
     tlasDesc.isTopLevel = true;
     tlasDesc.topLevelMaxInstances = 1024 * 1024;
     TLAS = RHI::get_device()->createAccelStruct(tlasDesc);
+
+    vertex_pool.reserve(64 * 1024 * 3);
+    index_pool.reserve(64 * 1024);
 }
 
 Hd_USTC_CG_RenderInstanceCollection::~Hd_USTC_CG_RenderInstanceCollection()
