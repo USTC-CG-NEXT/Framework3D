@@ -4,6 +4,7 @@
 #include "nvrhi/nvrhi.h"
 #include "nvrhi/utils.h"
 #include "render_node_base.h"
+#include "renderer/raytracing_context.hpp"
 #include "shaders/shaders/utils/HitObject.h"
 #include "utils/math.h"
 NODE_DEF_OPEN_SCOPE
@@ -79,116 +80,47 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
         .setStructStride(sizeof(float));
     auto pdf_buffer = resource_allocator.create(buffer_desc);
 
-    // Build the raytracing pipeline.
+    // Set the program variables
+
+    ProgramVars program_vars(resource_allocator, raytrace_compiled);
+    program_vars["SceneBVH"] = params.get_global_payload<RenderGlobalPayload&>()
+                                   .InstanceCollection->get_tlas();
+    program_vars["hitObjects"] = hit_info_buffer;
+    program_vars["in_PixelTarget"] = in_pixel_target_buffer;
+    program_vars["PixelTarget"] = pixel_target_buffer;
+    program_vars["Eval"] = eval_buffer;
+    program_vars["Sample"] = sample_buffer;
+    program_vars["Weight"] = weight_buffer;
+    program_vars["Pdf"] = pdf_buffer;
+    DescriptorHandle handle =
+        instance_collection->bindlessData.descriptorTableManager
+            ->CreateDescriptorHandle(
+                nvrhi::BindingSetItem::StructuredBuffer_SRV(
+                    0, instance_collection->vertex_pool.get_device_buffer()));
+
+    program_vars.set_descriptor_table(
+        "t_BindlessBuffers",
+        instance_collection->bindlessData.descriptorTableManager
+            ->GetDescriptorTable(),
+        instance_collection->bindlessData.bindlessLayout);
+
+    program_vars.finish_setting_vars();
+
+    RaytracingContext context(resource_allocator, program_vars);
+
+    context.announce_raygeneration("RayGen");
+    context.announce_hitgroup("ClosestHit");
+    context.announce_miss("Miss");
+    context.finish_announcing_shader_names();
 
     // 2. Prepare the shader
 
     auto buffer_size = params.get_input<int>("Buffer Size");
 
-    ShaderDesc shader_desc;
-    shader_desc.entryName = "RayGen";
-    shader_desc.shaderType = nvrhi::ShaderType::RayGeneration;
-    shader_desc.debugName = std::to_string(
-        reinterpret_cast<long long>(raytrace_compiled->getBufferPointer()));
-    shader_desc.hlslExtensionsUAV = 127;
-    auto raygen_shader = resource_allocator.create(
-        shader_desc,
-        raytrace_compiled->getBufferPointer(),
-        raytrace_compiled->getBufferSize());
-    MARK_DESTROY_NVRHI_RESOURCE(raygen_shader);
-
-    shader_desc.entryName = "ClosestHit";
-    shader_desc.shaderType = nvrhi::ShaderType::ClosestHit;
-    auto chs_shader = resource_allocator.create(
-        shader_desc,
-        raytrace_compiled->getBufferPointer(),
-        raytrace_compiled->getBufferSize());
-    MARK_DESTROY_NVRHI_RESOURCE(chs_shader);
-
-    shader_desc.entryName = "Miss";
-    shader_desc.shaderType = nvrhi::ShaderType::Miss;
-    auto miss_shader = resource_allocator.create(
-        shader_desc,
-        raytrace_compiled->getBufferPointer(),
-        raytrace_compiled->getBufferSize());
-    MARK_DESTROY_NVRHI_RESOURCE(miss_shader);
-
-    // 3. Prepare the hitgroup and pipeline
-
-    nvrhi::BindingLayoutDesc globalBindingLayoutDesc;
-    globalBindingLayoutDesc.visibility = nvrhi::ShaderType::All;
-    globalBindingLayoutDesc.bindings = {
-        { 0, nvrhi::ResourceType::RayTracingAccelStruct },
-        { 1, nvrhi::ResourceType::StructuredBuffer_SRV },
-        { 2, nvrhi::ResourceType::StructuredBuffer_SRV },
-        { 0, nvrhi::ResourceType::StructuredBuffer_UAV },
-        { 1, nvrhi::ResourceType::StructuredBuffer_UAV },
-        { 2, nvrhi::ResourceType::StructuredBuffer_UAV },
-        { 3, nvrhi::ResourceType::StructuredBuffer_UAV },
-        { 4, nvrhi::ResourceType::StructuredBuffer_UAV },
-        { 127, nvrhi::ResourceType::TypedBuffer_UAV },
-    };
-    auto globalBindingLayout =
-        resource_allocator.create(globalBindingLayoutDesc);
-    MARK_DESTROY_NVRHI_RESOURCE(globalBindingLayout);
-
-    nvrhi::rt::PipelineDesc pipeline_desc;
-    pipeline_desc.maxPayloadSize = 16 * sizeof(float);
-    pipeline_desc.globalBindingLayouts = { globalBindingLayout };
-    pipeline_desc.shaders = { { "", raygen_shader, nullptr },
-                              { "", miss_shader, nullptr } };
-
-    pipeline_desc.hitGroups = { {
-        "HitGroup",
-        chs_shader,
-        nullptr,  // anyHitShader
-        nullptr,  // intersectionShader
-        nullptr,  // bindingLayout
-        false     // isProceduralPrimitive
-    } };
-
-    pipeline_desc.setHlslExtensionsUAV(127);
-
-    auto m_TopLevelAS = params.get_global_payload<RenderGlobalPayload&>()
-                            .InstanceCollection->get_tlas();
-    auto raytracing_pipeline = resource_allocator.create(pipeline_desc);
-    MARK_DESTROY_NVRHI_RESOURCE(raytracing_pipeline);
-
-    BindingSetDesc binding_set_desc;
-    binding_set_desc.bindings = nvrhi::BindingSetItemArray{
-        nvrhi::BindingSetItem::RayTracingAccelStruct(0, m_TopLevelAS),
-        nvrhi::BindingSetItem::StructuredBuffer_SRV(1, hit_info_buffer.Get()),
-        nvrhi::BindingSetItem::StructuredBuffer_SRV(
-            2, in_pixel_target_buffer.Get()),
-
-        nvrhi::BindingSetItem::StructuredBuffer_UAV(0, pixel_target_buffer),
-        nvrhi::BindingSetItem::StructuredBuffer_UAV(1, eval_buffer),
-        nvrhi::BindingSetItem::StructuredBuffer_UAV(2, sample_buffer),
-        nvrhi::BindingSetItem::StructuredBuffer_UAV(3, weight_buffer),
-        nvrhi::BindingSetItem::StructuredBuffer_UAV(4, pdf_buffer),
-        nvrhi::BindingSetItem::TypedBuffer_UAV(127, nullptr)
-    };
-    auto binding_set =
-        resource_allocator.create(binding_set_desc, globalBindingLayout.Get());
-    MARK_DESTROY_NVRHI_RESOURCE(binding_set);
-
-    nvrhi::rt::State state;
-    nvrhi::rt::ShaderTableHandle sbt = raytracing_pipeline->createShaderTable();
-    sbt->setRayGenerationShader("RayGen");
-    sbt->addHitGroup("HitGroup");
-    sbt->addMissShader("Miss");
-    state.setShaderTable(sbt).addBindingSet(binding_set);
     if (buffer_size > 0) {
-        m_CommandList->open();
-        m_CommandList->beginTrackingBufferState(
-            hit_info_buffer, nvrhi::ResourceStates::UnorderedAccess);
-        m_CommandList->setRayTracingState(state);
-        nvrhi::rt::DispatchRaysArguments args;
-        args.width = buffer_size;
-        args.height = 1;
-        m_CommandList->dispatchRays(args);
-        m_CommandList->close();
-        resource_allocator.device->executeCommandList(m_CommandList);
+        context.begin();
+        context.trace_rays({}, program_vars, buffer_size, 1, 1);
+        context.finish();
     }
 
     // 4. Get the result

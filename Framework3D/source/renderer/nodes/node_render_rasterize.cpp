@@ -56,20 +56,18 @@ NODE_EXECUTION_FUNCTION(rasterize)
     auto output_metallic_roughness = create_default_render_target(params);
     auto output_normal = create_default_render_target(params);
 
-    DescriptorHandle handle =
-        instance_collection->bindlessData.descriptorTableManager
-            ->CreateDescriptorHandle(
-                nvrhi::BindingSetItem::StructuredBuffer_SRV(
-                    0, instance_collection->vertex_pool.get_device_buffer()));
-
-    assert(handle.Get() == 0);
-
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
     program_vars["viewConstant"] = view_cb;
     program_vars["instanceDescBuffer"] =
         instance_collection->instance_pool.get_device_buffer();
     program_vars["meshDescBuffer"] =
         instance_collection->mesh_pool.get_device_buffer();
+
+    DescriptorHandle handle =
+        instance_collection->bindlessData.descriptorTableManager
+            ->CreateDescriptorHandle(
+                nvrhi::BindingSetItem::StructuredBuffer_SRV(
+                    0, instance_collection->vertex_pool.get_device_buffer()));
 
     program_vars.set_descriptor_table(
         "t_BindlessBuffers",
