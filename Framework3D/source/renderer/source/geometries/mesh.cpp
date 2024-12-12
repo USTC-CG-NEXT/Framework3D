@@ -183,7 +183,7 @@ void Hd_USTC_CG_Mesh::create_gpu_resources(Hd_USTC_CG_RenderParam* render_param)
     indexBuffer->write_data(triangulatedIndices.data());
 
     normalBuffer = render_param->InstanceCollection->vertex_pool.allocate(
-        points.size() * 3);
+        computedNormals.size() * 3);
 
     normalBuffer->write_data(computedNormals.data());
     {
@@ -263,8 +263,9 @@ void Hd_USTC_CG_Mesh::updateTLAS(
 
     for (int i = 0; i < transforms.size(); ++i) {
         // Combine the local transform and the instance transform.
-        GfMatrix4f matf =
-            (transform * GfMatrix4f(transforms[i])).GetTranspose();
+
+        GfMatrix4f mat = transform * GfMatrix4f(transforms[i]);
+        GfMatrix4f mat_transposed = mat.GetTranspose();
 
         nvrhi::rt::InstanceDesc instanceDesc;
         instanceDesc.blasDeviceAddress = BLAS->getDeviceAddress();
@@ -274,7 +275,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
 
         memcpy(
             instanceDesc.transform,
-            matf.data(),
+            mat_transposed.data(),
             sizeof(nvrhi::rt::AffineTransform));
 
         instanceDesc.instanceID = instanceBuffer->index() + i;
@@ -283,7 +284,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
         GeometryInstanceData instance_data;
         instance_data.geometryID = mesh_desc_buffer->index();
         instance_data.materialID = 0;
-        memcpy(&instance_data.transform, matf.data(), sizeof(pxr::GfMatrix4f));
+        memcpy(&instance_data.transform, mat.data(), sizeof(pxr::GfMatrix4f));
         instanceBuffer->write_data(&instance_data, i);
     }
     render_param->InstanceCollection->set_require_rebuild_tlas();

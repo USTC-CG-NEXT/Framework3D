@@ -94,7 +94,8 @@ NODE_EXECUTION_FUNCTION(rasterize)
 
     GraphicsRenderState state;
     state.indexBuffer = { instance_collection->index_pool.get_device_buffer(),
-                          nvrhi::Format::R32_UINT };
+                          nvrhi::Format::R32_UINT,
+                          0 };
 
     // find the named mesh
     context.begin();

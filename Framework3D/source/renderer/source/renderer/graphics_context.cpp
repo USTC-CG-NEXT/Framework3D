@@ -191,7 +191,7 @@ GraphicsContext& GraphicsContext::finish_setting_pso()
 
     pipeline_desc.bindingLayouts = bindingLayouts;
 
-    auto rasterState = nvrhi::RasterState().setFillSolid().setCullBack();
+    auto rasterState = nvrhi::RasterState().setFillSolid().setCullNone();
 
     auto depthStencilState = nvrhi::DepthStencilState()
                                  .enableDepthWrite()

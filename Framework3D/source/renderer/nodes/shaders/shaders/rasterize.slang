@@ -26,6 +26,8 @@ StaticVertexData load_vertex(MeshDesc mesh_data, uint vertex_id)
     var vb_offset = mesh_data.vbOffset;
     var normal_offset = mesh_data.normalOffset;
 
+    //normal_offset = 0;
+
     var id = vertex_id;
 
     float3 pos = float3(
@@ -60,7 +62,6 @@ void vs_main(
 
     // Transform the vertex position to world space
     float4 worldPos = mul(float4(vertex.position, 1.0), modelMatrix);
-
     // Transform the vertex position to clip space
     o_output.position = mul(worldPos, viewConstant.matWorldToClip);
     // o_output.position = float4(vertex.position, 1.0);
@@ -71,7 +72,7 @@ void vs_main(
 
     o_output.normal =
         normalize(mul(float4(vertex.normal, 0.0), modelMatrix).xyz);
-
+    // o_output.normal = float3(i_vertexID/100.f);
 #if defined(ENABLE_TEXCOORD)
     o_output.texcoord = vertex.texCrd;
 #endif
@@ -88,7 +89,7 @@ void ps_main(
 {
     // Simply output the color passed from the vertex shader
     o_pos = float4(input.worldPos, 1.0);
-    o_normal = float4(0.5+0.5*input.normal, 1.0);
+    o_normal = float4(input.normal, 1.0);
     depth = input.position.z;
     o_diffuse_color = float4(1, 0, 1, 1);
     o_metallic_roughness = float4(0.5, 0.5, 0, 1);
