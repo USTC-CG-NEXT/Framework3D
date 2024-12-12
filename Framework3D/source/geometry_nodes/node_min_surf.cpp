@@ -80,9 +80,7 @@ NODE_EXECUTION_FUNCTION(min_surf)
 
     // Initialization
     int n_vertices = halfedge_mesh->n_vertices();
-    std::vector<int> ori2mat(n_vertices);
-    for (const auto& vertex_handle : halfedge_mesh->vertices())
-        ori2mat[vertex_handle.idx()] = 0;
+    std::vector<int> ori2mat(n_vertices, 0);
 
     // Label the boundary vertecies
     for (const auto& halfedge_handle : halfedge_mesh->halfedges())
