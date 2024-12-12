@@ -4,11 +4,7 @@ import Scene.SceneTypes;
 // ---[ Constant Buffers ]---
 ConstantBuffer<PlanarViewConstants> viewConstant;
 
-StructuredBuffer<GeometryInstanceData> instanceDescBuffer;
-StructuredBuffer<MeshDesc> meshDescBuffer;
-
-[[vk::binding(0, 1)]]
-StructuredBuffer<float> t_BindlessBuffers[] : register(t0, space1);
+import Scene.BindlessVertexBuffer;
 
 // Vertex shader output structure
 struct VSOutput {
@@ -20,30 +16,6 @@ struct VSOutput {
     float2 texcoord : TEXCOORD0;
 #endif
 };
-
-StaticVertexData load_vertex(MeshDesc mesh_data, uint vertex_id)
-{
-    var vb_offset = mesh_data.vbOffset;
-    var normal_offset = mesh_data.normalOffset;
-
-    //normal_offset = 0;
-
-    var id = vertex_id;
-
-    float3 pos = float3(
-        t_BindlessBuffers[0][3 * vertex_id + vb_offset + 0],
-        t_BindlessBuffers[0][3 * vertex_id + vb_offset + 1],
-        t_BindlessBuffers[0][3 * vertex_id + vb_offset + 2]);
-
-    float3 normal = float3(
-        t_BindlessBuffers[0][3 * vertex_id + normal_offset + 0],
-        t_BindlessBuffers[0][3 * vertex_id + normal_offset + 1],
-        t_BindlessBuffers[0][3 * vertex_id + normal_offset + 2]);
-
-    StaticVertexData data =
-        StaticVertexData(pos, normal, float4(0, 0, 0, 0), float2(0, 0), 0);
-    return data;
-}
 
 void vs_main(
     uint i_vertexID: SV_VertexID,

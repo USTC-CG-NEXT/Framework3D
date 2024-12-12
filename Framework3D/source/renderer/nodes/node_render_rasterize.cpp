@@ -58,6 +58,8 @@ NODE_EXECUTION_FUNCTION(rasterize)
 
     ProgramVars program_vars(resource_allocator, vs_program, ps_program);
     program_vars["viewConstant"] = view_cb;
+    program_vars["index_buffer"] =
+        instance_collection->index_pool.get_device_buffer();
     program_vars["instanceDescBuffer"] =
         instance_collection->instance_pool.get_device_buffer();
     program_vars["meshDescBuffer"] =

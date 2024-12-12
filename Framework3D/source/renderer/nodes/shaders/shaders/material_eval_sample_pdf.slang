@@ -3,18 +3,20 @@
 #include "matrix_op.h"
 #include "utils/HitObject.h"
 #include "utils/view_cb.h"
-RaytracingAccelerationStructure SceneBVH : register(t0);
+import Scene.SceneTypes;
 
-StructuredBuffer<HitObjectInfo> hitObjects : register(t1);
-StructuredBuffer<uint2> in_PixelTarget : register(t2);
+RaytracingAccelerationStructure SceneBVH;
 
-ByteAddressBuffer t_BindlessBuffers[] : register(t0, space1);
+StructuredBuffer<HitObjectInfo> hitObjects;
+StructuredBuffer<uint2> in_PixelTarget;
 
-RWStructuredBuffer<uint2> PixelTarget : register(u0);
-RWStructuredBuffer<float4> Eval : register(u1);
-RWStructuredBuffer<RayInfo> Sample : register(u2);
-RWStructuredBuffer<float> Weight : register(u3);
-RWStructuredBuffer<float> Pdf : register(u4);
+import Scene.BindlessVertexBuffer;
+
+RWStructuredBuffer<uint2> PixelTarget;
+RWStructuredBuffer<float4> Eval;
+RWStructuredBuffer<RayInfo> Sample;
+RWStructuredBuffer<float> Weight;
+RWStructuredBuffer<float> Pdf;
 
 import Rendering.Materials.BSDFs.StandardBSDF;
 import utils.Sampling.UniformSampleGenerator;
@@ -25,7 +27,7 @@ struct Payload {
 };
 
 struct Attributes {
-    float2 uv;
+    float2 barycentric;
 };
 
 // Ray generation shader
@@ -38,7 +40,7 @@ void RayGen()
 
     RayDesc ray_desc = get_ray_desc(hitObject.rays);
     Payload payload;
-    
+
 #define USE_SER
 
 #ifdef USE_SER
@@ -90,29 +92,21 @@ void ClosestHit(
 
     StandardBSDF bsdf = StandardBSDF(dir, header, data);
 
+    var instance_id = InstanceID();
+    var prim_id = PrimitiveIndex();
+    var vertex =
+        get_interpolated_vertex(instance_id, prim_id, attrib.barycentric);
+
     UniformSampleGenerator s;
 
     result = bsdf.eval(ObjectRayDirection(), ObjectRayDirection(), s, context);
     result = WorldRayDirection();
-    result = float3(attrib.uv, 0);
-
+    result = vertex.normalW;
 
     Eval[id] = float4(result, 1) *
                float4(hitObjects[id].rays.throughput.toFloat3(), 1.0);
 
     // Acquire the material information here.
-}
-
-[shader("closesthit")]
-void ShadowHit(inout ShadowPayload payload: SV_RayPayload)
-{
-    payload.shadow_mask = float3(0, 0, 0);
-}
-
-[shader("miss")]
-void MissShadow(inout ShadowPayload payload: SV_RayPayload)
-{
-    payload.shadow_mask = float3(1, 1, 1);
 }
 
 // Miss shader
@@ -123,3 +117,16 @@ void Miss(inout Payload payload: SV_RayPayload)
     PixelTarget[id] = in_PixelTarget[id];
     Eval[id] = float4(1, 0, 1, 1);
 }
+
+[shader("closesthit")]
+void ShadowHit(inout ShadowPayload payload: SV_RayPayload)
+{
+    payload.shadow_mask = float3(0, 0, 0);
+}
+
+[shader("miss")]
+void ShadowMiss(inout ShadowPayload payload: SV_RayPayload)
+{
+    payload.shadow_mask = float3(1, 1, 1);
+}
+
