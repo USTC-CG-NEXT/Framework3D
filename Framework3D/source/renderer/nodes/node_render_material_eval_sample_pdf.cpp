@@ -11,8 +11,8 @@ NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(material_eval_sample_pdf)
 {
     b.add_input<nvrhi::BufferHandle>("PixelTarget");
-
     b.add_input<nvrhi::BufferHandle>("HitInfo");
+    b.add_input<nvrhi::BufferHandle>("Random Seeds");
 
     b.add_output<nvrhi::BufferHandle>("PixelTarget");
     b.add_input<int>("Buffer Size").min(1).max(10).default_val(4);
@@ -76,6 +76,7 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
     buffer_desc.setByteSize(length * sizeof(float)).setStructStride(sizeof(float));
     auto pdf_buffer = resource_allocator.create(buffer_desc);
 
+    auto random_seeds = params.get_input<BufferHandle>("Random Seeds");
     // Set the program variables
 
     ProgramVars program_vars(resource_allocator, raytrace_compiled);
@@ -88,6 +89,7 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
     program_vars["Sample"] = sample_buffer;
     program_vars["Weight"] = weight_buffer;
     program_vars["Pdf"] = pdf_buffer;
+    program_vars["random_seeds"] = random_seeds;
     program_vars["index_buffer"] = instance_collection->index_pool.get_device_buffer();
 
     program_vars["instanceDescBuffer"] =
@@ -110,7 +112,9 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
 
     context.announce_raygeneration("RayGen");
     context.announce_hitgroup("ClosestHit");
+    context.announce_hitgroup("ShadowHit", "", "", 1);
     context.announce_miss("Miss");
+    context.announce_miss("ShadowMiss", 1);
     context.finish_announcing_shader_names();
 
     // 2. Prepare the shader

@@ -96,10 +96,7 @@ class FirstPersonCamera : public BaseCamera {
    public:
     FirstPersonCamera() = default;
 
-    explicit FirstPersonCamera(const pxr::UsdGeomCamera& camera)
-        : BaseCamera(camera)
-    {
-    }
+    explicit FirstPersonCamera(const pxr::UsdGeomCamera& camera);
 
     void KeyboardUpdate(int key, int scancode, int action, int mods) override;
     void MousePosUpdate(double xpos, double ypos) override;

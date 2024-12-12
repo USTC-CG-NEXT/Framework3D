@@ -713,7 +713,7 @@ nvrhi::TextureHandle NodeWidget::LoadTexture(
 
 ImGuiWindowFlags NodeWidget::GetWindowFlag()
 {
-    return ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse;
+    return ImGuiWindowFlags_NoScrollbar;
 }
 
 void NodeWidget::DrawPinIcon(const NodeSocket& pin, bool connected, int alpha)

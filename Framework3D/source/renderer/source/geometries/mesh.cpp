@@ -249,7 +249,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
     else {
         // If there's no instancer, add a single instance with transform
         // I.
-        transforms.push_back(GfMatrix4d(1.0));
+        transforms.push_back(GfMatrix4d (transform));
     }
 
     auto& rt_instance_pool = render_param->InstanceCollection->rt_instance_pool;
@@ -264,7 +264,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
     for (int i = 0; i < transforms.size(); ++i) {
         // Combine the local transform and the instance transform.
 
-        GfMatrix4f mat = transform * GfMatrix4f(transforms[i]);
+        GfMatrix4f mat = GfMatrix4f(transforms[i]);
         GfMatrix4f mat_transposed = mat.GetTranspose();
 
         nvrhi::rt::InstanceDesc instanceDesc;

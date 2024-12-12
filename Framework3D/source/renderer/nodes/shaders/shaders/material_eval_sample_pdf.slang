@@ -2,8 +2,11 @@
 
 #include "matrix_op.h"
 #include "utils/HitObject.h"
+#include "utils/random.slangh"
 #include "utils/view_cb.h"
+
 import Scene.SceneTypes;
+import Utils.Math.MathHelpers;
 
 RaytracingAccelerationStructure SceneBVH;
 
@@ -17,13 +20,15 @@ RWStructuredBuffer<float4> Eval;
 RWStructuredBuffer<RayInfo> Sample;
 RWStructuredBuffer<float> Weight;
 RWStructuredBuffer<float> Pdf;
+RWStructuredBuffer<uint> random_seeds;
 
 import Rendering.Materials.BSDFs.StandardBSDF;
 import utils.Sampling.UniformSampleGenerator;
 import Scene.Material.MaterialData;
+import utils.Math.ShadingFrame;
 
 struct Payload {
-    int foo;
+    uint seed;
 };
 
 struct Attributes {
@@ -40,9 +45,9 @@ void RayGen()
 
     RayDesc ray_desc = get_ray_desc(hitObject.rays);
     Payload payload;
+    payload.seed = random_seeds[DispatchRaysIndex().x];
 
 #define USE_SER
-
 #ifdef USE_SER
     HitObject object = HitObject.MakeHit<Attributes>(
         SceneBVH,
@@ -62,6 +67,7 @@ void RayGen()
     // If not using SER, we launch the ray, like a normal hlsl shader
     TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 1, 0, ray_desc, payload);
 #endif
+    random_seeds[DispatchRaysIndex().x] = payload.seed;
 }
 
 struct ShadowPayload {
@@ -94,19 +100,43 @@ void ClosestHit(
 
     var instance_id = InstanceID();
     var prim_id = PrimitiveIndex();
-    var vertex =
-        get_interpolated_vertex(instance_id, prim_id, attrib.barycentric);
+    VertexData vertex = get_interpolated_vertex(instance_id, prim_id, attrib.barycentric);
 
-    UniformSampleGenerator s;
+    // if (dot(WorldRayDirection(), vertex.normalW) >= 0.0) {
+    //     vertex.normalW = -vertex.normalW;
+    // }
 
-    result = bsdf.eval(ObjectRayDirection(), ObjectRayDirection(), s, context);
-    result = WorldRayDirection();
-    result = vertex.normalW;
+    // UniformSampleGenerator s;
 
-    Eval[id] = float4(result, 1) *
-               float4(hitObjects[id].rays.throughput.toFloat3(), 1.0);
+    // result = bsdf.eval(ObjectRayDirection(), ObjectRayDirection(), s, context);
+
+    var seed = payload.seed;
+
+    // Calculate ambient occlusion
+    ShadowPayload shadowPayload;
+    shadowPayload.shadow_mask = float3(1, 1, 1);
+    float pdf;
+    float3 ray_dir = sample_cosine_hemisphere_concentric(random_float2(seed), pdf);
+
+    bool valid;
+    ShadingFrame sf = ShadingFrame.createSafe(vertex.normalW, vertex.tangentW, valid);
+    var world_ray_dir = sf.fromLocal(ray_dir);
+
+    RayDesc shadow_ray_desc;
+    shadow_ray_desc.Origin = vertex.posW + vertex.normalW * 0.001;
+    shadow_ray_desc.Direction = world_ray_dir;
+    shadow_ray_desc.TMin = 0.01;
+    shadow_ray_desc.TMax = 1000.0;
+
+    TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 1, 1, 1, shadow_ray_desc, shadowPayload);
+    result = shadowPayload.shadow_mask;
+
+    Eval[id] = float4(result, 1);
+    // * float4(hitObjects[id].rays.throughput.toFloat3(), 1.0);
 
     // Acquire the material information here.
+
+    payload.seed = seed;
 }
 
 // Miss shader

@@ -22,8 +22,7 @@ int init(bool with_window, bool use_dx12)
         return 0;
     }
 
-    auto api =
-        use_dx12 ? nvrhi::GraphicsAPI::D3D12 : nvrhi::GraphicsAPI::VULKAN;
+    auto api = use_dx12 ? nvrhi::GraphicsAPI::D3D12 : nvrhi::GraphicsAPI::VULKAN;
     device_manager = std::unique_ptr<DeviceManager>(DeviceManager::Create(api));
 
     DeviceCreationParameters params;
@@ -57,8 +56,13 @@ int init(bool with_window, bool use_dx12)
 #endif
 
     if (with_window) {
-        return device_manager->CreateWindowDeviceAndSwapChain(
-            params, "USTC_CG");
+        auto ret = device_manager->CreateWindowDeviceAndSwapChain(params, "USTC_CG");
+
+        device_manager->m_callbacks.afterPresent = [](DeviceManager& manager) {
+            manager.SetInformativeWindowTitle("USTC_CG");
+        };
+
+        return ret;
     }
     else {
         return device_manager->CreateHeadlessDevice(params);
@@ -91,15 +95,14 @@ void write_texture(
 {
     nvrhi::IDevice* device = get_device();
     size_t rowPitch;
-    void* mappedData = device->mapStagingTexture(
-        staging, {}, nvrhi::CpuAccessMode::Write, &rowPitch);
+    void* mappedData =
+        device->mapStagingTexture(staging, {}, nvrhi::CpuAccessMode::Write, &rowPitch);
     if (mappedData) {
         const uint8_t* srcData = static_cast<const uint8_t*>(data);
         uint8_t* dstData = static_cast<uint8_t*>(mappedData);
 
         for (uint32_t y = 0; y < texture->getDesc().height; ++y) {
-            auto bytesPerPixel =
-                calculate_bytes_per_pixel(texture->getDesc().format);
+            auto bytesPerPixel = calculate_bytes_per_pixel(texture->getDesc().format);
             memcpy(dstData, srcData, texture->getDesc().width * bytesPerPixel);
             srcData += texture->getDesc().width * bytesPerPixel;
             dstData += rowPitch;
@@ -137,15 +140,13 @@ std::tuple<nvrhi::TextureHandle, nvrhi::StagingTextureHandle> load_texture(
     return std::make_tuple(texture, stagingTexture);
 }
 
-nvrhi::TextureHandle load_ogl_texture(
-    const nvrhi::TextureDesc& desc,
-    unsigned gl_texture)
+nvrhi::TextureHandle load_ogl_texture(const nvrhi::TextureDesc& desc, unsigned gl_texture)
 {
     auto device = RHI::get_device();
     vk::Device vk_device =
         VkDevice(device->getNativeObject(nvrhi::ObjectTypes::VK_Device));
-    vk::PhysicalDevice vk_physical_device = VkPhysicalDevice(
-        device->getNativeObject(nvrhi::ObjectTypes::VK_PhysicalDevice));
+    vk::PhysicalDevice vk_physical_device =
+        VkPhysicalDevice(device->getNativeObject(nvrhi::ObjectTypes::VK_PhysicalDevice));
 
     // Get the OpenGL texture handle
     GLuint64 glHandle = glGetTextureHandleARB(gl_texture);
@@ -172,8 +173,7 @@ nvrhi::TextureHandle load_ogl_texture(
 
     // Specify external memory handle types
     vk::ExternalMemoryImageCreateInfo externalMemoryInfo = {};
-    externalMemoryInfo.handleTypes =
-        vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
+    externalMemoryInfo.handleTypes = vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
 
     imageCreateInfo.pNext = &externalMemoryInfo;
 
@@ -203,15 +203,13 @@ nvrhi::TextureHandle load_ogl_texture(
 
 #if defined(_WIN32)
     vk::ImportMemoryWin32HandleInfoKHR importMemoryInfo = {};
-    importMemoryInfo.handleType =
-        vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
+    importMemoryInfo.handleType = vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
     importMemoryInfo.handle = reinterpret_cast<HANDLE>(glHandle);
 
     memoryAllocateInfo.pNext = &importMemoryInfo;
 #else
     vk::ImportMemoryFdInfoKHR importMemoryInfo = {};
-    importMemoryInfo.handleType =
-        vk::ExternalMemoryHandleTypeFlagBits::eOpaqueFd;
+    importMemoryInfo.handleType = vk::ExternalMemoryHandleTypeFlagBits::eOpaqueFd;
     importMemoryInfo.fd = static_cast<int>(glHandle);
 
     memoryAllocateInfo.pNext = &importMemoryInfo;
