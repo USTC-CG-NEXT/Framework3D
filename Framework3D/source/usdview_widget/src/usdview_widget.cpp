@@ -166,24 +166,20 @@ void UsdviewEngine::copy_to_presentation()
     // want to modify Hgi's external information definition, we need to do a
     // CPU read back to send the information to nvrhi.
 
-    auto hgi_texture = renderer_->GetAovTexture(
-        pxrInternal_v0_24_11__pxrReserved__::HdAovTokens->color);
+    auto hgi_texture = renderer_->GetAovTexture(pxr::HdAovTokens->color);
     if (hgi_texture) {
         nvrhi::TextureDesc tex_desc =
             RHI::ConvertToNvrhiTextureDesc(hgi_texture->GetDescriptor());
 
-        pxrInternal_v0_24_11__pxrReserved__::HgiBlitCmdsUniquePtr blitCmds =
-            hgi->CreateBlitCmds();
-        pxrInternal_v0_24_11__pxrReserved__::HgiTextureGpuToCpuOp copyOp;
+        pxr::HgiBlitCmdsUniquePtr blitCmds = hgi->CreateBlitCmds();
+        pxr::HgiTextureGpuToCpuOp copyOp;
         copyOp.gpuSourceTexture = hgi_texture;
         copyOp.cpuDestinationBuffer = texture_data_.data();
         copyOp.destinationBufferByteSize = texture_data_.size();
         blitCmds->CopyTextureGpuToCpu(copyOp);
 
         hgi->SubmitCmds(
-            blitCmds.get(),
-            pxrInternal_v0_24_11__pxrReserved__::
-                HgiSubmitWaitTypeWaitUntilCompleted);
+            blitCmds.get(), pxr::HgiSubmitWaitTypeWaitUntilCompleted);
         if (!data_->nvrhi_texture) {
             std::tie(data_->nvrhi_texture, data_->staging) =
                 RHI::load_texture(tex_desc, texture_data_.data());
