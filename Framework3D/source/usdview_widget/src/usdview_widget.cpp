@@ -253,18 +253,9 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     UsdPrim root = root_stage_->GetPseudoRoot();
 
-    renderer_->Render(root, _renderParams);
-
     // First try is there a hack?
-    auto hacked_handle =
-        renderer_->GetRendererSetting(TfToken("VulkanColorAov"));
-    if (hacked_handle.IsHolding<const void*>()) {
-        data_->nvrhi_texture = *reinterpret_cast<const nvrhi::TextureHandle*>(
-            hacked_handle.Get<const void*>());
-    }
-    else {
-        copy_to_presentation();
-    }
+
+    renderer_->Render(root, _renderParams);
 
     auto imgui_frame_size =
         ImVec2(render_buffer_size_[0], render_buffer_size_[1]);
@@ -499,6 +490,24 @@ void UsdviewEngine::set_renderer_setting(
 {
     settings[id] = value;
     renderer_->SetRendererSetting(id, value);
+}
+
+void UsdviewEngine::finish_render()
+{
+    renderer_->StopRenderer();
+    auto hacked_handle =
+        renderer_->GetRendererSetting(pxr::TfToken("VulkanColorAov"));
+
+    if (hacked_handle.IsHolding<const void*>()) {
+        auto rendered = *reinterpret_cast<const nvrhi::TextureHandle*>(
+            hacked_handle.Get<const void*>());
+        if (rendered) {
+            RHI::copy_from_texture(data_->nvrhi_texture, rendered);
+        }
+    }
+    else {
+        copy_to_presentation();
+    }
 }
 
 ImGuiWindowFlags UsdviewEngine::GetWindowFlag()

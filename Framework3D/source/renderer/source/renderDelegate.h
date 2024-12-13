@@ -99,8 +99,9 @@ class HD_USTC_CG_API Hd_USTC_CG_RenderDelegate final : public HdRenderDelegate {
 
     VtValue GetRenderSetting(TfToken const& key) const override;
     void SetRenderSetting(const TfToken& key, const VtValue& value) override;
+    bool Stop(bool blocking) override;
 
-   private:
+private:
     static const TfTokenVector SUPPORTED_RPRIM_TYPES;
     static const TfTokenVector SUPPORTED_SPRIM_TYPES;
     static const TfTokenVector SUPPORTED_BPRIM_TYPES;

@@ -27,6 +27,10 @@ RHI_API void write_texture(
     nvrhi::IStagingTexture* staging,
     const void* data);
 
+RHI_API void copy_from_texture(
+    nvrhi::TextureHandle& texture,
+    nvrhi::ITexture* source);
+
 /**
  *
  * @param desc Not tested. Don't use!

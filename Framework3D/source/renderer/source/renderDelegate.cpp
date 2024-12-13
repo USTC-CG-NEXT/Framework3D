@@ -128,8 +128,8 @@ void Hd_USTC_CG_RenderDelegate::_Initialize()
     // Device
     nvrhi_device = RHI::get_device();
 
-    RenderGlobalPayload global_payload = RenderGlobalPayload(
-        &cameras, &lights, &materials, nvrhi_device);
+    RenderGlobalPayload global_payload =
+        RenderGlobalPayload(&cameras, &lights, &materials, nvrhi_device);
 
     std::unique_ptr<NodeTreeExecutor> render_executor =
         std::make_unique<EagerNodeTreeExecutorRender>();
@@ -205,7 +205,7 @@ Hd_USTC_CG_RenderDelegate::~Hd_USTC_CG_RenderDelegate()
 
     RHI::get_device()->runGarbageCollection();
 
-    std::cout << "Destroying Tiny RenderDelegate" << std::endl;
+    std::cout << "Destroying RenderDelegate" << std::endl;
 }
 
 const TfTokenVector& Hd_USTC_CG_RenderDelegate::GetSupportedRprimTypes() const
@@ -250,6 +250,8 @@ HdRprim* Hd_USTC_CG_RenderDelegate::CreateRprim(
 {
     if (typeId == HdPrimTypeTokens->mesh) {
         auto mesh = new Hd_USTC_CG_Mesh(rprimId);
+        log::info(("Create Rprim id=" + rprimId.GetString()).c_str());
+
         meshes.push_back(mesh);
         return mesh;
     }
@@ -260,7 +262,7 @@ HdRprim* Hd_USTC_CG_RenderDelegate::CreateRprim(
 
 void Hd_USTC_CG_RenderDelegate::DestroyRprim(HdRprim* rPrim)
 {
-    log::info(("Destroy Tiny Rprim id=" + rPrim->GetId().GetString()).c_str());
+    log::info(("Destroy Rprim id=" + rPrim->GetId().GetString()).c_str());
     meshes.erase(
         std::remove(meshes.begin(), meshes.end(), rPrim), meshes.end());
     delete rPrim;
@@ -393,7 +395,10 @@ HdInstancer* Hd_USTC_CG_RenderDelegate::CreateInstancer(
 
 void Hd_USTC_CG_RenderDelegate::DestroyInstancer(HdInstancer* instancer)
 {
-    TF_CODING_ERROR("Destroy instancer not supported");
+    //TF_CODING_ERROR("Destroy instancer not supported");
+
+    log::info(
+        ("Destroy Instancer id=" + instancer->GetId().GetString()).c_str());
 }
 
 HdRenderParam* Hd_USTC_CG_RenderDelegate::GetRenderParam() const
@@ -430,6 +435,12 @@ void Hd_USTC_CG_RenderDelegate::SetRenderSetting(
     else {
         HdRenderDelegate::SetRenderSetting(key, value);
     }
+}
+
+bool Hd_USTC_CG_RenderDelegate::Stop(bool blocking)
+{
+    _renderThread.StopRender();
+    return HdRenderDelegate::Stop(blocking);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -42,6 +42,8 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 
         node_system->execute(false);
     }
+    RHI::get_device()->waitForIdle();
+    RHI::get_device()->runGarbageCollection();
 
     for (size_t i = 0; i < _aovBindings.size(); ++i) {
         std::string present_name;
@@ -83,8 +85,7 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
             rb->SetConverged(true);
         }
     }
-    RHI::get_device()->waitForIdle();
-    RHI::get_device()->runGarbageCollection();
+
     node_system->finalize();
 
     // executor->finalize(node_tree);

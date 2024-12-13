@@ -31,7 +31,8 @@ Stage::~Stage()
 }
 
 template<typename T>
-T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName) const
+T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName)
+    const
 {
     int id = 0;
     while (stage->GetPrimAtPath(
@@ -39,7 +40,8 @@ T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName) cons
         id++;
     }
     auto a = T::Define(
-        stage, path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))));
+        stage,
+        path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))));
     stage->Save();
     return a;
 }
@@ -76,6 +78,7 @@ pxr::UsdGeomMesh Stage::create_mesh(const pxr::SdfPath& path) const
 
 void Stage::remove_prim(const pxr::SdfPath& path)
 {
+    // Then remove the prim
     stage->RemovePrim(path);
     stage->Save();
 }
@@ -110,15 +113,17 @@ bool Stage::consume_editor_creation(pxr::SdfPath& json_path, bool fully_consume)
     return true;
 }
 
-void Stage::save_string_to_usd(const pxr::SdfPath& path, const std::string& data)
+void Stage::save_string_to_usd(
+    const pxr::SdfPath& path,
+    const std::string& data)
 {
     auto prim = stage->GetPrimAtPath(path);
     if (!prim) {
         return;
     }
 
-    auto attr =
-        prim.CreateAttribute(pxr::TfToken("node_json"), pxr::SdfValueTypeNames->String);
+    auto attr = prim.CreateAttribute(
+        pxr::TfToken("node_json"), pxr::SdfValueTypeNames->String);
     attr.Set(data);
     stage->Save();
 }
@@ -140,7 +145,9 @@ std::string Stage::load_string_from_usd(const pxr::SdfPath& path)
     return data;
 }
 
-void Stage::import_usd(const std::string& path_string, const pxr::SdfPath& sdf_path)
+void Stage::import_usd(
+    const std::string& path_string,
+    const pxr::SdfPath& sdf_path)
 {
     auto prim = stage->GetPrimAtPath(sdf_path);
     if (!prim) {

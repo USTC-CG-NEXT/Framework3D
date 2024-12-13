@@ -49,8 +49,8 @@ int main()
         }
     });
 
-    window->register_widget(std::move(usd_file_viewer));
     window->register_widget(std::move(render));
+    window->register_widget(std::move(usd_file_viewer));
 
     window->register_function_perframe([&stage](Window* window) {
         pxr::SdfPath json_path;
@@ -99,6 +99,8 @@ int main()
         pxr::TfToken("lens_system_ptr"),
         pxr::VtValue(static_cast<void*>(lens_system.get())));
 
+    window->register_function_perframe(
+        [render_bare](Window* window) { render_bare->finish_render(); });
     window->run();
 
     unregister_cpp_type();

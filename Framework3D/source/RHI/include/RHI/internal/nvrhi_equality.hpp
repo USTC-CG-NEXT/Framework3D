@@ -1,8 +1,8 @@
 #pragma once
-#include "resources.hpp"
+#include "RHI/api.h"
 #include "nvrhi/nvrhi.h"
 #include "nvrhi_patch.hpp"
-#include "RHI/api.h"
+#include "resources.hpp"
 namespace nvrhi {
 
 inline bool operator==(
@@ -55,7 +55,8 @@ inline bool operator==(const TextureDesc& lhs, const TextureDesc& rhs)
            lhs.isVirtual == rhs.isVirtual && lhs.clearValue == rhs.clearValue &&
            lhs.useClearValue == rhs.useClearValue &&
            lhs.initialState == rhs.initialState &&
-           lhs.keepInitialState == rhs.keepInitialState;
+           lhs.keepInitialState == rhs.keepInitialState &&
+           lhs.debugName == rhs.debugName;
 }
 
 inline bool operator!=(const TextureDesc& lhs, const TextureDesc& rhs)

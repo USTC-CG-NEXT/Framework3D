@@ -39,7 +39,6 @@
 #include "pxr/imaging/hd/smoothNormals.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-std::mutex Hd_USTC_CG_Mesh::_mutex_blas;
 class Hd_USTC_CG_RenderParam;
 using namespace pxr;
 Hd_USTC_CG_Mesh::Hd_USTC_CG_Mesh(const SdfPath& id)
@@ -249,7 +248,7 @@ void Hd_USTC_CG_Mesh::updateTLAS(
     else {
         // If there's no instancer, add a single instance with transform
         // I.
-        transforms.push_back(GfMatrix4d (1.0f));
+        transforms.push_back(GfMatrix4d(1.0f));
     }
 
     auto& rt_instance_pool = render_param->InstanceCollection->rt_instance_pool;
@@ -425,44 +424,10 @@ void Hd_USTC_CG_Mesh::Finalize(HdRenderParam* renderParam)
     texcoordBuffer = nullptr;
     normalBuffer = nullptr;
     BLAS = nullptr;
-}
-
-nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetVertexBuffer()
-{
-    return vertexBuffer->get_descriptor();
-}
-
-nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetIndexBuffer()
-{
-    return indexBuffer->get_descriptor();
-}
-
-nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetTexcoordBuffer(
-    pxr::TfToken texcoord_name)
-{
-    return texcoordBuffer->get_descriptor();
-}
-
-uint32_t Hd_USTC_CG_Mesh::IndexCount()
-{
-    return triangulatedIndices.size() * 3;
-}
-
-uint32_t Hd_USTC_CG_Mesh::PointCount()
-{
-    return points.size();
-}
-
-nvrhi::BindingSetItem Hd_USTC_CG_Mesh::GetNormalBuffer()
-{
-    return normalBuffer->get_descriptor();
-}
-
-nvrhi::IBuffer* Hd_USTC_CG_Mesh::GetModelTransformBuffer()
-{
-    // fill it
-    throw std::runtime_error("Not implemented");
-    return nullptr;
+    instanceBuffer = nullptr;
+    rt_instanceBuffer = nullptr;
+    mesh_desc_buffer = nullptr;
+    draw_indirect = nullptr;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

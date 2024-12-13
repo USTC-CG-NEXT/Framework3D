@@ -57,25 +57,9 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
 
     void Finalize(HdRenderParam* renderParam) override;
 
-    nvrhi::BindingSetItem GetVertexBuffer();
-    nvrhi::BindingSetItem GetIndexBuffer();
-    nvrhi::BindingSetItem GetTexcoordBuffer(pxr::TfToken texcoord_name);
-
-    pxr::GfMatrix4f GetTransform()
-    {
-        return transform;
-    }
-
-    uint32_t IndexCount();
-    uint32_t PointCount();
-    nvrhi::BindingSetItem GetNormalBuffer();
-    nvrhi::IBuffer* GetModelTransformBuffer();
-
     nvrhi::rt::AccelStructHandle BLAS;
 
    protected:
-    static std::mutex _mutex_blas;
-
     DeviceMemoryPool<unsigned>::MemoryHandle indexBuffer;
 
     DeviceMemoryPool<float>::MemoryHandle vertexBuffer;
@@ -116,7 +100,8 @@ class HD_USTC_CG_API Hd_USTC_CG_Mesh final : public HdMesh {
         HdDirtyBits dirtyBits);
     void _UpdatePrimvarSources(
         HdSceneDelegate* sceneDelegate,
-        HdDirtyBits dirtyBits, HdRenderParam* param);
+        HdDirtyBits dirtyBits,
+        HdRenderParam* param);
 
     // This class does not support copying.
     Hd_USTC_CG_Mesh(const Hd_USTC_CG_Mesh&) = delete;

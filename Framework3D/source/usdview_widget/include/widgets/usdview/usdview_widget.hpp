@@ -36,6 +36,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     void set_renderer_setting(
         const pxr::TfToken& id,
         const pxr::VtValue& value);
+    void finish_render();
 
    protected:
     ImGuiWindowFlags GetWindowFlag() override;
