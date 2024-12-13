@@ -1,6 +1,7 @@
 #include "stage/stage.hpp"
 
 #include <pxr/pxr.h>
+#include <pxr/usd/usd/payloads.h>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/cylinder.h>
@@ -30,8 +31,7 @@ Stage::~Stage()
 }
 
 template<typename T>
-T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName)
-    const
+T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName) const
 {
     int id = 0;
     while (stage->GetPrimAtPath(
@@ -39,8 +39,7 @@ T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName)
         id++;
     }
     auto a = T::Define(
-        stage,
-        path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))));
+        stage, path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))));
     stage->Save();
     return a;
 }
@@ -111,17 +110,15 @@ bool Stage::consume_editor_creation(pxr::SdfPath& json_path, bool fully_consume)
     return true;
 }
 
-void Stage::save_string_to_usd(
-    const pxr::SdfPath& path,
-    const std::string& data)
+void Stage::save_string_to_usd(const pxr::SdfPath& path, const std::string& data)
 {
     auto prim = stage->GetPrimAtPath(path);
     if (!prim) {
         return;
     }
 
-    auto attr = prim.CreateAttribute(
-        pxr::TfToken("node_json"), pxr::SdfValueTypeNames->String);
+    auto attr =
+        prim.CreateAttribute(pxr::TfToken("node_json"), pxr::SdfValueTypeNames->String);
     attr.Set(data);
     stage->Save();
 }
@@ -143,17 +140,17 @@ std::string Stage::load_string_from_usd(const pxr::SdfPath& path)
     return data;
 }
 
-void Stage::import_usd(
-    const std::string& path_string,
-    const pxr::SdfPath& sdf_path)
+void Stage::import_usd(const std::string& path_string, const pxr::SdfPath& sdf_path)
 {
     auto prim = stage->GetPrimAtPath(sdf_path);
     if (!prim) {
         return;
     }
 
-    // path_string should point to a usd file, add reference to it
-    prim.GetReferences().AddReference(path_string);
+    // bring the usd file into the stage with payload
+
+    auto paylaods = prim.GetPayloads();
+    paylaods.AddPayload(pxr::SdfPayload(path_string));
 
     stage->Save();
 }
