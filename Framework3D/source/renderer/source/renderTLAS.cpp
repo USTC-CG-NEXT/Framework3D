@@ -67,7 +67,6 @@ void Hd_USTC_CG_RenderInstanceCollection::rebuild_tlas()
     command_list->endMarker();
     command_list->close();
     nvrhi_device->executeCommandList(command_list);
-    nvrhi_device->waitForIdle();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

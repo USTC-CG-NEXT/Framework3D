@@ -82,6 +82,8 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     bool MouseButtonUpdate(int button, int action, int mods) override;
     void Animate(float elapsed_time_seconds) override;
 
+    void copy_to_presentation();
+
     std::unique_ptr<UsdviewEnginePrivateData> data_;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

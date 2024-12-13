@@ -83,7 +83,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
 
     free_camera_->CreateFocusDistanceAttr().Set(10.0f);
     free_camera_->CreateClippingRangeAttr(
-        pxr::VtValue(pxr::GfVec2f{1.f, 2000.f }));
+        pxr::VtValue(pxr::GfVec2f{ 1.f, 2000.f }));
 }
 
 void UsdviewEngine::ChooseRenderer(
@@ -159,6 +159,44 @@ void UsdviewEngine::DrawMenuBar()
     ImGui::EndMenuBar();
 }
 
+void UsdviewEngine::copy_to_presentation()
+{
+    // Since Hgi and nvrhi vulkan are on different Vulkan instances and we
+    // don't
+    // want to modify Hgi's external information definition, we need to do a
+    // CPU read back to send the information to nvrhi.
+
+    auto hgi_texture = renderer_->GetAovTexture(
+        pxrInternal_v0_24_11__pxrReserved__::HdAovTokens->color);
+    if (hgi_texture) {
+        nvrhi::TextureDesc tex_desc =
+            RHI::ConvertToNvrhiTextureDesc(hgi_texture->GetDescriptor());
+
+        pxrInternal_v0_24_11__pxrReserved__::HgiBlitCmdsUniquePtr blitCmds =
+            hgi->CreateBlitCmds();
+        pxrInternal_v0_24_11__pxrReserved__::HgiTextureGpuToCpuOp copyOp;
+        copyOp.gpuSourceTexture = hgi_texture;
+        copyOp.cpuDestinationBuffer = texture_data_.data();
+        copyOp.destinationBufferByteSize = texture_data_.size();
+        blitCmds->CopyTextureGpuToCpu(copyOp);
+
+        hgi->SubmitCmds(
+            blitCmds.get(),
+            pxrInternal_v0_24_11__pxrReserved__::
+                HgiSubmitWaitTypeWaitUntilCompleted);
+        if (!data_->nvrhi_texture) {
+            std::tie(data_->nvrhi_texture, data_->staging) =
+                RHI::load_texture(tex_desc, texture_data_.data());
+        }
+        else {
+            RHI::write_texture(
+                data_->nvrhi_texture.Get(),
+                data_->staging.Get(),
+                texture_data_.data());
+        }
+    }
+}
+
 void UsdviewEngine::OnFrame(float delta_time)
 {
     if (first_draw) {
@@ -229,36 +267,7 @@ void UsdviewEngine::OnFrame(float delta_time)
             hacked_handle.Get<const void*>());
     }
     else {
-        // Since Hgi and nvrhi vulkan are on different Vulkan instances and we
-        // don't
-        // want to modify Hgi's external information definition, we need to do a
-        // CPU read back to send the information to nvrhi.
-
-        auto hgi_texture = renderer_->GetAovTexture(HdAovTokens->color);
-        if (hgi_texture) {
-            nvrhi::TextureDesc tex_desc =
-                RHI::ConvertToNvrhiTextureDesc(hgi_texture->GetDescriptor());
-
-            HgiBlitCmdsUniquePtr blitCmds = hgi->CreateBlitCmds();
-            HgiTextureGpuToCpuOp copyOp;
-            copyOp.gpuSourceTexture = hgi_texture;
-            copyOp.cpuDestinationBuffer = texture_data_.data();
-            copyOp.destinationBufferByteSize = texture_data_.size();
-            blitCmds->CopyTextureGpuToCpu(copyOp);
-
-            hgi->SubmitCmds(
-                blitCmds.get(), HgiSubmitWaitTypeWaitUntilCompleted);
-            if (!data_->nvrhi_texture) {
-                std::tie(data_->nvrhi_texture, data_->staging) =
-                    RHI::load_texture(tex_desc, texture_data_.data());
-            }
-            else {
-                RHI::write_texture(
-                    data_->nvrhi_texture.Get(),
-                    data_->staging.Get(),
-                    texture_data_.data());
-            }
-        }
+        copy_to_presentation();
     }
 
     auto imgui_frame_size =
