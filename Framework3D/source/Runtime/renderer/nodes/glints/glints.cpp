@@ -86,7 +86,8 @@ ScratchIntersectionContext::intersect_line_with_rays(
 
     using namespace cuda;
     optix_init();
-    std::string filename = "glints/glints.cu";
+    std::string filename =
+        RENDERER_SHADER_DIR + std::string("shaders/glints/glints.cu");
 
     this->line_end_vertices = borrow_cuda_linear_buffer(
         { static_cast<int>(vertex_count), 3 * sizeof(float) }, lines);

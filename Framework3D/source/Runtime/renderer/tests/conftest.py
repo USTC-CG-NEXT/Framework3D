@@ -15,7 +15,7 @@ def pytest_configure(config):
     shipping = config.getoption("shipping")
     
     target_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), f"../../../Binaries/{target}")
+        os.path.join(os.path.dirname(__file__), f"../../../../Binaries/{target}")
     )
     sys.path.append(target_path)
     os.chdir(target_path)
