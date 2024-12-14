@@ -46,6 +46,7 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     CreateGLContext();
     GarchGLApiLoad();
     pxr::UsdImagingGLEngine::Parameters params;
+    params.allowAsynchronousSceneProcessing = true;
 
     // Initialize Vulkan driver
 #if USDVIEW_WITH_VULKAN
@@ -254,7 +255,6 @@ void UsdviewEngine::OnFrame(float delta_time)
     UsdPrim root = root_stage_->GetPseudoRoot();
 
     // First try is there a hack?
-
     renderer_->Render(root, _renderParams);
 
     auto imgui_frame_size =

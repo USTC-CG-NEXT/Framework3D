@@ -78,7 +78,6 @@ pxr::UsdGeomMesh Stage::create_mesh(const pxr::SdfPath& path) const
 
 void Stage::remove_prim(const pxr::SdfPath& path)
 {
-    // Then remove the prim
     stage->RemovePrim(path);
     stage->Save();
 }

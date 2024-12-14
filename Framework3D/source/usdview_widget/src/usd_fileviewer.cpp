@@ -315,6 +315,27 @@ void UsdFileViewer::select_file()
     }
 }
 
+int UsdFileViewer::delete_pass_id = 0;
+
+void UsdFileViewer::remove_prim_logic()
+{
+    if (delete_pass_id == 3) {
+        stage->remove_prim(to_delete);
+    }
+
+    if (delete_pass_id == 2) {
+        stage->add_prim(to_delete);
+    }
+
+    if (delete_pass_id == 1) {
+        stage->remove_prim(to_delete);
+    }
+
+    if (delete_pass_id > 0) {
+        delete_pass_id--;
+    }
+}
+
 void UsdFileViewer::show_right_click_menu()
 {
     if (ImGui::BeginPopupContextWindow("Prim Operation")) {
@@ -342,7 +363,8 @@ void UsdFileViewer::show_right_click_menu()
         }
 
         if (ImGui::MenuItem("Delete")) {
-            stage->remove_prim(selected);
+            to_delete = selected;
+            delete_pass_id = 3;
         }
 
         ImGui::EndPopup();
@@ -418,6 +440,7 @@ bool UsdFileViewer::BuildUI()
     ImGui::Begin("Edit Value", nullptr, ImGuiWindowFlags_None);
     EditValue();
     ImGui::End();
+    remove_prim_logic();
 
     return true;
 }
