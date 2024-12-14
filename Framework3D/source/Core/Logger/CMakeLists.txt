@@ -1,0 +1,1 @@
+USTC_CG_ADD_LIB(Logger SHARED)
