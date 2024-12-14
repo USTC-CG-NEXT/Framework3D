@@ -2,6 +2,7 @@
 
 #include "api.h"
 #include "pxr/imaging/hd/changeTracker.h"
+#include "pxr/imaging/hd/sceneDelegate.h"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 Hd_USTC_CG_Material::Hd_USTC_CG_Material(SdfPath const& id) : HdMaterial(id)
 {
@@ -12,6 +13,7 @@ void Hd_USTC_CG_Material::Sync(
     HdRenderParam* renderParam,
     HdDirtyBits* dirtyBits)
 {
+    auto material = sceneDelegate->GetMaterialResource(GetId());
 }
 
 HdDirtyBits Hd_USTC_CG_Material::GetInitialDirtyBitsMask() const

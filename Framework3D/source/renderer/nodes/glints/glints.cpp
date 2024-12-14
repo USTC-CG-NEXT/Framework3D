@@ -52,22 +52,22 @@ void ScratchIntersectionContext::create_pipeline()
 }
 
 void ScratchIntersectionContext::create_width_buffer(
-    unsigned line_count,
+    unsigned vertex_count,
     float width)
 {
-    if (!widths || width != _width || line_count != _line_count) {
+    if (!widths || width != _width || vertex_count != vertex_count) {
         widths = cuda::create_cuda_linear_buffer(std::vector{ width, width });
         _width = width;
     }
 }
 
-void ScratchIntersectionContext::create_indices(unsigned line_count)
+void ScratchIntersectionContext::create_indices(unsigned vertex_count)
 {
-    if (!indices || line_count != _line_count) {
+    if (!indices || vertex_count != _vertex_count) {
         std::vector<unsigned> h_indices;
-        h_indices.reserve(line_count);
-        for (int i = 0; i < line_count - 1; ++i) {
-            h_indices.push_back(i);
+        h_indices.reserve(vertex_count);
+        for (int i = 0; i < vertex_count / 2; ++i) {
+            h_indices.push_back(i * 2);
         }
         indices = cuda::create_cuda_linear_buffer(h_indices);
     }
@@ -97,20 +97,20 @@ ScratchIntersectionContext::intersect_line_with_rays(
     create_hitgroup();
     create_miss_group(filename);
     create_pipeline();
-    create_width_buffer(line_count, width);
-    create_indices(line_count);
+    create_width_buffer(line_count * 2, width);
+    create_indices(line_count * 2);
 
     handle = create_optix_traversable(
         { line_end_vertices->get_device_ptr() },
-        line_count,
+        line_count * 2,
         { widths->get_device_ptr() },
         { indices->get_device_ptr() },
-        line_count - 1);
+        line_count);
 
     int buffer_size = ratio * line_count * patch_count;
     this->_buffer_size = buffer_size;
 
-    //if (buffer_size != _buffer_size) 
+    // if (buffer_size != _buffer_size)
     {
         append_buffer = AppendStructuredBuffer<uint2>(buffer_size);
     }
@@ -150,7 +150,7 @@ void ScratchIntersectionContext::reset()
     patches_buffer = nullptr;
     glints_params = nullptr;
     _width = 0;
-    _line_count = 0;
+    _vertex_count = 0;
     ratio = 1.5f;
 }
 

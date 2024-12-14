@@ -25,8 +25,8 @@ struct ScratchIntersectionContext {
     void create_hitgroup();
     void create_miss_group(std::string filename);
     void create_pipeline();
-    void create_width_buffer(unsigned line_count, float width);
-    void create_indices(unsigned line_count);
+    void create_width_buffer(unsigned vertex_count, float width);
+    void create_indices(unsigned vertex_count);
 
     unsigned primitive_count;
     unsigned patch_count;
@@ -44,7 +44,7 @@ struct ScratchIntersectionContext {
     cuda::CUDALinearBufferHandle glints_params;
     cuda::AppendStructuredBuffer<uint2> append_buffer;
     float _width = 0;
-    unsigned _line_count = 0;
+    unsigned _vertex_count = 0;
     float ratio = 1.5f;
     int _buffer_size = 0;
 };
