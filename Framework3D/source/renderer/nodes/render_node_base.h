@@ -4,7 +4,7 @@
 #include "../source/camera.h"
 #include "../source/geometries/mesh.h"
 #include "../source/light.h"
-#include "../source/material.h"
+#include "../source/material/material.h"
 #include "RHI/ResourceManager/resource_allocator.hpp"
 #include "RHI/internal/resources.hpp"
 #include "hd_USTC_CG/render_global_payload.hpp"

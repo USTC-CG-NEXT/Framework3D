@@ -35,7 +35,7 @@
 #include "hd_USTC_CG/render_global_payload.hpp"
 #include "instancer.h"
 #include "light.h"
-#include "material.h"
+#include "material/material.h"
 #include "node_exec_eager_render.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nvrhi/nvrhi.h"
