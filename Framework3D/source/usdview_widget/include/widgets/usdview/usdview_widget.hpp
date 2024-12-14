@@ -26,7 +26,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     const char* GetWindowName() override;
     std::string GetWindowUniqueName() override;
 
-private:
+   private:
     void RenderBackBufferResized(float x, float y);
 
     enum class CamType { First, Third };

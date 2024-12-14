@@ -1,0 +1,6 @@
+USTC_CG_ADD_LIB(
+    polyscope_widget
+    PUBLIC_LIBS polyscope stage
+    PRIVATE_LIBS Logger GUI RHI
+    COMPILE_DEFS NOMINMAX=1 USTC_CG_BUILD_MODULE=1 
+)
