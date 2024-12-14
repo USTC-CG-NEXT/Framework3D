@@ -82,6 +82,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     float width)
 {
     this->primitive_count = line_count;
+    auto vertex_count = line_count * 2;
     this->patch_count = patch_count;
 
     using namespace cuda;
@@ -89,7 +90,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     std::string filename = "glints/glints.cu";
 
     this->line_end_vertices = borrow_cuda_linear_buffer(
-        { static_cast<int>(line_count * 2), 3 * sizeof(float) }, lines);
+        { static_cast<int>(vertex_count), 3 * sizeof(float) }, lines);
 
     create_raygen(filename);
     create_cylinder_intersection_shader();
@@ -97,12 +98,12 @@ ScratchIntersectionContext::intersect_line_with_rays(
     create_hitgroup();
     create_miss_group(filename);
     create_pipeline();
-    create_width_buffer(line_count * 2, width);
-    create_indices(line_count * 2);
+    create_width_buffer(vertex_count, width);
+    create_indices(vertex_count);
 
     handle = create_optix_traversable(
         { line_end_vertices->get_device_ptr() },
-        line_count * 2,
+        vertex_count,
         { widths->get_device_ptr() },
         { indices->get_device_ptr() },
         line_count);
