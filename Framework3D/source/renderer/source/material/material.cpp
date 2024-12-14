@@ -13,7 +13,7 @@ void Hd_USTC_CG_Material::Sync(
     HdRenderParam* renderParam,
     HdDirtyBits* dirtyBits)
 {
-    auto material = sceneDelegate->GetMaterialResource(GetId());
+    //auto material = sceneDelegate->GetMaterialResource(GetId());
 }
 
 HdDirtyBits Hd_USTC_CG_Material::GetInitialDirtyBitsMask() const
