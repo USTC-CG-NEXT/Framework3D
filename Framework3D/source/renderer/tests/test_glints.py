@@ -49,7 +49,7 @@ def test_draw_picture():
     context = hd_USTC_CG_py.ScratchIntersectionContext()
     context.set_max_pair_buffer_ratio(10.0)
 
-    lines = random_scatter_lines(0.1, 20000, (-1, 1), (-1, 1))
+    lines = random_scatter_lines(0.04, 60000, (-1, 1), (-1, 1))
     patches = torch.zeros((1024, 1024, 4, 2), device="cuda")
 
     step = 2.0 / 1024
@@ -85,3 +85,5 @@ def test_draw_picture():
     print(result.shape)
 
     print(result.cpu().numpy())
+
+
