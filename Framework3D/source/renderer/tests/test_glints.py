@@ -66,6 +66,11 @@ def test_draw_picture():
     print(patches.shape)
 
     result = context.intersect_line_with_rays(lines, patches, 0.001)
+    result = context.intersect_line_with_rays(lines, patches, 0.001)
+    result = context.intersect_line_with_rays(lines, patches, 0.001)
+    result = context.intersect_line_with_rays(lines, patches, 0.001)
+    result = context.intersect_line_with_rays(lines, patches, 0.001)
+    result = context.intersect_line_with_rays(lines, patches, 0.001)
 
     # the result is a buffewr of size [intersection_count, 2],
     # each element is [line_id, patch_id]
