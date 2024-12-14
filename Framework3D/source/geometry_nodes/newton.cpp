@@ -11,18 +11,30 @@ NODE_DECLARATION_FUNCTION(newton)
 {
     b.add_input<std::function<double(Eigen::Vector3d)>>("Cost function");
     b.add_input<Eigen::Vector3d>("Initial point");
+    b.add_input<int>("Max iterations");
+    b.add_input<double>("Tolerance");
     b.add_output<Eigen::Vector3d>("Minimum point");
 }
 
 NODE_EXECUTION_FUNCTION(newton)
 {
-    auto f =
-        params.get_input<std::function<var(const ArrayXvar&)>>("Cost function");
+    auto f0 = params.get_input<std::function<double(Eigen::Vector3d)>>(
+        "Cost function");
+
+    auto f = [f0](const ArrayXvar& x) -> var {
+        Eigen::Vector3d x_old;
+        x_old[0] = val(x[0]);
+        x_old[1] = val(x[1]);
+        x_old[2] = val(x[2]);
+        double y = f0(x_old);
+        return var(y);
+    };
+
     auto x0 = params.get_input<Eigen::Vector3d>("Initial point");
 
     VectorXvar x(3);
-    const int max_iterations = 50;
-    const double tolerance = 1e-6;
+    const int max_iterations = params.get_input<int>("Max iterations");
+    const double tolerance = params.get_input<double>("Tolerance");
 
     Eigen::Vector3d x_old = x0;
     Eigen::Vector3d x_new;
@@ -44,7 +56,6 @@ NODE_EXECUTION_FUNCTION(newton)
         x << x_new[0], x_new[1], x_new[2];
     }
     params.set_output<Eigen::Vector3d>("Minimum point", std::move(x_new));
-
 }
 
 NODE_DECLARATION_UI(newton);
