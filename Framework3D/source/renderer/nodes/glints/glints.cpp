@@ -55,8 +55,9 @@ void ScratchIntersectionContext::create_width_buffer(
     unsigned vertex_count,
     float width)
 {
-    if (!widths || width != _width || vertex_count != vertex_count) {
-        widths = cuda::create_cuda_linear_buffer(std::vector{ width, width });
+    if (!widths || width != _width || vertex_count != _vertex_count) {
+        widths =
+            cuda::create_cuda_linear_buffer(std::vector(vertex_count, width));
         _width = width;
     }
 }
@@ -81,9 +82,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     unsigned patch_count,
     float width)
 {
-    this->primitive_count = line_count;
     auto vertex_count = line_count * 2;
-    this->patch_count = patch_count;
 
     using namespace cuda;
     optix_init();
@@ -108,13 +107,12 @@ ScratchIntersectionContext::intersect_line_with_rays(
         { indices->get_device_ptr() },
         line_count);
 
-    int buffer_size = ratio * line_count * patch_count;
-    this->_buffer_size = buffer_size;
+    int buffer_size = ratio * patch_count;
 
-    // if (buffer_size != _buffer_size)
-    {
+    if (buffer_size != _buffer_size) {
         append_buffer = AppendStructuredBuffer<uint2>(buffer_size);
     }
+    this->_buffer_size = buffer_size;
 
     CUDALinearBufferDesc desc;
     desc.size = sizeof(Patch);
@@ -130,6 +128,10 @@ ScratchIntersectionContext::intersect_line_with_rays(
 
     optix_trace_ray<GlintsTracingParams>(
         handle, pipeline, glints_params->get_device_ptr(), patch_count, 1, 1);
+
+    this->_vertex_count = vertex_count;
+    this->primitive_count = line_count;
+    this->patch_count = patch_count;
 
     return std::make_tuple(
         reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),

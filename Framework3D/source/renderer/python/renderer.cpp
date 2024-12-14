@@ -22,11 +22,11 @@ NB_MODULE(hd_USTC_CG_py, m)
                nb::ndarray<float> lines,
                nb::ndarray<float> patches,
                float width) {
-                std::cout << "line_count " << lines.shape(0) - 1 << std::endl;
+                std::cout << "line_count " << lines.shape(0) << std::endl;
                 std::cout << "patch_count " << patches.shape(0) << std::endl;
                 auto [pairs, size] = self.intersect_line_with_rays(
                     lines.data(),
-                    lines.shape(0),
+                    lines.shape(0) / 2,
                     patches.data(),
                     patches.shape(0),
                     width);
