@@ -49,14 +49,14 @@ NODE_EXECUTION_FUNCTION(node_lscm)
             (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[2])) -
              halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[0])))
                 .length();
-        
+
         edge_length[2] =
             (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[0])) -
              halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[1])))
                 .length();
 
         // Calculate the area of the face
-        double tmp = std::accumulate(edge_length.begin(), edge_length.end(), 0.0) / 2;
+        double tmp = (edge_length[0] + edge_length[1] + edge_length[2]) / 2;
         area[face_idx] = tmp;
         for (int i = 0; i < 3; i++)
             area[face_idx] *= tmp - edge_length[i];
@@ -65,17 +65,38 @@ NODE_EXECUTION_FUNCTION(node_lscm)
         // Record the edge of the face
         edges[face_idx].resize(3);
         double angle = acos(
-            (edge_length[0] * edge_length[0] + edge_length[2] * edge_length[2] - edge_length[1] * edge_length[1]) /
-            (2 * edge_length[0] * edge_length[2]));
-        edges[face_idx][1] << -edge_length[1] * cos(angle), -edge_length[1] * sin(angle);
+            (edge_length[1] * edge_length[1] + edge_length[2] * edge_length[2] -
+             edge_length[0] * edge_length[0]) /
+            (2 * edge_length[1] * edge_length[2]));
+        edges[face_idx][1] << -edge_length[1] * cos(angle),
+            -edge_length[1] * sin(angle);
         edges[face_idx][2] << edge_length[2], 0;
         edges[face_idx][0] = -edges[face_idx][1] - edges[face_idx][2];
     }
 
     // Two ensured points
     int fixed = 2;
-    int idx1 = 0;
-    int idx2 = n_vertices / 2;
+    int idx1 = -1, idx2 = -1;
+    double max_dist = 0;
+    for (const auto& halfedge_handle : halfedge_mesh->halfedges()) {
+        if (halfedge_handle.is_boundary()) {
+            if (idx1 == -1)
+                idx1 = halfedge_handle.from().idx();
+            const auto& v1 =
+                halfedge_mesh->point(halfedge_mesh->vertex_handle(idx1));
+            const auto& v2 = halfedge_mesh->point(halfedge_handle.from());
+            if ((v1 - v2).length() > max_dist) {
+                max_dist = (v1 - v2).length();
+                idx2 = halfedge_handle.from().idx();
+            }
+            const auto& v3 = halfedge_mesh->point(halfedge_handle.to());
+            if ((v1 - v3).length() > max_dist) {
+                max_dist = (v1 - v3).length();
+                idx2 = halfedge_handle.to().idx();
+            }
+        }
+    }
+
     std::vector<int> ori2mat(n_vertices, 0);
     ori2mat[idx1] = -1;
     ori2mat[idx2] = -1;
@@ -97,22 +118,25 @@ NODE_EXECUTION_FUNCTION(node_lscm)
         int i = 0;
         for (const auto& vertex_handle : face_handle.vertices()) {
             int vertex_idx = vertex_handle.idx();
+            int mat_idx = ori2mat[vertex_idx];
             double dx = edges[face_idx][i][0] / coeff;
             double dy = edges[face_idx][i][1] / coeff;
-            if (ori2mat[vertex_idx] == -1) {
+            if (mat_idx == -1) {
                 // Fixed points
                 if (vertex_idx == idx2) {
-                    b(face_idx) = -dx;
-                    b(face_idx + n_faces) = -dy;
+                    b(face_idx) = -dx * max_dist;
+                    b(face_idx + n_faces) = -dy * max_dist;
                 }
-                // The first fixed point would be set to (0, 0), so there will be no impact
+                // The first fixed point would be set to (0, 0), so there will
+                // be no impact
             }
             else {
                 // Free points
-                A.coeffRef(face_idx, vertex_idx) = dx;
-                A.coeffRef(face_idx + n_faces, vertex_idx + n_vertices - fixed) = dx;
-                A.coeffRef(face_idx, vertex_idx + n_vertices - fixed) = -dy;
-                A.coeffRef(face_idx + n_faces, vertex_idx) = dy;
+                A.coeffRef(face_idx, mat_idx) = dx;
+                A.coeffRef(face_idx + n_faces, mat_idx) = dy;
+                A.coeffRef(face_idx, mat_idx + n_vertices - fixed) = -dy;
+                A.coeffRef(face_idx + n_faces, mat_idx + n_vertices - fixed) =
+                    dx;
             }
             i++;
         }
@@ -124,20 +148,22 @@ NODE_EXECUTION_FUNCTION(node_lscm)
     Eigen::VectorXd u = solver.solve(b);
 
     for (const auto& vertex_handle : halfedge_mesh->vertices()) {
-        int idx = ori2mat[vertex_handle.idx()];
-        if (idx != -1) {
-            halfedge_mesh->point(vertex_handle)[0] = u(idx);
-            halfedge_mesh->point(vertex_handle)[1] = u(idx + n_vertices - fixed);
+        int idx = vertex_handle.idx();
+        int mat_idx = ori2mat[idx];
+        if (mat_idx != -1) {
+            halfedge_mesh->point(vertex_handle)[0] = u(mat_idx);
+            halfedge_mesh->point(vertex_handle)[1] =
+                u(mat_idx + n_vertices - fixed);
             halfedge_mesh->point(vertex_handle)[2] = 0;
         }
         else {
             if (idx == idx1) {
                 halfedge_mesh->point(vertex_handle)[0] = 0;
-                halfedge_mesh->point(vertex_handle)[1] = 1;
+                halfedge_mesh->point(vertex_handle)[1] = 0;
                 halfedge_mesh->point(vertex_handle)[2] = 0;
             }
             else {
-                halfedge_mesh->point(vertex_handle)[0] = 0;
+                halfedge_mesh->point(vertex_handle)[0] = max_dist;
                 halfedge_mesh->point(vertex_handle)[1] = 0;
                 halfedge_mesh->point(vertex_handle)[2] = 0;
             }
