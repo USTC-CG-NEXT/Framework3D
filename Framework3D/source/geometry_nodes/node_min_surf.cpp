@@ -103,6 +103,8 @@ NODE_EXECUTION_FUNCTION(min_surf)
     // Construct coefficient matrix and vector
     for (const auto& vertex_handle : halfedge_mesh->vertices()) {
         int mat_idx = ori2mat[vertex_handle.idx()];
+        if (mat_idx == -1)
+            continue;
         bx(mat_idx) = 0;
         by(mat_idx) = 0;
         bz(mat_idx) = 0;
@@ -110,7 +112,7 @@ NODE_EXECUTION_FUNCTION(min_surf)
         int Aii = 0;
         for (const auto& halfedge_handle : vertex_handle.outgoing_halfedges()) {
             const auto& v1 = halfedge_handle.to();
-            int mat_idx1 = v1.idx();
+            int mat_idx1 = ori2mat[v1.idx()];
             Aii++;
             if (mat_idx1 == -1) {
                 // Boundary points
