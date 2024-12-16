@@ -27,23 +27,23 @@ void ProgramVars::finish_setting_vars()
     binding_sets_solid.resize(binding_spaces.size());
 
     for (int i = 0; i < binding_spaces.size(); ++i) {
-        BindingSetDesc desc{};
-        desc.bindings = binding_spaces[i];
+        if (!descriptor_tables[i]) {
+            BindingSetDesc desc{};
+            desc.bindings = binding_spaces[i];
 
-        for (int i = 0; i < desc.bindings.size(); ++i) {
-            if (dynamic_cast<nvrhi::IBuffer*>(
-                    desc.bindings[i].resourceHandle)) {
-                desc.bindings[i].range = nvrhi::EntireBuffer;
+            for (int j = 0; j < desc.bindings.size(); ++j) {
+                if (dynamic_cast<nvrhi::IBuffer*>(
+                        desc.bindings[j].resourceHandle)) {
+                    desc.bindings[j].range = nvrhi::EntireBuffer;
+                }
+                else if (dynamic_cast<nvrhi::ITexture*>(
+                             desc.bindings[j].resourceHandle)) {
+                    desc.bindings[j].subresources = nvrhi::AllSubresources;
+                }
             }
-            else if (dynamic_cast<nvrhi::ITexture*>(
-                         desc.bindings[i].resourceHandle)) {
-                desc.bindings[i].subresources = nvrhi::AllSubresources;
-            }
-        }
-
-        if (!descriptor_tables[i])
             binding_sets_solid[i] =
                 resource_allocator_.create(desc, binding_layouts[i].Get());
+        }
     }
 }
 

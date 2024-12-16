@@ -34,6 +34,7 @@ NODE_DECLARATION_FUNCTION(node_render_ray_generation)
     b.add_input<nvrhi::TextureHandle>("random seeds");
     b.add_input<float>("Aperture").min(0).max(1).default_val(0);
     b.add_input<float>("Focus Distance").min(0).max(20).default_val(2);
+    b.add_input<bool>("Scatter Rays").default_val(false);
 
     b.add_output<nvrhi::BufferHandle>("Pixel Target");
     b.add_output<nvrhi::BufferHandle>("Rays");

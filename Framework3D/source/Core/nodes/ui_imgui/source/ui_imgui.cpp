@@ -682,6 +682,12 @@ bool NodeWidget::draw_socket_controllers(NodeSocket* input)
                 input->dataField.value.cast<std::string&>().data(),
                 255);
             break;
+        case entt::type_hash<bool>().value():
+            changed |= ImGui::Checkbox(
+                (input->ui_name + ("##" + std::to_string(input->ID.Get())))
+                    .c_str(),
+                &input->dataField.value.cast<bool&>());
+            break;
     }
 
     return changed;

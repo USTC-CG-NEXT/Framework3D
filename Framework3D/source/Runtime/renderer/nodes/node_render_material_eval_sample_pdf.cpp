@@ -33,7 +33,8 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
     program_desc.shaderType = nvrhi::ShaderType::AllRayTracing;
     program_desc.nvapi_support = true;
     program_desc.define(
-        "FALCOR_MATERIAL_INSTANCE_SIZE", std::to_string(c_FalcorMaterialInstanceSize));
+        "FALCOR_MATERIAL_INSTANCE_SIZE",
+        std::to_string(c_FalcorMaterialInstanceSize));
 
     auto raytrace_compiled = resource_allocator.create(program_desc);
     MARK_DESTROY_NVRHI_RESOURCE(raytrace_compiled);
@@ -66,22 +67,25 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
         .setStructStride(sizeof(pxr::GfVec4f));
     auto eval_buffer = resource_allocator.create(buffer_desc);
 
-    buffer_desc.setByteSize(length * sizeof(RayInfo)).setStructStride(sizeof(RayInfo));
+    buffer_desc.setByteSize(length * sizeof(RayInfo))
+        .setStructStride(sizeof(RayInfo));
     auto sample_buffer = resource_allocator.create(buffer_desc);
 
-    buffer_desc.setByteSize(length * sizeof(float)).setStructStride(sizeof(float));
+    buffer_desc.setByteSize(length * sizeof(float))
+        .setStructStride(sizeof(float));
     auto weight_buffer = resource_allocator.create(buffer_desc);
 
     // 'Pdf Should be just like float...'
-    buffer_desc.setByteSize(length * sizeof(float)).setStructStride(sizeof(float));
+    buffer_desc.setByteSize(length * sizeof(float))
+        .setStructStride(sizeof(float));
     auto pdf_buffer = resource_allocator.create(buffer_desc);
 
     auto random_seeds = params.get_input<BufferHandle>("Random Seeds");
     // Set the program variables
 
     ProgramVars program_vars(resource_allocator, raytrace_compiled);
-    program_vars["SceneBVH"] =
-        params.get_global_payload<RenderGlobalPayload&>().InstanceCollection->get_tlas();
+    program_vars["SceneBVH"] = params.get_global_payload<RenderGlobalPayload&>()
+                                   .InstanceCollection->get_tlas();
     program_vars["hitObjects"] = hit_info_buffer;
     program_vars["in_PixelTarget"] = in_pixel_target_buffer;
     program_vars["PixelTarget"] = pixel_target_buffer;
@@ -90,20 +94,24 @@ NODE_EXECUTION_FUNCTION(material_eval_sample_pdf)
     program_vars["Weight"] = weight_buffer;
     program_vars["Pdf"] = pdf_buffer;
     program_vars["random_seeds"] = random_seeds;
-    program_vars["index_buffer"] = instance_collection->index_pool.get_device_buffer();
+    program_vars["index_buffer"] =
+        instance_collection->index_pool.get_device_buffer();
 
     program_vars["instanceDescBuffer"] =
         instance_collection->instance_pool.get_device_buffer();
-    program_vars["meshDescBuffer"] = instance_collection->mesh_pool.get_device_buffer();
+    program_vars["meshDescBuffer"] =
+        instance_collection->mesh_pool.get_device_buffer();
 
     DescriptorHandle handle =
-        instance_collection->bindlessData.descriptorTableManager->CreateDescriptorHandle(
-            nvrhi::BindingSetItem::StructuredBuffer_SRV(
-                0, instance_collection->vertex_pool.get_device_buffer()));
+        instance_collection->bindlessData.descriptorTableManager
+            ->CreateDescriptorHandle(
+                nvrhi::BindingSetItem::StructuredBuffer_SRV(
+                    0, instance_collection->vertex_pool.get_device_buffer()));
 
     program_vars.set_descriptor_table(
         "t_BindlessBuffers",
-        instance_collection->bindlessData.descriptorTableManager->GetDescriptorTable(),
+        instance_collection->bindlessData.descriptorTableManager
+            ->GetDescriptorTable(),
         instance_collection->bindlessData.bindlessLayout);
 
     program_vars.finish_setting_vars();
