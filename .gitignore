@@ -8,3 +8,5 @@ imgui.ini
 *.zip
 */.slangtorch_cache/*
 /Framework3D/source/RHI/source/nvrtc_config.h
+/Framework3D/source/Core/RHI/source/nvrtc_config.h
+/Framework3D/source/nodes/nodes/functions/NODES_FILES_DIR.h
