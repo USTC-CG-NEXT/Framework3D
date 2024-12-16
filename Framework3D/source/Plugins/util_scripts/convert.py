@@ -3,8 +3,6 @@ import argparse
 import os
 from pxr import UsdGeom
 
-
-
 def convert_usda_to_usd(input_file, output_file):
     stage = Usd.Stage.Open(input_file)
     if not stage:
