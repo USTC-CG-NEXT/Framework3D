@@ -347,6 +347,7 @@ void LensSystemGUI::draw_rays(DiffOpticsGUI* gui, const pxr::GfMatrix3f& t)
             ray.TMin = 0;
             ray.TMax = 1000;
             ray.throughput.data = pxr::GfVec3f{ 1, 1, 1 };
+            ray.throughput.padding = 0;
             begin_rays.push_back(ray);
         }
     };

@@ -10,6 +10,7 @@ struct RGBSpectrum : ISpectrum
 {
     RGBSpectrum(const pxr::GfVec3f& data) : data(data) {}
     pxr::GfVec3f data;
+    float padding;
 };
 #else
 interface ISpectrum
@@ -30,9 +31,8 @@ struct RGBSpectrum : ISpectrum
         data = rgb;
     }
 
-
-
     float3 data;
+    float padding;
 
     [Differentiable]
     float3 toFloat3()

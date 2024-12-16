@@ -43,6 +43,16 @@ struct RHI_API ShaderMacro {
           definition(_definition)
     {
     }
+
+    friend bool operator==(const ShaderMacro& lhs, const ShaderMacro& rhs)
+    {
+        return lhs.name == rhs.name && lhs.definition == rhs.definition;
+    }
+
+    friend bool operator!=(const ShaderMacro& lhs, const ShaderMacro& rhs)
+    {
+        return !(lhs == rhs);
+    }
 };
 
 struct RHI_API ProgramDesc {
@@ -51,7 +61,8 @@ struct RHI_API ProgramDesc {
         return lhs.path == rhs.path && lhs.entry_name == rhs.entry_name &&
                lhs.lastWriteTime == rhs.lastWriteTime &&
                lhs.shaderType == rhs.shaderType &&
-               lhs.nvapi_support == rhs.nvapi_support;
+               lhs.nvapi_support == rhs.nvapi_support &&
+               lhs.macros == rhs.macros;
     }
 
     friend bool operator!=(const ProgramDesc& lhs, const ProgramDesc& rhs)

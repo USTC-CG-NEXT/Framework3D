@@ -79,7 +79,7 @@ RayInfo setupPrimaryRay(
 }
 
 [numthreads(32, 32, 1)]
-void main(uint3 DTid: SV_DispatchThreadID)
+void main(uint2 DTid: SV_DispatchThreadID)
 {
     uint2 LaunchIndex = DTid.xy;
     uint2 LaunchDimensions = viewConstant.resolution;
@@ -87,12 +87,16 @@ void main(uint3 DTid: SV_DispatchThreadID)
     if (all(LaunchIndex.xy < LaunchDimensions.xy)) {
         uint seed = random_seeds[LaunchIndex];
 
+#if SCATTER_RAYS
         float x = random_float(seed);
         float y = random_float(seed);
 
         uint pixel_target_x = floor(x * viewConstant.resolution.x);
         uint pixel_target_y = floor(y * viewConstant.resolution.y);
         uint2 pixel_target = { pixel_target_x, pixel_target_y };
+#else
+        uint2 pixel_target = LaunchIndex;
+#endif
         // Setup the ray
         CameraParameters c;
         c.focusDistance = cameraParams.focusDistance;
@@ -102,7 +106,6 @@ void main(uint3 DTid: SV_DispatchThreadID)
 
         // Transform the ray to world space
         ray = transformRay(ray, viewConstant.matViewToWorld);
-
         rays[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] = ray;
         pixel_targets[LaunchIndex.x * LaunchDimensions.y + LaunchIndex.y] =
             pixel_target;

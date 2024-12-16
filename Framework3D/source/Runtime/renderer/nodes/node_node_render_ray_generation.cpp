@@ -63,12 +63,19 @@ NODE_EXECUTION_FUNCTION(node_render_ray_generation)
     // 2. Prepare the shader
     std::string error_string;
     ShaderReflectionInfo reflection_info;
+    std::vector<ShaderMacro> macro_defines;
+    if (params.get_input<bool>("Scatter Rays"))
+        macro_defines.push_back(ShaderMacro{ "SCATTER_RAYS", "1" });
+    else
+        macro_defines.push_back(ShaderMacro{ "SCATTER_RAYS", "0" });
+
     auto compute_shader = shader_factory.compile_shader(
         "main",
         nvrhi::ShaderType::Compute,
         "shaders/raygen.slang",
         reflection_info,
-        error_string);
+        error_string,
+        macro_defines);
     MARK_DESTROY_NVRHI_RESOURCE(compute_shader);
     nvrhi::BindingLayoutDescVector binding_layout_desc_vec =
         reflection_info.get_binding_layout_descs();
