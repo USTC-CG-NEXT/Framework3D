@@ -18,7 +18,7 @@ NB_MODULE(hd_USTC_CG_py, m)
         .def(nb::init<>())
         .def(
             "intersect_line_with_rays",
-            [](USTC_CG::ScratchIntersectionContext &self,
+            [](USTC_CG::ScratchIntersectionContext& self,
                nb::ndarray<float> lines,
                nb::ndarray<float> patches,
                float width) {
@@ -26,7 +26,7 @@ NB_MODULE(hd_USTC_CG_py, m)
                 std::cout << "patch_count " << patches.shape(0) << std::endl;
                 auto [pairs, size] = self.intersect_line_with_rays(
                     lines.data(),
-                    lines.shape(0) / 2,
+                    static_cast<unsigned>(lines.shape(0) / 2),
                     patches.data(),
                     patches.shape(0),
                     width);
@@ -53,41 +53,55 @@ NB_MODULE(hd_USTC_CG_py, m)
         .def(nb::init<>())
         .def(
             "intersect_mesh_with_rays",
-            [](USTC_CG::MeshIntersectionContext &self,
+            [](USTC_CG::MeshIntersectionContext& self,
                nb::ndarray<float> vertices,
                nb::ndarray<float> indices,
-               nb::ndarray<float> rays) {
-                auto vertex_count = vertices.shape(0);
-                auto index_count = indices.shape(0);
-                auto vertex_stride = vertices.shape(1);
-
-                auto [pairs, targets, count] = self.intersect_mesh_with_rays(
-                    vertices.data(),
-                    vertex_count,
-                    vertex_stride,
-                    indices.data(),
-                    index_count,
-                    rays.data(),
-                    rays.shape(0));
+               unsigned vertex_buffer_stride,
+               const std::vector<int>& resolution,
+               const std::vector<float>& world_to_clip) {
+                std::cout << "vertices_count " << vertices.shape(0)
+                          << std::endl;
+                std::cout << "vertex_buffer_stride " << vertex_buffer_stride
+                          << std::endl;
+                auto [patches, corners, targets, count] =
+                    self.intersect_mesh_with_rays(
+                        vertices.data(),
+                        static_cast<unsigned>(vertices.shape(0)),
+                        vertex_buffer_stride,
+                        indices.data(),
+                        static_cast<unsigned>(indices.shape(0)),
+                        int2(resolution[0], resolution[1]),
+                        world_to_clip);
 
                 std::cout << "count: " << count << std::endl;
-                // return 2 arrays
+
                 return std::make_tuple(
+                    nb::ndarray<
+                        nb::pytorch,
+                        float,
+                        nb::ndim<2>,
+                        nb::shape<-1, sizeof(Patch) / sizeof(float)>,
+                        nb::device::cuda>(
+                        patches, { count, sizeof(Patch) / sizeof(float) }),
+                    nb::ndarray<
+                        nb::pytorch,
+                        float,
+                        nb::ndim<2>,
+                        nb::shape<-1, sizeof(Corners) / sizeof(float)>,
+                        nb::device::cuda>(
+                        corners, { count, sizeof(Corners) / sizeof(float) }),
                     nb::ndarray<
                         nb::pytorch,
                         unsigned,
                         nb::ndim<2>,
                         nb::shape<-1, 2>,
-                        nb::device::cuda>(pairs, { count, 2 }),
-                    nb::ndarray<
-                        nb::pytorch,
-                        unsigned,
-                        nb::ndim<1>,
-                        nb::shape<-1>,
-                        nb::device::cuda>(targets, { count }));
+                        nb::device::cuda>(targets, { count, 2 }),
+                    count);
             },
             nb::arg("vertices"),
             nb::arg("indices"),
-            nb::arg("rays"),
+            nb::arg("vertex_buffer_stride"),
+            nb::arg("resolution"),
+            nb::arg("world_to_clip"),
             nb::rv_policy::reference);
 }

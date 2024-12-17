@@ -40,6 +40,10 @@ TEST(cuda_extension, trace_optix_mesh_traversable)
         }
     }
 
+    std::vector<float> worldToClip = { 2.0f, 0.0f, 0.0f,  0.0f, 0.0f,  2.0f,
+                                       0.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,
+                                       0.0f, 0.0f, -1.0f, 0.0f };
+
     auto ray_buffer = create_cuda_linear_buffer<Ray>(rays);
 
     context.intersect_mesh_with_rays(
@@ -48,11 +52,11 @@ TEST(cuda_extension, trace_optix_mesh_traversable)
         3 * sizeof(float),
         reinterpret_cast<float*>(index_buffer->get_device_ptr()),
         2,
-        reinterpret_cast<float*>(ray_buffer->get_device_ptr()),
-        ray_count);
+        { 1024, 1024 },
+        worldToClip);
 }
 //
-//TEST(cuda_extension, trace_optix_lines_traversable)
+// TEST(cuda_extension, trace_optix_lines_traversable)
 //{
 //    optix_init();
 //

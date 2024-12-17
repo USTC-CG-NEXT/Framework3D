@@ -55,14 +55,14 @@ struct MeshIntersectionContext {
     MeshIntersectionContext() = default;
     ~MeshIntersectionContext();
     // Returned structure:
-    std::tuple<float*, unsigned*, unsigned> intersect_mesh_with_rays(
+    std::tuple<float*, float*, unsigned*, unsigned> intersect_mesh_with_rays(
         float* vertices,
         unsigned vertices_count,
         unsigned vertex_buffer_stride,
         float* indices,
         unsigned index_count,
-        float* rays,
-        unsigned ray_count);
+        int2 resolution,
+        const std::vector<float>& world_to_clip);
 
    private:
     void create_raygen(const std::string& string);
@@ -82,7 +82,7 @@ struct MeshIntersectionContext {
     cuda::AppendStructuredBuffer<Patch> append_buffer;
     cuda::CUDALinearBufferHandle target_buffer;
     cuda::OptiXTraversableHandle handle;
-    cuda::CUDALinearBufferHandle ray_buffer;
+    cuda::CUDALinearBufferHandle corners_buffer;
 };
 
 }  // namespace USTC_CG

@@ -1,5 +1,7 @@
 #include "glints.hpp"
 
+#include <complex.h>
+
 #include "../shaders/shaders/glints/params.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -85,15 +87,15 @@ MeshIntersectionContext::~MeshIntersectionContext()
     index_buffer = nullptr;
 }
 
-std::tuple<float*, unsigned*, unsigned>
+std::tuple<float*, float*, unsigned*, unsigned>
 MeshIntersectionContext::intersect_mesh_with_rays(
     float* vertices,
     unsigned vertices_count,
     unsigned vertex_buffer_stride,
     float* indices,
     unsigned index_count,
-    float* rays,
-    unsigned ray_count)
+    int2 resolution,
+    const std::vector<float>& world_to_clip)
 {
     auto vertex_buffer_desc =
         cuda::CUDALinearBufferDesc{ vertices_count * vertex_buffer_stride,
@@ -104,10 +106,6 @@ MeshIntersectionContext::intersect_mesh_with_rays(
         cuda::CUDALinearBufferDesc{ index_count, sizeof(unsigned) };
     index_buffer = cuda::borrow_cuda_linear_buffer(index_buffer_desc, indices);
 
-    auto ray_buffer_desc =
-        cuda::CUDALinearBufferDesc{ ray_count, 8 * sizeof(float) };
-    ray_buffer = cuda::borrow_cuda_linear_buffer(ray_buffer_desc, rays);
-
     handle = cuda::create_mesh_optix_traversable(
         { vertex_buffer->get_device_ptr() },
         vertices_count,
@@ -115,23 +113,40 @@ MeshIntersectionContext::intersect_mesh_with_rays(
         { index_buffer->get_device_ptr() },
         index_count);
 
+    auto ray_count = resolution.x * resolution.y;
+
     append_buffer = cuda::AppendStructuredBuffer<Patch>(ray_count);
     target_buffer = cuda::create_cuda_linear_buffer<int2>(ray_count);
+    corners_buffer = cuda::create_cuda_linear_buffer<Corners>(ray_count);
 
     ensure_pipeline();
+
+    float4x4 worldToClip;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            worldToClip.m[i][j] = world_to_clip[i * 4 + j];
+        }
+    }
 
     auto mesh_params = cuda::create_cuda_linear_buffer<MeshTracingParams>(
         MeshTracingParams{ handle->getOptiXTraversable(),
                            (float*)vertex_buffer->get_device_ptr(),
                            (unsigned*)index_buffer->get_device_ptr(),
-                           (Ray*)ray_buffer->get_device_ptr(),
                            append_buffer.get_device_queue_ptr(),
-                           (int2*)target_buffer->get_device_ptr() });
+                           (Corners*)corners_buffer->get_device_ptr(),
+                           (int2*)target_buffer->get_device_ptr(),
+                           worldToClip });
 
     cuda::optix_trace_ray<MeshTracingParams>(
-        handle, pipeline, mesh_params->get_device_ptr(), ray_count, 1, 1);
+        handle,
+        pipeline,
+        mesh_params->get_device_ptr(),
+        resolution.x,
+        resolution.y,
+        1);
 
     return std::make_tuple(
+        reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
         reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
         reinterpret_cast<unsigned*>(target_buffer->get_device_ptr()),
         append_buffer.get_size());

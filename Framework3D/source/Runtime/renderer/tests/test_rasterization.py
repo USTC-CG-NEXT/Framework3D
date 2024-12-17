@@ -4,30 +4,6 @@ import numpy as np
 import nvdiffrast.torch as dr
 
 
-# def test_transformation():
-#     print(
-#         rast.look_at(
-#             np.array([0.0, 0.0, 0.0]),
-#             np.array([0.0, 0.0, 1.0]),
-#             np.array([0.0, 1.0, 0.0]),
-#         )
-#     )
-
-
-# def test_rasterization():
-#     import glints.rasterization as rast
-
-#     v, i = rast.get_triangles()
-#     glctx = dr.RasterizeCudaContext()
-#     rasterized, _ = dr.rasterize(glctx, v, i, resolution=[512, 512])
-#     print(rasterized.shape)  # torch.Size([1, 512, 512, 4])
-#     import imageio
-
-#     imageio.imwrite(
-#         "rasterized.png", (rasterized[0, ..., :3].cpu().numpy() * 255).astype(np.uint8)
-#     )
-
-
 def test_projection_rasterization():
     import glints.rasterization as rast
 
@@ -36,7 +12,7 @@ def test_projection_rasterization():
 
     # projection matrix, 4x4
     projection_matrix = rast.perspective_projection(0.1, 10.0, 120.0)
-    
+
     print("projection_matrix", projection_matrix)
 
     # 4x4 matrix
@@ -45,8 +21,8 @@ def test_projection_rasterization():
         np.array([0.5, 0.5, 0.0]),
         np.array([1.0, 1.0, 0.0]),
     )
-    
-    print("view_matrix", view_matrix)   
+
+    print("view_matrix", view_matrix)
 
     v_transformed = torch.matmul(
         torch.matmul(

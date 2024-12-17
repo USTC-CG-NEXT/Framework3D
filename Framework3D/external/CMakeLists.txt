@@ -57,5 +57,7 @@ add_subdirectory(glm)
 set_target_properties(glm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set_target_properties(glm PROPERTIES ${OUTPUT_DIR})
 
+set(GLM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/glm" CACHE STRING "")
+
 
 add_subdirectory(nanobind)

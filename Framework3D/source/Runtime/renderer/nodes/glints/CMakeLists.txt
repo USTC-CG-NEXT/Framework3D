@@ -2,7 +2,7 @@
 USTC_CG_ADD_LIB(
 	glints
 	WITH_CUDA
-	PUBLIC_LIBS RHI shaders_interface
+	PUBLIC_LIBS RHI shaders_interface glm
 	COMPILE_DEFS
 		NOMINMAX 
 )

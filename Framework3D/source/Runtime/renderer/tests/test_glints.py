@@ -6,7 +6,7 @@ def test_run():
     context = hd_USTC_CG_py.ScratchIntersectionContext()
     context.set_max_pair_buffer_ratio(10.0)
 
-    lines = torch.tensor([[[0.0, 0.0, 0.0], [1.0, 1.0, 0.0]]], device="cuda")
+    lines = torch.tensor([[0.0, 0.0, 0.0], [1.0, 1.0, 0.0]], device="cuda")
 
     patches = torch.zeros((1024, 1024, 4, 2), device="cuda")
 

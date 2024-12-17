@@ -21,31 +21,37 @@ __device__ float2 operator/(const float2& a, const float b)
 
 RGS(mesh)
 {
-    auto rays = mesh_params.rays[GetLaunchID()];
+    auto worldToClip = mesh_params.worldToClip;
+    auto clipToWorld = worldToClip.get_inverse();
 
-    //auto uv_center = (patch.uv0 + patch.uv1 + patch.uv2 + patch.uv3) / 4.0f;
+    uint3 dispatch_index = optixGetLaunchIndex();
+    uint3 dispatch_dim = optixGetLaunchDimensions();
 
-    //float3 origin = make_float3(uv_center.x, uv_center.y, 10000.0f);
+    float2 uv = make_float2(
+        (dispatch_index.x + 0.5f) / dispatch_dim.x,
+        (dispatch_index.y + 0.5f) / dispatch_dim.y);
 
-    //float3 dir = make_float3(0, 0, -1);
+    float3 origin = make_float3(0, 0, 0);
+    float4 clip_rayend = make_float4(uv * 2.0f - 1.0f, 0.0f, 1.0f);
 
-    //optixTrace(
-    //    params.handle,
-    //    origin,
-    //    dir,
-    //    0,
-    //    1e5f,
-    //    1.0,
-    //    OptixVisibilityMask(255),
-    //    OPTIX_RAY_FLAG_NONE,
-    //    0,
-    //    1,
-    //    0);
+    float4 world_rayend = clipToWorld * clip;
+
+    // optixTrace(
+    //     params.handle,
+    //     origin,
+    //     dir,
+    //     0,
+    //     1e5f,
+    //     1.0,
+    //     OptixVisibilityMask(255),
+    //     OPTIX_RAY_FLAG_NONE,
+    //     0,
+    //     1,
+    //     0);
 }
 
 CHS(mesh)
 {
-
 }
 
 MISS(mesh)

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <crt/host_defines.h>
+#ifndef __CUDACC__
+#include <cuda_runtime_api.h>
+#endif
 
 #include <cuda/std/atomic>
 
