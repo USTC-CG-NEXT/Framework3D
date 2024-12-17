@@ -43,6 +43,7 @@ NODE_EXECUTION_FUNCTION(create_point_cloud)
     auto point_cloud = polyscope::registerPointCloud("point cloud", points);
 
     point_cloud->setPointRadius(point_radius);
+    return true;
 }
 
 NODE_DECLARATION_REQUIRED(create_point_cloud);

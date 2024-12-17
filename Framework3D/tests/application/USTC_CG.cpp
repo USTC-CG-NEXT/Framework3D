@@ -6,8 +6,6 @@
 #include "GCore/geom_payload.hpp"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
-#include "diff_optics/diff_optics.hpp"
-#include "diff_optics/lens_system.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
 #include "polyscope_widget/polyscope_widget.h"
@@ -31,31 +29,42 @@ int main()
     // Add a sphere
 
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
-    auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
-    auto polyscope_render = std::make_unique<PolyscopeRenderer>();
-
-    auto render_bare = render.get();
-
-    render->SetCallBack([](Window* window, IWidget* render_widget) {
-        auto node_system = static_cast<const std::shared_ptr<NodeSystem>*>(
-            dynamic_cast<UsdviewEngine*>(render_widget)
-                ->emit_create_renderer_ui_control());
-        if (node_system) {
-            FileBasedNodeWidgetSettings desc;
-            desc.system = *node_system;
-            desc.json_path = "render_nodes_save.json";
-
-            std::unique_ptr<IWidget> node_widget =
-                std::move(create_node_imgui_widget(desc));
-
-            window->register_widget(std::move(node_widget));
-        }
-    });
 
     window->register_widget(std::move(usd_file_viewer));
-    window->register_widget(std::move(polyscope_render));
-    window->register_widget(std::move(widget));
-    // window->register_widget(std::move(render));
+    auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
+
+    constexpr bool use_polyscope = false;
+    // TODO: 1. currently it cannot peacefully shutdown when there is a mesh in
+    // the usd stage. need to fix it or just remove the dependency on usd stage
+    // completely.
+    // 2. currently the gl functions are not loaded correctly, (try remove the
+    // render pointer creation), fix it probably by give a hint to which opengl
+    // version you want.
+    // 3. it keeps reporting "GLFW emitted error: Cannot set swap interval
+    // without a current OpenGL or OpenGL ES context GLFW emitted error: Cannot
+    // make current with a window that has no OpenGL or OpenGL ES context"
+    if (use_polyscope) {
+        auto polyscope_render = std::make_unique<PolyscopeRenderer>();
+        window->register_widget(std::move(polyscope_render));
+    }
+    else {
+        render->SetCallBack([](Window* window, IWidget* render_widget) {
+            auto node_system = static_cast<const std::shared_ptr<NodeSystem>*>(
+                dynamic_cast<UsdviewEngine*>(render_widget)
+                    ->emit_create_renderer_ui_control());
+            if (node_system) {
+                FileBasedNodeWidgetSettings desc;
+                desc.system = *node_system;
+                desc.json_path = "render_nodes_save.json";
+
+                std::unique_ptr<IWidget> node_widget =
+                    std::move(create_node_imgui_widget(desc));
+
+                window->register_widget(std::move(node_widget));
+            }
+        });
+        window->register_widget(std::move(render));
+    }
 
     window->register_function_perframe([&stage](Window* window) {
         pxr::SdfPath json_path;
@@ -87,23 +96,6 @@ int main()
             window->register_widget(std::move(node_widget));
         }
     });
-
-    std::unique_ptr<LensSystem> lens_system = std::make_unique<LensSystem>();
-
-    // Check existence of lens.json
-    if (std::filesystem::exists("lens.json")) {
-        lens_system->deserialize(std::filesystem::path("lens.json"));
-    }
-    else {
-        lens_system->set_default();
-    }
-
-    auto diff_optics_gui = createDiffOpticsGUI(lens_system.get());
-    window->register_widget(std::move(diff_optics_gui));
-
-    render_bare->set_renderer_setting(
-        pxr::TfToken("lens_system_ptr"),
-        pxr::VtValue(static_cast<void*>(lens_system.get())));
 
     window->run();
 

@@ -20,7 +20,9 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 struct PolyscopeRenderPrivateData {
     nvrhi::TextureDesc nvrhi_desc = {};
     nvrhi::TextureHandle nvrhi_texture = nullptr;
+    nvrhi::TextureHandle nvrhi_staging = nullptr;
     nvrhi::Format present_format = nvrhi::Format::RGBA8_UNORM;
+    nvrhi::StagingTextureHandle staging_texture;
 };
 
 polyscope::CameraParameters default_camera_params{
@@ -128,6 +130,16 @@ std::string PolyscopeRenderer::GetWindowUniqueName()
     return "Polyscope Renderer";
 }
 
+void PolyscopeRenderer::BackBufferResized(
+    unsigned width,
+    unsigned height,
+    unsigned sampleCount)
+{
+    IWidget::BackBufferResized(width, height, sampleCount);
+    data_->nvrhi_texture = nullptr;
+    data_->staging_texture = nullptr;
+}
+
 void PolyscopeRenderer::GetFrameBuffer()
 {
     buffer = polyscope::screenshotToBuffer(false);
@@ -147,19 +159,16 @@ void PolyscopeRenderer::GetFrameBuffer()
     data_->nvrhi_desc.format = data_->present_format;
     data_->nvrhi_desc.isRenderTarget = true;
 
-    data_->nvrhi_texture =
-        RHI::load_texture(data_->nvrhi_desc, flipped_buffer.data());
-
-    // TODO: RHI::write_texture() unimplemented! Need to be replaced after
-    //
-    // implementation.
-    // if (!data_->nvrhi_texture) {
-    //     data_->nvrhi_texture =
-    //         RHI::load_texture(data_->nvrhi_desc, buffer.data());
-    // }
-    // else {
-    //     RHI::write_texture(...);
-    // }
+    if (!data_->nvrhi_texture) {
+        std::tie(data_->nvrhi_texture, data_->staging_texture) =
+            RHI::load_texture(data_->nvrhi_desc, flipped_buffer.data());
+    }
+    else {
+        RHI::write_texture(
+            data_->nvrhi_texture,
+            data_->staging_texture,
+            flipped_buffer.data());
+    }
 }
 
 void PolyscopeRenderer::DrawMenuBar()

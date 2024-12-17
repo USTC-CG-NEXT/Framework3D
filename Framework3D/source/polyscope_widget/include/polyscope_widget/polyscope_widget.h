@@ -31,7 +31,10 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
     ImGuiWindowFlags GetWindowFlag() override;
     const char* GetWindowName() override;
     std::string GetWindowUniqueName() override;
-
+    void BackBufferResized(
+        unsigned width,
+        unsigned height,
+        unsigned sampleCount) override;
     // bool Begin() override;
     // void End() override;
 
