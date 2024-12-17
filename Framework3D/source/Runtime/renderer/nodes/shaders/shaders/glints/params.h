@@ -6,11 +6,26 @@
 #include "WorkQueue.cuh"
 #endif
 
+struct Ray {
+    float3 origin;
+    float3 direction;
+    float tmin;
+    float tmax;
+};
+
 struct Patch {
-    float2 uv0;
-    float2 uv1;
-    float2 uv2;
-    float2 uv3;
+    float2 uv0, uv1, uv2, uv3;
+    float3 camera_pos_uv;
+    float3 light_pos_uv;
+};
+
+struct MeshTracingParams {
+    OptixTraversableHandle handle;
+    float* vertices;
+    unsigned* indices;
+    Ray* rays;
+    WorkQueue<Patch>* append_buffer;
+    int2* pixel_targets;
 };
 
 struct GlintsTracingParams {
@@ -21,4 +36,5 @@ struct GlintsTracingParams {
 
 extern "C" {
 extern __constant__ GlintsTracingParams params;
+extern __constant__ MeshTracingParams mesh_params;
 }

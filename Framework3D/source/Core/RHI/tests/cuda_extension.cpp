@@ -44,6 +44,7 @@ TEST(cuda_extension, create_linear_buffer)
 }
 
 TEST(cuda_extension, create_optix_traversable)
+
 {
     optix_init();
 
@@ -96,7 +97,7 @@ TEST(cuda_extension, create_optix_traversable)
         4,
         3 * sizeof(float),
         index_buffer->get_device_ptr(),
-        6);
+        2);
 
     EXPECT_NE(mesh_handle, nullptr);
 }

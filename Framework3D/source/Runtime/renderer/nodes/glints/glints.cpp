@@ -74,6 +74,17 @@ void ScratchIntersectionContext::create_indices(unsigned vertex_count)
     }
 }
 
+MeshIntersectionContext::~MeshIntersectionContext()
+{
+    raygen_group = nullptr;
+    hg_module = nullptr;
+    hg = nullptr;
+    miss_group = nullptr;
+    pipeline = nullptr;
+    vertex_buffer = nullptr;
+    index_buffer = nullptr;
+}
+
 std::tuple<float*, unsigned*, unsigned>
 MeshIntersectionContext::intersect_mesh_with_rays(
     float* vertices,
@@ -95,14 +106,87 @@ MeshIntersectionContext::intersect_mesh_with_rays(
 
     auto ray_buffer_desc =
         cuda::CUDALinearBufferDesc{ ray_count, 8 * sizeof(float) };
-    auto ray_buffer = cuda::borrow_cuda_linear_buffer(ray_buffer_desc, rays);
+    ray_buffer = cuda::borrow_cuda_linear_buffer(ray_buffer_desc, rays);
 
-    auto handle = cuda::create_mesh_optix_traversable(
+    handle = cuda::create_mesh_optix_traversable(
         { vertex_buffer->get_device_ptr() },
         vertices_count,
         vertex_buffer_stride,
         { index_buffer->get_device_ptr() },
         index_count);
+
+    append_buffer = cuda::AppendStructuredBuffer<Patch>(ray_count);
+    target_buffer = cuda::create_cuda_linear_buffer<int2>(ray_count);
+
+    ensure_pipeline();
+
+    auto mesh_params = cuda::create_cuda_linear_buffer<MeshTracingParams>(
+        MeshTracingParams{ handle->getOptiXTraversable(),
+                           (float*)vertex_buffer->get_device_ptr(),
+                           (unsigned*)index_buffer->get_device_ptr(),
+                           (Ray*)ray_buffer->get_device_ptr(),
+                           append_buffer.get_device_queue_ptr(),
+                           (int2*)target_buffer->get_device_ptr() });
+
+    cuda::optix_trace_ray<MeshTracingParams>(
+        handle, pipeline, mesh_params->get_device_ptr(), ray_count, 1, 1);
+
+    return std::make_tuple(
+        reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
+        reinterpret_cast<unsigned*>(target_buffer->get_device_ptr()),
+        append_buffer.get_size());
+}
+
+void MeshIntersectionContext::create_raygen(const std::string& string)
+{
+    if (!raygen_group) {
+        raygen_group = cuda::create_optix_raygen(string, RGS_STR(mesh));
+    }
+}
+
+void MeshIntersectionContext::create_hitgroup_module(const std::string& string)
+{
+    if (!hg_module) {
+        hg_module = cuda::create_optix_module(string);
+    }
+}
+
+void MeshIntersectionContext::create_hitgroup()
+{
+    if (!hg) {
+        cuda::OptiXProgramGroupDesc hg_desc;
+        hg_desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_HITGROUP)
+            .set_entry_name(CHS_STR(mesh), AHS_STR(mesh), CHS_STR(mesh));
+        hg = create_optix_program_group(
+            hg_desc, { hg_module, hg_module, hg_module });
+    }
+}
+
+void MeshIntersectionContext::create_miss_group(const std::string& string)
+{
+    if (!miss_group) {
+        miss_group = cuda::create_optix_miss(string, MISS_STR(mesh));
+    }
+}
+
+void MeshIntersectionContext::create_pipeline()
+{
+    if (!pipeline) {
+        pipeline =
+            cuda::create_optix_pipeline({ raygen_group, hg, miss_group });
+    }
+}
+
+void MeshIntersectionContext::ensure_pipeline()
+{
+    std::string filename =
+        RENDERER_SHADER_DIR + std::string("shaders/glints/mesh.cu");
+
+    create_raygen(filename);
+    create_hitgroup_module(filename);
+    create_hitgroup();
+    create_miss_group(filename);
+    create_pipeline();
 }
 
 std::tuple<float*, unsigned>

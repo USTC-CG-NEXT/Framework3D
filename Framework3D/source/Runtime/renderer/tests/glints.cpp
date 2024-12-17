@@ -1,3 +1,4 @@
+#include "../nodes/glints/glints.hpp"
 #if USTC_CG_WITH_CUDA
 
 #include <gtest/gtest.h>
@@ -5,8 +6,53 @@
 #include "RHI/internal/cuda_extension.hpp"
 #include "shaders/glints/params.h"
 using namespace USTC_CG::cuda;
+using namespace USTC_CG;
 
-TEST(cuda_extension, trace_optix_traversable)
+TEST(cuda_extension, trace_optix_mesh_traversable)
+{
+    MeshIntersectionContext context;
+
+    auto vertex_buffer = create_cuda_linear_buffer(std::vector{ 0.0f,
+                                                                0.0f,
+                                                                0.0f,
+                                                                1.0f,
+                                                                0.0f,
+                                                                0.0f,
+                                                                0.0f,
+                                                                1.0f,
+                                                                0.0f,
+                                                                1.0f,
+                                                                1.0f,
+                                                                0.0f });
+    auto index_buffer =
+        create_cuda_linear_buffer(std::vector{ 0, 1, 2, 1, 2, 3 });
+
+    auto ray_count = 1024 * 1024;
+
+    std::vector<Ray> rays(ray_count);
+
+    for (int i = 0; i < 1024; ++i) {
+        for (int j = 0; j < 1024; ++j) {
+            float step = 2.f / 1024;
+            float x = -1 + i * step;
+            float y = -1 + j * step;
+            rays[i * 1024 + j] = { { x, y, 1.0f }, { 0, 0, -1 }, 0, 1000 };
+        }
+    }
+
+    auto ray_buffer = create_cuda_linear_buffer<Ray>(rays);
+
+    context.intersect_mesh_with_rays(
+        reinterpret_cast<float*>(vertex_buffer->get_device_ptr()),
+        4,
+        3 * sizeof(float),
+        reinterpret_cast<float*>(index_buffer->get_device_ptr()),
+        2,
+        reinterpret_cast<float*>(ray_buffer->get_device_ptr()),
+        ray_count);
+}
+
+TEST(cuda_extension, trace_optix_lines_traversable)
 {
     optix_init();
 

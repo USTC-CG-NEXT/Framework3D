@@ -944,6 +944,11 @@ OptiXTraversableHandle create_mesh_optix_traversable(
     triangleArray.indexStrideInBytes = sizeof(unsigned int) * 3;
     triangleArray.numIndexTriplets = numPrimitives;
     triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+    triangleArray.numSbtRecords = 1;
+
+    unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
+
+    triangleArray.flags = &flags;
 
     desc.buildOptions.buildFlags =
         OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
