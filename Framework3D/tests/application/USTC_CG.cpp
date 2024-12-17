@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "GCore/GOP.h"
 #include "GCore/geom_payload.hpp"
 #include "GUI/window.h"
@@ -8,12 +10,14 @@
 #include "diff_optics/lens_system.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
+#include "polyscope_widget/polyscope_widget.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
 #include "stage/stage.hpp"
 #include "usd_nodejson.hpp"
 #include "widgets/usdtree/usd_fileviewer.h"
 #include "widgets/usdview/usdview_widget.hpp"
+
 using namespace USTC_CG;
 
 int main()
@@ -28,6 +32,7 @@ int main()
 
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
     auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
+    auto polyscope_render = std::make_unique<PolyscopeRenderer>();
 
     auto render_bare = render.get();
 
@@ -48,7 +53,9 @@ int main()
     });
 
     window->register_widget(std::move(usd_file_viewer));
-    window->register_widget(std::move(render));
+    window->register_widget(std::move(polyscope_render));
+    window->register_widget(std::move(widget));
+    // window->register_widget(std::move(render));
 
     window->register_function_perframe([&stage](Window* window) {
         pxr::SdfPath json_path;
@@ -58,6 +65,7 @@ int main()
             system->register_cpp_types<int>();
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
+            loaded = system->load_configuration("polyscope_nodes.json");
             system->init();
             system->set_node_tree_executor(create_node_tree_executor({}));
 
@@ -103,4 +111,7 @@ int main()
 
     stage.reset();
     window.reset();
+    stage.reset();
+
+    return 0;
 }

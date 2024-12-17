@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+﻿cmake_minimum_required(VERSION 3.19)
 
 #
 # Project details
@@ -129,8 +129,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/basic_nodes)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry_nodes)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/diff_optics)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/polyscope_widget)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/polyscope_nodes)
 
 # target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
 

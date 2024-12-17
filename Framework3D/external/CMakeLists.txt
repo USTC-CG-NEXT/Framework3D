@@ -50,8 +50,8 @@ set_target_properties(OpenMeshCore PROPERTIES FOLDER "external")
 set_target_properties(OpenMeshTools PROPERTIES FOLDER "external")
 
 target_compile_definitions(OpenMeshCore PUBLIC -D_USE_MATH_DEFINES=1)
-add_subdirectory(stb_image)
 
+# add_subdirectory(stb_image)
 add_subdirectory(entt)
 
 add_subdirectory(glm)
