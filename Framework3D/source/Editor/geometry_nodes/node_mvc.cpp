@@ -50,15 +50,13 @@ std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> generate_weight_function(
             // normalize n
             n /= std::sqrt(n.dot(n));
 
-// check that poly is really coplanar
-#ifndef NDEBUG
+            // check that poly is really coplanar
             for (int i = 0; i < num; ++i) {
                 double dist_to_plane_C =
                     std::abs((C1.row(i) - p.transpose()).dot(n));
                 assert(dist_to_plane_C < 1e-10);
             }
-#endif
-#ifndef NDEBUG
+
             // check that poly is really coplanar
             for (int i = 0; i < V1.rows(); ++i) {
                 double dist_to_plane_V =
@@ -68,7 +66,6 @@ std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> generate_weight_function(
                     std::cerr << "Distance from V to plane of C is large..."
                               << std::endl;
                 }
-#endif
             }
 
             // change of basis

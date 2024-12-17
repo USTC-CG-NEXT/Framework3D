@@ -47,7 +47,7 @@ void RayGen()
     Payload payload;
     payload.seed = random_seeds[DispatchRaysIndex().x];
 
-#define USE_SER
+// #define USE_SER
 #ifdef USE_SER
     HitObject object = HitObject.MakeHit<Attributes>(
         SceneBVH,
