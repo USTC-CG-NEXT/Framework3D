@@ -37,11 +37,23 @@ TEST_F(NodeCoreTest, TYPENAME)
     ASSERT_TRUE(type2);
 
     // false
-    auto type3 = get_socket_type(entt::hashed_string{ type_name<float>().data() });
+    auto type3 =
+        get_socket_type(entt::hashed_string{ type_name<float>().data() });
     ASSERT_FALSE(type3);
 
     ASSERT_EQ(
-        entt::hashed_string{ type_name<float>().data() }, entt::type_hash<float>());
+        entt::hashed_string{ type_name<float>().data() },
+        entt::type_hash<float>());
+
+    register_cpp_type<std::function<void(int)>>();
+    auto func_type = get_socket_type(
+        entt::hashed_string{ type_name<std::function<void(int)>>().data() });
+    ASSERT_TRUE(func_type);
+
+    auto f = func_type.construct().;
+    ASSERT_TRUE(f);
+
+    
 }
 
 TEST_F(NodeCoreTest, RegisterCppType)
