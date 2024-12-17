@@ -48,4 +48,46 @@ NB_MODULE(hd_USTC_CG_py, m)
         .def(
             "set_max_pair_buffer_ratio",
             &USTC_CG::ScratchIntersectionContext::set_max_pair_buffer_ratio);
+
+    nb::class_<USTC_CG::MeshIntersectionContext>(m, "MeshIntersectionContext")
+        .def(nb::init<>())
+        .def(
+            "intersect_mesh_with_rays",
+            [](USTC_CG::MeshIntersectionContext &self,
+               nb::ndarray<float> vertices,
+               nb::ndarray<float> indices,
+               nb::ndarray<float> rays) {
+                auto vertex_count = vertices.shape(0);
+                auto index_count = indices.shape(0);
+                auto vertex_stride = vertices.shape(1);
+
+                auto [pairs, targets, count] = self.intersect_mesh_with_rays(
+                    vertices.data(),
+                    vertex_count,
+                    vertex_stride,
+                    indices.data(),
+                    index_count,
+                    rays.data(),
+                    rays.shape(0));
+
+                std::cout << "count: " << count << std::endl;
+                // return 2 arrays
+                return std::make_tuple(
+                    nb::ndarray<
+                        nb::pytorch,
+                        unsigned,
+                        nb::ndim<2>,
+                        nb::shape<-1, 2>,
+                        nb::device::cuda>(pairs, { count, 2 }),
+                    nb::ndarray<
+                        nb::pytorch,
+                        unsigned,
+                        nb::ndim<1>,
+                        nb::shape<-1>,
+                        nb::device::cuda>(targets, { count }));
+            },
+            nb::arg("vertices"),
+            nb::arg("indices"),
+            nb::arg("rays"),
+            nb::rv_policy::reference);
 }

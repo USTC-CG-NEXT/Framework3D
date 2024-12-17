@@ -156,9 +156,9 @@ void MeshIntersectionContext::create_hitgroup()
     if (!hg) {
         cuda::OptiXProgramGroupDesc hg_desc;
         hg_desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_HITGROUP)
-            .set_entry_name(CHS_STR(mesh), AHS_STR(mesh), CHS_STR(mesh));
+            .set_entry_name(nullptr, AHS_STR(mesh), CHS_STR(mesh));
         hg = create_optix_program_group(
-            hg_desc, { hg_module, hg_module, hg_module });
+            hg_desc, { nullptr, hg_module, hg_module });
     }
 }
 
