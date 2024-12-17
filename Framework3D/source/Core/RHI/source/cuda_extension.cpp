@@ -128,7 +128,7 @@ static void getCuStringFromFile(
 
 static std::string g_nvrtcLog;
 
-static void getPtxFromCuString(
+static bool getPtxFromCuString(
     std::string& ptx,
     const char* sample_name,
     const char* cu_source,
@@ -187,8 +187,13 @@ static void getPtxFromCuString(
         if (log_string)
             *log_string = g_nvrtcLog.c_str();
     }
-    if (compileRes != NVRTC_SUCCESS)
-        throw std::runtime_error("NVRTC Compilation failed.\n" + g_nvrtcLog);
+    if (compileRes != NVRTC_SUCCESS) {
+        std::cout << g_nvrtcLog << std::endl
+                  << std::endl
+                  << std::endl
+                  << std::endl;
+        return false;
+    }
 
     // Retrieve PTX code
     size_t ptx_size = 0;
@@ -198,6 +203,7 @@ static void getPtxFromCuString(
 
     // Cleanup
     NVRTC_CHECK_ERROR(nvrtcDestroyProgram(&prog));
+    return true;
 }
 
 struct PtxSourceCache {
@@ -226,8 +232,13 @@ const char* get_ptx_string_from_cu(const char* filename, const char** log)
     if (elem == g_ptxSourceCache.map.end()) {
         ptx = new std::string();
         std::string location;
-        getCuStringFromFile(cu, location, "", filename);
-        getPtxFromCuString(*ptx, "", cu.c_str(), location.c_str(), log);
+        bool compiled = false;
+        while (!compiled) {
+            getCuStringFromFile(cu, location, "", filename);
+
+            compiled =
+                getPtxFromCuString(*ptx, "", cu.c_str(), location.c_str(), log);
+        }
         g_ptxSourceCache.map[key] = ptx;
     }
     else {
