@@ -7,3 +7,7 @@ imgui.ini
 .vs
 *.zip
 */.slangtorch_cache/*
+/Framework3D/Assets
+/Framework3D/source/Runtime/renderer/nodes/shaders/shaders/.slangtorch_cache/physical_lens_raygen_torch/b9c103f6b206b8e5
+/Framework3D/source/Core/nodes/nodes/functions/NODES_FILES_DIR.h
+/Framework3D/source/Core/RHI/source/nvrtc_config.h

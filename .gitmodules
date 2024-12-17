@@ -34,3 +34,6 @@
 [submodule "Framework3D/external/glm"]
 	path = Framework3D/external/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Framework3D/external/polyscope"]
+	path = Framework3D/external/polyscope
+	url = https://github.com/T7imal/polyscope.git
