@@ -51,7 +51,7 @@ TEST(cuda_extension, create_optix_traversable)
         std::vector{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
     auto widths = create_cuda_linear_buffer(std::vector{ 0.1f, 0.1f });
     auto indices = create_cuda_linear_buffer(std::vector{ 0 });
-    auto handle = create_optix_traversable(
+    auto handle = create_linear_curve_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         2,
         { widths->get_device_ptr() },
@@ -63,7 +63,7 @@ TEST(cuda_extension, create_optix_traversable)
     line_end_vertices->assign_host_vector<float>(
         { 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f });
 
-    handle = create_optix_traversable(
+    handle = create_linear_curve_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         2,
         { widths->get_device_ptr() },
@@ -72,6 +72,33 @@ TEST(cuda_extension, create_optix_traversable)
         true);
 
     EXPECT_NE(handle, nullptr);
+
+    // mesh handle
+    // vertex buffer describing a rectangle (but in 3D space), two triangles
+    auto vertex_buffer = create_cuda_linear_buffer(std::vector{ 0.0f,
+                                                                0.0f,
+                                                                0.0f,
+                                                                1.0f,
+                                                                0.0f,
+                                                                0.0f,
+                                                                0.0f,
+                                                                1.0f,
+                                                                0.0f,
+                                                                1.0f,
+                                                                1.0f,
+                                                                0.0f });
+    // index buffer referencing the two triangles
+    auto index_buffer =
+        create_cuda_linear_buffer(std::vector{ 0, 1, 2, 1, 2, 3 });
+
+    auto mesh_handle = create_mesh_optix_traversable(
+        { vertex_buffer->get_device_ptr() },
+        4,
+        3 * sizeof(float),
+        index_buffer->get_device_ptr(),
+        6);
+
+    EXPECT_NE(mesh_handle, nullptr);
 }
 
 TEST(cuda_extension, get_ptx_from_cu)
@@ -112,6 +139,5 @@ TEST(cuda_extension, create_optix_pipeline)
 
     EXPECT_NE(pipeline, nullptr);
 }
-
 
 #endif

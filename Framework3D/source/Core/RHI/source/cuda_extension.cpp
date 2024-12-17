@@ -644,9 +644,9 @@ OptiXPipeline::OptiXPipeline(
         }
     }
 
-    const int hitgroup_count = solid_hitgroup_group.size();
-    const int miss_count = solid_miss_group.size();
-    const int callable_count = solid_callable_group.size();
+    unsigned hitgroup_count = solid_hitgroup_group.size();
+    unsigned miss_count = solid_miss_group.size();
+    unsigned callable_count = solid_callable_group.size();
 
     const size_t raygen_record_size = sizeof(RayGenSbtRecord);
     raygen_record = create_cuda_linear_buffer(
@@ -661,7 +661,7 @@ OptiXPipeline::OptiXPipeline(
         raygen_record_size,
         cudaMemcpyHostToDevice));
 
-    int hitgroupRecordStrideInBytes =
+    unsigned hitgroupRecordStrideInBytes =
         roundUp<int>(sizeof(HitGroupSbtRecord), OPTIX_SBT_RECORD_ALIGNMENT);
 
     const int hitgroup_record_size =
@@ -684,7 +684,7 @@ OptiXPipeline::OptiXPipeline(
         cudaMemcpyHostToDevice));
 
     if (miss_count > 0) {
-        int missRecordStrideInBytes =
+        unsigned missRecordStrideInBytes =
             roundUp<size_t>(sizeof(MissSbtRecord), OPTIX_SBT_RECORD_ALIGNMENT);
 
         int miss_record_size = missRecordStrideInBytes * miss_count;
@@ -717,7 +717,7 @@ OptiXPipeline::OptiXPipeline(
     }
 
     if (callable_count > 0) {
-        int callableRecordStrideInBytes = roundUp<size_t>(
+        unsigned callableRecordStrideInBytes = roundUp<size_t>(
             sizeof(CallableSbtRecord), OPTIX_SBT_RECORD_ALIGNMENT);
 
         int callable_record_size = callableRecordStrideInBytes * callable_count;
@@ -883,7 +883,7 @@ OptiXTraversableHandle create_optix_traversable(const OptiXTraversableDesc& d)
     return OptiXTraversableHandle::Create(buffer);
 }
 
-OptiXTraversableHandle create_optix_traversable(
+OptiXTraversableHandle create_linear_curve_optix_traversable(
     std::vector<CUdeviceptr> vertexBuffer,
     unsigned int numVertices,
     std::vector<CUdeviceptr> widthBuffer,
@@ -910,6 +910,40 @@ OptiXTraversableHandle create_optix_traversable(
     curveArray.flag = OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;
     curveArray.primitiveIndexOffset = 0;
     curveArray.endcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT;
+
+    desc.buildOptions.buildFlags =
+        OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    desc.buildOptions.motionOptions.numKeys = 1;
+
+    if (rebuilding)
+        desc.buildOptions.operation = OPTIX_BUILD_OPERATION_UPDATE;
+    else
+        desc.buildOptions.operation = OPTIX_BUILD_OPERATION_BUILD;
+
+    return create_optix_traversable(desc);
+}
+
+OptiXTraversableHandle create_mesh_optix_traversable(
+    std::vector<CUdeviceptr> vertexBuffer,
+    unsigned int numVertices,
+    unsigned int vertexBufferStride,
+    CUdeviceptr indexBuffer,
+    unsigned int numPrimitives,
+    bool rebuilding)
+{
+    OptiXTraversableDesc desc;
+
+    desc.buildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+
+    OptixBuildInputTriangleArray& triangleArray = desc.buildInput.triangleArray;
+    triangleArray.numVertices = numVertices;
+    triangleArray.vertexBuffers = vertexBuffer.data();
+    triangleArray.vertexStrideInBytes = vertexBufferStride;
+    triangleArray.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
+    triangleArray.indexBuffer = indexBuffer;
+    triangleArray.indexStrideInBytes = sizeof(unsigned int) * 3;
+    triangleArray.numIndexTriplets = numPrimitives;
+    triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
 
     desc.buildOptions.buildFlags =
         OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_ALLOW_UPDATE;

@@ -45,7 +45,7 @@ class OptiXTraversableDesc {
 RHI_API OptiXTraversableHandle
 create_optix_traversable(const OptiXTraversableDesc& d);
 
-RHI_API OptiXTraversableHandle create_optix_traversable(
+RHI_API OptiXTraversableHandle create_linear_curve_optix_traversable(
     std::vector<CUdeviceptr> vertexBuffer,
     unsigned int numVertices,
     std::vector<CUdeviceptr> widthBuffer,
@@ -53,11 +53,19 @@ RHI_API OptiXTraversableHandle create_optix_traversable(
     unsigned int numPrimitives,
     bool rebuilding = false);
 
-struct CUDALinearBufferDesc {
-    int size;
-    int element_count;
+RHI_API OptiXTraversableHandle create_mesh_optix_traversable(
+    std::vector<CUdeviceptr> vertexBuffer,
+    unsigned int numVertices,
+    unsigned int vertexBufferStride,
+    CUdeviceptr indexBuffer,
+    unsigned int numPrimitives,
+    bool rebuilding = false);
 
-    CUDALinearBufferDesc(int size = 0, int element_size = 0)
+struct CUDALinearBufferDesc {
+    unsigned size;
+    unsigned element_count;
+
+    CUDALinearBufferDesc(unsigned size = 0, unsigned element_size = 0)
         : size(size),
           element_count(element_size)
     {

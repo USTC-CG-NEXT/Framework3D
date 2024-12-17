@@ -50,10 +50,8 @@ TEST_F(NodeCoreTest, TYPENAME)
         entt::hashed_string{ type_name<std::function<void(int)>>().data() });
     ASSERT_TRUE(func_type);
 
-    auto f = func_type.construct().;
+    auto f = func_type.construct();
     ASSERT_TRUE(f);
-
-    
 }
 
 TEST_F(NodeCoreTest, RegisterCppType)

@@ -49,4 +49,22 @@ struct ScratchIntersectionContext {
     int _buffer_size = 0;
 };
 
+struct MeshIntersectionContext {
+    MeshIntersectionContext() = default;
+
+    // Returned structure:
+    std::tuple<float*, unsigned*, unsigned> intersect_mesh_with_rays(
+        float* vertices,
+        unsigned vertices_count,
+        unsigned vertex_buffer_stride,
+        float* indices,
+        unsigned index_count,
+        float* rays,
+        unsigned ray_count);
+
+   private:
+    cuda::CUDALinearBufferHandle vertex_buffer;
+    cuda::CUDALinearBufferHandle index_buffer;
+};
+
 }  // namespace USTC_CG

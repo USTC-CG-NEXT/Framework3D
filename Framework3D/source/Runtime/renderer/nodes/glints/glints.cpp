@@ -74,6 +74,37 @@ void ScratchIntersectionContext::create_indices(unsigned vertex_count)
     }
 }
 
+std::tuple<float*, unsigned*, unsigned>
+MeshIntersectionContext::intersect_mesh_with_rays(
+    float* vertices,
+    unsigned vertices_count,
+    unsigned vertex_buffer_stride,
+    float* indices,
+    unsigned index_count,
+    float* rays,
+    unsigned ray_count)
+{
+    auto vertex_buffer_desc =
+        cuda::CUDALinearBufferDesc{ vertices_count * vertex_buffer_stride,
+                                    sizeof(float) };
+    vertex_buffer =
+        cuda::borrow_cuda_linear_buffer(vertex_buffer_desc, vertices);
+    auto index_buffer_desc =
+        cuda::CUDALinearBufferDesc{ index_count, sizeof(unsigned) };
+    index_buffer = cuda::borrow_cuda_linear_buffer(index_buffer_desc, indices);
+
+    auto ray_buffer_desc =
+        cuda::CUDALinearBufferDesc{ ray_count, 8 * sizeof(float) };
+    auto ray_buffer = cuda::borrow_cuda_linear_buffer(ray_buffer_desc, rays);
+
+    auto handle = cuda::create_mesh_optix_traversable(
+        { vertex_buffer->get_device_ptr() },
+        vertices_count,
+        vertex_buffer_stride,
+        { index_buffer->get_device_ptr() },
+        index_count);
+}
+
 std::tuple<float*, unsigned>
 ScratchIntersectionContext::intersect_line_with_rays(
     float* lines,
@@ -89,8 +120,8 @@ ScratchIntersectionContext::intersect_line_with_rays(
     std::string filename =
         RENDERER_SHADER_DIR + std::string("shaders/glints/glints.cu");
 
-    this->line_end_vertices = borrow_cuda_linear_buffer(
-        { static_cast<int>(vertex_count), 3 * sizeof(float) }, lines);
+    this->line_end_vertices =
+        borrow_cuda_linear_buffer({ vertex_count, 3 * sizeof(float) }, lines);
 
     create_raygen(filename);
     create_cylinder_intersection_shader();
@@ -101,7 +132,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     create_width_buffer(vertex_count, width);
     create_indices(vertex_count);
 
-    handle = create_optix_traversable(
+    handle = create_linear_curve_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         vertex_count,
         { widths->get_device_ptr() },

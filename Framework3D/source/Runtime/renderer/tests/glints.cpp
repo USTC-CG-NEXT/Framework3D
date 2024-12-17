@@ -30,7 +30,7 @@ TEST(cuda_extension, trace_optix_traversable)
         std::vector{ -1.f, -1.f, 0.f, 1.0f, 1.0f, 0.f });
     auto widths = create_cuda_linear_buffer(std::vector{ 0.5f, 0.5f });
     auto indices = create_cuda_linear_buffer(std::vector{ 0 });
-    auto handle = create_optix_traversable(
+    auto handle = create_linear_curve_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         2,
         { widths->get_device_ptr() },
@@ -40,7 +40,7 @@ TEST(cuda_extension, trace_optix_traversable)
     line_end_vertices->assign_host_vector<float>(
         { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f });
 
-    handle = create_optix_traversable(
+    handle = create_linear_curve_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         2,
         { widths->get_device_ptr() },
