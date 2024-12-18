@@ -28,21 +28,6 @@ def test_run():
     print(result.cpu().numpy())
 
 
-# random scatter lines with length 0.1, within the range of [-1, 1] * [-1, 1]
-def random_scatter_lines(length, count, width_range, height_range):
-    x_start = torch.FloatTensor(count).uniform_(*width_range).to("cuda")
-    y_start = torch.FloatTensor(count).uniform_(*height_range).to("cuda")
-    angle = torch.FloatTensor(count).uniform_(0, 2 * torch.pi).to("cuda")
-    x_end = x_start + length * torch.cos(angle)
-    y_end = y_start + length * torch.sin(angle)
-
-    lines = torch.zeros((count, 2, 3), device="cuda")
-    lines[:, 0, :2] = torch.stack((x_start, y_start), dim=1)
-    lines[:, 1, :2] = torch.stack((x_end, y_end), dim=1)
-
-    return lines
-
-
 import glints.test_utils as test_utils
 
 
@@ -52,7 +37,7 @@ def test_draw_picture():
     context = hd_USTC_CG_py.ScratchIntersectionContext()
     context.set_max_pair_buffer_ratio(10.0)
 
-    lines = random_scatter_lines(0.04, 60000, (-1, 1), (-1, 1))
+    lines = test_utils.random_scatter_lines(0.04, 60000, (-1, 1), (-1, 1))
     step = 2.0 / 1024
     patches = test_utils.create_patches(1024, step)
 

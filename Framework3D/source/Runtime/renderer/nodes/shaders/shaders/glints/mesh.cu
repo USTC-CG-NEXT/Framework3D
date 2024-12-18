@@ -124,11 +124,11 @@ __device__ void calculateRayParameters(
     float4 view_pos = clipToView * clip_pos;
     view_pos /= view_pos.w;
 
-    auto view_space_direction =
-        normalize(make_float3(view_pos) - make_float3(0, 0, 0));
+    auto view_space_direction = (make_float3(view_pos) - make_float3(0, 0, 0));
 
     origin = make_float3(viewToWorld * make_float4(0, 0, 0, 1));
-    direction = make_float3(viewToWorld * make_float4(view_space_direction, 0));
+    direction = normalize(
+        make_float3(viewToWorld * make_float4(view_space_direction, 0)));
 }
 
 __device__ void traceRayAndSetPayload(
@@ -178,6 +178,10 @@ RGS(mesh)
         direction,
         payload);
 
+    if (launch_index.x == 0 && launch_index.y == 0) {
+        printf("origin: %f %f %f\n", origin.x, origin.y, origin.z);
+    }
+
     if (payload.hit) {
         Patch patch;
 
@@ -206,19 +210,34 @@ RGS(mesh)
     }
 }
 
+struct Vertex {
+    float3 position;
+    float2 uv;
+};
+
+__device__ float2 operator*(const float2& a, const float b)
+{
+    return make_float2(a.x * b, a.y * b);
+}
+
 CHS(mesh)
 {
     Payload payload;
     auto primitiveid = optixGetPrimitiveIndex();
     uint3 indices = reinterpret_cast<uint3*>(mesh_params.indices)[primitiveid];
-    payload.corner0 =
-        reinterpret_cast<float3*>(mesh_params.vertices)[indices.x];
-    payload.corner1 =
-        reinterpret_cast<float3*>(mesh_params.vertices)[indices.y];
-    payload.corner2 =
-        reinterpret_cast<float3*>(mesh_params.vertices)[indices.z];
 
-    payload.uv = optixGetTriangleBarycentrics();
+    auto vertex0 = reinterpret_cast<Vertex*>(mesh_params.vertices)[indices.x];
+    auto vertex1 = reinterpret_cast<Vertex*>(mesh_params.vertices)[indices.y];
+    auto vertex2 = reinterpret_cast<Vertex*>(mesh_params.vertices)[indices.z];
+
+    payload.corner0 = vertex0.position;
+    payload.corner1 = vertex1.position;
+    payload.corner2 = vertex2.position;
+
+    auto barycentric = optixGetTriangleBarycentrics();
+
+    payload.uv = vertex0.uv * (1.0f - barycentric.x - barycentric.y) +
+                 vertex1.uv * barycentric.x + vertex2.uv * barycentric.y;
 
     payload.hit = true;
     payload.set_self();
