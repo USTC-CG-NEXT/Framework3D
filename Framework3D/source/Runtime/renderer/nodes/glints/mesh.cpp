@@ -27,14 +27,6 @@ MeshIntersectionContext::intersect_mesh_with_rays(
     int2 resolution,
     const std::vector<float>& world_to_clip)
 {
-    std::cout << "vertices " << vertices << std::endl;
-    std::cout << "indices " << indices << std::endl;
-    std::cout << "vertices_count " << vertices_count << std::endl;
-    std::cout << "vertex_buffer_stride " << vertex_buffer_stride << std::endl;
-    std::cout << "index_count " << index_count << std::endl;
-    std::cout << "resolution " << resolution.x << " " << resolution.y
-              << std::endl;
-
     assert(vertices);
     assert(indices);
     auto vertex_buffer_desc = cuda::CUDALinearBufferDesc{
@@ -45,19 +37,9 @@ MeshIntersectionContext::intersect_mesh_with_rays(
     vertex_buffer =
         cuda::borrow_cuda_linear_buffer(vertex_buffer_desc, vertices);
 
-    auto host_vb = vertex_buffer->get_host_vector<float>();
-    for (int i = 0; i < host_vb.size(); ++i) {
-        std::cout << host_vb[i] << " ";
-    }
-    std::cout << std::endl;
     auto index_buffer_desc =
         cuda::CUDALinearBufferDesc{ index_count, sizeof(unsigned) };
     index_buffer = cuda::borrow_cuda_linear_buffer(index_buffer_desc, indices);
-    auto host_ib = index_buffer->get_host_vector<unsigned>();
-    for (int i = 0; i < host_ib.size(); ++i) {
-        std::cout << host_ib[i] << " ";
-    }
-    std::cout << std::endl;
 
     assert(index_count % 3 == 0);
     handle = cuda::create_mesh_optix_traversable(
@@ -101,7 +83,7 @@ MeshIntersectionContext::intersect_mesh_with_rays(
 
     return std::make_tuple(
         reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
-        reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
+        reinterpret_cast<float*>(corners_buffer->get_device_ptr()),
         reinterpret_cast<unsigned*>(target_buffer->get_device_ptr()),
         append_buffer.get_size());
 }

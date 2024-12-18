@@ -16,23 +16,12 @@ def test_intersect_mesh():
 
     vertex_buffer_stride = 3 * 4
     resolution = [1024, 1024]
+    
     world_to_clip = [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, -1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0,
     ]
 
     result = context.intersect_mesh_with_rays(

@@ -1043,8 +1043,8 @@ OptixPipelineCompileOptions get_default_pipeline_compile_options(
     pipeline_compile_options.traversableGraphFlags =
         OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
     pipeline_compile_options.usesMotionBlur = false;
-    pipeline_compile_options.numPayloadValues = 2;
-    pipeline_compile_options.numAttributeValues = 2;
+    pipeline_compile_options.numPayloadValues = 32;
+    pipeline_compile_options.numAttributeValues = 8;
     pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
     pipeline_compile_options.pipelineLaunchParamsVariableName =
         launch_param_name;

@@ -1,4 +1,5 @@
 #include <optix_device.h>
+#include <vector_types.h>
 
 #include "../Optix/ShaderNameAbbre.h"
 #include "mesh_params.h"
@@ -54,6 +55,43 @@ __device__ float4 operator/=(float4& a, const float b)
     return a;
 }
 
+struct Payload {
+    float2 uv;
+    float3 corner0;
+    float3 corner1;
+    float3 corner2;
+    unsigned hit;
+
+    void set_self()
+    {
+        optixSetPayload_0(__float_as_uint(uv.x));
+        optixSetPayload_1(__float_as_uint(uv.y));
+        optixSetPayload_2(__float_as_uint(corner0.x));
+        optixSetPayload_3(__float_as_uint(corner0.y));
+        optixSetPayload_4(__float_as_uint(corner0.z));
+        optixSetPayload_5(__float_as_uint(corner1.x));
+        optixSetPayload_6(__float_as_uint(corner1.y));
+        optixSetPayload_7(__float_as_uint(corner1.z));
+        optixSetPayload_8(__float_as_uint(corner2.x));
+        optixSetPayload_9(__float_as_uint(corner2.y));
+        optixSetPayload_10(__float_as_uint(corner2.z));
+        optixSetPayload_11(hit);
+    }
+};
+#define Payload_As_Params(payload_name)                                     \
+    reinterpret_cast<unsigned int&>(payload_name.uv.x),                     \
+    reinterpret_cast<unsigned int&>(payload_name.uv.y),                     \
+    reinterpret_cast<unsigned int&>(payload_name.corner0.x),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner0.y),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner0.z),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner1.x),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner1.y),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner1.z),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner2.x),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner2.y),                \
+    reinterpret_cast<unsigned int&>(payload_name.corner2.z),                \
+    payload_name.hit
+
 RGS(mesh)
 {
     uint3 launch_index = optixGetLaunchIndex();
@@ -78,6 +116,9 @@ RGS(mesh)
 
     float3 direction = normalize(make_float3(view_pos) - origin);
 
+    Payload payload;
+    payload.hit = false;
+
     optixTrace(
         mesh_params.handle,
         origin,
@@ -86,14 +127,31 @@ RGS(mesh)
         1e5f,
         1.0f,
         OptixVisibilityMask(255),
-        OPTIX_RAY_FLAG_NONE,
-        0,
-        1,
-        0);
+        unsigned(OPTIX_RAY_FLAG_NONE),
+        unsigned(0),
+        unsigned(1),
+        unsigned(0),
+        Payload_As_Params(payload));
+
+    if (payload.hit) {
+        auto id = mesh_params.append_buffer->Push(Patch{});
+        mesh_params.corners[id].v0 = payload.corner0;
+        mesh_params.corners[id].v1 = payload.corner1;
+        mesh_params.corners[id].v2 = payload.corner2;
+    }
 }
 
 CHS(mesh)
 {
+    Payload payload;
+    auto primitiveid = optixGetPrimitiveIndex();
+    uint3 indices = reinterpret_cast<uint3*>(mesh_params.indices)[primitiveid];
+    payload.corner0 = reinterpret_cast<float3*>(mesh_params.vertices)[indices.x];
+    payload.corner1 = reinterpret_cast<float3*>(mesh_params.vertices)[indices.y];
+    payload.corner2 = reinterpret_cast<float3*>(mesh_params.vertices)[indices.z];
+
+    payload.hit = true;
+    payload.set_self();
 }
 
 MISS(mesh)
