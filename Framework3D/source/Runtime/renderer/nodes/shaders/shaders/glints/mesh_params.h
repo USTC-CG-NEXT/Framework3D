@@ -15,7 +15,8 @@ struct MeshTracingParams {
     WorkQueue<Patch>* append_buffer;
     Corners* corners;
     int2* pixel_targets;
-    float4x4 worldToClip;
+    float4x4 worldToView;
+    float4x4 viewToClip;
 };
 
 extern "C" {

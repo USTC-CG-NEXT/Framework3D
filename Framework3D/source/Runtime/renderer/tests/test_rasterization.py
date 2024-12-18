@@ -3,6 +3,7 @@ import hd_USTC_CG_py
 import numpy as np
 
 
+# world_to_view
 def look_at(eye, center, up):
     f = center - eye
     f /= np.linalg.norm(f)
@@ -15,6 +16,7 @@ def look_at(eye, center, up):
     return m
 
 
+# view_to_clip
 def perspective(fovy, aspect, near, far):
     f = 1.0 / np.tan(fovy / 2.0)
     m = np.zeros((4, 4))
@@ -30,6 +32,7 @@ def test_intersect_mesh():
     context = hd_USTC_CG_py.MeshIntersectionContext()
 
     import torch
+    import imageio
 
     vertices = torch.tensor(
         [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0]]
@@ -42,24 +45,37 @@ def test_intersect_mesh():
     vertex_buffer_stride = 3 * 4
     resolution = [1024, 1024]
 
-    view_matrix = look_at(
-        np.array([3, 3, 3]), np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0])
+    world_to_view_matrix = look_at(
+        np.array([0.5, 0.5, 3.0]), np.array([0.5, 0.5, 0.0]), np.array([0.0, 1.0, 0.0])
     )
+    print(world_to_view_matrix)
 
-    print(view_matrix)
-    print(view_matrix.dot(np.array([0.0, 0.0, 1.0, 0.0])))
-
-    projection_matrix = perspective(np.pi / 2, 1.0, 0.1, 10.0)
-
-    # world_to_clip is a list, so after mulitplication, flatten it to a Python List
-    world_to_clip = (projection_matrix @ view_matrix).flatten().tolist()
-
-    print(world_to_clip)
+    view_to_clip_matrix = perspective(np.pi / 1.8, 1.0, 0.1, 1000.0)
 
     patches, corners, targets = context.intersect_mesh_with_rays(
-        vertices, indices, vertex_buffer_stride, resolution, world_to_clip
+        vertices,
+        indices,
+        vertex_buffer_stride,
+        resolution,
+        world_to_view_matrix.flatten(),
+        view_to_clip_matrix.flatten(),
     )
 
-    print(patches)
-    print(corners)
-    print(targets)
+    print(patches.shape)  # torch.Size([n, 8])
+    print(corners.shape)  # torch.Size([n, 9])
+    print(targets.shape)  # torch.Size([n, 2]), unsigned int
+    print(targets.dtype)  # torch.uint32
+
+    # Create an empty image with the given resolution
+    image = torch.zeros(
+        (resolution[0], resolution[1], 3), dtype=torch.float32, device="cuda"
+    )
+
+    # Scatter the first 3 dimensions of patches to the image at the positions specified by targets
+    image[targets[:, 0].long(), targets[:, 1].long()] = patches[:, :3]
+
+    # Move the image to CPU and convert to numpy array
+    image_cpu = image.cpu().numpy()
+
+    # Save the image using imageio
+    imageio.imwrite("uv.png", (image_cpu * 255).astype(np.uint8))

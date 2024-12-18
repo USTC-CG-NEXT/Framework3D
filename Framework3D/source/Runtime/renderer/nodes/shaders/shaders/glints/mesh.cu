@@ -118,30 +118,28 @@ __device__ void calculateRayParameters(
     float4 clip_pos =
         make_float4(uv.x * 2.0f - 1.0f, uv.y * 2.0f - 1.0f, 1.0f, 1.0f);
 
-    origin = make_float3(0, 0, 0);
-    direction = normalize(make_float3(clip_pos) - origin);
+    auto clipToView = mesh_params.viewToClip.get_inverse();
+    auto viewToWorld = mesh_params.worldToView.get_inverse();
 
-    auto clipToWorld = mesh_params.worldToClip.get_inverse();
-    float4 world_origin = clipToWorld * make_float4(0, 0, 0, 1);
-    origin = make_float3(world_origin / world_origin.w);
-    direction = make_float3(clipToWorld * make_float4(direction, 0.f));
-    direction = normalize(direction);
+    float4 view_pos = clipToView * clip_pos;
+    view_pos /= view_pos.w;
+
+    auto view_space_direction =
+        normalize(make_float3(view_pos) - make_float3(0, 0, 0));
+
+    origin = make_float3(viewToWorld * make_float4(0, 0, 0, 1));
+    direction = make_float3(viewToWorld * make_float4(view_space_direction, 0));
 }
 
-RGS(mesh)
+__device__ void traceRayAndSetPayload(
+    const uint3& launch_index,
+    const uint3& launch_dimensions,
+    float bias_x,
+    float bias_y,
+    float3& origin,
+    float3& direction,
+    Payload& payload)
 {
-    uint3 launch_index = optixGetLaunchIndex();
-    uint3 launch_dimensions = optixGetLaunchDimensions();
-
-    float bias_x = 0.5f;
-    float bias_y = 0.5f;
-
-    float3 origin;
-    float3 direction;
-
-    Payload payload;
-    payload.hit = false;
-
     calculateRayParameters(
         launch_index, launch_dimensions, bias_x, bias_y, origin, direction);
 
@@ -158,79 +156,45 @@ RGS(mesh)
         unsigned(1),
         unsigned(0),
         Payload_As_Params(payload));
+}
+
+RGS(mesh)
+{
+    uint3 launch_index = optixGetLaunchIndex();
+    uint3 launch_dimensions = optixGetLaunchDimensions();
+
+    float3 origin;
+    float3 direction;
+
+    Payload payload;
+    payload.hit = false;
+
+    traceRayAndSetPayload(
+        launch_index,
+        launch_dimensions,
+        0.5f,
+        0.5f,
+        origin,
+        direction,
+        payload);
 
     if (payload.hit) {
         Patch patch;
 
-        calculateRayParameters(
-            launch_index, launch_dimensions, 0, 0, origin, direction);
-
-        optixTrace(
-            mesh_params.handle,
-            origin,
-            direction,
-            0.0f,
-            1e5f,
-            1.0f,
-            OptixVisibilityMask(255),
-            unsigned(OPTIX_RAY_FLAG_NONE),
-            unsigned(0),
-            unsigned(1),
-            unsigned(0),
-            Payload_As_Params(payload));
+        traceRayAndSetPayload(
+            launch_index, launch_dimensions, 0, 0, origin, direction, payload);
         patch.uv0 = payload.uv;
 
-        calculateRayParameters(
-            launch_index, launch_dimensions, 1, 0, origin, direction);
-        optixTrace(
-            mesh_params.handle,
-            origin,
-            direction,
-            0.0f,
-            1e5f,
-            1.0f,
-            OptixVisibilityMask(255),
-            unsigned(OPTIX_RAY_FLAG_NONE),
-            unsigned(0),
-            unsigned(1),
-            unsigned(0),
-            Payload_As_Params(payload));
+        traceRayAndSetPayload(
+            launch_index, launch_dimensions, 1, 0, origin, direction, payload);
         patch.uv1 = payload.uv;
 
-        calculateRayParameters(
-            launch_index, launch_dimensions, 1, 1, origin, direction);
-
-        optixTrace(
-            mesh_params.handle,
-            origin,
-            direction,
-            0.0f,
-            1e5f,
-            1.0f,
-            OptixVisibilityMask(255),
-            unsigned(OPTIX_RAY_FLAG_NONE),
-            unsigned(0),
-            unsigned(1),
-            unsigned(0),
-            Payload_As_Params(payload));
-
+        traceRayAndSetPayload(
+            launch_index, launch_dimensions, 1, 1, origin, direction, payload);
         patch.uv2 = payload.uv;
-        calculateRayParameters(
-            launch_index, launch_dimensions, 0, 1, origin, direction);
 
-        optixTrace(
-            mesh_params.handle,
-            origin,
-            direction,
-            0.0f,
-            1e5f,
-            1.0f,
-            OptixVisibilityMask(255),
-            unsigned(OPTIX_RAY_FLAG_NONE),
-            unsigned(0),
-            unsigned(1),
-            unsigned(0),
-            Payload_As_Params(payload));
+        traceRayAndSetPayload(
+            launch_index, launch_dimensions, 0, 1, origin, direction, payload);
         patch.uv3 = payload.uv;
 
         auto id = mesh_params.append_buffer->Push(patch);

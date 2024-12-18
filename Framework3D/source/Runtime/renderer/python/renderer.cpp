@@ -59,7 +59,8 @@ NB_MODULE(hd_USTC_CG_py, m)
                nb::ndarray<unsigned> indices,
                unsigned vertex_buffer_stride,
                const std::vector<int>& resolution,
-               const std::vector<float>& world_to_clip) {
+               const std::vector<float>& world_to_view,
+               const std::vector<float>& view_to_clip) {
                 auto [patches, corners, targets, count] =
                     self.intersect_mesh_with_rays(
                         vertices.data(),
@@ -68,7 +69,8 @@ NB_MODULE(hd_USTC_CG_py, m)
                         indices.data(),
                         static_cast<unsigned>(indices.shape(0)),
                         int2(resolution[0], resolution[1]),
-                        world_to_clip);
+                        world_to_view,
+                        view_to_clip);
 
                 std::cout << "count: " << count << std::endl;
 
@@ -98,6 +100,7 @@ NB_MODULE(hd_USTC_CG_py, m)
             nb::arg("indices"),
             nb::arg("vertex_buffer_stride"),
             nb::arg("resolution"),
-            nb::arg("world_to_clip"),
+            nb::arg("world_to_view"),
+            nb::arg("view_to_clip"),
             nb::rv_policy::reference);
 }

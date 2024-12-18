@@ -25,7 +25,8 @@ MeshIntersectionContext::intersect_mesh_with_rays(
     unsigned* indices,
     unsigned index_count,
     int2 resolution,
-    const std::vector<float>& world_to_clip)
+    const std::vector<float>& world_to_view,
+    const std::vector<float>& view_to_clip)
 {
     assert(vertices);
     assert(indices);
@@ -57,10 +58,17 @@ MeshIntersectionContext::intersect_mesh_with_rays(
 
     ensure_pipeline();
 
-    float4x4 worldToClip;
+    float4x4 worldToView;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            worldToClip.m[i][j] = world_to_clip[i * 4 + j];
+            worldToView.m[i][j] = world_to_view[i * 4 + j];
+        }
+    }
+
+    float4x4 viewToClip;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            viewToClip.m[i][j] = view_to_clip[i * 4 + j];
         }
     }
 
@@ -71,7 +79,8 @@ MeshIntersectionContext::intersect_mesh_with_rays(
                            append_buffer.get_device_queue_ptr(),
                            (Corners*)corners_buffer->get_device_ptr(),
                            (int2*)target_buffer->get_device_ptr(),
-                           worldToClip });
+                           worldToView,
+                           viewToClip });
 
     cuda::optix_trace_ray<MeshTracingParams>(
         handle,

@@ -17,7 +17,8 @@ struct MeshIntersectionContext {
         unsigned* indices,
         unsigned index_count,
         int2 resolution,
-        const std::vector<float>& world_to_clip);
+        const std::vector<float>& world_to_clip,
+        const std::vector<float>& view_to_clip);
 
    private:
     void create_raygen(const std::string& string);
