@@ -1,7 +1,7 @@
 #include <optix_device.h>
 
 #include "../Optix/ShaderNameAbbre.h"
-#include "params.h"
+#include "mesh_params.h"
 
 inline unsigned GetLaunchID()
 {

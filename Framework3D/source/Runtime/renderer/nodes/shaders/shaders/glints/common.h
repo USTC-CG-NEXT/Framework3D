@@ -1,11 +1,5 @@
 #pragma once
 
-#ifndef __CUDACC__
-#include "RHI/internal/optix/WorkQueue.cuh"
-#else
-#include "WorkQueue.cuh"
-#endif
-
 struct Ray {
     float3 origin;
     float3 direction;
@@ -112,7 +106,7 @@ struct float4x4 {
         if (det == 0)
             return result;
 
-        det = 1.0 / det;
+        det = 1.0f / det;
 
         for (i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
@@ -137,24 +131,3 @@ struct float4x4 {
         return result;
     }
 };
-
-struct MeshTracingParams {
-    OptixTraversableHandle handle;
-    float* vertices;
-    unsigned* indices;
-    WorkQueue<Patch>* append_buffer;
-    Corners* corners;
-    int2* pixel_targets;
-    float4x4 worldToClip;
-};
-
-struct GlintsTracingParams {
-    OptixTraversableHandle handle;
-    Patch* patches;
-    WorkQueue<uint2>* patch_line_pairs;
-};
-
-extern "C" {
-extern __constant__ GlintsTracingParams params;
-extern __constant__ MeshTracingParams mesh_params;
-}

@@ -785,6 +785,7 @@ OptiXTraversable::OptiXTraversable(const OptiXTraversableDesc& desc)
     CUDA_CHECK(cudaMalloc(
         reinterpret_cast<void**>(&traversableBuffer),
         gas_buffer_sizes.outputSizeInBytes));
+    CUDA_SYNC_CHECK();
 
     OPTIX_CHECK(optixAccelBuild(
         OptixContext(),
@@ -985,9 +986,10 @@ OptiXProgramGroupHandle create_optix_program_group(
 
 OptiXProgramGroupHandle create_optix_raygen(
     const std::string& file_path,
-    const char* entry_name)
+    const char* entry_name,
+    const char* param_name)
 {
-    auto module = create_optix_module(file_path);
+    auto module = create_optix_module(file_path, param_name);
 
     OptiXProgramGroupDesc desc;
     desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_RAYGEN)
@@ -998,9 +1000,10 @@ OptiXProgramGroupHandle create_optix_raygen(
 
 OptiXProgramGroupHandle create_optix_miss(
     const std::string& file_path,
-    const char* entry_name)
+    const char* entry_name,
+    const char* param_name)
 {
-    auto module = create_optix_module(file_path);
+    auto module = create_optix_module(file_path, param_name);
 
     OptiXProgramGroupDesc desc;
     desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_MISS)
@@ -1022,14 +1025,19 @@ OptixModuleCompileOptions get_default_module_compile_options()
     OptixModuleCompileOptions module_compile_options = {};
     module_compile_options.maxRegisterCount = 128;
     module_compile_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_DEFAULT;
+#ifdef NDEBUG
     module_compile_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+#else
+    module_compile_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_MODERATE;
+#endif
     module_compile_options.numBoundValues = 0;
     module_compile_options.boundValues = nullptr;
 
     return module_compile_options;
 }
 
-OptixPipelineCompileOptions get_default_pipeline_compile_options()
+OptixPipelineCompileOptions get_default_pipeline_compile_options(
+    const char* launch_param_name)
 {
     OptixPipelineCompileOptions pipeline_compile_options = {};
     pipeline_compile_options.traversableGraphFlags =
@@ -1038,7 +1046,8 @@ OptixPipelineCompileOptions get_default_pipeline_compile_options()
     pipeline_compile_options.numPayloadValues = 2;
     pipeline_compile_options.numAttributeValues = 2;
     pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
-    pipeline_compile_options.pipelineLaunchParamsVariableName = "params";
+    pipeline_compile_options.pipelineLaunchParamsVariableName =
+        launch_param_name;
     pipeline_compile_options.usesPrimitiveTypeFlags = 0;
     pipeline_compile_options.usesPrimitiveTypeFlags |=
         OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
@@ -1065,20 +1074,26 @@ OptixBuiltinISOptions get_default_built_in_is_options()
     return options;
 }
 
-OptiXModuleHandle create_optix_module(const std::string& file_path)
+OptiXModuleHandle create_optix_module(
+    const std::string& file_path,
+    const char* param_name)
 {
     OptiXModuleDesc desc;
     desc.file_name = file_path;
     desc.module_compile_options = get_default_module_compile_options();
-    desc.pipeline_compile_options = get_default_pipeline_compile_options();
+    desc.pipeline_compile_options =
+        get_default_pipeline_compile_options(param_name);
     return create_optix_module(desc);
 }
 
-OptiXModuleHandle get_builtin_module(OptixPrimitiveType type)
+OptiXModuleHandle get_builtin_module(
+    OptixPrimitiveType type,
+    const char* param_name)
 {
     OptiXModuleDesc desc;
     desc.module_compile_options = get_default_module_compile_options();
-    desc.pipeline_compile_options = get_default_pipeline_compile_options();
+    desc.pipeline_compile_options =
+        get_default_pipeline_compile_options(param_name);
     OptixBuiltinISOptions& options = desc.builtinISOptions;
     options = get_default_built_in_is_options();
     options.builtinISModuleType = type;
@@ -1097,10 +1112,12 @@ OptiXPipelineHandle create_optix_pipeline(
 }
 
 OptiXPipelineHandle create_optix_pipeline(
-    std::vector<OptiXProgramGroupHandle> program_groups)
+    std::vector<OptiXProgramGroupHandle> program_groups,
+    const char* param_name)
 {
     OptiXPipelineDesc desc;
-    desc.pipeline_compile_options = get_default_pipeline_compile_options();
+    desc.pipeline_compile_options =
+        get_default_pipeline_compile_options(param_name);
     desc.pipeline_link_options = get_default_pipeline_link_options();
     return create_optix_pipeline(desc, program_groups);
 }

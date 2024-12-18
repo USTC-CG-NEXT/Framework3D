@@ -1,10 +1,10 @@
-#include "../nodes/glints/glints.hpp"
+#include "../nodes/glints/mesh.hpp"
 #if USTC_CG_WITH_CUDA
 
 #include <gtest/gtest.h>
 
 #include "RHI/internal/cuda_extension.hpp"
-#include "shaders/glints/params.h"
+#include "shaders/glints/mesh_params.h"
 using namespace USTC_CG::cuda;
 using namespace USTC_CG;
 
@@ -27,24 +27,9 @@ TEST(cuda_extension, trace_optix_mesh_traversable)
     auto index_buffer =
         create_cuda_linear_buffer(std::vector{ 0, 1, 2, 1, 2, 3 });
 
-    auto ray_count = 1024 * 1024;
-
-    std::vector<Ray> rays(ray_count);
-
-    for (int i = 0; i < 1024; ++i) {
-        for (int j = 0; j < 1024; ++j) {
-            float step = 2.f / 1024;
-            float x = -1 + i * step;
-            float y = -1 + j * step;
-            rays[i * 1024 + j] = { { x, y, 1.0f }, { 0, 0, -1 }, 0, 1000 };
-        }
-    }
-
     std::vector<float> worldToClip = { 2.0f, 0.0f, 0.0f,  0.0f, 0.0f,  2.0f,
                                        0.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,
                                        0.0f, 0.0f, -1.0f, 0.0f };
-
-    auto ray_buffer = create_cuda_linear_buffer<Ray>(rays);
 
     context.intersect_mesh_with_rays(
         reinterpret_cast<float*>(vertex_buffer->get_device_ptr()),

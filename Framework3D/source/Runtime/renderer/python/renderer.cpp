@@ -6,6 +6,7 @@
 #include <nanobind/stl/vector.h>
 
 #include "../nodes/glints/glints.hpp"
+#include "../nodes/glints/mesh.hpp"
 #include "nanobind/nanobind.h"
 #include "nanobind/nb_defs.h"
 
@@ -59,10 +60,6 @@ NB_MODULE(hd_USTC_CG_py, m)
                unsigned vertex_buffer_stride,
                const std::vector<int>& resolution,
                const std::vector<float>& world_to_clip) {
-                std::cout << "vertices_count " << vertices.shape(0)
-                          << std::endl;
-                std::cout << "vertex_buffer_stride " << vertex_buffer_stride
-                          << std::endl;
                 auto [patches, corners, targets, count] =
                     self.intersect_mesh_with_rays(
                         vertices.data(),
@@ -95,8 +92,7 @@ NB_MODULE(hd_USTC_CG_py, m)
                         unsigned,
                         nb::ndim<2>,
                         nb::shape<-1, 2>,
-                        nb::device::cuda>(targets, { count, 2 }),
-                    count);
+                        nb::device::cuda>(targets, { count, 2 }));
             },
             nb::arg("vertices"),
             nb::arg("indices"),

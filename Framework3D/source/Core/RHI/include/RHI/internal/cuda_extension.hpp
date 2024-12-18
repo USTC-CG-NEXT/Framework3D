@@ -223,9 +223,13 @@ RHI_API const char* get_ptx_string_from_cu(
     const char** log = nullptr);
 
 RHI_API OptiXModuleHandle create_optix_module(const OptiXModuleDesc& d);
-RHI_API OptiXModuleHandle create_optix_module(const std::string& file_path);
+RHI_API OptiXModuleHandle create_optix_module(
+    const std::string& file_path,
+    const char* param_name = "params");
 
-RHI_API OptiXModuleHandle get_builtin_module(OptixPrimitiveType primitive_type);
+RHI_API OptiXModuleHandle get_builtin_module(
+    OptixPrimitiveType primitive_type,
+    const char* param_name = "params");
 
 RHI_API OptiXProgramGroupHandle create_optix_program_group(
     const OptiXProgramGroupDesc& d,
@@ -236,18 +240,23 @@ RHI_API OptiXProgramGroupHandle create_optix_program_group(
     std::tuple<OptiXModuleHandle, OptiXModuleHandle, OptiXModuleHandle>
         modules);
 
-RHI_API OptiXProgramGroupHandle
-create_optix_raygen(const std::string& file_path, const char* entry_name);
+RHI_API OptiXProgramGroupHandle create_optix_raygen(
+    const std::string& file_path,
+    const char* entry_name,
+    const char* param_name = "params");
 
-RHI_API OptiXProgramGroupHandle
-create_optix_miss(const std::string& file_path, const char* entry_name);
+RHI_API OptiXProgramGroupHandle create_optix_miss(
+    const std::string& file_path,
+    const char* entry_name,
+    const char* param_name = "params");
 
 RHI_API OptiXPipelineHandle create_optix_pipeline(
     const OptiXPipelineDesc& d,
     std::vector<OptiXProgramGroupHandle> program_groups = {});
 
-RHI_API OptiXPipelineHandle
-create_optix_pipeline(std::vector<OptiXProgramGroupHandle> program_groups = {});
+RHI_API OptiXPipelineHandle create_optix_pipeline(
+    std::vector<OptiXProgramGroupHandle> program_groups = {},
+    const char* param_name = "params");
 
 RHI_API cudaStream_t get_optix_stream();
 RHI_API int optix_trace_ray(
