@@ -1,4 +1,5 @@
 #include <optix_device.h>
+#include <vector_functions.h>
 #include <vector_types.h>
 
 #include "../Optix/ShaderNameAbbre.h"
@@ -46,6 +47,11 @@ __device__ float3 make_float3(const float4& a)
     return make_float3(a.x, a.y, a.z);
 }
 
+__device__ float4 make_float4(const float3& a, const float b)
+{
+    return make_float4(a.x, a.y, a.z, b);
+}
+
 __device__ float4 operator/=(float4& a, const float b)
 {
     a.x /= b;
@@ -53,6 +59,11 @@ __device__ float4 operator/=(float4& a, const float b)
     a.z /= b;
     a.w /= b;
     return a;
+}
+
+__device__ float4 operator/(const float4& a, const float b)
+{
+    return make_float4(a.x / b, a.y / b, a.z / b, a.w / b);
 }
 
 struct Payload {
@@ -78,43 +89,44 @@ struct Payload {
         optixSetPayload_11(hit);
     }
 };
-#define Payload_As_Params(payload_name)                                     \
-    reinterpret_cast<unsigned int&>(payload_name.uv.x),                     \
-    reinterpret_cast<unsigned int&>(payload_name.uv.y),                     \
-    reinterpret_cast<unsigned int&>(payload_name.corner0.x),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner0.y),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner0.z),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner1.x),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner1.y),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner1.z),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner2.x),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner2.y),                \
-    reinterpret_cast<unsigned int&>(payload_name.corner2.z),                \
-    payload_name.hit
+#define Payload_As_Params(payload_name)                          \
+    reinterpret_cast<unsigned int&>(payload_name.uv.x),          \
+        reinterpret_cast<unsigned int&>(payload_name.uv.y),      \
+        reinterpret_cast<unsigned int&>(payload_name.corner0.x), \
+        reinterpret_cast<unsigned int&>(payload_name.corner0.y), \
+        reinterpret_cast<unsigned int&>(payload_name.corner0.z), \
+        reinterpret_cast<unsigned int&>(payload_name.corner1.x), \
+        reinterpret_cast<unsigned int&>(payload_name.corner1.y), \
+        reinterpret_cast<unsigned int&>(payload_name.corner1.z), \
+        reinterpret_cast<unsigned int&>(payload_name.corner2.x), \
+        reinterpret_cast<unsigned int&>(payload_name.corner2.y), \
+        reinterpret_cast<unsigned int&>(payload_name.corner2.z), \
+        payload_name.hit
 
 RGS(mesh)
 {
     uint3 launch_index = optixGetLaunchIndex();
     uint3 launch_dimensions = optixGetLaunchDimensions();
 
-    float2 pixel_position_f = make_float2(launch_index.x, launch_index.y);
+    float bias_x = 0.5f;
+    float bias_y = 0.5f;
+
+    float2 pixel_position_f =
+        make_float2(launch_index.x + bias_x, launch_index.y + bias_y);
 
     float2 uv = pixel_position_f /
                 make_float2(launch_dimensions.x, launch_dimensions.y);
     float4 clip_pos =
         make_float4(uv.x * 2.0f - 1.0f, uv.y * 2.0f - 1.0f, 1.0f, 1.0f);
 
-    auto clipToWorld = mesh_params.worldToClip.get_inverse();
-
-    float4 view_pos = clipToWorld * clip_pos;
-    view_pos /= view_pos.w;
-
     float3 origin = make_float3(0, 0, 0);
+    float3 direction = normalize(make_float3(clip_pos) - origin);
 
-    float3 camera_right = make_float3(1, 0, 0);
-    float3 camera_up = make_float3(0, 1, 0);
-
-    float3 direction = normalize(make_float3(view_pos) - origin);
+    auto clipToWorld = mesh_params.worldToClip.get_inverse();
+    float4 world_origin = clipToWorld * make_float4(0, 0, 0, 1);
+    origin = make_float3(world_origin / world_origin.w);
+    direction = make_float3(clipToWorld * make_float4(direction, 0.f));
+    direction = normalize(direction);
 
     Payload payload;
     payload.hit = false;
@@ -138,6 +150,8 @@ RGS(mesh)
         mesh_params.corners[id].v0 = payload.corner0;
         mesh_params.corners[id].v1 = payload.corner1;
         mesh_params.corners[id].v2 = payload.corner2;
+        mesh_params.pixel_targets[id] =
+            make_int2(launch_index.x, launch_index.y);
     }
 }
 
@@ -146,9 +160,14 @@ CHS(mesh)
     Payload payload;
     auto primitiveid = optixGetPrimitiveIndex();
     uint3 indices = reinterpret_cast<uint3*>(mesh_params.indices)[primitiveid];
-    payload.corner0 = reinterpret_cast<float3*>(mesh_params.vertices)[indices.x];
-    payload.corner1 = reinterpret_cast<float3*>(mesh_params.vertices)[indices.y];
-    payload.corner2 = reinterpret_cast<float3*>(mesh_params.vertices)[indices.z];
+    payload.corner0 =
+        reinterpret_cast<float3*>(mesh_params.vertices)[indices.x];
+    payload.corner1 =
+        reinterpret_cast<float3*>(mesh_params.vertices)[indices.y];
+    payload.corner2 =
+        reinterpret_cast<float3*>(mesh_params.vertices)[indices.z];
+
+    payload.uv = optixGetTriangleBarycentrics();
 
     payload.hit = true;
     payload.set_self();
