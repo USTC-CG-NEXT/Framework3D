@@ -11,7 +11,7 @@ def test_intersect_mesh():
     ).cuda()
     print(vertices.dtype)
     assert vertices.is_contiguous()
-    indices = torch.tensor([[0, 1, 2], [0, 2, 3]], dtype=torch.uint32).cuda()
+    indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 3 * 4

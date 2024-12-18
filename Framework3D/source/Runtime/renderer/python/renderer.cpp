@@ -56,7 +56,7 @@ NB_MODULE(hd_USTC_CG_py, m)
             "intersect_mesh_with_rays",
             [](USTC_CG::MeshIntersectionContext& self,
                nb::ndarray<float> vertices,
-               nb::ndarray<float> indices,
+               nb::ndarray<unsigned> indices,
                unsigned vertex_buffer_stride,
                const std::vector<int>& resolution,
                const std::vector<float>& world_to_clip) {

@@ -35,8 +35,8 @@ TEST(cuda_extension, trace_optix_mesh_traversable)
         reinterpret_cast<float*>(vertex_buffer->get_device_ptr()),
         4,
         3 * sizeof(float),
-        reinterpret_cast<float*>(index_buffer->get_device_ptr()),
-        2,
+        reinterpret_cast<unsigned*>(index_buffer->get_device_ptr()),
+        2 * 3,
         { 1024, 1024 },
         worldToClip);
 }

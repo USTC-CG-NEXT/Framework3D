@@ -14,7 +14,7 @@ struct MeshIntersectionContext {
         float* vertices,
         unsigned vertices_count,
         unsigned vertex_buffer_stride,
-        float* indices,
+        unsigned* indices,
         unsigned index_count,
         int2 resolution,
         const std::vector<float>& world_to_clip);
