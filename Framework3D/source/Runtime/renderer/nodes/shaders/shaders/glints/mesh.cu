@@ -68,39 +68,52 @@ __device__ float4 operator/(const float4& a, const float b)
 
 struct Payload {
     float2 uv;
-    float3 corner0;
-    float3 corner1;
-    float3 corner2;
+    float4x4 worldToUV;
     unsigned hit;
 
     void set_self()
     {
         optixSetPayload_0(__float_as_uint(uv.x));
         optixSetPayload_1(__float_as_uint(uv.y));
-        optixSetPayload_2(__float_as_uint(corner0.x));
-        optixSetPayload_3(__float_as_uint(corner0.y));
-        optixSetPayload_4(__float_as_uint(corner0.z));
-        optixSetPayload_5(__float_as_uint(corner1.x));
-        optixSetPayload_6(__float_as_uint(corner1.y));
-        optixSetPayload_7(__float_as_uint(corner1.z));
-        optixSetPayload_8(__float_as_uint(corner2.x));
-        optixSetPayload_9(__float_as_uint(corner2.y));
-        optixSetPayload_10(__float_as_uint(corner2.z));
-        optixSetPayload_11(hit);
+        optixSetPayload_2(__float_as_uint(worldToUV.m[0][0]));
+        optixSetPayload_3(__float_as_uint(worldToUV.m[0][1]));
+        optixSetPayload_4(__float_as_uint(worldToUV.m[0][2]));
+        optixSetPayload_5(__float_as_uint(worldToUV.m[0][3]));
+        optixSetPayload_6(__float_as_uint(worldToUV.m[1][0]));
+        optixSetPayload_7(__float_as_uint(worldToUV.m[1][1]));
+        optixSetPayload_8(__float_as_uint(worldToUV.m[1][2]));
+        optixSetPayload_9(__float_as_uint(worldToUV.m[1][3]));
+        optixSetPayload_10(__float_as_uint(worldToUV.m[2][0]));
+        optixSetPayload_11(__float_as_uint(worldToUV.m[2][1]));
+        optixSetPayload_12(__float_as_uint(worldToUV.m[2][2]));
+        optixSetPayload_13(__float_as_uint(worldToUV.m[2][3]));
+        optixSetPayload_14(__float_as_uint(worldToUV.m[3][0]));
+        optixSetPayload_15(__float_as_uint(worldToUV.m[3][1]));
+        optixSetPayload_16(__float_as_uint(worldToUV.m[3][2]));
+        optixSetPayload_17(__float_as_uint(worldToUV.m[3][3]));
+        optixSetPayload_18(hit);
     }
 };
-#define Payload_As_Params(payload_name)                          \
-    reinterpret_cast<unsigned int&>(payload_name.uv.x),          \
-        reinterpret_cast<unsigned int&>(payload_name.uv.y),      \
-        reinterpret_cast<unsigned int&>(payload_name.corner0.x), \
-        reinterpret_cast<unsigned int&>(payload_name.corner0.y), \
-        reinterpret_cast<unsigned int&>(payload_name.corner0.z), \
-        reinterpret_cast<unsigned int&>(payload_name.corner1.x), \
-        reinterpret_cast<unsigned int&>(payload_name.corner1.y), \
-        reinterpret_cast<unsigned int&>(payload_name.corner1.z), \
-        reinterpret_cast<unsigned int&>(payload_name.corner2.x), \
-        reinterpret_cast<unsigned int&>(payload_name.corner2.y), \
-        reinterpret_cast<unsigned int&>(payload_name.corner2.z), \
+
+#define Payload_As_Params(payload_name)                                  \
+    reinterpret_cast<unsigned int&>(payload_name.uv.x),                  \
+        reinterpret_cast<unsigned int&>(payload_name.uv.y),              \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[0][0]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[0][1]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[0][2]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[0][3]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[1][0]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[1][1]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[1][2]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[1][3]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[2][0]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[2][1]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[2][2]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[2][3]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[3][0]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[3][1]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[3][2]), \
+        reinterpret_cast<unsigned int&>(payload_name.worldToUV.m[3][3]), \
         payload_name.hit
 
 __device__ void calculateRayParameters(
@@ -202,23 +215,32 @@ RGS(mesh)
         patch.uv3 = payload.uv;
 
         auto id = mesh_params.append_buffer->Push(patch);
-        mesh_params.corners[id].v0 = payload.corner0;
-        mesh_params.corners[id].v1 = payload.corner1;
-        mesh_params.corners[id].v2 = payload.corner2;
+        mesh_params.worldToUV[id] = payload.worldToUV;
         mesh_params.pixel_targets[id] =
             make_int2(launch_index.x, launch_index.y);
     }
 }
 
-struct Vertex {
-    float3 position;
-    float2 uv;
-};
+
 
 __device__ float2 operator*(const float2& a, const float b)
 {
     return make_float2(a.x * b, a.y * b);
 }
+
+__device__ float3 cross(const float3& a, const float3& b)
+{
+    return make_float3(
+        a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+}
+__device__ float3 operator-(const float3& a)
+{
+    return make_float3(-a.x, -a.y, -a.z);
+}
+struct Vertex {
+    float pos_x, pos_y, pos_z;
+    float u, v;
+};
 
 CHS(mesh)
 {
@@ -230,14 +252,33 @@ CHS(mesh)
     auto vertex1 = reinterpret_cast<Vertex*>(mesh_params.vertices)[indices.y];
     auto vertex2 = reinterpret_cast<Vertex*>(mesh_params.vertices)[indices.z];
 
-    payload.corner0 = vertex0.position;
-    payload.corner1 = vertex1.position;
-    payload.corner2 = vertex2.position;
+    float2 uv0 = make_float2(vertex0.u, vertex0.v);
+    float2 uv1 = make_float2(vertex1.u, vertex1.v);
+    float2 uv2 = make_float2(vertex2.u, vertex2.v);
+
+    float3 pos0 = make_float3(vertex0.pos_x, vertex0.pos_y, vertex0.pos_z);
+    float3 pos1 = make_float3(vertex1.pos_x, vertex1.pos_y, vertex1.pos_z);
+    float3 pos2 = make_float3(vertex2.pos_x, vertex2.pos_y, vertex2.pos_z);
+
+    float3 normal = normalize(cross(pos1 - pos0, pos2 - pos0));
+
+    float4x4 target(
+        make_float4(uv0.x, uv0.y, 0.f, 1.f),
+        make_float4(uv1.x, uv1.y, 0.f, 1.f),
+        make_float4(uv2.x, uv2.y, 0.f, 1.f),
+        make_float4(0, 0, 1, 0));
+    float4x4 points(
+        make_float4(pos0.x, pos0.y, pos0.z, 1),
+        make_float4(pos1.x, pos1.y, pos1.z, 1),
+        make_float4(pos2.x, pos2.y, pos2.z, 1),
+        make_float4(normal, 0));
+
+    payload.worldToUV = target * points.get_inverse();
 
     auto barycentric = optixGetTriangleBarycentrics();
 
-    payload.uv = vertex0.uv * (1.0f - barycentric.x - barycentric.y) +
-                 vertex1.uv * barycentric.x + vertex2.uv * barycentric.y;
+    payload.uv = uv0 * (1.0f - barycentric.x - barycentric.y) +
+                 uv1 * barycentric.x + uv2 * barycentric.y;
 
     payload.hit = true;
     payload.set_self();

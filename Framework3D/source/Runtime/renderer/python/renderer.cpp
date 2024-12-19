@@ -86,9 +86,8 @@ NB_MODULE(hd_USTC_CG_py, m)
                         nb::pytorch,
                         float,
                         nb::ndim<2>,
-                        nb::shape<-1, sizeof(Corners) / sizeof(float)>,
-                        nb::device::cuda>(
-                        corners, { count, sizeof(Corners) / sizeof(float) }),
+                        nb::shape<-1, 4, 4>,
+                        nb::device::cuda>(corners, { count, 4, 4 }),
                     nb::ndarray<
                         nb::pytorch,
                         unsigned,

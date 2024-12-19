@@ -54,7 +54,7 @@ MeshIntersectionContext::intersect_mesh_with_rays(
 
     append_buffer = cuda::AppendStructuredBuffer<Patch>(ray_count);
     target_buffer = cuda::create_cuda_linear_buffer<int2>(ray_count);
-    corners_buffer = cuda::create_cuda_linear_buffer<Corners>(ray_count);
+    worldToUV = cuda::create_cuda_linear_buffer<float4x4>(ray_count);
 
     ensure_pipeline();
 
@@ -77,7 +77,7 @@ MeshIntersectionContext::intersect_mesh_with_rays(
                            (float*)vertex_buffer->get_device_ptr(),
                            (unsigned*)index_buffer->get_device_ptr(),
                            append_buffer.get_device_queue_ptr(),
-                           (Corners*)corners_buffer->get_device_ptr(),
+                           (float4x4*)worldToUV->get_device_ptr(),
                            (int2*)target_buffer->get_device_ptr(),
                            worldToView,
                            viewToClip });
@@ -92,7 +92,7 @@ MeshIntersectionContext::intersect_mesh_with_rays(
 
     return std::make_tuple(
         reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
-        reinterpret_cast<float*>(corners_buffer->get_device_ptr()),
+        reinterpret_cast<float*>(worldToUV->get_device_ptr()),
         reinterpret_cast<unsigned*>(target_buffer->get_device_ptr()),
         append_buffer.get_size());
 }

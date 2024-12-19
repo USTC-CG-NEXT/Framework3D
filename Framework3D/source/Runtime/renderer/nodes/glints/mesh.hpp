@@ -38,7 +38,7 @@ struct MeshIntersectionContext {
     cuda::AppendStructuredBuffer<Patch> append_buffer;
     cuda::CUDALinearBufferHandle target_buffer;
     cuda::OptiXTraversableHandle handle;
-    cuda::CUDALinearBufferHandle corners_buffer;
+    cuda::CUDALinearBufferHandle worldToUV;
 };
 
 }  // namespace USTC_CG

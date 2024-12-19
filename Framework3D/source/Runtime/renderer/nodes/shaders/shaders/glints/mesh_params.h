@@ -13,7 +13,7 @@ struct MeshTracingParams {
     float* vertices;
     unsigned* indices;
     WorkQueue<Patch>* append_buffer;
-    Corners* corners;
+    float4x4* worldToUV;
     int2* pixel_targets;
     float4x4 worldToView;
     float4x4 viewToClip;

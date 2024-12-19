@@ -45,8 +45,8 @@ static void context_log_cb(
     const char* message,
     void* /*cbdata */)
 {
-    std::cerr << "[" << std::setw(2) << level << "][" << std::setw(12) << tag
-              << "]: " << message << "\n";
+    // std::cerr << "[" << std::setw(2) << level << "][" << std::setw(12) << tag
+    //           << "]: " << message << "\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
