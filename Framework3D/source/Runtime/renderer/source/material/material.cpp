@@ -13,26 +13,26 @@ void Hd_USTC_CG_Material::Sync(
     HdRenderParam* renderParam,
     HdDirtyBits* dirtyBits)
 {
-    VtValue material = sceneDelegate->GetMaterialResource(GetId());
-    HdMaterialNetworkMap networkMap = material.Get<HdMaterialNetworkMap>();
+    //VtValue material = sceneDelegate->GetMaterialResource(GetId());
+    //HdMaterialNetworkMap networkMap = material.Get<HdMaterialNetworkMap>();
 
-    if (networkMap.map.empty()) {
-        return;
-    }
-    for (const auto& entry : networkMap.map) {
-        std::cout << "Token: " << entry.first << std::endl;
-        const HdMaterialNetwork& network = entry.second;
-        for (const auto& node : network.nodes) {
-            std::cout << "Node ID: " << node.path << std::endl;
-            for (const auto& param : node.parameters) {
-                std::cout << "Param: " << param.first << " = " << param.second << std::endl;
-            }
-        }
-    }
+    //if (networkMap.map.empty()) {
+    //    return;
+    //}
+    //for (const auto& entry : networkMap.map) {
+    //    std::cout << "Token: " << entry.first << std::endl;
+    //    const HdMaterialNetwork& network = entry.second;
+    //    for (const auto& node : network.nodes) {
+    //        std::cout << "Node ID: " << node.path << std::endl;
+    //        for (const auto& param : node.parameters) {
+    //            std::cout << "Param: " << param.first << " = " << param.second << std::endl;
+    //        }
+    //    }
+    //}
 
-    for (const auto& terminal : networkMap.terminals) {
-        std::cout << "Terminal: " << terminal << std::endl;
-    }
+    //for (const auto& terminal : networkMap.terminals) {
+    //    std::cout << "Terminal: " << terminal << std::endl;
+    //}
 
     *dirtyBits = HdChangeTracker::Clean;
 }

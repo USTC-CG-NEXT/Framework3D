@@ -53,7 +53,7 @@ def test_intersect_mesh():
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [1536, 1024]
+    resolution = [1536*2, 1024*2]
 
     world_to_view_matrix = look_at(
         np.array([3, 0.5, 3]), np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
