@@ -360,6 +360,7 @@ void Hd_USTC_CG_Mesh::Sync(
     if (!points.empty()) {
         if (HdChangeTracker::IsTopologyDirty(*dirtyBits, id)) {
             topology = GetMeshTopology(sceneDelegate);
+
             HdMeshUtil meshUtil(&topology, GetId());
             meshUtil.ComputeTriangleIndices(
                 &triangulatedIndices, &trianglePrimitiveParams);
