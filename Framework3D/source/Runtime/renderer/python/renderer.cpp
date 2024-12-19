@@ -23,16 +23,12 @@ NB_MODULE(hd_USTC_CG_py, m)
                nb::ndarray<float> lines,
                nb::ndarray<float> patches,
                float width) {
-                std::cout << "line_count " << lines.shape(0) << std::endl;
-                std::cout << "patch_count " << patches.shape(0) << std::endl;
                 auto [pairs, size] = self.intersect_line_with_rays(
                     lines.data(),
                     static_cast<unsigned>(lines.shape(0) / 2),
                     patches.data(),
                     patches.shape(0),
                     width);
-
-                std::cout << "size: " << size << std::endl;
 
                 return nb::ndarray<
                     nb::pytorch,
@@ -72,8 +68,6 @@ NB_MODULE(hd_USTC_CG_py, m)
                         world_to_view,
                         view_to_clip);
 
-                std::cout << "count: " << count << std::endl;
-
                 return std::make_tuple(
                     nb::ndarray<
                         nb::pytorch,
@@ -90,7 +84,7 @@ NB_MODULE(hd_USTC_CG_py, m)
                         nb::device::cuda>(corners, { count, 4, 4 }),
                     nb::ndarray<
                         nb::pytorch,
-                        unsigned,
+                        int,
                         nb::ndim<2>,
                         nb::shape<-1, 2>,
                         nb::device::cuda>(targets, { count, 2 }));

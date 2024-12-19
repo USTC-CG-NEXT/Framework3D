@@ -23,12 +23,12 @@ struct float4x4 {
         }
     }
 
-    __device__ float4x4(const float4& row0, const float4& row1, const float4& row2, const float4& row3)
+    __device__ float4x4(const float4& col0, const float4& col1, const float4& col2, const float4& col3)
     {
-        m[0][0] = row0.x; m[0][1] = row0.y; m[0][2] = row0.z; m[0][3] = row0.w;
-        m[1][0] = row1.x; m[1][1] = row1.y; m[1][2] = row1.z; m[1][3] = row1.w;
-        m[2][0] = row2.x; m[2][1] = row2.y; m[2][2] = row2.z; m[2][3] = row2.w;
-        m[3][0] = row3.x; m[3][1] = row3.y; m[3][2] = row3.z; m[3][3] = row3.w;
+        m[0][0] = col0.x; m[1][0] = col0.y; m[2][0] = col0.z; m[3][0] = col0.w;
+        m[0][1] = col1.x; m[1][1] = col1.y; m[2][1] = col1.z; m[3][1] = col1.w;
+        m[0][2] = col2.x; m[1][2] = col2.y; m[2][2] = col2.z; m[3][2] = col2.w;
+        m[0][3] = col3.x; m[1][3] = col3.y; m[2][3] = col3.z; m[3][3] = col3.w;
     }
 
     __device__ float4 operator*(const float4& vec) const

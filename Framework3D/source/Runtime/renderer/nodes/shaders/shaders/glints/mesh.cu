@@ -221,8 +221,6 @@ RGS(mesh)
     }
 }
 
-
-
 __device__ float2 operator*(const float2& a, const float b)
 {
     return make_float2(a.x * b, a.y * b);

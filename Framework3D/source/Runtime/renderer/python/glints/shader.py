@@ -71,15 +71,15 @@ def intersect_triangle_area(p0, p1, p2, line, width):
     vertical_dir = torch.stack((line_dir[:, 1], -line_dir[:, 0]), dim=1)
 
     p0_tmp = torch.where(
-        (torch.sum((p0 - p1) * vertical_dir, dim=1) >= 0)
-        & (torch.sum((p2 - p1) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0 - p1) * vertical_dir, dim=1).unsqueeze(1) >= 0)
+        & (torch.sum((p2 - p1) * vertical_dir, dim=1).unsqueeze(1) >= 0),
         p1,
         p0,
     )
 
     p1_tmp = torch.where(
-        (torch.sum((p0 - p1) * vertical_dir, dim=1) >= 0)
-        & (torch.sum((p2 - p1) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0 - p1) * vertical_dir, dim=1).unsqueeze(1) >= 0)
+        & (torch.sum((p2 - p1) * vertical_dir, dim=1).unsqueeze(1) >= 0),
         p0,
         p1,
     )
@@ -89,15 +89,15 @@ def intersect_triangle_area(p0, p1, p2, line, width):
     p2_t = p2
 
     p0_tmp = torch.where(
-        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1) >= 0)
-        & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1).unsqueeze(1) >= 0)
+        & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1).unsqueeze(1) >= 0),
         p2_t,
         p0_t,
     )
 
     p2_tmp = torch.where(
-        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1) >= 0)
-        & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1).unsqueeze(1) >= 0)
+        & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1).unsqueeze(1) >= 0),
         p0_t,
         p2_t,
     )
@@ -107,8 +107,8 @@ def intersect_triangle_area(p0, p1, p2, line, width):
 
     p1_tmptmp = p1_tmp
     p2_tmptmp = p2_tmp
-    p1_tmp = torch.where(x_to_vertical_dir1 >= x_to_vertical_dir2, p2_tmptmp, p1_tmptmp)
-    p2_tmp = torch.where(x_to_vertical_dir1 >= x_to_vertical_dir2, p1_tmptmp, p2_tmptmp)
+    p1_tmp = torch.where((x_to_vertical_dir1 >= x_to_vertical_dir2).unsqueeze(1), p2_tmptmp, p1_tmptmp)
+    p2_tmp = torch.where((x_to_vertical_dir1 >= x_to_vertical_dir2).unsqueeze(1), p1_tmptmp, p2_tmptmp)
 
     t1 = torch.sum((line_pos - p0_tmp) * vertical_dir, dim=1) - width_half
     t2 = torch.sum((line_pos - p0_tmp) * vertical_dir, dim=1) + width_half
