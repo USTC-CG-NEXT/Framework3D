@@ -2,6 +2,7 @@
 #include "GCore/util_openmesh_bind.h"
 #include "geom_node_base.h"
 #include <cmath>
+#include <time.h>
 #include <Eigen/Sparse>
 
 /*
@@ -46,6 +47,7 @@ NODE_DECLARATION_FUNCTION(min_surf)
 
     // Output-1: Minimal surface with fixed boundary
     b.add_output<Geometry>("Output");
+    b.add_output<double>("Runtime");
 }
 
 NODE_EXECUTION_FUNCTION(min_surf)
@@ -56,6 +58,7 @@ NODE_EXECUTION_FUNCTION(min_surf)
     // (TO BE UPDATED) Avoid processing the node when there is no input
     if (!input.get_component<MeshComponent>()) {
         throw std::runtime_error("Minimal Surface: Need Geometry Input.");
+        return false;
     }
 
     /* ----------------------------- Preprocess -------------------------------
@@ -79,6 +82,7 @@ NODE_EXECUTION_FUNCTION(min_surf)
     */
 
     // Initialization
+    clock_t start_time = clock();
     int n_vertices = halfedge_mesh->n_vertices();
     std::vector<int> ori2mat(n_vertices, 0);
 
@@ -146,6 +150,7 @@ NODE_EXECUTION_FUNCTION(min_surf)
         }
     }
 
+    clock_t end_time = clock();
 
     /*
     ** Algorithm Pseudocode for Minimal Surface Calculation
@@ -182,6 +187,8 @@ NODE_EXECUTION_FUNCTION(min_surf)
 
     // Set the output of the nodes
     params.set_output("Output", std::move(*geometry));
+    params.set_output("Runtime", double(end_time - start_time) / 1000);
+    return true;
 }
 
 NODE_DECLARATION_UI(min_surf);
