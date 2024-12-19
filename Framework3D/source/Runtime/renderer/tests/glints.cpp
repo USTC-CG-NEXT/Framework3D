@@ -136,15 +136,15 @@ TEST(glints_brdf, cpp_old_code_reference)
     LineDrFloat line(begin_point, end_point);
     PatchDrFloat patch;
     patch.uv0 = { 0.25, 0.25 };
-    patch.uv1 = { 0.65, 0.25 };
+    patch.uv1 = { 0.65, 0.35 };
     patch.uv2 = { 0.76, -0.25 };
     patch.uv3 = { 0.25, -0.25 };
 
     patch.camera_pos_uv = (glm::vec3{ 1, 1, 1 });
-    patch.light_pos_uv = (glm::vec3{ -1, 1, 1 });
+    patch.light_pos_uv = (glm::vec3{ -1.8, 1, 1 });
 
-    float roughness = 0.1;
-    float line_width = 0.2;
+    float roughness = 0.2;
+    float line_width = 0.02;
     auto result = ShadeLineElement(line, patch, roughness, line_width);
     std::cout << result << std::endl;
 }

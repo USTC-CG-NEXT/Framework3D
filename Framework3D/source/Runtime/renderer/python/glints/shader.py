@@ -379,8 +379,6 @@ def lineShade(lower, upper, alpha, halfX, halfZ, width):
         upper, width_powers, halfX_powers, halfZ_powers, r_powers
     ) - calc_res(lower, width_powers, halfX_powers, halfZ_powers, r_powers)
 
-    print(ret)
-
     coeff = (
         -alpha
         * alpha
@@ -492,27 +490,33 @@ def ShadeLineElement(
     )
 
     torch.set_printoptions(precision=10)
-    print(temp)
     temp *= microfacet.bsdf_f_line(camera_dir, light_dir, glints_roughness)
-    print(temp)
 
     # Assuming bsdf_f_line is a function defined elsewhere
 
     area = intersect_area(lines, patches, 2.0 * width)
 
     # print(area)
-    patch_area = (
-        torch.abs(cross_2d(p1 - p0, p2 - p0) / 2.0)
-        + torch.abs(cross_2d(p2 - p0, p3 - p0) / 2.0)
+    patch_area = torch.abs(cross_2d(p1 - p0, p2 - p0) / 2.0) + torch.abs(
+        cross_2d(p2 - p0, p3 - p0) / 2.0
     )
 
-    mask = (minimum * maximum > 0) & (torch.abs(minimum) > line_width) & (torch.abs(maximum) > line_width)
+    mask = (
+        (minimum * maximum > 0)
+        & (torch.abs(minimum) > line_width)
+        & (torch.abs(maximum) > line_width)
+    )
 
     result = torch.where(
         mask,
         torch.tensor(0.0, device=temp.device),
-        temp * area / patch_area / torch.abs(torch.max(minimum, torch.tensor(-line_width, device=minimum.device)) - torch.min(maximum, torch.tensor(line_width, device=maximum.device)))
+        temp
+        * area
+        / patch_area
+        / torch.abs(
+            torch.max(minimum, torch.tensor(-line_width, device=minimum.device))
+            - torch.min(maximum, torch.tensor(line_width, device=maximum.device))
+        ),
     )
-    print(result)
 
     return torch.stack((result, area), dim=1)
