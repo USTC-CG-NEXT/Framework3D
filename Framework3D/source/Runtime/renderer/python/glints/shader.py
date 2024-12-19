@@ -29,12 +29,38 @@ def integral_triangle_area(p0, p1, p2, t, axis):
     condition2 = (t > dot_p1_p0) & (t <= dot_p2_p0)
     condition3 = t > dot_p2_p0
 
-    area1 = torch.abs(cross_2d(t[:, None] / dot_p2_p0[:, None] * (p2 - p0), t[:, None] / dot_p1_p0[:, None] * (p1 - p0))) / 2.0
-    area2 = torch.abs(cross_2d((p2 - p0), (p1 - p0))) / 2.0 - torch.abs(cross_2d((p1 - p2) * (dot_p2_p0[:, None] - t[:, None]) / dot_p1_p2[:, None], (p0 - p2) * (dot_p2_p0[:, None] - t[:, None]) / dot_p0_p2[:, None])) / 2.0
+    area1 = (
+        torch.abs(
+            cross_2d(
+                t[:, None] / dot_p2_p0[:, None] * (p2 - p0),
+                t[:, None] / dot_p1_p0[:, None] * (p1 - p0),
+            )
+        )
+        / 2.0
+    )
+    area2 = (
+        torch.abs(cross_2d((p2 - p0), (p1 - p0))) / 2.0
+        - torch.abs(
+            cross_2d(
+                (p1 - p2) * (dot_p2_p0[:, None] - t[:, None]) / dot_p1_p2[:, None],
+                (p0 - p2) * (dot_p2_p0[:, None] - t[:, None]) / dot_p0_p2[:, None],
+            )
+        )
+        / 2.0
+    )
     area3 = torch.abs(cross_2d((p2 - p0), (p1 - p0))) / 2.0
 
-    result = torch.where(condition1, area1, torch.where(condition2, area2, torch.where(condition3, area3, torch.tensor(0.0, device=p0.device))))
+    result = torch.where(
+        condition1,
+        area1,
+        torch.where(
+            condition2,
+            area2,
+            torch.where(condition3, area3, torch.tensor(0.0, device=p0.device)),
+        ),
+    )
     return result
+
 
 def intersect_triangle_area(p0, p1, p2, line, width):
     width_half = width / 2.0
@@ -45,15 +71,17 @@ def intersect_triangle_area(p0, p1, p2, line, width):
     vertical_dir = torch.stack((line_dir[:, 1], -line_dir[:, 0]), dim=1)
 
     p0_tmp = torch.where(
-        (torch.sum((p0 - p1) * vertical_dir, dim=1) >= 0) & (torch.sum((p2 - p1) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0 - p1) * vertical_dir, dim=1) >= 0)
+        & (torch.sum((p2 - p1) * vertical_dir, dim=1) >= 0),
         p1,
-        p0
+        p0,
     )
 
     p1_tmp = torch.where(
-        (torch.sum((p0 - p1) * vertical_dir, dim=1) >= 0) & (torch.sum((p2 - p1) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0 - p1) * vertical_dir, dim=1) >= 0)
+        & (torch.sum((p2 - p1) * vertical_dir, dim=1) >= 0),
         p0,
-        p1
+        p1,
     )
 
     p0_t = p0_tmp
@@ -61,15 +89,17 @@ def intersect_triangle_area(p0, p1, p2, line, width):
     p2_t = p2
 
     p0_tmp = torch.where(
-        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1) >= 0) & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1) >= 0)
+        & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1) >= 0),
         p2_t,
-        p0_t
+        p0_t,
     )
 
     p2_tmp = torch.where(
-        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1) >= 0) & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1) >= 0),
+        (torch.sum((p0_t - p2_t) * vertical_dir, dim=1) >= 0)
+        & (torch.sum((p1_t - p2_t) * vertical_dir, dim=1) >= 0),
         p0_t,
-        p2_t
+        p2_t,
     )
 
     x_to_vertical_dir1 = torch.sum((p1_tmp - p0_tmp) * vertical_dir, dim=1)
@@ -83,7 +113,10 @@ def intersect_triangle_area(p0, p1, p2, line, width):
     t1 = torch.sum((line_pos - p0_tmp) * vertical_dir, dim=1) - width_half
     t2 = torch.sum((line_pos - p0_tmp) * vertical_dir, dim=1) + width_half
 
-    return integral_triangle_area(p0_tmp, p1_tmp, p2_tmp, t2, vertical_dir) - integral_triangle_area(p0_tmp, p1_tmp, p2_tmp, t1, vertical_dir)
+    return integral_triangle_area(
+        p0_tmp, p1_tmp, p2_tmp, t2, vertical_dir
+    ) - integral_triangle_area(p0_tmp, p1_tmp, p2_tmp, t1, vertical_dir)
+
 
 def intersect_area(line, patch, width):
     p0 = patch[:, 0, :]
@@ -97,7 +130,283 @@ def intersect_area(line, patch, width):
     return a + b
 
 
+def calc_power_series(tensor):
+    powers = [tensor]
+    for i in range(2, 7):
+        powers.append(powers[-1] * tensor)
+    return powers
 
+
+def power(tensor_powers, n):
+    return tensor_powers[n - 1]
+
+
+def sumpart(lower, upper, y, width_powers, halfX_powers, halfZ_powers, r_powers):
+    y_powers = calc_power_series(y)
+
+    log_val_u = torch.log(upper - y)
+    log_val_l = torch.log(lower - y)
+
+    halfX = power(halfX_powers, 1)
+    halfZ = power(halfZ_powers, 1)
+    width = power(width_powers, 1)
+    r = power(r_powers, 1)
+
+    a = -(
+        (
+            (
+                (halfZ - power(halfZ_powers, 3) * power(r_powers, 2)) ** 2
+                + power(halfX_powers, 2)
+                * (-1 + power(halfZ_powers, 4) * power(r_powers, 4))
+            )
+            * power(width_powers, 3)
+            - 4
+            * halfX
+            * halfZ
+            * (
+                -2
+                + (3 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 2)
+                + power(halfZ_powers, 2)
+                * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 4)
+            )
+            * power(width_powers, 2)
+            * y
+            + 4
+            * (
+                -7 * power(halfX_powers, 2)
+                + 7 * power(halfZ_powers, 2)
+                + 2
+                * (
+                    3 * power(halfX_powers, 4)
+                    - 2 * power(halfX_powers, 2) * power(halfZ_powers, 2)
+                    - 4 * power(halfZ_powers, 4)
+                )
+                * power(r_powers, 2)
+                + power(halfZ_powers, 2)
+                * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * (2 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 4)
+            )
+            * width
+            * power(y_powers, 2)
+            + 64
+            * halfX
+            * halfZ
+            * (
+                -1
+                + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2)
+            )
+            * power(y_powers, 3)
+        )
+        * (log_val_u - log_val_l)
+    )
+
+    b = (
+        halfX * halfZ * power(r_powers, 2) * power(width_powers, 3)
+        + 2
+        * (
+            1
+            + (-2 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * power(r_powers, 2)
+        )
+        * power(width_powers, 2)
+        * y
+        - 12 * halfX * halfZ * power(r_powers, 2) * width * power(y_powers, 2)
+        - 8 * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * power(y_powers, 3)
+    )
+
+    return a / b
+
+
+def calc_res(value, width_powers, halfX_powers, halfZ_powers, r_powers):
+    x_powers = calc_power_series(value)
+    halfX = power(halfX_powers, 1)
+    halfZ = power(halfZ_powers, 1)
+    width = power(width_powers, 1)
+    a = (
+        4
+        * (
+            halfX
+            * halfZ
+            * power(r_powers, 2)
+            * (-1 + power(halfZ_powers, 2) * power(r_powers, 2))
+            * (
+                -2
+                + (3 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 2)
+                + power(halfZ_powers, 2)
+                * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 4)
+            )
+            * power(width_powers, 5)
+            - 2
+            * (
+                torch.pow(-1.0 + power(halfZ_powers, 2) * power(r_powers, 2), 3)
+                * (1 + power(halfZ_powers, 2) * power(r_powers, 2))
+                + 4
+                * power(halfX_powers, 4)
+                * power(halfZ_powers, 2)
+                * power(r_powers, 6)
+                * (3 + power(halfZ_powers, 2) * power(r_powers, 2))
+                + power(halfX_powers, 2)
+                * power(r_powers, 2)
+                * (
+                    2
+                    - 11 * power(halfZ_powers, 2) * power(r_powers, 2)
+                    + 4 * power(halfZ_powers, 4) * power(r_powers, 4)
+                    + 5 * power(halfZ_powers, 6) * power(r_powers, 6)
+                )
+            )
+            * power(width_powers, 4)
+            * x_powers[0]
+            + 4
+            * halfX
+            * halfZ
+            * power(r_powers, 2)
+            * (
+                6
+                + (-19 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 2)
+                + 2
+                * (
+                    6 * power(halfX_powers, 4)
+                    - power(halfX_powers, 2) * power(halfZ_powers, 2)
+                    - 4 * power(halfZ_powers, 4)
+                )
+                * power(r_powers, 4)
+                + power(halfZ_powers, 2)
+                * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * (4 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 6)
+            )
+            * power(width_powers, 3)
+            * power(x_powers, 2)
+            + 8
+            * (1 + power(halfZ_powers, 2) * power(r_powers, 2))
+            * (
+                -1
+                + (2 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 2)
+            )
+            * (
+                -2
+                + (3 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 2)
+                + power(halfZ_powers, 2)
+                * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+                * power(r_powers, 4)
+            )
+            * power(width_powers, 2)
+            * power(x_powers, 3)
+            - 64
+            * halfX
+            * halfZ
+            * power(r_powers, 2)
+            * (-1 + power(halfZ_powers, 2) * power(r_powers, 2))
+            * (
+                -1
+                + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2)
+            )
+            * width
+            * power(x_powers, 4)
+            - 32
+            * torch.pow(-1.0 + power(halfZ_powers, 2) * power(r_powers, 2), 2)
+            * (
+                -1
+                + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2)
+            )
+            * power(x_powers, 5)
+        )
+        * 100000000.0
+    )
+
+    b = (
+        (-1 + (halfX_powers[1] + halfZ_powers[1]) * r_powers[1])
+        * (
+            -(1 + halfZ_powers[0] * r_powers[0]) * width_powers[1]
+            + 4 * halfX_powers[0] * r_powers[0] * width_powers[0] * x_powers[0]
+            + 4 * (-1 + halfZ_powers[0] * r_powers[0]) * x_powers[1]
+        )
+        * (
+            (1 - halfZ_powers[0] * r_powers[0]) * width_powers[1]
+            + 4 * halfX_powers[0] * r_powers[0] * width_powers[0] * x_powers[0]
+            + 4 * (1 + halfZ_powers[0] * r_powers[0]) * x_powers[1]
+        )
+    ) * 100000000.0
+
+    return a / b
+
+
+def lineShade(lower, upper, alpha, halfX, halfZ, width):
+    r = torch.sqrt(1 - alpha * alpha)
+
+    width_powers = calc_power_series(width)
+    halfX_powers = calc_power_series(halfX)
+    halfZ_powers = calc_power_series(halfZ)
+    r_powers = calc_power_series(r)
+
+    temp = torch.sqrt(
+        -power(width_powers, 2)
+        + power(halfX_powers, 2) * power(r_powers, 2) * power(width_powers, 2)
+        + power(halfZ_powers, 2) * power(r_powers, 2) * power(width_powers, 2)
+    )
+
+    c = [
+        (-(halfX * power(r_powers, 1) * width) - temp)
+        / (2.0 * (-1 + halfZ * power(r_powers, 1))),
+        (-(halfX * power(r_powers, 1) * width) - temp)
+        / (2.0 * (1 + halfZ * power(r_powers, 1))),
+        (-(halfX * power(r_powers, 1) * width) + temp)
+        / (2.0 * (-1 + halfZ * power(r_powers, 1))),
+        (-(halfX * power(r_powers, 1) * width) + temp)
+        / (2.0 * (1 + halfZ * power(r_powers, 1))),
+    ]
+
+    ret = torch.zeros_like(lower, dtype=torch.complex64)
+
+    for i in range(4):
+        part = sumpart(
+            lower, upper, c[i], width_powers, halfX_powers, halfZ_powers, r_powers
+        )
+        ret += part
+    ret *= (
+        power(r_powers, 2) * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * width
+    ) / ((-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2)))
+
+    ret += calc_res(
+        upper, width_powers, halfX_powers, halfZ_powers, r_powers
+    ) - calc_res(lower, width_powers, halfX_powers, halfZ_powers, r_powers)
+
+    print(ret)
+
+    coeff = (
+        -alpha
+        * alpha
+        / (
+            (
+                8.0
+                * torch.pi
+                * torch.pow(-1.0 + power(halfZ_powers, 2) * power(r_powers, 2), 3)
+            )
+        )
+    )
+
+    ret *= coeff
+
+    return ret.real
+
+
+def FrSchlick(R0, cosTheta):
+    return R0 + (1.0 - R0) * torch.pow(1.0 - cosTheta, 5)
+
+
+def DisneyFresnel(R0, metallic, eta, cosI):
+    return FrSchlick(R0, cosI)
+
+
+import glints.microfacet as microfacet
 
 
 # line shape: [n, 2, 2]
@@ -162,12 +471,48 @@ def ShadeLineElement(
     a2 = signed_area(lines, p2)
     a3 = signed_area(lines, p3)
 
-
     minimum = torch.min(torch.min(torch.min(a0, a1), a2), a3)
     maximum = torch.max(torch.max(torch.max(a0, a1), a2), a3)
 
+    line_width = width.item()
+
+    temp = (
+        lineShade(
+            torch.max(minimum, torch.tensor(-line_width, device=minimum.device)),
+            torch.min(maximum, torch.tensor(line_width, device=maximum.device)),
+            torch.sqrt(
+                torch.complex(glints_roughness, torch.zeros_like(glints_roughness))
+            ),
+            half_vec[:, 0],
+            half_vec[:, 2],
+            line_width,
+        )
+        / torch.norm(light_pos_uv - p, dim=1)
+        / torch.norm(light_pos_uv - p, dim=1)
+    )
+
+    torch.set_printoptions(precision=10)
+    print(temp)
+    temp *= microfacet.bsdf_f_line(camera_dir, light_dir, glints_roughness)
+    print(temp)
+
+    # Assuming bsdf_f_line is a function defined elsewhere
+
     area = intersect_area(lines, patches, 2.0 * width)
 
-    print(area)
+    # print(area)
+    patch_area = (
+        torch.abs(cross_2d(p1 - p0, p2 - p0) / 2.0)
+        + torch.abs(cross_2d(p2 - p0, p3 - p0) / 2.0)
+    )
 
-    pass
+    mask = (minimum * maximum > 0) & (torch.abs(minimum) > line_width) & (torch.abs(maximum) > line_width)
+
+    result = torch.where(
+        mask,
+        torch.tensor(0.0, device=temp.device),
+        temp * area / patch_area / torch.abs(torch.max(minimum, torch.tensor(-line_width, device=minimum.device)) - torch.min(maximum, torch.tensor(line_width, device=maximum.device)))
+    )
+    print(result)
+
+    return torch.stack((result, area), dim=1)
