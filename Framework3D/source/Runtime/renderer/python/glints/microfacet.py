@@ -73,6 +73,10 @@ def SchlickWeight(cosTheta):
 
 
 def lerp(v0, v1, t):
+    print(v0.shape)
+    print(v1.shape)
+    print(t.shape)
+    t = t.unsqueeze(-1) if t.dim() == 1 else t
     return (1 - t) * v0 + t * v1
 
 
@@ -89,7 +93,7 @@ def DisneyFresnel(R0, metallic, eta, cosI):
 
 
 def Faceforward(v1, v2):
-    tmp = torch.sum(v1 * v2, dim=1)
+    tmp = torch.sum(v1 * v2, dim=1, keepdim=True)
     result = torch.where(tmp < 0, -v1, v1)
     return result
 
