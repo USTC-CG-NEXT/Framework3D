@@ -4,13 +4,20 @@ import torch
 
 
 def test_shader():
-    lines = torch.tensor([[[0.0, 0.0], [1.0, 1.0]]], device="cuda")
-    patches = test_utils.create_patches(1024, 2.0 / 1024)  # [1024*1024,4,2]
-    
-    lines = lines.expand(patches.shape[0], -1, -1)
-    
-    glints_params = glints.shader.GlintsTracingParams(
-        [0.0, 0.0, 0.0], [0.0, 0.0, 1.0], 0.5, 0.5
+    lines = torch.tensor([[[0.0, 0.0], [1.0, 0.0]]], device="cuda")
+    patches = torch.tensor(
+        [[[0.25, 0.25], [0.65, 0.25], [0.76, -0.25], [0.25, -0.25]]], device="cuda"
     )
 
-    glints.shader.ShadeLineElement(lines, patches, glints_params)
+    cam_positions = torch.tensor([1.0, 1.0, 1.0], device="cuda")
+    light_positions = torch.tensor([-1.0, 1.0, 1.0], device="cuda")
+
+    lines = lines.expand(patches.shape[0], -1, -1)
+
+    glints_roughness = torch.tensor([0.1], device="cuda")
+    width = torch.tensor([0.2], device="cuda")
+
+    glints.shader.ShadeLineElement(
+        lines, patches, cam_positions, light_positions, glints_roughness, width
+    )
+    

@@ -128,11 +128,6 @@ using namespace USTC_CG;
 //     EXPECT_EQ(408443, append_buffer.get_size());
 // }
 
-std::ostream& operator<<(std::ostream& os, const glm::vec2& v)
-{
-    os << "(" << v.x << ", " << v.y << ")";
-    return os;
-}
 
 TEST(glints_brdf, cpp_old_code_reference)
 {
@@ -141,12 +136,12 @@ TEST(glints_brdf, cpp_old_code_reference)
     LineDrFloat line(begin_point, end_point);
     PatchDrFloat patch;
     patch.uv0 = { 0.25, 0.25 };
-    patch.uv1 = { 0.75, 0.25 };
-    patch.uv2 = { 0.75, -0.25 };
+    patch.uv1 = { 0.65, 0.25 };
+    patch.uv2 = { 0.76, -0.25 };
     patch.uv3 = { 0.25, -0.25 };
 
-    patch.camera_pos_uv = glm::normalize(glm::vec3{ 1, 1, 1 });
-    patch.light_pos_uv = glm::normalize(glm::vec3{ -1, 1, 1 });
+    patch.camera_pos_uv = (glm::vec3{ 1, 1, 1 });
+    patch.light_pos_uv = (glm::vec3{ -1, 1, 1 });
 
     float roughness = 0.1;
     float line_width = 0.2;

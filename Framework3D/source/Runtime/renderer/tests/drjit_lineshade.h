@@ -120,6 +120,18 @@ Complex sumpart(
     return a / b;
 }
 
+std::ostream& operator<<(std::ostream& os, const glm::vec2& v)
+{
+    os << "(" << v.x << ", " << v.y << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::vec3& v)
+{
+    os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+    return os;
+}
+
 auto calc_res(
     Float x,
     DeclarePowerSeries(width),
@@ -481,7 +493,7 @@ Float lineShade(
     return GetReal(ret);
 }
 
-Float drjit_cross(const Vector2f& a, const Vector2f& b)
+Float cross_2d(const Vector2f& a, const Vector2f& b)
 {
     return a.x * b.y - a.y * b.x;
 }
@@ -489,17 +501,9 @@ Float drjit_cross(const Vector2f& a, const Vector2f& b)
 Float signed_area(const LineDrFloat& line, Vector2f point)
 {
     // The direction is expected to be normalized
-#ifdef TWOPOINTS
-    return drjit_cross(
+    return cross_2d(
         point - (line.begin_point + line.end_point) / 2.f,
         normalize(-line.begin_point + line.end_point));
-#elif defined(POINTDIR)
-    auto line_direction = Vector2f(cos(line.theta), sin(line.theta));
-    auto line_center = line.begin_point + line.length / 2.f * line_direction;
-    return drjit_cross(point - line_center, line_direction);
-#else
-    return drjit_cross(point - line.position, line.direction);
-#endif
 }
 
 Float integral_triangle_area(
@@ -511,23 +515,22 @@ Float integral_triangle_area(
 {
     auto result = select(
         t >= 0 && t <= dot(p1 - p0, axis),
-        abs(drjit_cross(
+        abs(cross_2d(
             t / dot(p2 - p0, axis) * (p2 - p0),
             t / dot(p1 - p0, axis) * (p1 - p0))) /
             2.f,
         select(
             t > dot(p1 - p0, axis) && t <= dot(p2 - p0, axis),
-            abs(drjit_cross((p2 - p0), (p1 - p0))) / 2.f -
-                abs(drjit_cross(
+            abs(cross_2d((p2 - p0), (p1 - p0))) / 2.f -
+                abs(cross_2d(
                     (p1 - p2) * (dot(p2 - p0, axis) - t) / dot(p1 - p2, axis),
                     (p0 - p2) * (dot(p2 - p0, axis) - t) /
                         dot(p0 - p2, axis))) /
                     2.f,
             select(
                 t > dot(p2 - p0, axis),
-                abs(drjit_cross((p2 - p0), (p1 - p0))) / 2.f,
+                abs(cross_2d((p2 - p0), (p1 - p0))) / 2.f,
                 0.f)));
-
     return result;
 }
 
@@ -540,16 +543,8 @@ Float intersect_triangle_area(
 {
     Float width_half = width / 2.f;
 
-#ifdef TWOPOINTS
     auto line_pos = (line.begin_point + line.end_point) / 2.f,
          line_dir = normalize(-line.begin_point + line.end_point);
-#elif defined(POINTDIR)
-    auto line_dir = Vector2f(cos(line.theta), sin(line.theta));
-    auto line_pos = line.begin_point + line.length / 2.f * line_dir;
-
-#else
-    auto line_pos = line.position, line_dir = line.direction;
-#endif
 
     auto p0_tmp = p0, p1_tmp = p1, p2_tmp = p2;
     Vector2f vertical_dir(line_dir.y, -line_dir.x);
@@ -590,9 +585,6 @@ Float intersect_triangle_area(
     Float t1 = dot(line_pos - p0_tmp, vertical_dir) - width_half;
     Float t2 = dot(line_pos - p0_tmp, vertical_dir) + width_half;
 
-    auto result =
-        integral_triangle_area(p0_tmp, p1_tmp, p2_tmp, t2, vertical_dir);
-
     return integral_triangle_area(p0_tmp, p1_tmp, p2_tmp, t2, vertical_dir) -
            integral_triangle_area(p0_tmp, p1_tmp, p2_tmp, t1, vertical_dir);
 }
@@ -607,8 +599,10 @@ Float intersect_area(
     auto p2 = patch.uv2;
     auto p3 = patch.uv3;
 
-    return intersect_triangle_area(p0, p1, p2, line, width) +
-           intersect_triangle_area(p2, p3, p0, line, width);
+    auto a = intersect_triangle_area(p0, p1, p2, line, width);
+    auto b = intersect_triangle_area(p2, p3, p0, line, width);
+
+    return a + b;
 }
 
 Vector2f ShadeLineElement(
@@ -625,9 +619,6 @@ Vector2f ShadeLineElement(
     auto p2 = patch.uv2;
     auto p3 = patch.uv3;
 
-    // std::cout << "camera_pos_uv: " << camera_pos_uv << std::endl;
-    // std::cout << "p0: " << p0 << std::endl;
-
     auto center = (p0 + p1 + p2 + p3) / 4.f;
 
     auto p = Vector3f(center.x, center.y, 0.f);
@@ -639,22 +630,15 @@ Vector2f ShadeLineElement(
     Vector2f cam_dir_2D = Vector2f(camera_dir.x, camera_dir.y);
     Vector2f light_dir_2D = Vector2f(light_dir.x, light_dir.y);
 
-#ifdef TWOPOINTS
     auto line_direction = normalize(line.end_point - line.begin_point);
 
-#elif defined(POINTDIR)
-    auto line_direction = Vector2f(cos(line.theta), sin(line.theta));
-#else
-    auto line_direction = line.direction;
-#endif
-
     auto local_cam_dir = Vector3f(
-        drjit_cross(cam_dir_2D, line_direction),
+        cross_2d(cam_dir_2D, line_direction),
         dot(cam_dir_2D, line_direction),
         camera_dir.z);
 
     auto local_light_dir = Vector3f(
-        drjit_cross(light_dir_2D, line_direction),
+        cross_2d(light_dir_2D, line_direction),
         dot(light_dir_2D, line_direction),
         light_dir.z);
 
@@ -679,8 +663,9 @@ Vector2f ShadeLineElement(
                 bsdf_f_line(camera_dir, light_dir, Float(glints_roughness));
 
     auto area = intersect_area(line, patch, 2.f * line_width);
-    auto patch_area = abs(drjit_cross(p1 - p0, p2 - p0) / 2.f) +
-                      abs(drjit_cross(p2 - p0, p3 - p0) / 2.f);
+
+    auto patch_area = abs(cross_2d(p1 - p0, p2 - p0) / 2.f) +
+                      abs(cross_2d(p2 - p0, p3 - p0) / 2.f);
 
     bool mask = minimum * maximum > 0 &&
                 (abs(minimum) > line_width && abs(maximum) > line_width);
