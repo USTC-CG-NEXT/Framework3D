@@ -107,8 +107,12 @@ def intersect_triangle_area(p0, p1, p2, line, width):
 
     p1_tmptmp = p1_tmp
     p2_tmptmp = p2_tmp
-    p1_tmp = torch.where((x_to_vertical_dir1 >= x_to_vertical_dir2).unsqueeze(1), p2_tmptmp, p1_tmptmp)
-    p2_tmp = torch.where((x_to_vertical_dir1 >= x_to_vertical_dir2).unsqueeze(1), p1_tmptmp, p2_tmptmp)
+    p1_tmp = torch.where(
+        (x_to_vertical_dir1 >= x_to_vertical_dir2).unsqueeze(1), p2_tmptmp, p1_tmptmp
+    )
+    p2_tmp = torch.where(
+        (x_to_vertical_dir1 >= x_to_vertical_dir2).unsqueeze(1), p1_tmptmp, p2_tmptmp
+    )
 
     t1 = torch.sum((line_pos - p0_tmp) * vertical_dir, dim=1) - width_half
     t2 = torch.sum((line_pos - p0_tmp) * vertical_dir, dim=1) + width_half
@@ -152,69 +156,45 @@ def sumpart(lower, upper, y, width_powers, halfX_powers, halfZ_powers, r_powers)
     width = power(width_powers, 1)
     r = power(r_powers, 1)
 
+    halfX2 = power(halfX_powers, 2)
+    halfZ2 = power(halfZ_powers, 2)
+    halfX4 = power(halfX_powers, 4)
+    halfZ4 = power(halfZ_powers, 4)
+    r2 = power(r_powers, 2)
+    r4 = power(r_powers, 4)
+    width2 = power(width_powers, 2)
+    width3 = power(width_powers, 3)
+
+    term1 = (halfZ - halfZ2 * halfZ * r2) ** 2 + halfX2 * (-1 + halfZ4 * r4)
+    term2 = (
+        -4
+        * halfX
+        * halfZ
+        * (-2 + (3 * halfX2 + halfZ2) * r2 + halfZ2 * (halfX2 + halfZ2) * r4)
+    )
+    term3 = 4 * (
+        -7 * halfX2
+        + 7 * halfZ2
+        + 2 * (3 * halfX4 - 2 * halfX2 * halfZ2 - 4 * halfZ4) * r2
+        + halfZ2 * (halfX2 + halfZ2) * (2 * halfX2 + halfZ2) * r4
+    )
+    term4 = 64 * halfX * halfZ * (-1 + (halfX2 + halfZ2) * r2)
+
     a = -(
         (
-            (
-                (halfZ - power(halfZ_powers, 3) * power(r_powers, 2)) ** 2
-                + power(halfX_powers, 2)
-                * (-1 + power(halfZ_powers, 4) * power(r_powers, 4))
-            )
-            * power(width_powers, 3)
-            - 4
-            * halfX
-            * halfZ
-            * (
-                -2
-                + (3 * power(halfX_powers, 2) + power(halfZ_powers, 2))
-                * power(r_powers, 2)
-                + power(halfZ_powers, 2)
-                * (power(halfX_powers, 2) + power(halfZ_powers, 2))
-                * power(r_powers, 4)
-            )
-            * power(width_powers, 2)
-            * y
-            + 4
-            * (
-                -7 * power(halfX_powers, 2)
-                + 7 * power(halfZ_powers, 2)
-                + 2
-                * (
-                    3 * power(halfX_powers, 4)
-                    - 2 * power(halfX_powers, 2) * power(halfZ_powers, 2)
-                    - 4 * power(halfZ_powers, 4)
-                )
-                * power(r_powers, 2)
-                + power(halfZ_powers, 2)
-                * (power(halfX_powers, 2) + power(halfZ_powers, 2))
-                * (2 * power(halfX_powers, 2) + power(halfZ_powers, 2))
-                * power(r_powers, 4)
-            )
-            * width
-            * power(y_powers, 2)
-            + 64
-            * halfX
-            * halfZ
-            * (
-                -1
-                + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2)
-            )
-            * power(y_powers, 3)
+            term1 * width3
+            + term2 * width2 * y
+            + term3 * width * y_powers[1]
+            + term4 * y_powers[2]
         )
         * (log_val_u - log_val_l)
     )
 
     b = (
-        halfX * halfZ * power(r_powers, 2) * power(width_powers, 3)
-        + 2
-        * (
-            1
-            + (-2 * power(halfX_powers, 2) + power(halfZ_powers, 2))
-            * power(r_powers, 2)
-        )
-        * power(width_powers, 2)
-        * y
-        - 12 * halfX * halfZ * power(r_powers, 2) * width * power(y_powers, 2)
-        - 8 * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * power(y_powers, 3)
+        halfX * halfZ * r2 * width3
+        + 2 * (1 + (-2 * halfX2 + halfZ2) * r2) * width2 * y
+        - 12 * halfX * halfZ * r2 * width * y_powers[1]
+        - 8 * (-1 + halfZ2 * r2) * y_powers[2]
     )
 
     return a / b
