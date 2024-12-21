@@ -10,6 +10,7 @@ NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(lscm)
 {
     b.add_input<Geometry>("Input");
+
     b.add_output<Geometry>("Output");
     b.add_output<float>("Runtime");
 }
@@ -21,7 +22,7 @@ NODE_EXECUTION_FUNCTION(lscm)
 
     // Avoid processing the node when there is no input
     if (!input.get_component<MeshComponent>()) {
-        throw std::runtime_error("LSCM Method: Need Geometry Input.");
+        throw std::runtime_error("LSCM Parameterization: Need Geometry Input.");
         return false;
     }
 
@@ -45,15 +46,10 @@ NODE_EXECUTION_FUNCTION(lscm)
         for (const auto& vertex_handle : face_handle.vertices())
             vertex_idx[i++] = vertex_handle.idx();
 
-        edge_length[0] = (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[1])) -
-                          halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[2])))
-                             .length();
-        edge_length[1] = (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[2])) -
-                          halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[0])))
-                             .length();
-        edge_length[2] = (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[0])) -
-                          halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[1])))
-                             .length();
+        for (int i = 0; i < 3; i++)
+            edge_length[i] = (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 1) % 3])) -
+                              halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 2) % 3])))
+                              .length();
 
         // Calculate the area of the face
         double tmp = (edge_length[0] + edge_length[1] + edge_length[2]) / 2;
@@ -62,7 +58,8 @@ NODE_EXECUTION_FUNCTION(lscm)
             area[face_idx] *= tmp - edge_length[i];
         area[face_idx] = sqrt(area[face_idx]);
 
-        // Record the edge of the face
+        // Record the edges of the face
+        // Their indexes are related to the point indexes opposite to them 
         edges[face_idx].resize(3);
         double cos_angle = (edge_length[1] * edge_length[1] + edge_length[2] * edge_length[2] - edge_length[0] * edge_length[0]) / (2 * edge_length[1] * edge_length[2]);
         double sin_angle = sqrt(1 - cos_angle * cos_angle);
@@ -172,7 +169,7 @@ NODE_EXECUTION_FUNCTION(lscm)
 
     // Set the output of the nodes
     params.set_output("Output", std::move(*geometry));
-    params.set_output("Runtime", float(end_time - start_time) / 1000);
+    params.set_output("Runtime", float(end_time - start_time));
     return true;
 }
 

@@ -24,7 +24,7 @@ NODE_EXECUTION_FUNCTION(tutte)
 
     // Avoid processing the node when there is no input
     if (!input.get_component<MeshComponent>()) {
-        throw std::runtime_error("Minimal Surface: Need Geometry Input.");
+        throw std::runtime_error("Tutte Parameterization: Need Geometry Input.");
         return false;
     }
 
@@ -80,8 +80,7 @@ NODE_EXECUTION_FUNCTION(tutte)
         A.coeffRef(mat_idx, mat_idx) = Aii;
     }
 
-    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>
-        solver;
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
     solver.compute(A);
     Eigen::VectorXd ux = bx;
     ux = solver.solve(ux);
@@ -106,7 +105,7 @@ NODE_EXECUTION_FUNCTION(tutte)
 
     // Set the output of the nodes
     params.set_output("Output", std::move(*geometry));
-    params.set_output("Runtime", float(end_time - start_time) / 1000);
+    params.set_output("Runtime", float(end_time - start_time));
     return true;
 }
 
