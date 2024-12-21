@@ -28,3 +28,21 @@ def random_scatter_lines(length, count, width_range, height_range):
     lines[:, 1, :2] = torch.stack((x_end, y_end), dim=1)
 
     return lines
+
+
+def random_scatter_triangles(edge_length, count, width_range, height_range):
+    x_start = torch.FloatTensor(count).uniform_(*width_range).to("cuda")
+    y_start = torch.FloatTensor(count).uniform_(*height_range).to("cuda")
+    angles = torch.FloatTensor(count, 2).uniform_(0, 2 * torch.pi).to("cuda")
+
+    x1 = x_start + edge_length * torch.cos(angles[:, 0])
+    y1 = y_start + edge_length * torch.sin(angles[:, 0])
+    x2 = x_start + edge_length * torch.cos(angles[:, 1])
+    y2 = y_start + edge_length * torch.sin(angles[:, 1])
+
+    triangles = torch.zeros((count, 3, 3), device="cuda")
+    triangles[:, 0, :2] = torch.stack((x1, y1), dim=1)
+    triangles[:, 1, :2] = torch.stack((x_start, y_start), dim=1)
+    triangles[:, 2, :2] = torch.stack((x2, y2), dim=1)
+
+    return triangles

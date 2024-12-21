@@ -3,6 +3,7 @@
 NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(triangulate)
 {
+    b.add_input<double>("Tolerance");
     b.add_input<Geometry>("G-IN");
     b.add_output<Geometry>("G-out");
 }

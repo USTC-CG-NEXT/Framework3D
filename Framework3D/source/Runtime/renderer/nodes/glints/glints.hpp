@@ -8,7 +8,9 @@ namespace USTC_CG {
 
 struct ScratchIntersectionContext {
    public:
+    virtual ~ScratchIntersectionContext() = default;
     ScratchIntersectionContext() = default;
+
     std::tuple<float*, unsigned> intersect_line_with_rays(
         float* lines,
         unsigned line_count,
@@ -20,15 +22,18 @@ struct ScratchIntersectionContext {
 
     void set_max_pair_buffer_ratio(float ratio);
 
-   private:
+   protected:
     void create_raygen(std::string filename);
-    void create_cylinder_intersection_shader();
+    virtual void create_cylinder_intersection_shader();
     void create_hitgroup_module(std::string filename);
     void create_hitgroup();
     void create_miss_group(std::string filename);
     void create_pipeline();
     void create_width_buffer(unsigned vertex_count, float width);
-    void create_indices(unsigned vertex_count);
+    virtual void create_indices(unsigned vertex_count);
+    virtual void create_scratches_traversable(
+        unsigned line_count,
+        unsigned vertex_count);
 
     unsigned primitive_count;
     unsigned patch_count;
@@ -49,6 +54,19 @@ struct ScratchIntersectionContext {
     unsigned _vertex_count = 0;
     float ratio = 1.5f;
     int _buffer_size = 0;
+};
+
+struct BSplineScratchIntersectionContext : public ScratchIntersectionContext {
+    ~BSplineScratchIntersectionContext() override;
+
+   protected:
+    void create_cylinder_intersection_shader() override;
+    void create_indices(unsigned vertex_count) override;
+    void create_scratches_traversable(
+        unsigned line_count,
+        unsigned vertex_count) override;
+
+   public:
 };
 
 }  // namespace USTC_CG

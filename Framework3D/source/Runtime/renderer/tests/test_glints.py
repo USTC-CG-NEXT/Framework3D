@@ -44,11 +44,6 @@ def test_draw_picture():
     print(patches.shape)
 
     result = context.intersect_line_with_rays(lines, patches, 0.001)
-    result = context.intersect_line_with_rays(lines, patches, 0.001)
-    result = context.intersect_line_with_rays(lines, patches, 0.001)
-    result = context.intersect_line_with_rays(lines, patches, 0.001)
-    result = context.intersect_line_with_rays(lines, patches, 0.001)
-    result = context.intersect_line_with_rays(lines, patches, 0.001)
 
     # the result is a buffer of size [intersection_count, 2],
     # each element is [line_id, patch_id]
@@ -61,6 +56,36 @@ def test_draw_picture():
 
     image = image.cpu().numpy()
     imageio.imwrite("output.png", (image * 255).astype("uint8"))
+
+    print(result.shape)
+    print(result.cpu().numpy())
+
+
+def test_intersect_bsplines():
+    import imageio
+
+    context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
+    context.set_max_pair_buffer_ratio(10.0)
+
+    lines = test_utils.random_scatter_triangles(0.04, 1000, (-1, 1), (-1, 1))
+    step = 2.0 / 1024
+    patches = test_utils.create_patches(1024, step)
+
+    print(patches.shape)
+
+    result = context.intersect_line_with_rays(lines, patches, 0.001)
+
+    # the result is a buffer of size [intersection_count, 2],
+    # each element is [line_id, patch_id]
+    image = torch.zeros((1024, 1024), device="cuda")
+
+    patch_ids = result[:, 1].long()
+    image.view(-1).index_add_(
+        0, patch_ids, torch.ones_like(patch_ids, device="cuda").float()
+    )
+
+    image = image.cpu().numpy()
+    imageio.imwrite("bspline.png", (image * 255).astype("uint8"))
 
     print(result.shape)
     print(result.cpu().numpy())

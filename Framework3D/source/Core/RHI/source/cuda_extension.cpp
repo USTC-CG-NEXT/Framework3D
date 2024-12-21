@@ -901,14 +901,15 @@ OptiXTraversableHandle create_linear_curve_optix_traversable(
     std::vector<CUdeviceptr> widthBuffer,
     CUdeviceptr indexBuffer,
     unsigned int numPrimitives,
-    bool rebuilding)
+    bool rebuilding,
+    OptixPrimitiveType primitive_type)
 {
     OptiXTraversableDesc desc;
 
     desc.buildInput.type = OPTIX_BUILD_INPUT_TYPE_CURVES;
 
     OptixBuildInputCurveArray& curveArray = desc.buildInput.curveArray;
-    curveArray.curveType = OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR;
+    curveArray.curveType = primitive_type;
 
     curveArray.numPrimitives = numPrimitives;
 

@@ -46,6 +46,10 @@ NB_MODULE(hd_USTC_CG_py, m)
             "set_max_pair_buffer_ratio",
             &USTC_CG::ScratchIntersectionContext::set_max_pair_buffer_ratio);
 
+    nb::class_<USTC_CG::BSplineScratchIntersectionContext, USTC_CG::ScratchIntersectionContext>(
+        m, "BSplineScratchIntersectionContext")
+        .def(nb::init<>());
+
     nb::class_<USTC_CG::MeshIntersectionContext>(m, "MeshIntersectionContext")
         .def(nb::init<>())
         .def(

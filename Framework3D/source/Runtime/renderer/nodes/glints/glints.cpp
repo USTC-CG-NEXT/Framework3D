@@ -76,6 +76,57 @@ void ScratchIntersectionContext::create_indices(unsigned vertex_count)
     }
 }
 
+BSplineScratchIntersectionContext::~BSplineScratchIntersectionContext()
+{
+}
+
+void BSplineScratchIntersectionContext::create_cylinder_intersection_shader()
+{
+    if (!cylinder_module) {
+        cylinder_module = cuda::get_builtin_module(
+            OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
+    }
+}
+
+void BSplineScratchIntersectionContext::create_indices(unsigned vertex_count)
+{
+    // BSpline curve has 3 vertices per segment
+    if (!indices || vertex_count != _vertex_count) {
+        std::vector<unsigned> h_indices;
+        h_indices.reserve(vertex_count);
+        for (int i = 0; i < vertex_count / 3; ++i) {
+            h_indices.push_back(i * 3);
+        }
+        indices = cuda::create_cuda_linear_buffer(h_indices);
+    }
+}
+
+void BSplineScratchIntersectionContext::create_scratches_traversable(
+    unsigned line_count,
+    unsigned vertex_count)
+{
+    handle = cuda::create_linear_curve_optix_traversable(
+        { line_end_vertices->get_device_ptr() },
+        vertex_count,
+        { widths->get_device_ptr() },
+        { indices->get_device_ptr() },
+        line_count,
+        false,
+        OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
+}
+
+void ScratchIntersectionContext::create_scratches_traversable(
+    unsigned line_count,
+    unsigned vertex_count)
+{
+    handle = cuda::create_linear_curve_optix_traversable(
+        { line_end_vertices->get_device_ptr() },
+        vertex_count,
+        { widths->get_device_ptr() },
+        { indices->get_device_ptr() },
+        line_count);
+}
+
 std::tuple<float*, unsigned>
 ScratchIntersectionContext::intersect_line_with_rays(
     float* lines,
@@ -103,12 +154,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     create_width_buffer(vertex_count, width);
     create_indices(vertex_count);
 
-    handle = create_linear_curve_optix_traversable(
-        { line_end_vertices->get_device_ptr() },
-        vertex_count,
-        { widths->get_device_ptr() },
-        { indices->get_device_ptr() },
-        line_count);
+    create_scratches_traversable(line_count, vertex_count);
 
     int buffer_size = ratio * patch_count;
 

@@ -71,6 +71,9 @@ void Hd_USTC_CG_Material::Sync(
     HdRenderParam* renderParam,
     HdDirtyBits* dirtyBits)
 {
+    *dirtyBits = HdChangeTracker::Clean;
+
+    return;
     VtValue material = sceneDelegate->GetMaterialResource(GetId());
     HdMaterialNetworkMap networkMap = material.Get<HdMaterialNetworkMap>();
 

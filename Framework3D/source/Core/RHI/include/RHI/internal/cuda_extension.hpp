@@ -51,7 +51,8 @@ RHI_API OptiXTraversableHandle create_linear_curve_optix_traversable(
     std::vector<CUdeviceptr> widthBuffer,
     CUdeviceptr indexBuffer,
     unsigned int numPrimitives,
-    bool rebuilding = false);
+    bool rebuilding = false,
+    OptixPrimitiveType primitive_type = OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR);
 
 RHI_API OptiXTraversableHandle create_mesh_optix_traversable(
     std::vector<CUdeviceptr> vertexBuffer,
