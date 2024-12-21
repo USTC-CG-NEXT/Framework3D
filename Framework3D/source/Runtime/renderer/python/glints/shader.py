@@ -500,3 +500,15 @@ def ShadeLineElement(
     )
 
     return torch.stack((result, area), dim=1)
+
+
+# line ctr_points: [n, 3, 2]
+# patch shape: [n, 4, 2]
+# cam_positions shape: [n, 3]
+# light_positions shape: [n, 3]
+# glints_roughness shape: [1]
+# width shape: [1]
+def ShadeBSplineElements(
+    ctr_points, patches, cam_positions, light_positions, glints_roughness, width
+):
+    pass

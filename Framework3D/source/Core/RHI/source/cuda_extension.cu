@@ -3,8 +3,9 @@
 
 #include <RHI/internal/cuda_extension.hpp>
 
-USTC_CG_NAMESPACE_OPEN_SCOPE
+#include "Logger/Logger.h"
 
+USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace cuda {
 class CUDALinearBuffer : public nvrhi::RefCounter<cuda::ICUDALinearBuffer> {
    public:
@@ -29,11 +30,16 @@ class CUDALinearBuffer : public nvrhi::RefCounter<cuda::ICUDALinearBuffer> {
 CUDALinearBuffer::CUDALinearBuffer(const cuda::CUDALinearBufferDesc& in_desc)
     : desc(in_desc)
 {
+    log::info(
+        "Allocating vMem of size(MB) : %d\n",
+        desc.size * desc.element_count / 1024 / 1024);
     d_vec.resize(desc.size * desc.element_count);
 }
 
 CUDALinearBuffer::~CUDALinearBuffer()
 {
+    log::info("Freeing vMem of size(MB) : %d\n", d_vec.size() / 1024 / 1024);
+    d_vec.clear();
 }
 
 CUdeviceptr CUDALinearBuffer::get_device_ptr()
