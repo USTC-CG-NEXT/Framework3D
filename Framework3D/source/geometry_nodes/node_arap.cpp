@@ -4,7 +4,6 @@
 #include <cmath>
 #include <time.h>
 #include <Eigen/Dense>
-#include <Eigen/SparseLU>
 #include <Eigen/Sparse>
 
 /*
@@ -63,7 +62,7 @@ NODE_EXECUTION_FUNCTION(arap)
     auto iters = params.get_input<Geometry>("Initialization");
 
     // Avoid processing the node when there is no input
-    if (!input.get_component<MeshComponent>() || !iters.get_component<MeshComponent>()) {
+    if (!input.get_component<MeshComponent>()) {
         throw std::runtime_error("ARAP Parameterization: Need Geometry Input.");
     }
 
@@ -82,11 +81,10 @@ NODE_EXECUTION_FUNCTION(arap)
     int n_vertices = halfedge_mesh->n_vertices();
 
     // Construct a set of new triangles
+    std::vector<double> area(n_faces);
+    std::vector<std::vector<int>> vertex_index(n_vertices);
     std::vector<std::vector<Eigen::Vector2d>> edges(n_faces);
     Eigen::SparseMatrix<double> cotangents(n_vertices, n_vertices);
-
-    std::vector<Eigen::Triplet<double>> triple;
-    triple.push_back(Eigen::Triplet<double>(0, 0, 1));
 
     for (auto const& face_handle : halfedge_mesh->faces()) {
         int face_idx = face_handle.idx();
@@ -97,23 +95,24 @@ NODE_EXECUTION_FUNCTION(arap)
             vertex_idx[i++] = vertex_handle.idx();
 
         for (int i = 0; i < 3; i++)
-            edge_length[i] =
-                (halfedge_mesh->point(
-                     halfedge_mesh->vertex_handle(vertex_idx[(i + 1) % 3])) -
-                 halfedge_mesh->point(
-                     halfedge_mesh->vertex_handle(vertex_idx[(i + 2) % 3])))
-                    .length();
+            edge_length[i] = (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 1) % 3])) -
+                              halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 2) % 3])))
+                              .length();
+
+        // Calculate the area of the face
+        double tmp = (edge_length[0] + edge_length[1] + edge_length[2]) / 2;
+        area[face_idx] = tmp;
+        for (int i = 0; i < 3; i++)
+            area[face_idx] *= tmp - edge_length[i];
+        area[face_idx] = sqrt(area[face_idx]);
 
         // Record the edges of the face
         // Their indexes are related to the point indexes opposite to them
         edges[face_idx].resize(3);
-        double cos_angle =
-            (edge_length[1] * edge_length[1] + edge_length[2] * edge_length[2] -
-             edge_length[0] * edge_length[0]) /
-            (2 * edge_length[1] * edge_length[2]);
+        double cos_angle = (edge_length[1] * edge_length[1] + edge_length[2] * edge_length[2] - edge_length[0] * edge_length[0]) / (2 * edge_length[1] * edge_length[2]);
         double sin_angle = sqrt(1 - cos_angle * cos_angle);
         edges[face_idx][1] << -edge_length[1] * cos_angle,
-            -edge_length[1] * sin_angle;
+                              -edge_length[1] * sin_angle;
         edges[face_idx][2] << edge_length[2], 0;
         edges[face_idx][0] = -edges[face_idx][1] - edges[face_idx][2];
 
@@ -121,36 +120,30 @@ NODE_EXECUTION_FUNCTION(arap)
         // Their indexes are related to the edge indexes opposite to them,
         // orderly
         for (int i = 0; i < 3; i++) {
-            double cos_value =
-                edges[face_idx][i].dot(edges[face_idx][(i + 1) % 3]) /
-                (edges[face_idx][i].norm() *
-                 edges[face_idx][(i + 1) % 3].norm());
+            double cos_value = edges[face_idx][i].dot(edges[face_idx][(i + 1) % 3]) /
+                              (edges[face_idx][i].norm() * edges[face_idx][(i + 1) % 3].norm());
             double sin_value = sqrt(1 - cos_value * cos_value);
-            double cot_value = cos_value / sin_value;
-            cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]) =
-                cot_value;
-            if (vertex_idx[i] == 0) {
-                triple.push_back(Eigen::Triplet<double>(
-                    vertex_idx[(i + 1) % 3],
-                    vertex_idx[(i + 1) % 3],
-                    cot_value));
-            }
-            else if (vertex_idx[(i + 1) % 3] == 0) {
-                triple.push_back(Eigen::Triplet<double>(vertex_idx[i], vertex_idx[i], cot_value));
-            }
-            else {
-                triple.push_back(Eigen::Triplet<double>(vertex_idx[i], vertex_idx[(i + 1) % 3], -cot_value));
-                triple.push_back(Eigen::Triplet<double>(vertex_idx[(i + 1) % 3], vertex_idx[i], -cot_value));
-                triple.push_back(Eigen::Triplet<double>(vertex_idx[i], vertex_idx[i], cot_value));
-                triple.push_back(Eigen::Triplet<double>(vertex_idx[(i + 1) % 3], vertex_idx[(i + 1) % 3], cot_value));
-            }
+            cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]) = cos_value / sin_value;
         }
     }
 
     // Construct the matrix of the function, which can be precomputed before
     // iteration
     Eigen::SparseMatrix<double> A(n_vertices, n_vertices);
-    A.setFromTriplets(triple.begin(), triple.end());
+    for (const auto& vertex_handle : halfedge_mesh->vertices()) {
+        int vertex_idx = vertex_handle.idx();
+        double Aii = 0;
+        for (auto adjacent_vertex = halfedge_mesh->vv_begin(vertex_handle);
+             adjacent_vertex.is_valid();
+             ++adjacent_vertex) {
+            int adjacent_idx = (*adjacent_vertex).idx();
+            double tmp_value = cotangents.coeffRef(vertex_idx, adjacent_idx) +
+                               cotangents.coeffRef(adjacent_idx, vertex_idx);
+            Aii += tmp_value;
+            A.coeffRef(vertex_idx, adjacent_idx) = -tmp_value;
+        }
+        A.coeffRef(vertex_idx, vertex_idx) = Aii;
+    }
 
     // Precompute the matrix
     Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
@@ -158,9 +151,9 @@ NODE_EXECUTION_FUNCTION(arap)
 
     // A few changes is done here, for some more precomputation for each faces
     std::vector<Eigen::MatrixXd> b_pre(n_faces);
+    std::vector<Eigen::MatrixXd> Edges(n_faces);
+    std::vector<Eigen::MatrixXd> Cotangents(n_faces);
     std::vector<Eigen::MatrixXd> Jacobi_pre(n_faces);
-    Eigen::MatrixXd Edges(3, 2);
-    Eigen::MatrixXd Cotangents = Eigen::MatrixXd::Identity(3, 3);
     Eigen::MatrixXd transform_matrix(3, 3);
     transform_matrix << 1, -1, 0, 0, 1, -1, -1, 0, 1;
     for (const auto& face_handle : halfedge_mesh->faces()) {
@@ -169,16 +162,18 @@ NODE_EXECUTION_FUNCTION(arap)
         int i = 0;
         for (const auto& vertex_handle : face_handle.vertices())
             vertex_idx[i++] = vertex_handle.idx();
+        Edges[face_idx].resize(3, 2);
         for (int i = 0; i < 3; i++)
-            Edges.row(i) = edges[face_idx][(i + 2) % 3];
+            Edges[face_idx].row(i) = edges[face_idx][(i + 2) % 3];
+        Cotangents[face_idx] = Eigen::MatrixXd::Identity(3, 3);
         for (int i = 0; i < 3; i++)
-            Cotangents(i, i) =
-                cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]);
-        Jacobi_pre[face_idx] = Cotangents * Edges;
+            Cotangents[face_idx](i, i) = cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]);
+        Jacobi_pre[face_idx].resize(3, 2);
+        Jacobi_pre[face_idx] = Cotangents[face_idx] * Edges[face_idx];
         b_pre[face_idx] = -Jacobi_pre[face_idx].transpose() * transform_matrix;
     }
 
-    int max_iter = 300;
+    int max_iter = 400;
     int now_iter = 0;
     double err_pre = -1e9;
     double err = 1e9;
@@ -214,34 +209,33 @@ NODE_EXECUTION_FUNCTION(arap)
                     Eigen::DecompositionOptions::ComputeThinV);
             Eigen::MatrixXd svd_u = svd.matrixU();
             Eigen::MatrixXd svd_v = svd.matrixV();
-            Eigen::MatrixXd S = Eigen::MatrixXd::Identity(2, 2);
             if (Jacobi[face_idx].determinant() < 0) {
                 // If there is a flip, set the fliped sigular values 1 instead
                 // of -1
-                if (svd.singularValues()[0] < svd.singularValues()[1])
-                    S(0, 0) = -1;
-                else
-                    S(1, 1) = -1;
+                if (svd.singularValues()[0] < svd.singularValues()[1]) {
+                    svd_u(0, 0) = -svd_u(0, 0);
+                    svd_u(1, 0) = -svd_u(1, 0);
+                }
+                else {
+                    svd_u(0, 1) = -svd_u(0, 1);
+                    svd_u(1, 1) = -svd_u(1, 1);
+                }
             }
-            Jacobi[face_idx] = svd_u * S * svd_v.transpose();
+            Jacobi[face_idx] = svd_u * svd_v.transpose();
 
             // Calculate bx and by by matrix multilplication
             Eigen::MatrixXd b = Jacobi[face_idx] * b_pre[face_idx];
             for (int i = 0; i < 3; i++) {
-                if (vertex_idx[i] != 0) {
-                    bx(vertex_idx[i]) += b(0, i);
-                    by(vertex_idx[i]) += b(1, i);
-                }
+                bx(vertex_idx[i]) += b(0, i);
+                by(vertex_idx[i]) += b(1, i);
             }
         }
-        bx(0) = 0;
-        by(0) = 0;
         // Solve the linear equations
         Eigen::VectorXd ux = bx;
         ux = solver.solve(ux);
         Eigen::VectorXd uy = by;
         uy = solver.solve(uy);
-        
+
         // Set the answers back to iter mesh
         for (const auto& vertex_handle : iter_mesh->vertices()) {
             int vertex_idx = vertex_handle.idx();
@@ -278,7 +272,7 @@ NODE_EXECUTION_FUNCTION(arap)
 
     clock_t end_time = clock();
 
-    auto geometry = openmesh_to_operand(iter_mesh.get());
+    auto geometry = openmesh_to_operand(halfedge_mesh.get());
 
     // Set the output of the nodes
     params.set_output("Output", std::move(*geometry));
