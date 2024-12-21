@@ -115,6 +115,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     if (buffer_size != _buffer_size) {
         append_buffer = AppendStructuredBuffer<uint2>(buffer_size);
     }
+    append_buffer.reset();
     this->_buffer_size = buffer_size;
 
     CUDALinearBufferDesc desc;
@@ -136,9 +137,15 @@ ScratchIntersectionContext::intersect_line_with_rays(
     this->primitive_count = line_count;
     this->patch_count = patch_count;
 
+    auto intersected_size = append_buffer.get_size();
+
+    std::cout << "intersected_ratio: "
+              << (float)intersected_size / _buffer_size * 100 << "%"
+              << std::endl;
+
     return std::make_tuple(
         reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
-        append_buffer.get_size());
+        intersected_size);
 }
 
 void ScratchIntersectionContext::reset()

@@ -20,8 +20,8 @@ NB_MODULE(hd_USTC_CG_py, m)
         .def(
             "intersect_line_with_rays",
             [](USTC_CG::ScratchIntersectionContext& self,
-               nb::ndarray<float> lines,
-               nb::ndarray<float> patches,
+               const nb::ndarray<float>& lines,
+               const nb::ndarray<float>& patches,
                float width) {
                 auto [pairs, size] = self.intersect_line_with_rays(
                     lines.data(),
@@ -51,8 +51,8 @@ NB_MODULE(hd_USTC_CG_py, m)
         .def(
             "intersect_mesh_with_rays",
             [](USTC_CG::MeshIntersectionContext& self,
-               nb::ndarray<float> vertices,
-               nb::ndarray<unsigned> indices,
+               const nb::ndarray<float>& vertices,
+               const nb::ndarray<unsigned>& indices,
                unsigned vertex_buffer_stride,
                const std::vector<int>& resolution,
                const std::vector<float>& world_to_view,
