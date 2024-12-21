@@ -82,7 +82,6 @@ NODE_EXECUTION_FUNCTION(scatter_contribution)
         ComputeContext context(resource_allocator, program_vars);
         context.finish_setting_pso();
         {
-            PROFILE_SCOPE(scatter_contribution_dispatch);
             context.begin();
             context.clear_buffer(bufferR);
             context.clear_buffer(bufferG);
@@ -115,7 +114,6 @@ NODE_EXECUTION_FUNCTION(scatter_contribution)
         ComputeContext add_context(resource_allocator, add_program_vars);
         add_context.finish_setting_pso();
         {
-            PROFILE_SCOPE(scatter_contribution_dispatch);
             add_context.begin();
 
             auto width = source_texture->getDesc().width;

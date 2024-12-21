@@ -46,8 +46,6 @@ void compile_lens_system(LensSystem* lens_system, ExeParams& params)
 
 NODE_EXECUTION_FUNCTION(physical_lens_raygen)
 {
-    PROFILE_SCOPE(physical_lens_raygen);
-
     if (params.get_storage<PhysicalLensStorage&>().compiled == false) {
         auto lens_system = global_payload.lens_system;
         compile_lens_system(lens_system, params);
@@ -132,8 +130,6 @@ NODE_EXECUTION_FUNCTION(physical_lens_raygen)
     ComputeContext context(resource_allocator, program_vars);
     context.finish_setting_pso();
     {
-        PROFILE_SCOPE(physical_lens_raygen_dispatch);
-
         context.begin();
         context.dispatch(
             {}, program_vars, image_size[0], 32, image_size[1], 32);
