@@ -22,6 +22,10 @@ def test_closest_point():
     import torch
 
     p = torch.tensor([[2.0, 3.0]]).cuda()
-    ctr_points = torch.tensor([[[0.0, 0.0], [1.5, 2.0], [3.0, 0.0]]]).cuda()
-    t = glints.bspline.calc_closest(p, ctr_points)
+    ctr_points = torch.tensor([[[0.0, 0.0], [2.0, 2.0], [4.0, 0.0]]]).cuda()
+    t = glints.bspline.calc_closest(p, ctr_points).cuda()
     print(t)
+
+    print(glints.bspline.quadratic_piecewise_bspine(torch.tensor([0.5])))
+
+    print(glints.bspline.eval_quadratic_bspline_point(ctr_points, t))

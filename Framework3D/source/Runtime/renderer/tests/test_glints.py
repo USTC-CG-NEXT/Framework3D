@@ -67,13 +67,13 @@ def test_intersect_bsplines():
     context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
     context.set_max_pair_buffer_ratio(10.0)
 
-    lines = test_utils.random_scatter_triangles(0.04, 1000, (-1, 1), (-1, 1))
+    lines = test_utils.random_scatter_bsplines(0.4, 10000, (-1, 1), (-1, 1))
     step = 2.0 / 1024
     patches = test_utils.create_patches(1024, step)
 
     print(patches.shape)
 
-    result = context.intersect_line_with_rays(lines, patches, 0.001)
+    result = context.intersect_line_with_rays(lines, patches, 0.002)
 
     # the result is a buffer of size [intersection_count, 2],
     # each element is [line_id, patch_id]

@@ -25,7 +25,7 @@ NB_MODULE(hd_USTC_CG_py, m)
                float width) {
                 auto [pairs, size] = self.intersect_line_with_rays(
                     lines.data(),
-                    static_cast<unsigned>(lines.shape(0) / 2),
+                    static_cast<unsigned>(lines.shape(0)),
                     patches.data(),
                     patches.shape(0),
                     width);
@@ -46,7 +46,9 @@ NB_MODULE(hd_USTC_CG_py, m)
             "set_max_pair_buffer_ratio",
             &USTC_CG::ScratchIntersectionContext::set_max_pair_buffer_ratio);
 
-    nb::class_<USTC_CG::BSplineScratchIntersectionContext, USTC_CG::ScratchIntersectionContext>(
+    nb::class_<
+        USTC_CG::BSplineScratchIntersectionContext,
+        USTC_CG::ScratchIntersectionContext>(
         m, "BSplineScratchIntersectionContext")
         .def(nb::init<>());
 

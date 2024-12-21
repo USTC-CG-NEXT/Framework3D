@@ -12,8 +12,8 @@ struct ScratchIntersectionContext {
     ScratchIntersectionContext() = default;
 
     std::tuple<float*, unsigned> intersect_line_with_rays(
-        float* lines,
-        unsigned line_count,
+        float* vertices,
+        unsigned vertex_count,
         float* patches,
         unsigned patch_count,
         float width);
@@ -32,10 +32,8 @@ struct ScratchIntersectionContext {
     void create_width_buffer(unsigned vertex_count, float width);
     virtual void create_indices(unsigned vertex_count);
     virtual void create_scratches_traversable(
-        unsigned line_count,
         unsigned vertex_count);
 
-    unsigned primitive_count;
     unsigned patch_count;
     cuda::OptiXProgramGroupHandle raygen_group;
     cuda::OptiXModuleHandle cylinder_module;
@@ -63,7 +61,6 @@ struct BSplineScratchIntersectionContext : public ScratchIntersectionContext {
     void create_cylinder_intersection_shader() override;
     void create_indices(unsigned vertex_count) override;
     void create_scratches_traversable(
-        unsigned line_count,
         unsigned vertex_count) override;
 
    public:

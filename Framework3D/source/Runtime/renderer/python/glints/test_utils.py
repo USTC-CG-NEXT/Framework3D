@@ -30,7 +30,7 @@ def random_scatter_lines(length, count, width_range, height_range):
     return lines
 
 
-def random_scatter_triangles(edge_length, count, width_range, height_range):
+def random_scatter_bsplines(edge_length, count, width_range, height_range):
     x_start = torch.FloatTensor(count).uniform_(*width_range).to("cuda")
     y_start = torch.FloatTensor(count).uniform_(*height_range).to("cuda")
     angles = torch.FloatTensor(count, 2).uniform_(0, 2 * torch.pi).to("cuda")
@@ -46,3 +46,18 @@ def random_scatter_triangles(edge_length, count, width_range, height_range):
     triangles[:, 2, :2] = torch.stack((x2, y2), dim=1)
 
     return triangles
+
+
+import numpy as np
+import imageio
+
+
+def save_image(image, resolution, filename):
+    # Move the image to CPU and convert to numpy array
+    image_cpu = image.detach().cpu().numpy()
+
+    # Rotate the image counterclockwise by 90 degrees
+    image_cpu = np.rot90(image_cpu)
+
+    # Save the image using imageio
+    imageio.imwrite(filename, (image_cpu * 255).astype(np.uint8))

@@ -102,9 +102,9 @@ void BSplineScratchIntersectionContext::create_indices(unsigned vertex_count)
 }
 
 void BSplineScratchIntersectionContext::create_scratches_traversable(
-    unsigned line_count,
     unsigned vertex_count)
 {
+    auto line_count = vertex_count / 3;
     handle = cuda::create_linear_curve_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         vertex_count,
@@ -116,9 +116,9 @@ void BSplineScratchIntersectionContext::create_scratches_traversable(
 }
 
 void ScratchIntersectionContext::create_scratches_traversable(
-    unsigned line_count,
     unsigned vertex_count)
 {
+    auto line_count = vertex_count / 2;
     handle = cuda::create_linear_curve_optix_traversable(
         { line_end_vertices->get_device_ptr() },
         vertex_count,
@@ -129,21 +129,19 @@ void ScratchIntersectionContext::create_scratches_traversable(
 
 std::tuple<float*, unsigned>
 ScratchIntersectionContext::intersect_line_with_rays(
-    float* lines,
-    unsigned line_count,
+    float* vertices,
+    unsigned vertex_count,
     float* patches,
     unsigned patch_count,
     float width)
 {
-    auto vertex_count = line_count * 2;
-
     using namespace cuda;
     optix_init();
     std::string filename =
         RENDERER_SHADER_DIR + std::string("shaders/glints/glints.cu");
 
-    this->line_end_vertices =
-        borrow_cuda_linear_buffer({ vertex_count, 3 * sizeof(float) }, lines);
+    this->line_end_vertices = borrow_cuda_linear_buffer(
+        { vertex_count, 3 * sizeof(float) }, vertices);
 
     create_raygen(filename);
     create_cylinder_intersection_shader();
@@ -154,7 +152,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     create_width_buffer(vertex_count, width);
     create_indices(vertex_count);
 
-    create_scratches_traversable(line_count, vertex_count);
+    create_scratches_traversable(vertex_count);
 
     int buffer_size = ratio * patch_count;
 
@@ -180,7 +178,6 @@ ScratchIntersectionContext::intersect_line_with_rays(
         handle, pipeline, glints_params->get_device_ptr(), patch_count, 1, 1);
 
     this->_vertex_count = vertex_count;
-    this->primitive_count = line_count;
     this->patch_count = patch_count;
 
     auto intersected_size = append_buffer.get_size();

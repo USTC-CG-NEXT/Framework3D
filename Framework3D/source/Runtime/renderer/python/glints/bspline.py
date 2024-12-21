@@ -137,3 +137,54 @@ def calc_closest(p, ctr_points):
     closest_t = torch.min(t_roots_real, dim=1).values
 
     return closest_t
+
+
+def quadratic_piecewise_bspine(t):
+    """
+    Evaluate the quadratic B-spline basis functions at a given parameter t.
+
+    Args:
+        t (torch.Tensor): A tensor of shape [n] representing the curve parameter t.
+
+    Returns:
+        torch.Tensor: A tensor of shape [n, 3] representing the basis functions at the given parameter t.
+    """
+    first = (t > 0) & (t < 1)
+    second = (t >= 1) & (t < 2)
+    third = (t >= 2) & (t < 3)
+
+    B0 = 0.5 * t**2
+    B1 = 0.5 * (-2 * t**2 + 6 * t - 3)
+    B2 = 0.5 * (3 - t) ** 2
+
+    ret = torch.zeros_like(t)
+    ret[first] = B0[first]
+    ret[second] = B1[second]
+    ret[third] = B2[third]
+
+    return ret
+
+
+def eval_quadratic_bspline_point(ctr_points, t):
+    """
+    Evaluate the quadratic B-spline curve at a given parameter t.
+
+    Args:
+        ctr_points (torch.Tensor): A tensor of shape [n, 3, 2] representing the control points of the B-spline curves.
+        t (torch.Tensor): A tensor of shape [n] representing the curve parameter t.
+
+    Returns:
+        torch.Tensor: A tensor of shape [n, 2] representing the points on the B-spline curves at the given parameter t.
+    """
+    x0, y0 = ctr_points[:, 0, 0], ctr_points[:, 0, 1]
+    x1, y1 = ctr_points[:, 1, 0], ctr_points[:, 1, 1]
+    x2, y2 = ctr_points[:, 2, 0], ctr_points[:, 2, 1]
+
+    weight_0 = quadratic_piecewise_bspine(t + 1)
+    weight_1 = quadratic_piecewise_bspine(t)
+    weight_2 = quadratic_piecewise_bspine(t - 1)
+
+    x = weight_0 * x0 + weight_1 * x1 + weight_2 * x2
+    y = weight_0 * y0 + weight_1 * y1 + weight_2 * y2
+
+    return torch.stack((x, y), dim=1)

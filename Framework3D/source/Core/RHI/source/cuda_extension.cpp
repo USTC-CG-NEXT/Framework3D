@@ -1056,6 +1056,8 @@ OptixPipelineCompileOptions get_default_pipeline_compile_options(
         OPTIX_PRIMITIVE_TYPE_FLAGS_CUSTOM;
     pipeline_compile_options.usesPrimitiveTypeFlags |=
         OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_LINEAR;
+    pipeline_compile_options.usesPrimitiveTypeFlags |=
+        OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_QUADRATIC_BSPLINE;
     return pipeline_compile_options;
 }
 
