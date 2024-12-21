@@ -119,6 +119,11 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         structure = curve;
     }
 
+    if (!structure) {
+        std::exception("No geometry found");
+        return false;
+    }
+
     // Material and Texture
     auto material_component = geometry.get_component<MaterialComponent>();
     if (material_component) {
