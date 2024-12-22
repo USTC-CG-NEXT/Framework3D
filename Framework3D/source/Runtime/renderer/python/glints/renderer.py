@@ -2,6 +2,7 @@ import torch
 import glints.renderer as renderer
 import glints.shader as shader
 
+
 def render(
     context,
     scratch_context,
@@ -66,14 +67,24 @@ def render(
     intersected_patches = intersected_patches.reshape(-1, 4, 2)
     intersected_lines = intersected_lines[:, :, :2]
 
-    contribution = shader.ShadeLineElement(
-        intersected_lines,
-        intersected_patches,
-        transformed_camera_position,
-        transformed_light_position,
-        glints_roughness,
-        width,
-    )[:, 0]
+    if lines.shape[1] == 2:
+        contribution = shader.ShadeLineElement(
+            intersected_lines,
+            intersected_patches,
+            transformed_camera_position,
+            transformed_light_position,
+            glints_roughness,
+            width,
+        )[:, 0]
+    else:
+        contribution = shader.ShadeBSplineElements(
+            intersected_lines,
+            intersected_patches,
+            transformed_camera_position,
+            transformed_light_position,
+            glints_roughness,
+            width,
+        )[:, 0]
 
     contribution = torch.nan_to_num(contribution, nan=0.0)
 

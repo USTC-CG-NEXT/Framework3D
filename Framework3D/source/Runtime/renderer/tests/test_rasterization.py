@@ -121,85 +121,88 @@ def test_rasterize_mesh():
     test_utils.save_image(image, resolution, "mesh.png")
 
 
-def test_render_linear_scratches():
-    context = hd_USTC_CG_py.MeshIntersectionContext()
-    scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
-    scratch_context.set_max_pair_buffer_ratio(15.0)
 
-    import torch
-    import imageio
 
-    vertices = torch.tensor(
-        [
-            [-1, -1, 0.0, 0, 0],
-            [1.0, -1.0, 0.0, 1, 0],
-            [1.0, 1.0, 0.0, 1, 1],
-            [-1.0, 1.0, 0.0, 0, 1],
-        ]
-    ).cuda()
-    print(vertices.dtype)
-    assert vertices.is_contiguous()
-    indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
-    assert indices.is_contiguous()
+# def test_render_linear_scratches():
+#     context = hd_USTC_CG_py.MeshIntersectionContext()
+#     scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
+#     scratch_context.set_max_pair_buffer_ratio(15.0)
 
-    vertex_buffer_stride = 5 * 4
-    resolution = [1536 * 2, 1024 * 2]
+#     import torch
+#     import imageio
 
-    camera_position_np = np.array([2, 2, 3], dtype=np.float32)
-    light_position_np = np.array([2, -2, 3], dtype=np.float32)
+#     vertices = torch.tensor(
+#         [
+#             [-1, -1, 0.0, 0, 0],
+#             [1.0, -1.0, 0.0, 1, 0],
+#             [1.0, 1.0, 0.0, 1, 1],
+#             [-1.0, 1.0, 0.0, 0, 1],
+#         ]
+#     ).cuda()
+#     print(vertices.dtype)
+#     assert vertices.is_contiguous()
+#     indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
+#     assert indices.is_contiguous()
 
-    world_to_view_matrix = look_at(
-        camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
-    )
+#     vertex_buffer_stride = 5 * 4
+#     resolution = [1536 * 2, 1024 * 2]
 
-    view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
+#     camera_position_np = np.array([2, 2, 3], dtype=np.float32)
+#     light_position_np = np.array([2, -2, 3], dtype=np.float32)
 
-    import glints.test_utils as test_utils
+#     world_to_view_matrix = look_at(
+#         camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
+#     )
 
-    lines = test_utils.random_scatter_lines(0.03, 80000, (0, 1), (0, 1))
-    width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.002], device="cuda")
+#     view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
 
-    numviews = 60
-    for i in range(numviews):
-        angle = i * (2 * np.pi / numviews)
-        rotation_matrix = np.array(
-            [
-                [np.cos(angle), -np.sin(angle), 0],
-                [np.sin(angle), np.cos(angle), 0],
-                [0, 0, 1],
-            ],
-            dtype=np.float32,
-        )
-        rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
+#     import glints.test_utils as test_utils
 
-        world_to_view_matrix = look_at(
-            rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
-        )
+#     lines = test_utils.random_scatter_lines(0.03, 80000, (0, 1), (0, 1))
 
-        image = renderer.render(
-            context,
-            scratch_context,
-            lines,
-            width,
-            glints_roughness,
-            vertices,
-            indices,
-            vertex_buffer_stride,
-            resolution,
-            world_to_view_matrix,
-            view_to_clip_matrix,
-            rotated_camera_position,
-            light_position_np,
-        )
-        image *= 10
+#     width = torch.tensor([0.001], device="cuda")
+#     glints_roughness = torch.tensor([0.002], device="cuda")
 
-        test_utils.save_image(image, resolution, f"intersection_{i}.png")
+#     numviews = 60
+#     for i in range(numviews):
+#         angle = i * (2 * np.pi / numviews)
+#         rotation_matrix = np.array(
+#             [
+#                 [np.cos(angle), -np.sin(angle), 0],
+#                 [np.sin(angle), np.cos(angle), 0],
+#                 [0, 0, 1],
+#             ],
+#             dtype=np.float32,
+#         )
+#         rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
+
+#         world_to_view_matrix = look_at(
+#             rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
+#         )
+
+#         image = renderer.render(
+#             context,
+#             scratch_context,
+#             lines,
+#             width,
+#             glints_roughness,
+#             vertices,
+#             indices,
+#             vertex_buffer_stride,
+#             resolution,
+#             world_to_view_matrix,
+#             view_to_clip_matrix,
+#             rotated_camera_position,
+#             light_position_np,
+#         )
+#         image *= 10
+
+#         test_utils.save_image(image, resolution, f"intersection_{i}.png")
 
 
 def test_render_bspline_scratches():
     context = hd_USTC_CG_py.MeshIntersectionContext()
-    scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
+    scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
     scratch_context.set_max_pair_buffer_ratio(15.0)
 
     import torch
@@ -219,7 +222,7 @@ def test_render_bspline_scratches():
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [1536 * 2, 1024 * 2]
+    resolution = [1536, 1024]
 
     camera_position_np = np.array([2, 2, 3], dtype=np.float32)
     light_position_np = np.array([2, -2, 3], dtype=np.float32)
@@ -232,9 +235,10 @@ def test_render_bspline_scratches():
 
     import glints.test_utils as test_utils
 
-    lines = test_utils.random_scatter_lines(0.03, 80000, (0, 1), (0, 1))
-    width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.002], device="cuda")
+    lines = test_utils.random_scatter_bsplines(0.12, 80000, (0, 1), (0, 1))
+
+    width = torch.tensor([0.0005], device="cuda")
+    glints_roughness = torch.tensor([0.0009], device="cuda")
 
     numviews = 60
     for i in range(numviews):

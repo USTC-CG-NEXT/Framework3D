@@ -518,19 +518,16 @@ def ShadeBSplineElements(
     patch_center = (
         patches[:, 0, :] + patches[:, 1, :] + patches[:, 2, :] + patches[:, 3, :]
     ) / 4.0
-    print ("patch_center", patch_center)
 
     t_closest = bspline.calc_closest(patch_center, ctr_points)
-    print ("t_closest", t_closest)
     p = bspline.eval_quadratic_bspline_point(ctr_points, t_closest)
-    print ("p", p)
     tangent = bspline.eval_quadratic_bspline_tangent(ctr_points, t_closest)
-    print ("tangent", tangent)
+    assert not torch.isnan(tangent).any(), "Tangent contains NaN values"
+
+
 
     end1 = p - tangent * 0.2
     end2 = p + tangent * 0.2
-    print ("end1", end1)
-    print ("end2", end2)
 
     lines = torch.stack((end1, end2), dim=1)
 

@@ -258,8 +258,6 @@ def calc_closest(p, ctr_points):
     )
 
     distances = torch.norm(d_vecs, dim=1) + torch.logical_not(valid_mask) * 1e10
-    print("distances, ", distances)
-    print("t_clamped, ", t_clamped)
 
     closest_t = t_clamped[
         torch.arange(t_clamped.shape[0]), torch.argmin(distances, dim=1)
