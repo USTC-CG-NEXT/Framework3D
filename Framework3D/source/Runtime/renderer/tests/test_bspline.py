@@ -22,33 +22,37 @@ def test_closest_point():
     import torch
 
     p = torch.tensor([[-1.5, -3.0]]).cuda()
-    p = torch.tensor([
-        [-1.5, -3.0],
-        [0.0, 1.0],
-        [2.0, 3.0],
-        [4.0, 1.0],
-        [5.0, -2.0],
-        [2.0, -4.0],
-        [1.0, 2.0],
-        [3.0, -1.0],
-        [4.5, 8.5],
-        [6.0, -3.0]
-    ]).cuda()
+    p = torch.tensor(
+        [
+            [-1.5, -3.0],
+            [0.0, 1.0],
+            [2.0, 3.0],
+            [4.0, 1.0],
+            [5.0, -2.0],
+            [2.0, -4.0],
+            [1.0, 2.0],
+            [3.0, -1.0],
+            [4.5, 8.5],
+            [6.0, -3.0],
+        ]
+    ).cuda()
     ctr_points = torch.tensor([[[0.0, 0.0], [2.0, 2.0], [4.0, 0.0]]]).cuda()
 
     ctr_points = ctr_points.repeat(p.shape[0], 1, 1)
 
     t = glints.bspline.calc_closest(p, ctr_points).cuda()
     print(t)
-    
-    # point = glints.bspline.eval_quadratic_bspline_point(ctr_points, t)
-    # print(point)
-    
 
-    # print(glints.bspline.eval_quadratic_bspline_point(ctr_points, torch.tensor(1.0)))
+    position = glints.bspline.eval_quadratic_bspline_point(ctr_points, t)
+    tangent = glints.bspline.eval_quadratic_bspline_tangent(ctr_points, t)
+
+    print(position)
+    print("tangent", tangent)
 
 
 import torch
+
+
 def test_plot_b_spline():
     import glints.bspline
     import matplotlib.pyplot as plt
@@ -57,8 +61,8 @@ def test_plot_b_spline():
     y = glints.bspline.quadratic_piecewise_bspline(t).cpu().numpy()
 
     plt.plot(t.cpu().numpy(), y)
-    plt.xlabel('t')
-    plt.ylabel('B-Spline Value')
-    plt.title('Quadratic Piecewise B-Spline')
+    plt.xlabel("t")
+    plt.ylabel("B-Spline Value")
+    plt.title("Quadratic Piecewise B-Spline")
     plt.grid(True)
     # plt.show()

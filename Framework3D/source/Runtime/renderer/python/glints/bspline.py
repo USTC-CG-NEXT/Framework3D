@@ -70,6 +70,34 @@ def quadratic_piecewise_bspline(t):
     return ret
 
 
+def quadratic_piecewise_bspline_derivative(t):
+    """
+    Evaluate the derivative of the quadratic B-spline basis functions at a given parameter t.
+
+    Args:
+        t (torch.Tensor): A tensor of shape [n] representing the curve parameter t.
+
+    Returns:
+        torch.Tensor: A tensor of shape [n, 3] representing the derivatives of the basis functions at the given parameter t.
+    """
+    device = t.device
+
+    first = (t > 0) & (t < 1)
+    second = (t >= 1) & (t < 2)
+    third = (t >= 2) & (t < 3)
+
+    B0 = t
+    B1 = -2 * t + 3
+    B2 = -(3 - t)
+
+    ret = torch.zeros_like(t, device=device)
+    ret[first] = B0[first]
+    ret[second] = B1[second]
+    ret[third] = B2[third]
+
+    return ret
+
+
 def eval_quadratic_bspline_point(ctr_points, t):
     """
     Evaluate the quadratic B-spline curve at a given parameter t.
@@ -97,6 +125,33 @@ def eval_quadratic_bspline_point(ctr_points, t):
     return torch.stack((x, y), dim=1)
 
 
+def eval_quadratic_bspline_tangent(ctr_points, t):
+    """
+    Evaluate the tangent of the quadratic B-spline curve at a given parameter t.
+
+    Args:
+        ctr_points (torch.Tensor): A tensor of shape [n, 3, 2] representing the control points of the B-spline curves.
+        t (torch.Tensor): A tensor of shape [n] representing the curve parameter t.
+
+    Returns:
+        torch.Tensor: A tensor of shape [n, 2] representing the tangent vectors of the B-spline curves at the given parameter t.
+    """
+    device = t.device
+
+    x0, y0 = ctr_points[:, 0, 0], ctr_points[:, 0, 1]
+    x1, y1 = ctr_points[:, 1, 0], ctr_points[:, 1, 1]
+    x2, y2 = ctr_points[:, 2, 0], ctr_points[:, 2, 1]
+
+    weight_0 = quadratic_piecewise_bspline_derivative(t + 1)
+    weight_1 = quadratic_piecewise_bspline_derivative(t)
+    weight_2 = quadratic_piecewise_bspline_derivative(t - 1)
+
+    dx = weight_0 * x0 + weight_1 * x1 + weight_2 * x2
+    dy = weight_0 * y0 + weight_1 * y1 + weight_2 * y2
+
+    return torch.stack((dx, dy), dim=1)
+
+
 def calc_closest(p, ctr_points):
     """
     Calculate the closest points on B-spline curves to a given set of points.
@@ -109,7 +164,6 @@ def calc_closest(p, ctr_points):
         torch.Tensor: A tensor of the closest points on the B-spline curves to the given set of points, represented with the curve parameter t.
     """
     device = p.device
-
     # Extract control points
     x0, y0 = ctr_points[:, 0, 0], ctr_points[:, 0, 1]
     x1, y1 = ctr_points[:, 1, 0], ctr_points[:, 1, 1]
@@ -204,8 +258,8 @@ def calc_closest(p, ctr_points):
     )
 
     distances = torch.norm(d_vecs, dim=1) + torch.logical_not(valid_mask) * 1e10
-    print(distances)
-    print(t_clamped)
+    print("distances, ", distances)
+    print("t_clamped, ", t_clamped)
 
     closest_t = t_clamped[
         torch.arange(t_clamped.shape[0]), torch.argmin(distances, dim=1)
