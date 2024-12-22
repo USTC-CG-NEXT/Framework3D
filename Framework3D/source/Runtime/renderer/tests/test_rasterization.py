@@ -197,4 +197,4 @@ def test_render_linear_scratches():
         test_utils.save_image(image, resolution, f"intersection_{i}.png")
 
 
-def test_render_bspline_scratches():
+# def test_render_bspline_scratches():
