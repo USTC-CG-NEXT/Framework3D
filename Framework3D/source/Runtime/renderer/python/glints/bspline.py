@@ -13,9 +13,8 @@ def solve_cubic_eqn(a, b, c, d):
     torch.Tensor: A tensor of shape [n, 3] containing the real parts of the 3 roots for each equation.
     """
 
-    # Coefficients a, b, c, d are all tensors of shape [n]
-    # The result will be a tensor of shape [n, 3] for the 3 roots
-    print(a.device)
+    device = a.device
+
     delta0 = b**2 - 3 * a * c
     delta1 = 2 * b**3 - 9 * a * b * c + 27 * a**2 * d
     discriminant = delta1**2 - 4 * delta0**3
@@ -33,10 +32,10 @@ def solve_cubic_eqn(a, b, c, d):
             1.0,
         ],
         dtype=torch.complex64,
-        device=a.device,
+        device=device,
     )
 
-    roots = torch.zeros((a.shape[0], 3), dtype=torch.complex64)
+    roots = torch.zeros((a.shape[0], 3), dtype=torch.complex64, device=device)
     for i in range(3):
         roots[:, i] = -1 / (3 * a) * (b + xi[i] * C + delta0 / (xi[i] * C))
 
@@ -53,6 +52,8 @@ def quadratic_piecewise_bspline(t):
     Returns:
         torch.Tensor: A tensor of shape [n, 3] representing the basis functions at the given parameter t.
     """
+    device = t.device
+
     first = (t > 0) & (t < 1)
     second = (t >= 1) & (t < 2)
     third = (t >= 2) & (t < 3)
@@ -61,7 +62,7 @@ def quadratic_piecewise_bspline(t):
     B1 = 0.5 * (-2 * t**2 + 6 * t - 3)
     B2 = 0.5 * (3 - t) ** 2
 
-    ret = torch.zeros_like(t)
+    ret = torch.zeros_like(t, device=device)
     ret[first] = B0[first]
     ret[second] = B1[second]
     ret[third] = B2[third]
@@ -80,6 +81,8 @@ def eval_quadratic_bspline_point(ctr_points, t):
     Returns:
         torch.Tensor: A tensor of shape [n, 2] representing the points on the B-spline curves at the given parameter t.
     """
+    device = t.device
+
     x0, y0 = ctr_points[:, 0, 0], ctr_points[:, 0, 1]
     x1, y1 = ctr_points[:, 1, 0], ctr_points[:, 1, 1]
     x2, y2 = ctr_points[:, 2, 0], ctr_points[:, 2, 1]
@@ -105,6 +108,8 @@ def calc_closest(p, ctr_points):
     Returns:
         torch.Tensor: A tensor of the closest points on the B-spline curves to the given set of points, represented with the curve parameter t.
     """
+    device = p.device
+
     # Extract control points
     x0, y0 = ctr_points[:, 0, 0], ctr_points[:, 0, 1]
     x1, y1 = ctr_points[:, 1, 0], ctr_points[:, 1, 1]
@@ -182,10 +187,14 @@ def calc_closest(p, ctr_points):
 
     # Solve the cubic equation for t
     t_roots_real, t_roots_imag = solve_cubic_eqn(a, b, c, d)
-    valid_mask = torch.isclose(t_roots_imag, torch.zeros_like(t_roots_imag))
+    valid_mask = torch.isclose(
+        t_roots_imag, torch.zeros_like(t_roots_imag, device=device)
+    )
 
-    t_clamped = torch.clamp(t_roots_real, torch.tensor(1.0), torch.tensor(2.0))
-    print(t_clamped.shape)
+    t_clamped = torch.clamp(
+        t_roots_real, torch.tensor(1.0, device=device), torch.tensor(2.0, device=device)
+    )
+
     d_vecs = torch.stack(
         [
             eval_quadratic_bspline_point(ctr_points, t_clamped[:, i]) - p
@@ -193,9 +202,13 @@ def calc_closest(p, ctr_points):
         ],
         dim=2,
     )
+
     distances = torch.norm(d_vecs, dim=1) + torch.logical_not(valid_mask) * 1e10
+    print(distances)
+    print(t_clamped)
+
     closest_t = t_clamped[
-        torch.argmin(distances, dim=1), torch.arange(t_clamped.shape[0])
+        torch.arange(t_clamped.shape[0]), torch.argmin(distances, dim=1)
     ]
 
     return closest_t
