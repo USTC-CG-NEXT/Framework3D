@@ -7,20 +7,16 @@ import numpy as np
 # ----------------------------------------------------------------------------
 
 
-def perspective_projection(near, far, fov):
-    aspect = 1.0
-    fov = np.radians(fov)
-    f = 1.0 / np.tan(fov / 2.0)
-    return torch.tensor(
-        [
-            [f / aspect, 0, 0, 0],
-            [0, f, 0, 0],
-            [0, 0, (far + near) / (near - far), 2 * far * near / (near - far)],
-            [0, 0, -1, 0],
-        ],
-        dtype=torch.float32,
-    ).cuda()
-
+# view_to_clip
+def perspective(fovy, aspect, near, far):
+    f = 1.0 / np.tan(fovy / 2.0)
+    m = np.zeros((4, 4))
+    m[0, 0] = f / aspect
+    m[1, 1] = f
+    m[2, 2] = (far + near) / (near - far)
+    m[2, 3] = 2.0 * far * near / (near - far)
+    m[3, 2] = -1.0
+    return m
 
 def translate(x, y, z):
     return torch.tensor(
@@ -45,25 +41,22 @@ def rotate_y(a):
     ).cuda()
 
 
-# cam_pos shape: [3]
-# target shape: [3]
-# up shape: [3]
-# return shape: [4, 4] tensor
-def look_at(cam_pos, target, up):
-    f = (target - cam_pos).astype(np.float32)
+# world_to_view
+def look_at(eye, center, up):
+    f = center - eye
     f /= np.linalg.norm(f)
-    r = np.cross(f, up).astype(np.float32)
-    r /= np.linalg.norm(r)
-    u = np.cross(r, f).astype(np.float32)
-    u /= np.linalg.norm(u)
-
-    m = np.eye(4).astype(np.float32)
-    m[0, :3] = r
+    u = up / np.linalg.norm(up)
+    s = np.cross(f, u)
+    s /= np.linalg.norm(s)
+    u = np.cross(s, f)
+    m = np.eye(4)
+    m[0, :3] = s
     m[1, :3] = u
     m[2, :3] = -f
-    m[:3, 3] = -m[:3, :3].dot(cam_pos)
-
-    return torch.tensor(m, dtype=torch.float32).cuda()
+    m[0, 3] = -np.dot(s, eye)
+    m[1, 3] = -np.dot(u, eye)
+    m[2, 3] = np.dot(f, eye)
+    return m
 
 
 def get_triangles():

@@ -174,11 +174,25 @@ def test_bspline_intersect_optimization():
 
     lines.requires_grad_(True)
 
-    optimizer = torch.optim.Adam([lines], lr=0.003)
+    optimizer = torch.optim.Adam([lines], lr=0.005)
 
     import matplotlib.pyplot as plt
 
     losses = []
+
+    target = renderer.prepare_target(
+        "texture.png",
+        context,
+        vertices,
+        indices,
+        vertex_buffer_stride,
+        resolution,
+        world_to_view_matrix,
+        view_to_clip_matrix,
+    )
+    
+    target = target / target.max()
+    test_utils.save_image(target, resolution, "target.png")
 
     for i in range(200):
         optimizer.zero_grad()
@@ -198,9 +212,9 @@ def test_bspline_intersect_optimization():
             camera_position_np,
             light_position_np,
         )
-        image *= 10
+        image = image / image.max()
 
-        loss = torch.mean((image - 0.3) ** 2)
+        loss = torch.mean((image - target) ** 2)
         loss.backward()
         optimizer.step()
 
@@ -221,5 +235,3 @@ def test_bspline_intersect_optimization():
     plt.ylabel("Loss")
     plt.title("Loss Curve")
     plt.savefig("loss_curve.png")
-
-    test_utils.save_image(image, resolution, "optimization.png")
