@@ -27,8 +27,18 @@ def render(
         view_to_clip_matrix.flatten(),
     )
 
+    reshaped_patches = patches.reshape(-1, 4, 2)
+
+    diag_1 =  reshaped_patches[:,2,:] - reshaped_patches[:,0,:]
+    diag_2 =  reshaped_patches[:,3,:] - reshaped_patches[:,1,:]
+    l_diag_1 = torch.norm(diag_1, dim=1)
+    l_diag_2 = torch.norm(diag_2, dim=1)
+    
+    intersect_width = torch.max(torch.cat((l_diag_1, l_diag_2)))
+    print(intersect_width)
+
     intersection_pairs = scratch_context.intersect_line_with_rays(
-        lines, patches, float(width) * 3.0
+        lines, patches, intersect_width
     )
 
     contribution_accumulation = torch.zeros(
@@ -110,7 +120,7 @@ def render(
         contribution,
     )
 
-    low_contribution_mask = contribution_accumulation_on_lines < 0.1 * torch.max(
+    low_contribution_mask = contribution_accumulation_on_lines < 0.01 * torch.max(
         contribution_accumulation_on_lines
     )
 

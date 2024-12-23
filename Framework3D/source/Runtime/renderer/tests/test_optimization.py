@@ -196,15 +196,15 @@ def test_bspline_intersect_optimization():
     view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
 
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.005], device="cuda")
+    glints_roughness = torch.tensor([0.001], device="cuda")
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.025
+    max_length = 1.25
 
     numviews = 10
 
-    random_gen_closure = lambda: random_gen(0.02, 80000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.02, 250000, (0, 1), (0, 1))
 
     for view in range(numviews):
         losses = []
@@ -259,7 +259,9 @@ def test_bspline_intersect_optimization():
                 rotated_camera_position,
                 light_position_np,
             )
-            image = image / image.max().detach()
+
+            blurred_image = torch.nn.functional.avg_pool2d(image, 3, stride=1, padding=1).detach()
+            image = image / blurred_image.max().detach()
 
             loss = loss_function(image, target)
             loss.backward()
@@ -294,11 +296,11 @@ def test_bspline_intersect_optimization():
                     with torch.no_grad():
                         lines[mask, 1] = lines[mask, 0] + direction * max_length
 
-            if i % 3 == 0 and i < 90:
-                with torch.no_grad():
-                    lines[low_contribution_mask] = random_gen_closure()[
-                        low_contribution_mask
-                    ]
+            # if i % 3 == 0 and i < 90:
+            #     with torch.no_grad():
+            #         lines[low_contribution_mask] = random_gen_closure()[
+            #             low_contribution_mask
+            #         ]
 
             losses.append(loss.item())
 

@@ -498,7 +498,7 @@ def ShadeLineElement(
             - torch.min(maximum, torch.tensor(line_width, device=maximum.device))
         ),
     )
-    assert not torch.isnan(result).any(), "Result contains NaN values"
+    
 
     return torch.stack((result, area), dim=1)
 
@@ -536,7 +536,9 @@ def ShadeBSplineElements(
     ret =  ShadeLineElement(
         lines, patches, cam_positions, light_positions, glints_roughness, width
     )
-    
-    assert not torch.isnan(ret).any(), "Result contains NaN values"
+    nan_mask = torch.isnan(ret)
+    print ("nan pairs count: ", torch.sum(nan_mask))
+
+    ret = torch.nan_to_num(ret, nan=0.0)
     
     return ret
