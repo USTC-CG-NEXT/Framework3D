@@ -30,7 +30,6 @@ def render(
     intersection_pairs = scratch_context.intersect_line_with_rays(
         lines, patches, float(width) * 3.0
     )
-    print("intersection_pairs count", intersection_pairs.shape[0])
 
     contribution_accumulation = torch.zeros(
         (patches.shape[0],), dtype=torch.float32, device="cuda"
@@ -167,16 +166,12 @@ def prepare_target(
         view_to_clip_matrix.flatten(),
     )
 
-    print("patches", patches.shape)
     patches = patches.reshape(-1, 4, 2)
     texture = imageio.imread(texture_name)
     torch_texture = torch.tensor(texture, device="cuda") / 255.0
-    print("texture", torch_texture.shape)
     patch_uv_center = (
         1.0 / 4.0 * (patches[:, 0] + patches[:, 1] + patches[:, 2] + patches[:, 3])
     )
-
-    print("patch_uv_center", patch_uv_center.shape)
 
     sampled_color = sample_texture_bilinear(torch_texture, flip_u(patch_uv_center))
     if sampled_color.shape[1] == 4:

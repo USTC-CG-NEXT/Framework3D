@@ -73,9 +73,6 @@ def SchlickWeight(cosTheta):
 
 
 def lerp(v0, v1, t):
-    print(v0.shape)
-    print(v1.shape)
-    print(t.shape)
     t = t.unsqueeze(-1) if t.dim() == 1 else t
     return (1 - t) * v0 + t * v1
 
