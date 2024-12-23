@@ -145,6 +145,9 @@ def perceptual_loss(image, target):
     target = torch.nn.functional.avg_pool2d(target, 3, stride=1, padding=1)
     return torch.mean((image - target) ** 2)
 
+def loss_function(image, target):
+    return perceptual_loss(image, gamma_to_linear(target))
+
 
 def test_bspline_intersect_optimization():
     case = "lines"
@@ -252,7 +255,7 @@ def test_bspline_intersect_optimization():
             )
             image = image / image.max().detach()
 
-            loss = torch.mean((image - gamma_to_linear(target)) ** 2)
+            loss = loss_function(image, target)
             loss.backward()
             optimizer.step()
 
