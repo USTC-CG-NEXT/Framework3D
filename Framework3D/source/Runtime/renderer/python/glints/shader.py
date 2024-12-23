@@ -498,6 +498,7 @@ def ShadeLineElement(
             - torch.min(maximum, torch.tensor(line_width, device=maximum.device))
         ),
     )
+    assert not torch.isnan(result).any(), "Result contains NaN values"
 
     return torch.stack((result, area), dim=1)
 
@@ -522,6 +523,7 @@ def ShadeBSplineElements(
     t_closest = bspline.calc_closest(patch_center, ctr_points)
     p = bspline.eval_quadratic_bspline_point(ctr_points, t_closest)
     tangent = bspline.eval_quadratic_bspline_tangent(ctr_points, t_closest)
+    assert not torch.isnan(p).any(), "Point contains NaN values"
     assert not torch.isnan(tangent).any(), "Tangent contains NaN values"
 
 
@@ -531,6 +533,10 @@ def ShadeBSplineElements(
 
     lines = torch.stack((end1, end2), dim=1)
 
-    return ShadeLineElement(
+    ret =  ShadeLineElement(
         lines, patches, cam_positions, light_positions, glints_roughness, width
     )
+    
+    assert not torch.isnan(ret).any(), "Result contains NaN values"
+    
+    return ret

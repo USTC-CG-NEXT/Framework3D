@@ -178,7 +178,7 @@ def test_render_linear_scratches():
             rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
         )
 
-        image = renderer.render(
+        image, _ = renderer.render(
             context,
             scratch_context,
             lines,
@@ -255,7 +255,7 @@ def test_render_bspline_scratches():
             rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
         )
 
-        image = renderer.render(
+        image, _ = renderer.render(
             context,
             scratch_context,
             lines,

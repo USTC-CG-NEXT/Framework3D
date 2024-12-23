@@ -100,7 +100,21 @@ def render(
         contribution_accumulation.unsqueeze(1).expand(-1, 3)
     )
 
-    return image
+    contribution_accumulation_on_lines = torch.zeros(
+        (lines.shape[0],), dtype=torch.float32, device="cuda"
+    )
+
+    contribution_accumulation_on_lines.scatter_add_(
+        0,
+        intersection_pairs[:, 0].long(),
+        contribution,
+    )
+
+    low_contribution_mask = contribution_accumulation_on_lines < 0.1 * torch.max(
+        contribution_accumulation_on_lines
+    )
+
+    return image, low_contribution_mask
 
 
 import torch
@@ -135,8 +149,6 @@ def sample_texture_bilinear(texture, uv):
         + texture[v_next, u] * (1 - u_frac) * v_frac
         + texture[v_next, u_next] * u_frac * v_frac
     )
-
-
 
 
 def flip_u(uv):
