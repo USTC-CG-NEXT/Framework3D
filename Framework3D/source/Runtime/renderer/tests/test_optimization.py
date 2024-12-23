@@ -132,9 +132,13 @@ import imageio
 
 
 def test_bspline_intersect_optimization():
-
+    case = "lines"
     context = hd_USTC_CG_py.MeshIntersectionContext()
-    scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
+    if case == "bspline":
+        scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
+    else:
+        scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
+        
     scratch_context.set_max_pair_buffer_ratio(12.0)
 
     import torch
@@ -156,7 +160,7 @@ def test_bspline_intersect_optimization():
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
 
-    camera_position_np = np.array([2, 2, 3], dtype=np.float32)
+    camera_position_np = np.array([2, 2, 3], dtype=np.float32)/1.3
     light_position_np = np.array([2, -2, 3], dtype=np.float32)
 
     world_to_view_matrix = look_at(
@@ -168,70 +172,100 @@ def test_bspline_intersect_optimization():
     import glints.test_utils as test_utils
     import glints.renderer as renderer
 
-    lines = test_utils.random_scatter_bsplines(0.09, 40000, (0, 1), (0, 1))
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.0002], device="cuda")
-
-    lines.requires_grad_(True)
-
-    optimizer = torch.optim.Adam([lines], lr=0.005)
+    glints_roughness = torch.tensor([0.002], device="cuda")
 
     import matplotlib.pyplot as plt
-
-    losses = []
-
-    target = renderer.prepare_target(
-        "texture.png",
-        context,
-        vertices,
-        indices,
-        vertex_buffer_stride,
-        resolution,
-        world_to_view_matrix,
-        view_to_clip_matrix,
-    )
     
-    target = target / target.max()
-    test_utils.save_image(target, resolution, "target.png")
+    max_length = 0.05
+    
+    losses = []
+    numviews = 10
+    for view in range(numviews):
+        if case == "bspline":
+            lines = test_utils.random_scatter_bsplines(0.02, 80000, (0, 1), (0, 1))
+        else:
+            lines = test_utils.random_scatter_lines(0.02, 50000, (0, 1), (0, 1))
+        lines.requires_grad_(True)
+        optimizer = torch.optim.Adam([lines], lr=0.005)
+        angle = view * (2 * np.pi / numviews)
+        rotation_matrix = np.array(
+            [
+                [np.cos(angle), -np.sin(angle), 0],
+                [np.sin(angle), np.cos(angle), 0],
+                [0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
+        rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
 
-    for i in range(200):
-        optimizer.zero_grad()
+        world_to_view_matrix = look_at(
+            rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
+        )
 
-        image = renderer.render(
+        target = renderer.prepare_target(
+            "texture.png",
             context,
-            scratch_context,
-            lines,
-            width,
-            glints_roughness,
             vertices,
             indices,
             vertex_buffer_stride,
             resolution,
             world_to_view_matrix,
             view_to_clip_matrix,
-            camera_position_np,
-            light_position_np,
         )
-        image = image / image.max()
+        
+        target = target / target.max()
+        test_utils.save_image(target, resolution, f"view_{view}/target.png")
 
-        loss = torch.mean((image - target) ** 2)
-        loss.backward()
-        optimizer.step()
+        for i in range(100):
+            optimizer.zero_grad()
 
-        losses.append(loss.item())
+            image = renderer.render(
+                context,
+                scratch_context,
+                lines,
+                width,
+                glints_roughness,
+                vertices,
+                indices,
+                vertex_buffer_stride,
+                resolution,
+                world_to_view_matrix,
+                view_to_clip_matrix,
+                rotated_camera_position,
+                light_position_np,
+            )
+            image = image / image.max().detach()
 
-        # Check torch vmem occupation status
-        allocated_memory = torch.cuda.memory_allocated()
-        reserved_memory = torch.cuda.memory_reserved()
-        print(f"Allocated memory: {allocated_memory / (1024 ** 2):.2f} MB")
-        print(f"Reserved memory: {reserved_memory / (1024 ** 2):.2f} MB")
-        torch.cuda.empty_cache()
-        print(f"Iteration {i}, Loss: {loss.item()}")
-        test_utils.save_image(image, resolution, f"optimization_{i}.png")
+            loss = torch.mean((image - target) ** 2)
+            loss.backward()
+            optimizer.step()
+            
+            # Clamp lines to max length
+            lengths = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
+            mask = lengths > max_length
+            if mask.any():
+                direction = (lines[mask, 1] - lines[mask, 0]) / lengths[mask].unsqueeze(1)
+                with torch.no_grad():
+                    lines[mask, 1] = lines[mask, 0] + direction * max_length
 
-    # Plot the loss curve
-    plt.plot(losses)
-    plt.xlabel("Iteration")
-    plt.ylabel("Loss")
-    plt.title("Loss Curve")
-    plt.savefig("loss_curve.png")
+            losses.append(loss.item())
+
+            # Check torch vmem occupation status
+            allocated_memory = torch.cuda.memory_allocated()
+            reserved_memory = torch.cuda.memory_reserved()
+            print(f"Allocated memory: {allocated_memory / (1024 ** 2):.2f} MB")
+            print(f"Reserved memory: {reserved_memory / (1024 ** 2):.2f} MB")
+            torch.cuda.empty_cache()
+            
+            allocated_memory = torch.cuda.memory_allocated()
+            reserved_memory = torch.cuda.memory_reserved()
+            print(f"View {view}, Iteration {i}, Loss: {loss.item()}")
+            test_utils.save_image(image, resolution, f"view_{view}/optimization_{i}.png")
+
+        # Plot the loss curve
+        plt.plot(losses)
+        plt.xlabel("Iteration")
+        plt.ylabel("Loss")
+        plt.title(f"Loss Curve for View {view}")
+        plt.savefig(f"view_{view}/loss_curve.png")

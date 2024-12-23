@@ -50,9 +50,13 @@ def random_scatter_bsplines(edge_length, count, width_range, height_range):
 
 import numpy as np
 import imageio
+import os
 
 
 def save_image(image, resolution, filename):
+    # Create the directory if it does not exist
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
     # Move the image to CPU and convert to numpy array
     image_cpu = image.detach().cpu().numpy()
 

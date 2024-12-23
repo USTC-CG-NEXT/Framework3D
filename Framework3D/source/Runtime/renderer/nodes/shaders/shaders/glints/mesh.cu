@@ -191,10 +191,6 @@ RGS(mesh)
         direction,
         payload);
 
-    if (launch_index.x == 0 && launch_index.y == 0) {
-        printf("origin: %f %f %f\n", origin.x, origin.y, origin.z);
-    }
-
     if (payload.hit) {
         Patch patch;
 
