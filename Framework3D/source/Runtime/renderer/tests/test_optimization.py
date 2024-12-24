@@ -156,7 +156,7 @@ def loss_function(image, target):
 
 
 def test_bspline_intersect_optimization():
-    case = "bspline"
+    case = "lines"
     context = hd_USTC_CG_py.MeshIntersectionContext()
     if case == "bspline":
         scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
@@ -193,18 +193,20 @@ def test_bspline_intersect_optimization():
         camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
     )
 
-    view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
+    view_to_clip_matrix = perspective(
+        np.pi / 3, resolution[0] / resolution[1], 0.1, 1000.0
+    )
 
     width = torch.tensor([0.001], device="cuda")
     glints_roughness = torch.tensor([0.001], device="cuda")
 
     import matplotlib.pyplot as plt
 
-    max_length = 1.25
+    max_length = 0.025
 
     numviews = 10
 
-    random_gen_closure = lambda: random_gen(0.02, 250000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.02, 100000, (0, 1), (0, 1))
 
     for view in range(numviews):
         losses = []
@@ -260,7 +262,9 @@ def test_bspline_intersect_optimization():
                 light_position_np,
             )
 
-            blurred_image = torch.nn.functional.avg_pool2d(image, 3, stride=1, padding=1).detach()
+            blurred_image = torch.nn.functional.avg_pool2d(
+                image, 3, stride=1, padding=1
+            ).detach()
             image = image / blurred_image.max().detach()
 
             loss = loss_function(image, target)

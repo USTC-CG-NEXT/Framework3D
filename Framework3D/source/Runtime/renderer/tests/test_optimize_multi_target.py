@@ -155,7 +155,7 @@ def loss_function(image, target):
     return perceptual_loss(image, gamma_to_linear(target))
 
 
-def rotate_camera_postion(camera_position_np, angle):
+def rotate_postion(postion_np, angle):
     rotation_matrix = np.array(
         [
             [np.cos(angle), -np.sin(angle), 0],
@@ -164,7 +164,7 @@ def rotate_camera_postion(camera_position_np, angle):
         ],
         dtype=np.float32,
     )
-    rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
+    rotated_camera_position = np.dot(rotation_matrix, postion_np)
     return rotated_camera_position
 
 
@@ -202,10 +202,6 @@ def test_bspline_intersect_optimization():
     camera_position_np = np.array([4, -4, 6], dtype=np.float32) / 1.3
     light_position_np = np.array([4, -4, 4], dtype=np.float32)
 
-    world_to_view_matrix = look_at(
-        camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
-    )
-
     fov_in_degrees = 26
 
     view_to_clip_matrix = perspective(
@@ -213,53 +209,60 @@ def test_bspline_intersect_optimization():
     )
 
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.001], device="cuda")
+    glints_roughness = torch.tensor([0.004], device="cuda")
 
     import matplotlib.pyplot as plt
 
     max_length = 1.25
 
-    num_light_positions = 10
+    num_light_positions = 6
 
-    random_gen_closure = lambda: random_gen(0.02, 250000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.04, 270000, (0, 1), (0, 1))
 
-    for view in range(num_light_positions):
+    for light_pos_id in range(num_light_positions):
+
+        light_rotation_angle = light_pos_id * (np.pi / num_light_positions)
+        rotated_light_position = rotate_postion(light_position_np, light_rotation_angle)
+
         losses = []
         lines = random_gen_closure()
 
         lines.requires_grad_(True)
-        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.003, betas=(0.9, 0.999), eps=1e-08)
 
-        # target = renderer.prepare_target(
-        #     "texture.png",
-        #     context,
-        #     vertices,
-        #     indices,
-        #     vertex_buffer_stride,
-        #     resolution,
-        #     world_to_view_matrix,
-        #     view_to_clip_matrix,
-        # )
+        for i in range(250):
 
-        rnd_pick_target_id = np.random.randint(0, 21)
+            rnd_pick_target_id = np.random.randint(0, 21)
 
-        camera_rotate_angle = (
-            rnd_pick_target_id * (2 * 30 / 180 * np.pi) - np.pi * 30 / 180
-        )
+            camera_rotate_angle = (rnd_pick_target_id * (60 / 20) - 30) * (np.pi / 180)
 
-        rotated_camera_position = rotate_camera_postion(
-            camera_position_np, camera_rotate_angle
-        )
+            rotated_camera_position = rotate_postion(
+                camera_position_np, camera_rotate_angle
+            )
 
-        world_to_view_matrix = look_at(
-            rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
-        )
+            world_to_view_matrix = look_at(
+                rotated_camera_position,
+                np.array([0.0, 0, 0.0]),
+                np.array([0.0, 0.0, 1.0]),
+            )
+            target = (
+                imageio.imread(f"targets/render_{rnd_pick_target_id:03d}.png").astype(
+                    np.float32
+                )
+                / 255.0
+            )[..., :3]
 
-        target = imageio.imread("targets/render_" + str(rnd_pick_target_id) + ".png")
-        target = target / target.max()
-        test_utils.save_image(target, resolution, f"view_{view}/target.png")
+            target = torch.tensor(target, dtype=torch.float32).cuda()
+            target = torch.rot90(target, k=3, dims=[0, 1])
 
-        for i in range(120):
+            test_utils.save_image(
+                target, resolution, f"light_pos_{light_pos_id}/target_{i}.png"
+            )
+
+            print(target.shape)
+
+            target = target / target.max()
+
             optimizer.zero_grad()
 
             image, low_contribution_mask = renderer.render(
@@ -275,7 +278,7 @@ def test_bspline_intersect_optimization():
                 world_to_view_matrix,
                 view_to_clip_matrix,
                 rotated_camera_position,
-                light_position_np,
+                rotated_light_position,
             )
 
             blurred_image = torch.nn.functional.avg_pool2d(
@@ -316,24 +319,26 @@ def test_bspline_intersect_optimization():
                     with torch.no_grad():
                         lines[mask, 1] = lines[mask, 0] + direction * max_length
 
-            # if i % 3 == 0 and i < 90:
-            #     with torch.no_grad():
-            #         lines[low_contribution_mask] = random_gen_closure()[
-            #             low_contribution_mask
-            #         ]
+            if i % 10 == 0 and i < 130:
+                with torch.no_grad():
+                    lines[low_contribution_mask] = random_gen_closure()[
+                        low_contribution_mask
+                    ]
 
             losses.append(loss.item())
 
             torch.cuda.empty_cache()
 
-            print(f"View {view}, Iteration {i}, Loss: {loss.item()}")
+            print(f"light_pos_id {light_pos_id}, Iteration {i}, Loss: {loss.item()}")
             test_utils.save_image(
-                linear_to_gamma(image), resolution, f"view_{view}/optimization_{i}.png"
+                linear_to_gamma(image),
+                resolution,
+                f"light_pos_{light_pos_id}/optimization_{i}.png",
             )
 
         # Plot the loss curve
         plt.plot(losses)
         plt.xlabel("Iteration")
         plt.ylabel("Loss")
-        plt.title(f"Loss Curve for View {view}")
-        plt.savefig(f"view_{view}/loss_curve.png")
+        plt.title(f"Loss Curve for light_pos_id {light_pos_id}")
+        plt.savefig(f"light_pos_{light_pos_id}/loss_curve.png")
