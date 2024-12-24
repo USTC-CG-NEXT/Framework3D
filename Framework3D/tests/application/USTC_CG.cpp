@@ -40,7 +40,6 @@ int main()
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
 
     window->register_widget(std::move(usd_file_viewer));
-    auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
 
     // TODO: 1. currently it cannot peacefully shutdown when there is a mesh in
     // the usd stage. need to fix it or just remove the dependency on usd stage
@@ -55,6 +54,7 @@ int main()
         window->register_widget(std::move(polyscope_render));
     }
     else {
+        auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
         render->SetCallBack([](Window* window, IWidget* render_widget) {
             auto node_system = static_cast<const std::shared_ptr<NodeSystem>*>(
                 dynamic_cast<UsdviewEngine*>(render_widget)
