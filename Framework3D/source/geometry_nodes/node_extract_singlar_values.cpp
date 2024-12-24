@@ -34,8 +34,11 @@ NODE_EXECUTION_FUNCTION(extract_singular_values)
     int n_faces = halfedge_mesh->n_faces();
     int n_vertices = halfedge_mesh->n_vertices();
 
+    double sum_area = 0;
 
     // Construct a set of new triangles
+    std::vector<double> area(n_faces);
+    std::vector<std::vector<int>> vertex_index(n_vertices);
     std::vector<std::vector<Eigen::Vector2d>> edges(n_faces);
     Eigen::SparseMatrix<double> cotangents(n_vertices, n_vertices);
 
@@ -57,6 +60,11 @@ NODE_EXECUTION_FUNCTION(extract_singular_values)
 
         // Calculate the area of the face
         double tmp = (edge_length[0] + edge_length[1] + edge_length[2]) / 2;
+        area[face_idx] = tmp;
+        for (int i = 0; i < 3; i++)
+            area[face_idx] *= tmp - edge_length[i];
+        area[face_idx] = sqrt(area[face_idx]);
+        sum_area += area[face_idx];
 
         // Record the edges of the face
         // Their indexes are related to the point indexes opposite to them
@@ -102,8 +110,10 @@ NODE_EXECUTION_FUNCTION(extract_singular_values)
             X.row(i) = edges[face_idx][(i + 2) % 3];
             Cotangents(i, i) =
                 cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]);
-            const auto& v0 = iter_mesh->point(iter_mesh->vertex_handle(vertex_idx[i]));
-            const auto& v1 = iter_mesh->point(iter_mesh->vertex_handle(vertex_idx[(i + 1) % 3]));
+            const auto& v0 =
+                iter_mesh->point(iter_mesh->vertex_handle(vertex_idx[i]));
+            const auto& v1 = iter_mesh->point(
+                iter_mesh->vertex_handle(vertex_idx[(i + 1) % 3]));
             U(0, i) = (v1 - v0)[0];
             U(1, i) = (v1 - v0)[1];
         }
