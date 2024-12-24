@@ -22,6 +22,15 @@ int main()
 {
     log::SetMinSeverity(Severity::Debug);
     log::EnableOutputToConsole(true);
+
+    constexpr bool use_polyscope = false;
+    // Polyscope need to be initialized before window, or it cannot load opengl
+    // backend correctly.
+    std::unique_ptr<PolyscopeRenderer> polyscope_render;
+    if (use_polyscope) {
+        polyscope_render = std::make_unique<PolyscopeRenderer>();
+    }
+
     auto window = std::make_unique<Window>();
 
     auto stage = create_global_stage();
@@ -33,7 +42,6 @@ int main()
     window->register_widget(std::move(usd_file_viewer));
     auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
 
-    constexpr bool use_polyscope = false;
     // TODO: 1. currently it cannot peacefully shutdown when there is a mesh in
     // the usd stage. need to fix it or just remove the dependency on usd stage
     // completely.
@@ -44,7 +52,6 @@ int main()
     // without a current OpenGL or OpenGL ES context GLFW emitted error: Cannot
     // make current with a window that has no OpenGL or OpenGL ES context"
     if (use_polyscope) {
-        auto polyscope_render = std::make_unique<PolyscopeRenderer>();
         window->register_widget(std::move(polyscope_render));
     }
     else {
@@ -101,7 +108,6 @@ int main()
 
     unregister_cpp_type();
 
-    stage.reset();
     window.reset();
     stage.reset();
 
