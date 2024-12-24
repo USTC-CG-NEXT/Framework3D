@@ -62,7 +62,7 @@ NODE_EXECUTION_FUNCTION(arap)
     auto iters = params.get_input<Geometry>("Initialization");
 
     // Avoid processing the node when there is no input
-    if (!input.get_component<MeshComponent>()) {
+    if (!input.get_component<MeshComponent>() || !iters.get_component<MeshComponent>()) {
         throw std::runtime_error("ARAP Parameterization: Need Geometry Input.");
     }
 
