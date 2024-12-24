@@ -1,5 +1,4 @@
 import torch
-import nvdiffrast.torch as dr
 import numpy as np
 
 # ----------------------------------------------------------------------------

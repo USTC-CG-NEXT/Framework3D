@@ -68,10 +68,10 @@ import numpy as np
 import imageio
 import os
 
-
 def save_image(image, resolution, filename):
     # Create the directory if it does not exist
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    if os.path.dirname(filename):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
 
     # Move the image to CPU and convert to numpy array
     image_cpu = image.detach().cpu().numpy()

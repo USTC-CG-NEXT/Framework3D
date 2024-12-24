@@ -2,40 +2,10 @@ import hd_USTC_CG_py
 
 import numpy as np
 
-
-# world_to_view
-def look_at(eye, center, up):
-    f = center - eye
-    f /= np.linalg.norm(f)
-    u = up / np.linalg.norm(up)
-    s = np.cross(f, u)
-    s /= np.linalg.norm(s)
-    u = np.cross(s, f)
-    m = np.eye(4)
-    m[0, :3] = s
-    m[1, :3] = u
-    m[2, :3] = -f
-    m[0, 3] = -np.dot(s, eye)
-    m[1, 3] = -np.dot(u, eye)
-    m[2, 3] = np.dot(f, eye)
-    return m
-
-
-# view_to_clip
-def perspective(fovy, aspect, near, far):
-    f = 1.0 / np.tan(fovy / 2.0)
-    m = np.zeros((4, 4))
-    m[0, 0] = f / aspect
-    m[1, 1] = f
-    m[2, 2] = (far + near) / (near - far)
-    m[2, 3] = 2.0 * far * near / (near - far)
-    m[3, 2] = -1.0
-    return m
-
-
 import glints.shader as shader
 import glints.renderer as renderer
 import glints.test_utils as test_utils
+import glints.rasterization as rasterization
 
 import imageio
 
@@ -62,11 +32,11 @@ def test_rasterize_mesh():
 
     camera_position_np = np.array([3, 0.5, 3])
 
-    world_to_view_matrix = look_at(
+    world_to_view_matrix = rasterization.look_at(
         np.array([3, 0.5, 3]), np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
     )
 
-    view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
+    view_to_clip_matrix = rasterization.perspective(np.pi / 3, 1.0, 0.1, 1000.0)
 
     patches, worldToUV, targets = context.intersect_mesh_with_rays(
         vertices,
@@ -148,11 +118,11 @@ def test_render_linear_scratches():
     camera_position_np = np.array([2, 2, 3], dtype=np.float32)
     light_position_np = np.array([2, -2, 3], dtype=np.float32)
 
-    world_to_view_matrix = look_at(
+    world_to_view_matrix = rasterization.look_at(
         camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
     )
 
-    view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
+    view_to_clip_matrix = rasterization.perspective(np.pi / 3, 1.0, 0.1, 1000.0)
 
     import glints.test_utils as test_utils
 
@@ -174,7 +144,7 @@ def test_render_linear_scratches():
         )
         rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
 
-        world_to_view_matrix = look_at(
+        world_to_view_matrix = rasterization.look_at(
             rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
         )
 
@@ -225,11 +195,11 @@ def test_render_bspline_scratches():
     camera_position_np = np.array([2, 2, 3], dtype=np.float32)
     light_position_np = np.array([2, -2, 3], dtype=np.float32)
 
-    world_to_view_matrix = look_at(
+    world_to_view_matrix = rasterization.look_at(
         camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
     )
 
-    view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
+    view_to_clip_matrix = rasterization.perspective(np.pi / 3, 1.0, 0.1, 1000.0)
 
     import glints.test_utils as test_utils
 
@@ -251,7 +221,7 @@ def test_render_bspline_scratches():
         )
         rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
 
-        world_to_view_matrix = look_at(
+        world_to_view_matrix = rasterization.look_at(
             rotated_camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
         )
 
@@ -300,11 +270,11 @@ def test_prepare_target():
     camera_position_np = np.array([2, 2, 3], dtype=np.float32)
     light_position_np = np.array([2, -2, 3], dtype=np.float32)
 
-    world_to_view_matrix = look_at(
+    world_to_view_matrix = rasterization.look_at(
         camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
     )
 
-    view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
+    view_to_clip_matrix = rasterization.perspective(np.pi / 3, 1.0, 0.1, 1000.0)
 
     import glints.test_utils as test_utils
     import glints.renderer as renderer
