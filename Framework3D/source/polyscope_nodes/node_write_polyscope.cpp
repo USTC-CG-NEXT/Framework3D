@@ -36,7 +36,7 @@ bool legal(const std::string& string)
 }
 
 // TODO: Test and add support for materials and textures
-// The current implementation is not been fully tested yet
+// The current implementation has not been fully tested yet
 NODE_EXECUTION_FUNCTION(write_polyscope)
 {
     // auto global_payload = params.get_global_payload<GeomPayload>();
@@ -67,6 +67,9 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         // faceVertexIndices是一个一维数组，每faceVertexCounts[i]个元素表示一个面
         auto faceVertexCounts = mesh->get_face_vertex_counts();
         auto faceVertexIndices = mesh->get_face_vertex_indices();
+        auto display_color = mesh->get_display_color();
+        auto normals = mesh->get_normals();
+        auto texcoords_array = mesh->get_texcoords_array();
         // 转换为nested array
         std::vector<std::vector<size_t>> faceVertexIndicesNested;
         size_t start = 0;
@@ -79,10 +82,14 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
             start += faceVertexCounts[i];
         }
 
-        auto mesh = polyscope::registerSurfaceMesh(
+        auto surface_mesh = polyscope::registerSurfaceMesh(
             "mesh", vertices, faceVertexIndicesNested);
 
-        structure = mesh;
+        if (display_color.size() > 0) {
+            surface_mesh->addVertexColorQuantity("color", display_color);
+        }
+
+        structure = surface_mesh;
     }
     else if (points) {
         auto vertices = points->get_vertices();
@@ -104,6 +111,8 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         auto vertices = curve->get_vertices();
         // vert_count是一个一维数组，每个元素表示一个curve的点数，vertices中每vert_count[i]个元素表示一个curve
         auto vert_count = curve->get_vert_count();
+        auto width = curve->get_width();
+        auto display_color = curve->get_display_color();
         // 转换为edge array
         std::vector<std::array<size_t, 2>> edges;
         size_t start = 0;
@@ -114,9 +123,10 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
             start += vert_count[i];
         }
 
-        auto curve = polyscope::registerCurveNetwork("curve", vertices, edges);
+        auto curve_network =
+            polyscope::registerCurveNetwork("curve", vertices, edges);
 
-        structure = curve;
+        structure = curve_network;
     }
 
     if (!structure) {
