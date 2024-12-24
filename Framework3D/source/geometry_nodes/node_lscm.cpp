@@ -35,7 +35,6 @@ NODE_EXECUTION_FUNCTION(lscm)
 
     // Construct a set of new triangles
     std::vector<double> area(n_faces);
-    std::vector<std::vector<int>> vertex_index(n_vertices);
     std::vector<std::vector<Eigen::Vector2d>> edges(n_faces);
 
     for (auto const& face_handle : halfedge_mesh->faces()) {
