@@ -81,8 +81,6 @@ NODE_EXECUTION_FUNCTION(arap)
     int n_vertices = halfedge_mesh->n_vertices();
 
     // Construct a set of new triangles
-    std::vector<double> area(n_faces);
-    std::vector<std::vector<int>> vertex_index(n_vertices);
     std::vector<std::vector<Eigen::Vector2d>> edges(n_faces);
     Eigen::SparseMatrix<double> cotangents(n_vertices, n_vertices);
 
@@ -98,13 +96,6 @@ NODE_EXECUTION_FUNCTION(arap)
             edge_length[i] = (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 1) % 3])) -
                               halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 2) % 3])))
                               .length();
-
-        // Calculate the area of the face
-        double tmp = (edge_length[0] + edge_length[1] + edge_length[2]) / 2;
-        area[face_idx] = tmp;
-        for (int i = 0; i < 3; i++)
-            area[face_idx] *= tmp - edge_length[i];
-        area[face_idx] = sqrt(area[face_idx]);
 
         // Record the edges of the face
         // Their indexes are related to the point indexes opposite to them
