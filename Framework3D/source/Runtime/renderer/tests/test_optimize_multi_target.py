@@ -209,15 +209,15 @@ def test_bspline_intersect_optimization():
     )
 
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.004], device="cuda")
+    glints_roughness = torch.tensor([0.002], device="cuda")
 
     import matplotlib.pyplot as plt
 
-    max_length = 1.25
+    max_length = 0.6
 
     num_light_positions = 6
 
-    random_gen_closure = lambda: random_gen(0.04, 270000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.03, 270000, (0, 1), (0, 1))
 
     for light_pos_id in range(num_light_positions):
 
@@ -228,7 +228,7 @@ def test_bspline_intersect_optimization():
         lines = random_gen_closure()
 
         lines.requires_grad_(True)
-        optimizer = torch.optim.Adam([lines], lr=0.003, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.002, betas=(0.9, 0.999), eps=1e-08)
 
         for i in range(250):
 

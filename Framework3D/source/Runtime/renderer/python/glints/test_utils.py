@@ -30,6 +30,22 @@ def random_scatter_lines(length, count, width_range, height_range):
     return lines
 
 
+def generate_random_scatter_lines_directed(
+    length, count, width_range, height_range, angle_range
+):
+    x_start = torch.FloatTensor(count).uniform_(*width_range).to("cuda")
+    y_start = torch.FloatTensor(count).uniform_(*height_range).to("cuda")
+    angle = torch.FloatTensor(count).uniform_(*angle_range).to("cuda")
+    x_end = x_start + length * torch.cos(angle)
+    y_end = y_start + length * torch.sin(angle)
+
+    lines = torch.zeros((count, 2, 3), device="cuda")
+    lines[:, 0, :2] = torch.stack((x_start, y_start), dim=1)
+    lines[:, 1, :2] = torch.stack((x_end, y_end), dim=1)
+
+    return lines
+
+
 def random_scatter_bsplines(edge_length, count, width_range, height_range):
     x_start = torch.FloatTensor(count).uniform_(*width_range).to("cuda")
     y_start = torch.FloatTensor(count).uniform_(*height_range).to("cuda")
