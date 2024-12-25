@@ -34,7 +34,6 @@ def render(
     l_diag_2 = torch.norm(diag_2, dim=1)
     
     intersect_width = torch.max(torch.cat((l_diag_1, l_diag_2)))
-    print(intersect_width)
 
     intersection_pairs = scratch_context.intersect_line_with_rays(
         lines, patches, intersect_width
@@ -119,7 +118,7 @@ def render(
         contribution,
     )
 
-    low_contribution_mask = contribution_accumulation_on_lines < 0.01 * torch.max(
+    low_contribution_mask = contribution_accumulation_on_lines < 0.03 * torch.max(
         contribution_accumulation_on_lines
     )
 

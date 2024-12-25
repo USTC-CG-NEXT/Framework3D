@@ -25,7 +25,7 @@ RGS(line)
 
     auto uv_center = (patch.uv0 + patch.uv1 + patch.uv2 + patch.uv3) / 4.0f;
 
-    float3 origin = make_float3(uv_center.x, uv_center.y, 10000.0f);
+    float3 origin = make_float3(uv_center.x, uv_center.y, 100.0f);
 
     float3 dir = make_float3(0, 0, -1);
 
@@ -34,7 +34,7 @@ RGS(line)
         origin,
         dir,
         0,
-        1e5f,
+        200.f,
         1.0,
         OptixVisibilityMask(255),
         OPTIX_RAY_FLAG_NONE,

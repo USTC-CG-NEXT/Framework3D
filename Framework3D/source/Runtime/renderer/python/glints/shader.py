@@ -528,16 +528,16 @@ def ShadeBSplineElements(
 
 
 
-    end1 = p - tangent * 0.2
-    end2 = p + tangent * 0.2
+    end1 = p - tangent * 0.02
+    end2 = p + tangent * 0.02
 
     lines = torch.stack((end1, end2), dim=1)
 
     ret =  ShadeLineElement(
         lines, patches, cam_positions, light_positions, glints_roughness, width
     )
-    nan_mask = torch.isnan(ret)
-    print ("nan pairs count: ", torch.sum(nan_mask))
+    # nan_mask = torch.isnan(ret)
+    # print ("nan pairs count: ", torch.sum(nan_mask))
 
     ret = torch.nan_to_num(ret, nan=0.0)
     
