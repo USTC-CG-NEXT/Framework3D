@@ -4,6 +4,7 @@
 #include <cmath>
 #include <time.h>
 #include <Eigen/Dense>
+#include <Eigen/SparseLU>
 #include <Eigen/Sparse>
 
 /*
@@ -93,17 +94,23 @@ NODE_EXECUTION_FUNCTION(arap)
             vertex_idx[i++] = vertex_handle.idx();
 
         for (int i = 0; i < 3; i++)
-            edge_length[i] = (halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 1) % 3])) -
-                              halfedge_mesh->point(halfedge_mesh->vertex_handle(vertex_idx[(i + 2) % 3])))
-                              .length();
+            edge_length[i] =
+                (halfedge_mesh->point(
+                     halfedge_mesh->vertex_handle(vertex_idx[(i + 1) % 3])) -
+                 halfedge_mesh->point(
+                     halfedge_mesh->vertex_handle(vertex_idx[(i + 2) % 3])))
+                    .length();
 
         // Record the edges of the face
         // Their indexes are related to the point indexes opposite to them
         edges[face_idx].resize(3);
-        double cos_angle = (edge_length[1] * edge_length[1] + edge_length[2] * edge_length[2] - edge_length[0] * edge_length[0]) / (2 * edge_length[1] * edge_length[2]);
+        double cos_angle =
+            (edge_length[1] * edge_length[1] + edge_length[2] * edge_length[2] -
+             edge_length[0] * edge_length[0]) /
+            (2 * edge_length[1] * edge_length[2]);
         double sin_angle = sqrt(1 - cos_angle * cos_angle);
         edges[face_idx][1] << -edge_length[1] * cos_angle,
-                              -edge_length[1] * sin_angle;
+            -edge_length[1] * sin_angle;
         edges[face_idx][2] << edge_length[2], 0;
         edges[face_idx][0] = -edges[face_idx][1] - edges[face_idx][2];
 
@@ -111,8 +118,7 @@ NODE_EXECUTION_FUNCTION(arap)
         // Their indexes are related to the edge indexes opposite to them,
         // orderly
         for (int i = 0; i < 3; i++) {
-            double cos_value = edges[face_idx][i].dot(edges[face_idx][(i + 1) % 3]) /
-                              (edges[face_idx][i].norm() * edges[face_idx][(i + 1) % 3].norm());
+            double cos_value = edges[face_idx][i].dot(edges[face_idx][(i + 1) % 3]) / (edges[face_idx][i].norm() * edges[face_idx][(i + 1) % 3].norm());
             double sin_value = sqrt(1 - cos_value * cos_value);
             cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]) = cos_value / sin_value;
         }
@@ -158,13 +164,14 @@ NODE_EXECUTION_FUNCTION(arap)
             Edges[face_idx].row(i) = edges[face_idx][(i + 2) % 3];
         Cotangents[face_idx] = Eigen::MatrixXd::Identity(3, 3);
         for (int i = 0; i < 3; i++)
-            Cotangents[face_idx](i, i) = cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]);
+            Cotangents[face_idx](i, i) =
+                cotangents.coeffRef(vertex_idx[i], vertex_idx[(i + 1) % 3]);
         Jacobi_pre[face_idx].resize(3, 2);
         Jacobi_pre[face_idx] = Cotangents[face_idx] * Edges[face_idx];
         b_pre[face_idx] = -Jacobi_pre[face_idx].transpose() * transform_matrix;
     }
 
-    int max_iter = 400;
+    int max_iter = 2;
     int now_iter = 0;
     double err_pre = -1e9;
     double err = 1e9;
@@ -204,15 +211,17 @@ NODE_EXECUTION_FUNCTION(arap)
                 // If there is a flip, set the fliped sigular values 1 instead
                 // of -1
                 if (svd.singularValues()[0] < svd.singularValues()[1]) {
-                    svd_u(0, 0) = -svd_u(0, 0);
-                    svd_u(1, 0) = -svd_u(1, 0);
+                    svd_u(0, 0) *= -1;
+                    svd_u(1, 0) *= -1;
                 }
                 else {
-                    svd_u(0, 1) = -svd_u(0, 1);
-                    svd_u(1, 1) = -svd_u(1, 1);
+                    svd_u(0, 1) *= -1;
+                    svd_u(1, 1) *= -1;
                 }
             }
             Jacobi[face_idx] = svd_u * svd_v.transpose();
+
+            //std::cout << Jacobi[face_idx] << std::endl << std::endl;
 
             // Calculate bx and by by matrix multilplication
             Eigen::MatrixXd b = Jacobi[face_idx] * b_pre[face_idx];
@@ -258,12 +267,12 @@ NODE_EXECUTION_FUNCTION(arap)
             }
         }
         now_iter++;
-        //std::cout << now_iter << "\t" << err << std::endl;
+        // std::cout << now_iter << "\t" << err << std::endl;
     } while (now_iter < max_iter && abs(err - err_pre) > 1e-7);
 
     clock_t end_time = clock();
 
-    auto geometry = openmesh_to_operand(halfedge_mesh.get());
+    auto geometry = openmesh_to_operand(iter_mesh.get());
 
     // Set the output of the nodes
     params.set_output("Output", std::move(*geometry));
