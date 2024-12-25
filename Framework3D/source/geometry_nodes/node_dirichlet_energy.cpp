@@ -27,7 +27,7 @@ NODE_EXECUTION_FUNCTION(dirichlet_energy)
     double energy = 0;
 
     for (int i = 0; i < sigmas.rows(); i++) {
-        energy += areas(i) * (1 + pow(sigmas(i, 0) * sigmas(i, 1), -2)) * 
+        energy += areas(i) * (1 + 1 / pow(sigmas(i, 0) * sigmas(i, 1), 2)) * 
                                    (pow(sigmas(i, 0), 2) + pow(sigmas(i, 1), 2));
         sum_area += areas(i);
     }

@@ -1,4 +1,3 @@
-//#include "nodes/core/def/node_def.hpp"
 #include "GCore/Components/MeshOperand.h"
 #include "GCore/util_openmesh_bind.h"
 #include "geom_node_base.h"
