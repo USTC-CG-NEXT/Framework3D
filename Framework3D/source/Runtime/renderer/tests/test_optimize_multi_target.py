@@ -193,7 +193,7 @@ def straight_bspline_loss(lines):
     dir1 = (lines[:, 1] - lines[:, 0]) / length1.unsqueeze(1)
     dir2 = (lines[:, 1] - lines[:, 2]) / length2.unsqueeze(1)
 
-    return torch.mean(1 + torch.sum(dir1 * dir2, dim=1))
+    return torch.mean(torch.sum(torch.abs(dir1 - dir2), dim=1))
 
 
 def test_bspline_intersect_optimization():
@@ -266,7 +266,7 @@ def test_bspline_intersect_optimization():
 
                 rnd_pick_target_id = np.random.randint(0, 21)
 
-                camera_rotate_angle = (rnd_pick_target_id * (60 / 20) - 30) * (
+                camera_rotate_angle = (rnd_pick_target_id * (30 / 20) - 15) * (
                     np.pi / 180
                 )
 
