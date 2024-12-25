@@ -118,7 +118,7 @@ def render(
         contribution,
     )
 
-    low_contribution_mask = contribution_accumulation_on_lines < 0.03 * torch.max(
+    low_contribution_mask = contribution_accumulation_on_lines < 0.001 * torch.mean(
         contribution_accumulation_on_lines
     )
 

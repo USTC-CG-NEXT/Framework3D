@@ -182,9 +182,9 @@ ScratchIntersectionContext::intersect_line_with_rays(
 
     auto intersected_size = append_buffer.get_size();
 
-    std::cout << "intersected_ratio: "
-              << (float)intersected_size / _buffer_size * 100 << "%"
-              << std::endl;
+    //std::cout << "intersected_ratio: "
+    //          << (float)intersected_size / _buffer_size * 100 << "%"
+    //          << std::endl;
 
     return std::make_tuple(
         reinterpret_cast<float*>(append_buffer.get_underlying_buffer_ptr()),
