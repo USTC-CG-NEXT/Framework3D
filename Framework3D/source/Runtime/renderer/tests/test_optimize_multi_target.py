@@ -240,14 +240,14 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.04
+    max_length = 0.05
 
-    num_light_positions = 6
+    num_light_positions = 8
 
-    random_gen_closure = lambda: random_gen(0.03, 120000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.03, 240000, (0, 1), (0, 1))
 
     for light_pos_id in range(num_light_positions):
-        if light_pos_id > 3:
+        if light_pos_id > 5:
             continue
 
         light_rotation_angle = light_pos_id * (np.pi / num_light_positions)
@@ -362,7 +362,7 @@ def test_bspline_intersect_optimization():
                         with torch.no_grad():
                             lines[mask, 1] = lines[mask, 0] + direction * max_length
 
-                if i % 10 == 0 and i < 150:
+                if i % 20 == 0 and i < 400:
                     with torch.no_grad():
                         lines[low_contribution_mask] = random_gen_closure()[
                             low_contribution_mask
