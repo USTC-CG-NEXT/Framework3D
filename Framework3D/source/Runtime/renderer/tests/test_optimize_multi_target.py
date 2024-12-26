@@ -166,8 +166,8 @@ def perceptual_loss(image, target):
 
     blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.0)
     blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.0)
-    mse_loss_value = torch.nn.functional.mse_loss(blurred_image, blurred_target)
-    return mse_loss_value, 0.02 * perceptual_loss_value
+    mse_loss_value = torch.nn.functional.l1_loss(blurred_image, blurred_target)
+    return mse_loss_value, 0.1 * perceptual_loss_value
 
 
 def loss_function(image, target):
@@ -227,7 +227,7 @@ def test_bspline_intersect_optimization():
     resolution = [1536, 1024]
 
     camera_position_np = np.array([4.5, 0, 6], dtype=np.float32)
-    light_position_np = np.array([6, 0, 4], dtype=np.float32)
+    light_position_np = np.array([0.77064, 0.0, 1.98921], dtype=np.float32)*1.3
 
     fov_in_degrees = 26
 
@@ -240,36 +240,37 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.10
+    max_length = 0.05
 
-    num_light_positions = 8
+    num_light_positions = 16
 
-    random_gen_closure = lambda: random_gen(0.08, 100000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.03, 160000, (0, 1), (0, 1))
 
     for light_pos_id in range(num_light_positions):
-        if light_pos_id > 5:
+        if light_pos_id >= 8:
             continue
 
-        light_rotation_angle = light_pos_id * (np.pi / num_light_positions)
-        rotated_light_init_position = rotate_postion(light_position_np, light_rotation_angle)
-        light_position_torch = torch.tensor(rotated_light_init_position, device="cuda") 
-
+        light_rotation_angle = light_pos_id * (2 * np.pi / num_light_positions)
+        rotated_light_init_position = rotate_postion(
+            light_position_np, light_rotation_angle
+        )
+        light_position_torch = torch.tensor(rotated_light_init_position, device="cuda")
 
         losses = []
         lines = random_gen_closure()
 
         lines.requires_grad_(True)
-        light_position_torch.requires_grad_(True)
+        light_position_torch.requires_grad_(False)
 
-        optimizer = torch.optim.Adam([lines], lr=0.0003, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
         import os
 
         os.makedirs(f"light_pos_{light_pos_id}", exist_ok=True)
         with open(f"light_pos_{light_pos_id}/optimization.log", "a") as log_file:
 
             for i in range(800):
-
-                rnd_pick_target_id = np.random.randint(0, 21)
+                if i < 2 or np.random.rand() < last_loss / this_loss:
+                    rnd_pick_target_id = np.random.randint(0, 21)
 
                 camera_rotate_angle = (rnd_pick_target_id * (30 / 20) - 15) * (
                     np.pi / 180
@@ -317,6 +318,7 @@ def test_bspline_intersect_optimization():
                     rotated_camera_position,
                     light_position_torch,
                 )
+                # if i == 0:
                 blurred_image = torch.nn.functional.avg_pool2d(
                     image.detach(), 7, stride=1, padding=3
                 ).detach()
@@ -324,7 +326,7 @@ def test_bspline_intersect_optimization():
 
                 straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
-                loss = straight_bspline_loss_value + mse_loss + perceptual_loss
+                loss =  mse_loss + perceptual_loss # + straight_bspline_loss_value
                 loss.backward()
 
                 # Mask out NaN gradients
@@ -333,7 +335,7 @@ def test_bspline_intersect_optimization():
                         if param.grad is not None:
                             nan_mask = torch.isnan(param.grad)
                             merged_nan_mask = nan_mask.any(dim=1).any(dim=1)
-                            param.grad[merged_nan_mask] = 0
+                            param.grad[merged_nan_mask] = 0.0
 
                 optimizer.step()
 
@@ -373,6 +375,12 @@ def test_bspline_intersect_optimization():
                         ]
                 with torch.no_grad():
                     lines[merged_nan_mask] = random_gen_closure()[merged_nan_mask]
+
+                if i == 0:
+                    this_loss = loss.item()
+                else:
+                    last_loss = this_loss
+                    this_loss = loss.item()
 
                 losses.append(loss.item())
 
