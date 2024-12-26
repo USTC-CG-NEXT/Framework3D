@@ -224,12 +224,12 @@ def test_bspline_intersect_optimization():
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [1536, 1024]
+    resolution = [1536, 1536]
 
-    camera_position_np = np.array([4, -4, 6], dtype=np.float32) / 1.3
-    light_position_np = np.array([4, -4, 4], dtype=np.float32)
+    camera_position_np = np.array([4, -4, 6], dtype=np.float32)
+    light_position_np = np.array([2, -2, 4], dtype=np.float32)
 
-    fov_in_degrees = 26
+    fov_in_degrees = 30
 
     view_to_clip_matrix = perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
@@ -276,7 +276,7 @@ def test_bspline_intersect_optimization():
 
                 world_to_view_matrix = look_at(
                     rotated_camera_position,
-                    np.array([0.0, 0, 0.0]),
+                    np.array([-1.0, 1.0, 0.0]),
                     np.array([0.0, 0.0, 1.0]),
                 )
                 target = (
