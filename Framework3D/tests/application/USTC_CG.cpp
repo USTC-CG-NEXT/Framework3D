@@ -23,7 +23,7 @@ int main()
     log::SetMinSeverity(Severity::Debug);
     log::EnableOutputToConsole(true);
 
-    constexpr bool use_polyscope = false;
+    constexpr bool use_polyscope = true;
     // Polyscope need to be initialized before window, or it cannot load opengl
     // backend correctly.
     std::unique_ptr<PolyscopeRenderer> polyscope_render;
@@ -108,6 +108,7 @@ int main()
 
     unregister_cpp_type();
 
+    // stage.reset();
     window.reset();
     stage.reset();
 

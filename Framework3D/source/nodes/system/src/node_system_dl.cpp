@@ -29,15 +29,18 @@ DynamicLibraryLoader::DynamicLibraryLoader(const std::string& libraryName)
 
 DynamicLibraryLoader::~DynamicLibraryLoader()
 {
-#ifdef _WIN32
-    if (handle) {
-        FreeLibrary(handle);
-    }
-#else
-    if (handle) {
-        dlclose(handle);
-    }
-#endif
+    // If free libraries at here, the program will crash when halting in
+    // unregister_cpp_type().
+
+    // #ifdef _WIN32
+    //     if (handle) {
+    //         FreeLibrary(handle);
+    //     }
+    // #else
+    //     if (handle) {
+    //         dlclose(handle);
+    //     }
+    // #endif
 }
 
 NodeTreeDescriptor NodeDynamicLoadingSystem::node_tree_descriptor()

@@ -177,13 +177,16 @@ void UsdFileViewer::show_right_click_menu()
             ImGui::EndMenu();
         }
 
-        if (ImGui::MenuItem("Edit")) {
-            stage->create_editor_at_path(selected);
+        if (selected != pxr::SdfPath::AbsoluteRootPath()) {
+            if (ImGui::MenuItem("Edit")) {
+                stage->create_editor_at_path(selected);
+            }
+
+            if (ImGui::MenuItem("Delete")) {
+                stage->remove_prim(selected);
+            }
         }
 
-        if (ImGui::MenuItem("Delete")) {
-            stage->remove_prim(selected);
-        }
         ImGui::EndPopup();
     }
 }
