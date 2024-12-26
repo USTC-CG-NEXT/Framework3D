@@ -251,12 +251,16 @@ def test_bspline_intersect_optimization():
             continue
 
         light_rotation_angle = light_pos_id * (np.pi / num_light_positions)
-        rotated_light_position = rotate_postion(light_position_np, light_rotation_angle)
+        rotated_light_init_position = rotate_postion(light_position_np, light_rotation_angle)
+        light_position_torch = torch.tensor(rotated_light_init_position, device="cuda") 
+
 
         losses = []
         lines = random_gen_closure()
 
         lines.requires_grad_(True)
+        light_position_torch.requires_grad_(True)
+
         optimizer = torch.optim.Adam([lines], lr=0.0003, betas=(0.9, 0.999), eps=1e-08)
         import os
 
@@ -311,12 +315,11 @@ def test_bspline_intersect_optimization():
                     world_to_view_matrix,
                     view_to_clip_matrix,
                     rotated_camera_position,
-                    rotated_light_position,
+                    light_position_torch,
                 )
-                if i == 0:
-                    blurred_image = torch.nn.functional.avg_pool2d(
-                        image.detach(), 7, stride=1, padding=3
-                    ).detach()
+                blurred_image = torch.nn.functional.avg_pool2d(
+                    image.detach(), 7, stride=1, padding=3
+                ).detach()
                 image = image / blurred_image.max().detach()
 
                 straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001

@@ -15,7 +15,7 @@ def render(
     world_to_view_matrix,
     view_to_clip_matrix,
     camera_position_np,
-    light_position_np,
+    light_position,
 ):
     patches, worldToUV, targets = context.intersect_mesh_with_rays(
         vertices,
@@ -28,11 +28,11 @@ def render(
 
     reshaped_patches = patches.reshape(-1, 4, 2)
 
-    diag_1 =  reshaped_patches[:,2,:] - reshaped_patches[:,0,:]
-    diag_2 =  reshaped_patches[:,3,:] - reshaped_patches[:,1,:]
+    diag_1 = reshaped_patches[:, 2, :] - reshaped_patches[:, 0, :]
+    diag_2 = reshaped_patches[:, 3, :] - reshaped_patches[:, 1, :]
     l_diag_1 = torch.norm(diag_1, dim=1)
     l_diag_2 = torch.norm(diag_2, dim=1)
-    
+
     intersect_width = torch.max(torch.cat((l_diag_1, l_diag_2)))
 
     intersection_pairs = scratch_context.intersect_line_with_rays(
@@ -49,7 +49,11 @@ def render(
     intersected_worldToUV = worldToUV[intersection_pairs[:, 1].long()]
 
     camera_position_torch = torch.tensor(camera_position_np, device="cuda")
-    light_position_torch = torch.tensor(light_position_np, device="cuda")
+
+    if not isinstance(light_position, torch.Tensor):
+        light_position_torch = torch.tensor(light_position, device="cuda")
+    else:
+        light_position_torch = light_position
 
     camera_position_homogeneous = torch.cat(
         [camera_position_torch, torch.ones(1, device="cuda", dtype=torch.float32)]
