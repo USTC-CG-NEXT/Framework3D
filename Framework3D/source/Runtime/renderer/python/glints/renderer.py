@@ -197,7 +197,7 @@ def prepare_target(
         1.0 / 4.0 * (patches[:, 0] + patches[:, 1] + patches[:, 2] + patches[:, 3])
     )
 
-    sampled_color = sample_texture_bilinear(torch_texture, flip_u(patch_uv_center))
+    sampled_color = sample_texture_bilinear(torch_texture, flip_v(flip_u(patch_uv_center)))
     if sampled_color.shape[1] == 4:
         sampled_color = sampled_color[:, :3]
     elif sampled_color.shape[1] == 1:

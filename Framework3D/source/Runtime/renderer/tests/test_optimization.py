@@ -202,11 +202,11 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.025
+    max_length = 0.05
 
     numviews = 10
 
-    random_gen_closure = lambda: random_gen(0.02, 100000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.025, 30000, (0, 1), (0, 1))
 
     for view in range(numviews):
         losses = []
@@ -263,12 +263,21 @@ def test_bspline_intersect_optimization():
             )
 
             blurred_image = torch.nn.functional.avg_pool2d(
-                image, 3, stride=1, padding=1
+                image, 5, stride=1, padding=2
             ).detach()
             image = image / blurred_image.max().detach()
 
             loss = loss_function(image, target)
             loss.backward()
+
+            # Mask out NaN gradients
+            with torch.no_grad():
+                for param in optimizer.param_groups[0]["params"]:
+                    if param.grad is not None:
+                        nan_mask = torch.isnan(param.grad)
+                        merged_nan_mask = nan_mask.any(dim=1).any(dim=1)
+                        param.grad[merged_nan_mask] = 0.00001
+
             optimizer.step()
 
             # Clamp lines to max length
@@ -305,7 +314,9 @@ def test_bspline_intersect_optimization():
             #         lines[low_contribution_mask] = random_gen_closure()[
             #             low_contribution_mask
             #         ]
-
+            # if i < 80:
+            #     with torch.no_grad():
+            #         lines[merged_nan_mask] = random_gen_closure()[merged_nan_mask]
             losses.append(loss.item())
 
             torch.cuda.empty_cache()
@@ -314,6 +325,9 @@ def test_bspline_intersect_optimization():
             test_utils.save_image(
                 linear_to_gamma(image), resolution, f"view_{view}/optimization_{i}.png"
             )
+
+        with open(f"view_{view}/lines.txt", "w") as f:
+            f.write(str(torch.nan_to_num(lines, nan=-1.0)[:, :, :2].tolist()))
 
         # Plot the loss curve
         plt.plot(losses)
