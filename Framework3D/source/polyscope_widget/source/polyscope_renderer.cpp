@@ -13,7 +13,7 @@
 #include "polyscope/screenshot.h"
 #include "polyscope/view.h"
 #include "polyscope_widget/api.h"
-#include "polyscope_widget/polyscope_widget.h"
+#include "polyscope_widget/polyscope_renderer.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
