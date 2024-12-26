@@ -22,11 +22,11 @@ def look_at(eye, center, up):
 
 
 # view_to_clip
-def perspective(fovy, aspect, near, far):
-    f = 1.0 / np.tan(fovy / 2.0)
+def perspective(fovx, aspect, near, far):
+    f = 1.0 / np.tan(fovx / 2.0)
     m = np.zeros((4, 4))
-    m[0, 0] = f / aspect
-    m[1, 1] = f
+    m[0, 0] = f
+    m[1, 1] = f * aspect
     m[2, 2] = (far + near) / (near - far)
     m[2, 3] = 2.0 * far * near / (near - far)
     m[3, 2] = -1.0
@@ -164,10 +164,10 @@ def perceptual_loss(image, target):
     # )
     perceptual_loss_value = lpips_loss_fn(reshaped_image, reshaped_target)
 
-    blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.5)
-    blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.5)
+    blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.0)
+    blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.0)
     mse_loss_value = torch.nn.functional.mse_loss(blurred_image, blurred_target)
-    return mse_loss_value, 0.01 * perceptual_loss_value
+    return mse_loss_value, 0.02 * perceptual_loss_value
 
 
 def loss_function(image, target):
@@ -206,7 +206,7 @@ def test_bspline_intersect_optimization():
         scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
         random_gen = test_utils.random_scatter_lines
 
-    scratch_context.set_max_pair_buffer_ratio(20.0)
+    scratch_context.set_max_pair_buffer_ratio(25.0)
 
     import torch
     import imageio
@@ -224,27 +224,27 @@ def test_bspline_intersect_optimization():
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [1536, 1536]
+    resolution = [1536, 1024]
 
-    camera_position_np = np.array([4, -4, 6], dtype=np.float32)
-    light_position_np = np.array([2, -2, 4], dtype=np.float32)
+    camera_position_np = np.array([4.5, 0, 6], dtype=np.float32)
+    light_position_np = np.array([6, 0, 4], dtype=np.float32)
 
-    fov_in_degrees = 30
+    fov_in_degrees = 26
 
     view_to_clip_matrix = perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
 
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.003], device="cuda")
+    glints_roughness = torch.tensor([0.001], device="cuda")
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.05
+    max_length = 0.10
 
     num_light_positions = 8
 
-    random_gen_closure = lambda: random_gen(0.03, 240000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.08, 100000, (0, 1), (0, 1))
 
     for light_pos_id in range(num_light_positions):
         if light_pos_id > 5:
@@ -259,6 +259,7 @@ def test_bspline_intersect_optimization():
         lines.requires_grad_(True)
         optimizer = torch.optim.Adam([lines], lr=0.0003, betas=(0.9, 0.999), eps=1e-08)
         import os
+
         os.makedirs(f"light_pos_{light_pos_id}", exist_ok=True)
         with open(f"light_pos_{light_pos_id}/optimization.log", "a") as log_file:
 
@@ -276,7 +277,7 @@ def test_bspline_intersect_optimization():
 
                 world_to_view_matrix = look_at(
                     rotated_camera_position,
-                    np.array([-1.0, 1.0, 0.0]),
+                    np.array([0.0, 0, 0.0]),
                     np.array([0.0, 0.0, 1.0]),
                 )
                 target = (
@@ -312,13 +313,13 @@ def test_bspline_intersect_optimization():
                     rotated_camera_position,
                     rotated_light_position,
                 )
-
-                blurred_image = torch.nn.functional.avg_pool2d(
-                    image.detach(), 3, stride=1, padding=1
-                ).detach()
+                if i == 0:
+                    blurred_image = torch.nn.functional.avg_pool2d(
+                        image.detach(), 7, stride=1, padding=3
+                    ).detach()
                 image = image / blurred_image.max().detach()
 
-                straight_bspline_loss_value = straight_bspline_loss(lines) * 0.004
+                straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
                 loss = straight_bspline_loss_value + mse_loss + perceptual_loss
                 loss.backward()
