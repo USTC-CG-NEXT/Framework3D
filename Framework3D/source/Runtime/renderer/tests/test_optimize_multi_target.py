@@ -167,6 +167,7 @@ def perceptual_loss(image, target):
     blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.0)
     blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.0)
     mse_loss_value = torch.nn.functional.l1_loss(blurred_image, blurred_target)
+    
     return mse_loss_value, 0.01 * perceptual_loss_value
 
 
@@ -224,12 +225,12 @@ def test_bspline_intersect_optimization():
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [1536, 1024]
+    resolution = [1920, 1080]
 
-    camera_position_np = np.array([4.5, 0, 6], dtype=np.float32)
-    light_position_np = np.array([0.27064, 0.0, 1.98921], dtype=np.float32)*1.3
+    camera_position_np = np.array([4.5, 0, 4], dtype=np.float32)
+    light_position_np = np.array([0.27064, 0.0, 1.98921], dtype=np.float32) * 1.3
 
-    fov_in_degrees = 26
+    fov_in_degrees = 36
 
     view_to_clip_matrix = perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
@@ -254,23 +255,27 @@ def test_bspline_intersect_optimization():
         rotated_light_init_position = rotate_postion(
             light_position_np, light_rotation_angle
         )
-        light_position_torch = torch.tensor(rotated_light_init_position, device="cuda")
+        # light_position_torch = torch.tensor(rotated_light_init_position, device="cuda")
 
         losses = []
         lines = random_gen_closure()
 
         lines.requires_grad_(True)
-        light_position_torch.requires_grad_(False)
+        # light_position_torch.requires_grad_(False)
 
         optimizer = torch.optim.Adam([lines], lr=0.0003, betas=(0.9, 0.999), eps=1e-08)
+        rnd_pick_target_id = 0
+
         import os
 
         os.makedirs(f"light_pos_{light_pos_id}", exist_ok=True)
         with open(f"light_pos_{light_pos_id}/optimization.log", "a") as log_file:
 
             for i in range(800):
-                if i < 2 or np.random.rand() < last_loss / this_loss:
-                    rnd_pick_target_id = np.random.randint(0, 21)
+                # if i < 2 or np.random.rand() < last_loss / this_loss:
+                #     rnd_pick_target_id = np.random.randint(0, 21)
+
+                rnd_pick_target_id = (rnd_pick_target_id + 1) % 21
 
                 camera_rotate_angle = (rnd_pick_target_id * (30 / 20) - 15) * (
                     np.pi / 180
@@ -278,6 +283,10 @@ def test_bspline_intersect_optimization():
 
                 rotated_camera_position = rotate_postion(
                     camera_position_np, camera_rotate_angle
+                )
+
+                rotated_light_init_position = rotate_postion(
+                    light_position_np, camera_rotate_angle
                 )
 
                 world_to_view_matrix = look_at(
@@ -316,7 +325,7 @@ def test_bspline_intersect_optimization():
                     world_to_view_matrix,
                     view_to_clip_matrix,
                     rotated_camera_position,
-                    light_position_torch,
+                    rotated_light_init_position,
                 )
                 # if i == 0:
                 blurred_image = torch.nn.functional.avg_pool2d(
@@ -326,7 +335,7 @@ def test_bspline_intersect_optimization():
 
                 straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
-                loss =  mse_loss + perceptual_loss # + straight_bspline_loss_value
+                loss = mse_loss + perceptual_loss  # + straight_bspline_loss_value
                 loss.backward()
 
                 # Mask out NaN gradients
