@@ -52,12 +52,18 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 ImGui_Renderer::ImGui_Renderer(DeviceManager* devManager)
     : IRenderPass(devManager)
 {
-    ImGui::CreateContext();
+    // 若使用Polyscope，则此时ImGui已经被初始化，不需要再次初始化
+    if (!ImGui::GetCurrentContext()) {
+        ImGui::CreateContext();
+        contextInitialized = true;
+    }
 }
 
 ImGui_Renderer::~ImGui_Renderer()
 {
-    ImGui::DestroyContext();
+    if (contextInitialized) {
+        ImGui::DestroyContext();
+    }
 }
 
 bool ImGui_Renderer::Init(std::shared_ptr<ShaderFactory> shaderFactory)

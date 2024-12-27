@@ -39,6 +39,8 @@ file(GLOB source
     "${imgui_file_SOURCE_DIR}/*.cpp"
 )
 add_library(imgui SHARED ${source})
+target_compile_definitions(imgui PRIVATE IMGUI_EXPORTS)
+target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="${CMAKE_CURRENT_SOURCE_DIR}/custom_imgui_config.h")
 target_include_directories(imgui
     PUBLIC "${imgui_SOURCE_DIR}"
     PUBLIC "${imgui_SOURCE_DIR}/backends"
@@ -46,10 +48,7 @@ target_include_directories(imgui
 )
 target_link_libraries(imgui PUBLIC glfw Vulkan::Headers)
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_VULKAN_NO_PROTOTYPES=1)
-
 set_target_properties(imgui PROPERTIES FOLDER "external" ${OUTPUT_DIR})
-add_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="${CMAKE_CURRENT_SOURCE_DIR}/custom_imgui_config.h")
-add_compile_definitions(imgui PRIVATE IMGUI_EXPORTS)
 
 add_subdirectory(OpenMesh)
 set_target_properties(OpenMeshCore PROPERTIES FOLDER "external")

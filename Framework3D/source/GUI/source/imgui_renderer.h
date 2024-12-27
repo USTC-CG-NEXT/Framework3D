@@ -69,10 +69,10 @@ class ImGui_Renderer : public IRenderPass {
     ~ImGui_Renderer();
     bool Init(std::shared_ptr<ShaderFactory> shaderFactory);
 
-    //ImFont* LoadFont(
-    //    vfs::IFileSystem& fs,
-    //    std::filesystem::path const& fontFile,
-    //    float fontSize);
+    // ImFont* LoadFont(
+    //     vfs::IFileSystem& fs,
+    //     std::filesystem::path const& fontFile,
+    //     float fontSize);
 
     virtual bool KeyboardUpdate(int key, int scancode, int action, int mods)
         override;
@@ -91,6 +91,9 @@ class ImGui_Renderer : public IRenderPass {
     void BeginFullScreenWindow();
     void DrawScreenCenteredText(const char* text);
     void EndFullScreenWindow();
+
+   private:
+    bool contextInitialized = false;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
