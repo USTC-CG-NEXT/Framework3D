@@ -8,7 +8,7 @@
 #include "Logger/Logger.h"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
-#include "polyscope_widget/polyscope_widget.h"
+#include "polyscope_widget/polyscope_renderer.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
 #include "stage/stage.hpp"

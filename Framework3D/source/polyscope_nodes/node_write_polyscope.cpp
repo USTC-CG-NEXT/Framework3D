@@ -11,7 +11,7 @@
 #include "polyscope/point_cloud.h"
 #include "polyscope/structure.h"
 #include "polyscope/surface_mesh.h"
-#include "polyscope_widget/polyscope_widget.h"
+#include "polyscope_widget/polyscope_renderer.h"
 #include "pxr/base/gf/rotation.h"
 
 NODE_DEF_OPEN_SCOPE
@@ -86,23 +86,45 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
             "mesh", vertices, faceVertexIndicesNested);
 
         if (display_color.size() > 0) {
-            surface_mesh->addVertexColorQuantity("color", display_color);
+            try {
+                surface_mesh->addVertexColorQuantity("color", display_color)
+                    ->setEnabled(true);
+            }
+            catch (std::exception& e) {
+                std::cerr << e.what() << std::endl;
+                return false;
+            }
         }
 
         structure = surface_mesh;
     }
     else if (points) {
         auto vertices = points->get_vertices();
+        auto display_color = points->get_display_color();
+        auto width = points->get_width();
+
         auto point_cloud = polyscope::registerPointCloud("points", vertices);
 
-        if (points->get_width().size() > 0) {
-            auto q =
-                point_cloud->addScalarQuantity("width", points->get_width());
-            point_cloud->setPointRadiusQuantity(q);
+        if (width.size() > 0) {
+            try {
+                point_cloud->addScalarQuantity("width", width);
+                point_cloud->setPointRadiusQuantity("width");
+            }
+            catch (std::exception& e) {
+                std::cerr << e.what() << std::endl;
+                return false;
+            }
         }
 
-        if (points->get_display_color().size() > 0) {
-            point_cloud->addColorQuantity("color", points->get_display_color());
+        if (display_color.size() > 0) {
+            try {
+                point_cloud->addColorQuantity("color", display_color)
+                    ->setEnabled(true);
+            }
+            catch (std::exception& e) {
+                std::cerr << e.what() << std::endl;
+                return false;
+            }
         }
 
         structure = point_cloud;
