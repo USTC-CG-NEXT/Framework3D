@@ -34,52 +34,53 @@ polyscope::CameraParameters default_camera_params{
         )
 };
 
-int nPts = 2000;
-float anotherParam = 0.0;
+// int nPts = 2000;
+// float anotherParam = 0.0;
 
-void testSubroutine()
-{
-    // do something useful...
+// void testSubroutine()
+// {
+//     // do something useful...
 
-    // Register a structure
-    std::vector<glm::vec3> points;
-    for (int i = 0; i < nPts; i++) {
-        points.push_back(glm::vec3{ polyscope::randomUnit(),
-                                    polyscope::randomUnit(),
-                                    polyscope::randomUnit() });
-    }
-    polyscope::registerPointCloud("my point cloud", points);
-}
+//     // Register a structure
+//     std::vector<glm::vec3> points;
+//     for (int i = 0; i < nPts; i++) {
+//         points.push_back(glm::vec3{ polyscope::randomUnit(),
+//                                     polyscope::randomUnit(),
+//                                     polyscope::randomUnit() });
+//     }
+//     polyscope::registerPointCloud("my point cloud", points);
+// }
 
 // Your callback functions
-void testCallback()
-{
-    // Since options::openImGuiWindowForUserCallback == true by default,
-    // we can immediately start using ImGui commands to build a UI
+// void testCallback()
+// {
+//     // Since options::openImGuiWindowForUserCallback == true by default,
+//     // we can immediately start using ImGui commands to build a UI
 
-    ImGui::PushItemWidth(100);  // Make ui elements 100 pixels wide,
-                                // instead of full width. Must have
-                                // matching PopItemWidth() below.
+//     ImGui::PushItemWidth(100);  // Make ui elements 100 pixels wide,
+//                                 // instead of full width. Must have
+//                                 // matching PopItemWidth() below.
 
-    ImGui::InputInt("num points", &nPts);             // set a int variable
-    ImGui::InputFloat("param value", &anotherParam);  // set a float variable
+//     ImGui::InputInt("num points", &nPts);             // set a int variable
+//     ImGui::InputFloat("param value", &anotherParam);  // set a float variable
 
-    if (ImGui::Button("run subroutine")) {
-        // executes when button is pressed
-        testSubroutine();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("hi")) {
-        polyscope::warning("hi");
-    }
+//     if (ImGui::Button("run subroutine")) {
+//         // executes when button is pressed
+//         testSubroutine();
+//     }
+//     ImGui::SameLine();
+//     if (ImGui::Button("hi")) {
+//         polyscope::warning("hi");
+//     }
 
-    ImGui::PopItemWidth();
-}
+//     ImGui::PopItemWidth();
+// }
 
 PolyscopeRenderer::PolyscopeRenderer(polyscope::CameraParameters prams)
 {
     data_ = std::make_unique<PolyscopeRenderPrivateData>();
     // polyscope::options::buildGui = false;
+    polyscope::options::enableRenderErrorChecks = true;
     polyscope::init();
     polyscope::view::setViewToCamera(prams);
     // Test register a structure
@@ -218,7 +219,7 @@ void PolyscopeRenderer::DrawFrame()
     ImGui::EndChild();
 }
 
-// Rewriten from processInputEvents() in polyscope.cpp
+// Rewritten from processInputEvents() in polyscope.cpp
 void PolyscopeRenderer::ProcessInputEvents()
 {
     ImGuiIO& io = ImGui::GetIO();

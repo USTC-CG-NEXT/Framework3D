@@ -6,38 +6,36 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-class POLYSCOPE_WIDGET_API PolyscopeInfoViewer final : public IWidget {
+class POLYSCOPE_WIDGET_API PolyscopePickingViewer final : public IWidget {
    public:
-    explicit PolyscopeInfoViewer();
-    ~PolyscopeInfoViewer() override;
+    explicit PolyscopePickingViewer();
+    ~PolyscopePickingViewer() override;
 
     bool BuildUI() override;
     // void SetCallBack(const std::function<void(Window*, IWidget*)>&) override;
 
+    bool Begin() override
+    {
+        return true;
+    }
+
+    void End() override
+    {
+    }
+
    protected:
-    ImGuiWindowFlags GetWindowFlag() override;
-    const char* GetWindowName() override;
-    std::string GetWindowUniqueName() override;
-    void BackBufferResized(
-        unsigned width,
-        unsigned height,
-        unsigned sampleCount) override;
+    // ImGuiWindowFlags GetWindowFlag() override;
+    // const char* GetWindowName() override;
+    // std::string GetWindowUniqueName() override;
+    // void BackBufferResized(
+    //     unsigned width,
+    //     unsigned height,
+    //     unsigned sampleCount) override;
     // bool Begin() override;
     // void End() override;
 
    private:
-    std::vector<unsigned char> buffer;
-    std::vector<unsigned char> flipped_buffer;
-
-    bool is_active = false;
-    bool is_hovered = false;
-
-    void GetFrameBuffer();
-    void DrawMenuBar();
-    void DrawFrame();
-
-    float drag_distSince_last_release = 0.0;
-    void ProcessInputEvents();
+    void BuildPickGui();
 
    protected:
     // bool JoystickButtonUpdate(int button, bool pressed) override;

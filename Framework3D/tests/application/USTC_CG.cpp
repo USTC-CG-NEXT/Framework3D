@@ -8,6 +8,7 @@
 #include "Logger/Logger.h"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
+#include "polyscope_widget/polyscope_picking_viewer.h"
 #include "polyscope_widget/polyscope_renderer.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usd/usdGeom/sphere.h"
@@ -27,8 +28,10 @@ int main()
     // Polyscope need to be initialized before window, or it cannot load opengl
     // backend correctly.
     std::unique_ptr<PolyscopeRenderer> polyscope_render;
+    std::unique_ptr<PolyscopePickingViewer> polyscope_picking_viewer;
     if (use_polyscope) {
         polyscope_render = std::make_unique<PolyscopeRenderer>();
+        polyscope_picking_viewer = std::make_unique<PolyscopePickingViewer>();
     }
 
     auto window = std::make_unique<Window>();
@@ -52,6 +55,7 @@ int main()
     // make current with a window that has no OpenGL or OpenGL ES context"
     if (use_polyscope) {
         window->register_widget(std::move(polyscope_render));
+        window->register_widget(std::move(polyscope_picking_viewer));
     }
     else {
         auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
