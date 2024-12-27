@@ -1,8 +1,10 @@
 set(EIGEN_BUILD_DOC OFF CACHE BOOL "" FORCE)
 add_subdirectory(eigen)
-if (WIN32)
+
+if(WIN32)
     target_compile_options(eigen INTERFACE /wd5054)
 endif()
+
 # glfw
 add_subdirectory(glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -13,14 +15,15 @@ set_target_properties(glfw update_mappings PROPERTIES FOLDER "external/GLFW3")
 set_target_properties(glfw update_mappings PROPERTIES ${OUTPUT_DIR})
 
 # nvrhi (with vulkan headers)
-if (WIN32)
+if(WIN32)
     set(NVRHI_WITH_NVAPI ON)
 endif()
+
 set(NVRHI_BUILD_SHARED ON CACHE INTERNAL "Override default shared build of nvrhi")
 add_subdirectory(nvrhi)
 set_target_properties(nvrhi PROPERTIES ${OUTPUT_DIR})
 
-if (WIN32)
+if(WIN32)
     target_link_libraries(nvrhi PUBLIC NVAPI::NVAPI)
 endif()
 
@@ -35,7 +38,7 @@ file(GLOB source
     "${imgui_file_SOURCE_DIR}/*.h"
     "${imgui_file_SOURCE_DIR}/*.cpp"
 )
-add_library(imgui STATIC ${source})
+add_library(imgui SHARED ${source})
 target_include_directories(imgui
     PUBLIC "${imgui_SOURCE_DIR}"
     PUBLIC "${imgui_SOURCE_DIR}/backends"
@@ -43,7 +46,10 @@ target_include_directories(imgui
 )
 target_link_libraries(imgui PUBLIC glfw Vulkan::Headers)
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_VULKAN_NO_PROTOTYPES=1)
+
 set_target_properties(imgui PROPERTIES FOLDER "external" ${OUTPUT_DIR})
+add_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="${CMAKE_CURRENT_SOURCE_DIR}/custom_imgui_config.h")
+add_compile_definitions(imgui PRIVATE IMGUI_EXPORTS)
 
 add_subdirectory(OpenMesh)
 set_target_properties(OpenMeshCore PROPERTIES FOLDER "external")
