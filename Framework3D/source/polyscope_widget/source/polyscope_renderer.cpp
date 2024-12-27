@@ -108,6 +108,10 @@ bool PolyscopeRenderer::BuildUI()
         flipped_buffer.resize(size.x * size.y * 4);
     }
 
+    if (buffer.size() == 0) {
+        return false;
+    }
+
     DrawFrame();
     ProcessInputEvents();
     polyscope::view::updateFlight();
@@ -318,7 +322,10 @@ void PolyscopeRenderer::ProcessInputEvents()
             if (ImGui::IsMouseReleased(0)) {
                 // Don't pick at the end of a long drag
                 if (drag_distSince_last_release < dragIgnoreThreshold) {
-                    ImVec2 p = ImGui::GetMousePos();
+                    // ImVec2 p = ImGui::GetMousePos();
+                    ImGuiWindow* window =
+                        ImGui::FindWindowByName(child_window_name.c_str());
+                    ImVec2 p = ImGui::GetMousePos() - window->Pos;
                     std::pair<polyscope::Structure*, size_t> pickResult =
                         polyscope::pick::pickAtScreenCoords(
                             glm::vec2{ p.x, p.y });
