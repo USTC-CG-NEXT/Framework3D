@@ -167,7 +167,7 @@ def perceptual_loss(image, target):
     blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.0)
     blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.0)
     mse_loss_value = torch.nn.functional.l1_loss(blurred_image, blurred_target)
-    return mse_loss_value, 0.1 * perceptual_loss_value
+    return mse_loss_value, 0.01 * perceptual_loss_value
 
 
 def loss_function(image, target):
@@ -227,7 +227,7 @@ def test_bspline_intersect_optimization():
     resolution = [1536, 1024]
 
     camera_position_np = np.array([4.5, 0, 6], dtype=np.float32)
-    light_position_np = np.array([0.77064, 0.0, 1.98921], dtype=np.float32)*1.3
+    light_position_np = np.array([0.27064, 0.0, 1.98921], dtype=np.float32)*1.3
 
     fov_in_degrees = 26
 
@@ -262,7 +262,7 @@ def test_bspline_intersect_optimization():
         lines.requires_grad_(True)
         light_position_torch.requires_grad_(False)
 
-        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.0003, betas=(0.9, 0.999), eps=1e-08)
         import os
 
         os.makedirs(f"light_pos_{light_pos_id}", exist_ok=True)
@@ -320,7 +320,7 @@ def test_bspline_intersect_optimization():
                 )
                 # if i == 0:
                 blurred_image = torch.nn.functional.avg_pool2d(
-                    image.detach(), 7, stride=1, padding=3
+                    image.detach(), 5, stride=1, padding=2
                 ).detach()
                 image = image / blurred_image.max().detach()
 
