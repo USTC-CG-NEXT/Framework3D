@@ -746,14 +746,7 @@ inline Vector2f ShadeLineElementAB(
     Vector2f cam_dir_2D = Vector2f(camera_dir.x, camera_dir.y);
     Vector2f light_dir_2D = Vector2f(light_dir.x, light_dir.y);
 
-#ifdef TWOPOINTS
     auto line_direction = normalize(line.end_point - line.begin_point);
-
-#elif defined(POINTDIR)
-    auto line_direction = Vector2f(cos(line.theta), sin(line.theta));
-#else
-    auto line_direction = line.direction;
-#endif
 
     auto local_cam_dir = Vector3f(
         cross_2d(cam_dir_2D, line_direction),

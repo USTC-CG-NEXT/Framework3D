@@ -400,6 +400,7 @@ def ShadeLineElement(
 
     camera_pos_uv = cam_positions.cuda()
     light_pos_uv = light_positions.cuda()
+    
 
     p0 = patches[:, 0, :].cuda()
     p1 = patches[:, 1, :].cuda()
