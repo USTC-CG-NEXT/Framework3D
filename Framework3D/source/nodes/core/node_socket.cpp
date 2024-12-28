@@ -29,6 +29,9 @@ void NodeSocket::Serialize(nlohmann::json& value)
             case entt::type_hash<float>().value():
                 socket["value"] = default_value_typed<float>();
                 break;
+            case entt::type_hash<double>().value():
+                socket["value"] = default_value_typed<double>();
+                break;
             case entt::type_hash<std::string>().value():
                 socket["value"] = default_value_typed<std::string&>().c_str();
                 break;
