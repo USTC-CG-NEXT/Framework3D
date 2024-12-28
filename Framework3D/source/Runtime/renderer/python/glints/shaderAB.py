@@ -482,15 +482,14 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
             c[i], width_powers, halfX_powers, halfZ_powers, r_powers
         )
 
-        for j in range(4):
-            log_val_u = torch.log(upper[:, j] - c[i])
-            log_val_l = torch.log(lower[:, j] - c[i])
+        log_val_u = torch.log(upper - c[i].unsqueeze(1))
+        log_val_l = torch.log(lower - c[i].unsqueeze(1))
 
-            part_b = b[:, j] * (log_val_u - log_val_l) * coeff_b
-            ret_b += part_b
+        part_b = b * (log_val_u - log_val_l) * coeff_b.unsqueeze(1)
+        ret_b += torch.sum(part_b, dim=1)
 
-            part_a = a[:, j] * (log_val_u - log_val_l) * coeff_a
-            ret_a += part_a
+        part_a = a * (log_val_u - log_val_l) * coeff_a.unsqueeze(1)
+        ret_a += torch.sum(part_a, dim=1)
 
     temp_1 = (
         power(r_powers, 2) * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * width
