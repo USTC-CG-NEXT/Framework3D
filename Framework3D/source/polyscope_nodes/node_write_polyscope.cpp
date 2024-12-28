@@ -68,8 +68,6 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         auto faceVertexCounts = mesh->get_face_vertex_counts();
         auto faceVertexIndices = mesh->get_face_vertex_indices();
         auto display_color = mesh->get_display_color();
-        auto normals = mesh->get_normals();
-        auto texcoords_array = mesh->get_texcoords_array();
         // 转换为nested array
         std::vector<std::vector<size_t>> faceVertexIndicesNested;
         size_t start = 0;
@@ -83,7 +81,9 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         }
 
         auto surface_mesh = polyscope::registerSurfaceMesh(
-            "mesh", vertices, faceVertexIndicesNested);
+            mesh->get_usd_mesh().GetPrim().GetName().GetString(),
+            vertices,
+            faceVertexIndicesNested);
 
         if (display_color.size() > 0) {
             try {
@@ -96,6 +96,96 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
             }
         }
 
+        if (mesh->get_vertex_scalar_quantities().size() > 0) {
+            for (size_t i = 0; i < mesh->get_vertex_scalar_quantities().size();
+                 i++) {
+                try {
+                    surface_mesh->addVertexScalarQuantity(
+                        "scalar" + std::to_string(i),
+                        mesh->get_vertex_scalar_quantities()[i]);
+                }
+                catch (std::exception& e) {
+                    std::cerr << e.what() << std::endl;
+                    return false;
+                }
+            }
+        }
+
+        if (mesh->get_face_scalar_quantities().size() > 0) {
+            for (size_t i = 0; i < mesh->get_face_scalar_quantities().size();
+                 i++) {
+                try {
+                    surface_mesh->addFaceScalarQuantity(
+                        "scalar" + std::to_string(i),
+                        mesh->get_face_scalar_quantities()[i]);
+                }
+                catch (std::exception& e) {
+                    std::cerr << e.what() << std::endl;
+                    return false;
+                }
+            }
+        }
+
+        if (mesh->get_vertex_color_quantities().size() > 0) {
+            for (size_t i = 0; i < mesh->get_vertex_color_quantities().size();
+                 i++) {
+                try {
+                    surface_mesh->addVertexColorQuantity(
+                        "color" + std::to_string(i),
+                        mesh->get_vertex_color_quantities()[i]);
+                }
+                catch (std::exception& e) {
+                    std::cerr << e.what() << std::endl;
+                    return false;
+                }
+            }
+        }
+
+        if (mesh->get_face_color_quantities().size() > 0) {
+            for (size_t i = 0; i < mesh->get_face_color_quantities().size();
+                 i++) {
+                try {
+                    surface_mesh->addFaceColorQuantity(
+                        "color" + std::to_string(i),
+                        mesh->get_face_color_quantities()[i]);
+                }
+                catch (std::exception& e) {
+                    std::cerr << e.what() << std::endl;
+                    return false;
+                }
+            }
+        }
+
+        if (mesh->get_vertex_vector_quantities().size() > 0) {
+            for (size_t i = 0; i < mesh->get_vertex_vector_quantities().size();
+                 i++) {
+                try {
+                    surface_mesh->addVertexVectorQuantity(
+                        "vector" + std::to_string(i),
+                        mesh->get_vertex_vector_quantities()[i]);
+                }
+                catch (std::exception& e) {
+                    std::cerr << e.what() << std::endl;
+                    return false;
+                }
+            }
+        }
+
+        if (mesh->get_face_vector_quantities().size() > 0) {
+            for (size_t i = 0; i < mesh->get_face_vector_quantities().size();
+                 i++) {
+                try {
+                    surface_mesh->addFaceVectorQuantity(
+                        "vector" + std::to_string(i),
+                        mesh->get_face_vector_quantities()[i]);
+                }
+                catch (std::exception& e) {
+                    std::cerr << e.what() << std::endl;
+                    return false;
+                }
+            }
+        }
+
         structure = surface_mesh;
     }
     else if (points) {
@@ -103,7 +193,8 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         auto display_color = points->get_display_color();
         auto width = points->get_width();
 
-        auto point_cloud = polyscope::registerPointCloud("points", vertices);
+        auto point_cloud = polyscope::registerPointCloud(
+            points->get_usd_points().GetPrim().GetName().GetString(), vertices);
 
         if (width.size() > 0) {
             try {
@@ -145,8 +236,10 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
             start += vert_count[i];
         }
 
-        auto curve_network =
-            polyscope::registerCurveNetwork("curve", vertices, edges);
+        auto curve_network = polyscope::registerCurveNetwork(
+            curve->get_usd_curve().GetPrim().GetName().GetString(),
+            vertices,
+            edges);
 
         structure = curve_network;
     }

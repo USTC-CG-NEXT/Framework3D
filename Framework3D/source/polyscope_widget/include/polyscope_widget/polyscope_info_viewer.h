@@ -6,10 +6,10 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-class POLYSCOPE_WIDGET_API PolyscopePickingViewer final : public IWidget {
+class POLYSCOPE_WIDGET_API PolyscopeInfoViewer final : public IWidget {
    public:
-    explicit PolyscopePickingViewer();
-    ~PolyscopePickingViewer() override;
+    explicit PolyscopeInfoViewer();
+    ~PolyscopeInfoViewer() override;
 
     bool BuildUI() override;
     // void SetCallBack(const std::function<void(Window*, IWidget*)>&) override;
@@ -35,8 +35,6 @@ class POLYSCOPE_WIDGET_API PolyscopePickingViewer final : public IWidget {
     // void End() override;
 
    private:
-    void BuildPickGui();
-
    protected:
     // bool JoystickButtonUpdate(int button, bool pressed) override;
     // bool JoystickAxisUpdate(int axis, float value) override;
