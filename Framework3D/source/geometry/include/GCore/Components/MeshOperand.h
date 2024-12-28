@@ -105,6 +105,18 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
         return face_vector_quantities;
     }
 
+    [[nodiscard]] pxr::VtArray<pxr::VtArray<pxr::GfVec2f>>
+    get_face_corner_parameterization_quantities() const
+    {
+        return face_corner_parameterization_quantities;
+    }
+
+    [[nodiscard]] pxr::VtArray<pxr::VtArray<pxr::GfVec2f>>
+    get_vertex_parameterization_quantities() const
+    {
+        return vertex_parameterization_quantities;
+    }
+
     void set_vertices(const pxr::VtArray<pxr::GfVec3f>& vertices)
     {
         mesh.CreatePointsAttr().Set(vertices);
@@ -185,6 +197,18 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
         face_vector_quantities = vector;
     }
 
+    void set_face_corner_parameterization_quantities(
+        const pxr::VtArray<pxr::VtArray<pxr::GfVec2f>>& parameterization)
+    {
+        face_corner_parameterization_quantities = parameterization;
+    }
+
+    void set_vertex_parameterization_quantities(
+        const pxr::VtArray<pxr::VtArray<pxr::GfVec2f>>& parameterization)
+    {
+        vertex_parameterization_quantities = parameterization;
+    }
+
     void add_vertex_scalar_quantity(const pxr::VtArray<float>& scalar)
     {
         vertex_scalar_quantities.push_back(scalar);
@@ -215,11 +239,26 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
         face_vector_quantities.push_back(vector);
     }
 
+    void add_face_corner_parameterization_quantity(
+        const pxr::VtArray<pxr::GfVec2f>& parameterization)
+    {
+        face_corner_parameterization_quantities.push_back(parameterization);
+    }
+
+    void add_vertex_parameterization_quantity(
+        const pxr::VtArray<pxr::GfVec2f>& parameterization)
+    {
+        vertex_parameterization_quantities.push_back(parameterization);
+    }
+
     void set_mesh_geom(const pxr::UsdGeomMesh& usdgeom);
     pxr::UsdGeomMesh get_usd_mesh() const;
 
    private:
     pxr::UsdGeomMesh mesh;
+
+    // After adding these quantities, you need to modify the copy() function
+
     // Quantities for polyscope
     // Edge quantities are not supported because the indexing is not clear
     pxr::VtArray<pxr::VtArray<float>> vertex_scalar_quantities;
@@ -230,10 +269,9 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
     pxr::VtArray<pxr::VtArray<pxr::GfVec3f>> face_color_quantities;
     pxr::VtArray<pxr::VtArray<pxr::GfVec3f>> vertex_vector_quantities;
     pxr::VtArray<pxr::VtArray<pxr::GfVec3f>> face_vector_quantities;
-    // pxr::VtArray<pxr::VtArray<pxr::GfVec2f>>
-    //     face_corner_parameterization_quantities;
-    // pxr::VtArray<pxr::VtArray<pxr::GfVec2f>>
-    // vertex_parameterization_quantities;
+    pxr::VtArray<pxr::VtArray<pxr::GfVec2f>>
+        face_corner_parameterization_quantities;
+    pxr::VtArray<pxr::VtArray<pxr::GfVec2f>> vertex_parameterization_quantities;
     // pxr::VtArray<pxr::VtArray<pxr::GfVec3f>> misc_quantities_nodes;
     // pxr::VtArray<pxr::VtArray<pxr::GfVec2i>> misc_quantities_edges;
 };

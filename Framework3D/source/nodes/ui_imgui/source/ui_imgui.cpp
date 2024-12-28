@@ -676,6 +676,7 @@ bool NodeWidget::draw_socket_controllers(NodeSocket* input)
             break;
 
         case entt::type_hash<std::string>().value():
+            input->dataField.value.cast<std::string&>().resize(255);
             changed |= ImGui::InputText(
                 (input->ui_name + ("##" + std::to_string(input->ID.Get())))
                     .c_str(),

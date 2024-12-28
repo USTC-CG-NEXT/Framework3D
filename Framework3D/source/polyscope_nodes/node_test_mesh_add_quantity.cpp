@@ -180,5 +180,66 @@ NODE_EXECUTION_FUNCTION(test_mesh_add_face_vector_quantity)
     return true;
 }
 
+NODE_DECLARATION_FUNCTION(test_mesh_add_vertex_parameterization_quantity)
+{
+    b.add_input<Geometry>("Mesh");
+    b.add_input<pxr::VtArray<pxr::GfVec2f>>("Vertex parameterization");
+
+    b.add_output<Geometry>("Mesh");
+}
+
+NODE_EXECUTION_FUNCTION(test_mesh_add_vertex_parameterization_quantity)
+{
+    auto mesh = params.get_input<Geometry>("Mesh");
+    auto vertexParameterization =
+        params.get_input<pxr::VtArray<pxr::GfVec2f>>("Vertex parameterization");
+
+    auto meshComponent = mesh.get_component<MeshComponent>();
+
+    if (!meshComponent) {
+        return false;
+    }
+
+    if (meshComponent->get_vertices().size() != vertexParameterization.size()) {
+        return false;
+    }
+
+    meshComponent->add_vertex_parameterization_quantity(vertexParameterization);
+    params.set_output("Mesh", std::move(mesh));
+    return true;
+}
+
+NODE_DECLARATION_FUNCTION(test_mesh_add_face_corner_parameterization_quantity)
+{
+    b.add_input<Geometry>("Mesh");
+    b.add_input<pxr::VtArray<pxr::GfVec2f>>("Face corner parameterization");
+
+    b.add_output<Geometry>("Mesh");
+}
+
+NODE_EXECUTION_FUNCTION(test_mesh_add_face_corner_parameterization_quantity)
+{
+    auto mesh = params.get_input<Geometry>("Mesh");
+    auto faceCornerParameterization =
+        params.get_input<pxr::VtArray<pxr::GfVec2f>>(
+            "Face corner parameterization");
+
+    auto meshComponent = mesh.get_component<MeshComponent>();
+
+    if (!meshComponent) {
+        return false;
+    }
+
+    if (meshComponent->get_face_vertex_counts().size() !=
+        faceCornerParameterization.size()) {
+        return false;
+    }
+
+    meshComponent->add_face_corner_parameterization_quantity(
+        faceCornerParameterization);
+    params.set_output("Mesh", std::move(mesh));
+    return true;
+}
+
 NODE_DECLARATION_UI(test_mesh_add_quantity);
 NODE_DEF_CLOSE_SCOPE
