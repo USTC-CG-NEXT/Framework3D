@@ -539,7 +539,5 @@ def ShadeBSplineElements(
     )
     # nan_mask = torch.isnan(ret)
     # print ("nan pairs count: ", torch.sum(nan_mask))
-
-    ret = torch.nan_to_num(ret, nan=0.0)
     
     return ret

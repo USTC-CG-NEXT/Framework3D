@@ -164,11 +164,11 @@ def perceptual_loss(image, target):
     # )
     perceptual_loss_value = lpips_loss_fn(reshaped_image, reshaped_target)
 
-    blurred_image = TF.gaussian_blur(image, kernel_size=5, sigma=1.5)
-    blurred_target = TF.gaussian_blur(target, kernel_size=5, sigma=1.5)
+    blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1)
+    blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1)
     mse_loss_value = torch.nn.functional.mse_loss(blurred_image, blurred_target)
 
-    return mse_loss_value + perceptual_loss_value * 0.001
+    return mse_loss_value + perceptual_loss_value * 0.0
 
 
 def loss_function(image, target):
@@ -222,13 +222,13 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.05
+    max_length = 0.1 / 4
 
     numviews = 1
 
-    random_gen_closure = lambda: random_gen(0.025, 15000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.025, 20000, (0, 1), (0, 1))
 
-    exposure = torch.tensor([50.0], device="cuda")
+    exposure = torch.tensor([60.0], device="cuda")
     exposure.requires_grad_(True)
 
     for view in range(numviews):
@@ -289,9 +289,11 @@ def test_bspline_intersect_optimization():
 
             image = torch.clamp(image, 0, 1000000)
 
-            blurred_image = torch.nn.functional.avg_pool2d(
-                image, 5, stride=1, padding=2
-            ).detach()
+            # if i < 10:
+            #     blurred_image = torch.nn.functional.avg_pool2d(
+            #         image, 5, stride=1, padding=2
+            #     ).detach()
+
             # image = image / blurred_image.max().detach()
             # exposure = 1.0 / blurred_image.max().detach()
 
@@ -299,8 +301,6 @@ def test_bspline_intersect_optimization():
 
             loss = loss_function(image, target) * temperature
             loss.backward()
-
-            temperature *= 0.989
 
             # Mask out NaN gradients
             with torch.no_grad():
@@ -361,6 +361,8 @@ def test_bspline_intersect_optimization():
             print(
                 f"View {view}, Iteration {i}, Loss: {loss.item()/temperature}, current exposure: {exposure.item()}"
             )
+
+            temperature *= 0.99
 
             torch.cuda.empty_cache()
 

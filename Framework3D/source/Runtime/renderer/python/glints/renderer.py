@@ -97,8 +97,6 @@ def render(
             width,
         )[:, 0]
 
-    contribution = torch.nan_to_num(contribution, nan=0.0)
-
     contribution_accumulation.scatter_add_(
         0,
         intersection_pairs[:, 1].long(),

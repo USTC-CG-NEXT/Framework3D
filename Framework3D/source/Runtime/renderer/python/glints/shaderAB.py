@@ -354,6 +354,9 @@ def sumpart_coeff_b(y, width_powers, halfX_powers, halfZ_powers, r_powers):
         - 8 * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * power(y_powers, 3)
     )
 
+    assert torch.isnan(m).sum() == 0
+    assert torch.isnan(n).sum() == 0
+
     return -m / n
 
 
@@ -460,6 +463,8 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
         + power(halfZ_powers, 2) * power(r_powers, 2) * power(width_powers, 2)
     )
 
+    assert torch.isnan(temp).sum() == 0
+
     c = torch.stack(
         [
             (-(halfX * r * width) - temp) / (2 * (-1 + halfZ * r)),
@@ -469,6 +474,8 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
         ],
         dim=0,
     )
+
+    assert torch.isnan(c).sum() == 0
 
     ret_a = torch.zeros_like(c[0])
     ret_b = torch.zeros_like(c[0])
@@ -490,6 +497,9 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
 
         part_a = a * (log_val_u - log_val_l) * coeff_a.unsqueeze(1)
         ret_a += torch.sum(part_a, dim=1)
+
+    assert torch.isnan(ret_a).sum() == 0
+    assert torch.isnan(ret_b).sum() == 0
 
     temp_1 = (
         power(r_powers, 2) * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * width
@@ -710,5 +720,7 @@ def ShadeLineElement(
     )
 
     glints_area = areaCalc(lower, upper, a, b)
+
+    assert torch.isnan(result).sum() == 0
 
     return torch.stack((result, glints_area), dim=1)
