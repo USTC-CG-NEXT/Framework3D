@@ -27,7 +27,7 @@ def intercept(p1, p2):
 
 def calc_power_series(tensor):
     powers = [tensor]
-    for i in range(2, 7):
+    for i in range(1, 8):
         powers.append(powers[-1] * tensor)
     return powers
 
@@ -483,12 +483,13 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
         )
 
         for j in range(4):
-            log_val_u = torch.log(upper[j] - c[i])
-            log_val_l = torch.log(lower[j] - c[i])
-            part_b = b[j] * (log_val_u - log_val_l) * coeff_b
+            log_val_u = torch.log(upper[:, j] - c[i])
+            log_val_l = torch.log(lower[:, j] - c[i])
+
+            part_b = b[:, j] * (log_val_u - log_val_l) * coeff_b
             ret_b += part_b
 
-            part_a = a[j] * (log_val_u - log_val_l) * coeff_a
+            part_a = a[:, j] * (log_val_u - log_val_l) * coeff_a
             ret_a += part_a
 
     temp_1 = (
@@ -502,9 +503,21 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
 
     for j in range(4):
         temp = calc_res_a(
-            upper[j], a[j], b[j], width_powers, halfX_powers, halfZ_powers, r_powers
+            upper[:, j],
+            a[:, j],
+            b[:, j],
+            width_powers,
+            halfX_powers,
+            halfZ_powers,
+            r_powers,
         ) - calc_res_a(
-            lower[j], a[j], b[j], width_powers, halfX_powers, halfZ_powers, r_powers
+            lower[:, j],
+            a[:, j],
+            b[:, j],
+            width_powers,
+            halfX_powers,
+            halfZ_powers,
+            r_powers,
         )
 
         res += temp
@@ -552,6 +565,7 @@ def ShadeLineElementAB(
     lines, patches, cam_positions, light_positions, glints_roughness, width
 ):
     assert lines.shape[0] == patches.shape[0]
+    torch.set_printoptions(precision=10)
 
     camera_pos_uv = cam_positions.cuda()
     light_pos_uv = light_positions.cuda()
@@ -610,12 +624,11 @@ def ShadeLineElementAB(
         dim=1,
     )
 
-    minimum = torch.min(points, dim=1).values
-    maximum = torch.max(points, dim=1).values
+    minimum = torch.min(points[:, :, 0], dim=1).values
+    maximum = torch.max(points[:, :, 0], dim=1).values
 
-    cut = 0.4
-    left_cut = -cut * width
-    right_cut = cut * width
+    left_cut = -width
+    right_cut = width
 
     a = torch.stack(
         [
@@ -626,6 +639,8 @@ def ShadeLineElementAB(
         ],
         dim=1,
     )
+
+    print("a", a)
 
     b = torch.stack(
         [
@@ -639,20 +654,20 @@ def ShadeLineElementAB(
 
     upper = torch.stack(
         [
-            points[:, 1],
-            points[:, 2],
-            points[:, 3],
-            points[:, 0],
+            points[:, 1, 0],
+            points[:, 2, 0],
+            points[:, 3, 0],
+            points[:, 0, 0],
         ],
         dim=1,
     )
 
     lower = torch.stack(
         [
-            points[:, 0],
-            points[:, 1],
-            points[:, 2],
-            points[:, 3],
+            points[:, 0, 0],
+            points[:, 1, 0],
+            points[:, 2, 0],
+            points[:, 3, 0],
         ],
         dim=1,
     )
@@ -669,7 +684,9 @@ def ShadeLineElementAB(
             upper,
             a,
             b,
-            torch.sqrt(glints_roughness),
+            torch.sqrt(
+                torch.complex(glints_roughness, torch.zeros_like(glints_roughness))
+            ),
             half_vec[:, 0],
             half_vec[:, 2],
             width,
@@ -685,8 +702,8 @@ def ShadeLineElementAB(
 
     mask = (
         (minimum * maximum > 0)
-        & (torch.abs(minimum) > cut * width)
-        & (torch.abs(maximum) > cut * width)
+        & (torch.abs(minimum) > width)
+        & (torch.abs(maximum) > width)
     )
 
     result = torch.where(
