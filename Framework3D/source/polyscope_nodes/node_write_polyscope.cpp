@@ -43,7 +43,7 @@ bool legal(const std::string& string)
 // The current implementation has not been fully tested yet
 NODE_EXECUTION_FUNCTION(write_polyscope)
 {
-    // auto global_payload = params.get_global_payload<GeomPayload>();
+    auto global_payload = params.get_global_payload<GeomPayload>();
 
     auto geometry = params.get_input<Geometry>("Geometry");
 
@@ -61,8 +61,8 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         time = pxr::UsdTimeCode::Default();
     }
 
-    // auto stage = global_payload.stage;
-    // auto sdf_path = global_payload.prim_path;
+    auto stage = global_payload.stage;
+    auto sdf_path = global_payload.prim_path;
 
     polyscope::Structure* structure = nullptr;
 
@@ -85,9 +85,7 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         }
 
         auto surface_mesh = polyscope::registerSurfaceMesh(
-            mesh->get_usd_mesh().GetPrim().GetName().GetString(),
-            vertices,
-            faceVertexIndicesNested);
+            sdf_path.GetName(), vertices, faceVertexIndicesNested);
 
         if (display_color.size() > 0) {
             try {
@@ -229,8 +227,8 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         auto display_color = points->get_display_color();
         auto width = points->get_width();
 
-        auto point_cloud = polyscope::registerPointCloud(
-            points->get_usd_points().GetPrim().GetName().GetString(), vertices);
+        auto point_cloud =
+            polyscope::registerPointCloud(sdf_path.GetName(), vertices);
 
         if (width.size() > 0) {
             try {
@@ -273,9 +271,7 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         }
 
         auto curve_network = polyscope::registerCurveNetwork(
-            curve->get_usd_curve().GetPrim().GetName().GetString(),
-            vertices,
-            edges);
+            sdf_path.GetName(), vertices, edges);
 
         structure = curve_network;
     }
