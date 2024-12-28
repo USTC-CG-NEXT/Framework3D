@@ -317,6 +317,7 @@ inline auto calc_res_a(
               ((-1 + halfZ * r) * Power(width, 2) - 4 * halfX * r * width * x -
                4 * (1 + halfZ * r) * Power(x, 2))) *
              work_for_div;
+    std::cout << "m: " << m << " n: " << n << std::endl;
 
     // if (abs(n) < 1E-16)
     //{
@@ -760,10 +761,8 @@ inline Vector2f ShadeLineElementAB(
     auto maximum = std::max(
         std::max(std::max(points[0].x, points[1].x), points[2].x), points[3].x);
 
-    Float cut = 0.4f;
-
-    Float left_cut = -cut * line_width;
-    Float right_cut = cut * line_width;
+    Float left_cut = -line_width;
+    Float right_cut = line_width;
 
     Float a[4];
     Float b[4];
@@ -803,6 +802,22 @@ inline Vector2f ShadeLineElementAB(
         lower[i] = select(lower[i] <= left_cut, left_cut, lower[i]);
     }
 
+    std::cout.precision(10);
+
+    std::cout << "uppers: ";
+
+    for (int i = 0; i < 4; ++i) {
+        std::cout << upper[i] << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "lowers: ";
+
+    for (int i = 0; i < 4; ++i) {
+        std::cout << lower[i] << " ";
+    }
+    std::cout << std::endl;
+
     auto temp = lineShadeAB(
                     lower,
                     upper,
@@ -821,8 +836,8 @@ inline Vector2f ShadeLineElementAB(
     auto patch_area = abs(cross_2d(p1 - p0, p2 - p0) / 2.f) +
                       abs(cross_2d(p2 - p0, p3 - p0) / 2.f);
 
-    bool mask = minimum * maximum > 0 && (abs(minimum) > cut * line_width &&
-                                          abs(maximum) > cut * line_width);
+    bool mask = minimum * maximum > 0 &&
+                (abs(minimum) > line_width && abs(maximum) > line_width);
 
     auto result = select(mask, 0.f, abs(temp) / patch_area);
 

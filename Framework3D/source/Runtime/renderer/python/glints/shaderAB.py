@@ -1,6 +1,8 @@
 import torch
 import glints.microfacet as microfacet
 
+work_for_div = 100000000
+
 
 def cross_2d(a, b):
     return a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0]
@@ -266,7 +268,9 @@ def calc_res_a(x, a, b, width_powers, halfX_powers, halfZ_powers, r_powers):
                 )
             )
         )
-    )
+    ) * work_for_div
+
+    print("m", m)
 
     n = (
         (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
@@ -280,7 +284,11 @@ def calc_res_a(x, a, b, width_powers, halfX_powers, halfZ_powers, r_powers):
             - 4 * halfX * r * width * x
             - 4 * (1 + halfZ * r) * power(x_powers, 2)
         )
-    )
+    ) * work_for_div
+
+    print("n", n)
+
+    print("rest", rest)
 
     return rest + m / n
 
@@ -424,7 +432,7 @@ def sumpart_coeff_a(y, width_powers, halfX_powers, halfZ_powers, r_powers):
             * power(r_powers, 2)
         )
         * power(y_powers, 3)
-    )
+    ) * work_for_div
 
     n = (
         4
@@ -441,7 +449,7 @@ def sumpart_coeff_a(y, width_powers, halfX_powers, halfZ_powers, r_powers):
         * power(r_powers, 2)
         * power(width_powers, 1)
         * (power(width_powers, 2) - 12 * power(y_powers, 2))
-    )
+    ) * work_for_div
 
     return m / n
 
