@@ -1,4 +1,4 @@
-import glints.shader
+import glints.shaderAB
 import glints.test_utils as test_utils
 import torch
 
@@ -17,7 +17,7 @@ def test_shader():
     glints_roughness = torch.tensor([0.2], device="cuda")
     width = torch.tensor([0.02], device="cuda")
 
-    result = glints.shader.ShadeLineElement(
+    result = glints.shaderAB.ShadeLineElementAB(
         lines, patches, cam_positions, light_positions, glints_roughness, width
     )
     print(result)  # tensor([[0.0019914089, 0.0185666792]], device='cuda:0')

@@ -441,7 +441,7 @@ inline Float lineShadeAB(
 inline Vector2f signed_areaAB(LineDrFloat line, Vector2f point)
 {
     // The direction is expected to be normalized
-#ifdef TWOPOINTS
+
     auto line_pos = (line.begin_point + line.end_point) / 2.f;
     auto line_direction = normalize(line.end_point - line.begin_point);
     auto distance = point - line_pos;
@@ -450,18 +450,6 @@ inline Vector2f signed_areaAB(LineDrFloat line, Vector2f point)
     auto y = dot(distance, line_direction);
 
     return Vector2f(x, y);
-
-#else
-    auto line_pos = line.position;
-    auto line_direction = normalize(line.direction);
-
-    auto distance = point - line_pos;
-
-    auto x = cross_2d(distance, line_direction);
-    auto y = dot(distance, line_direction);
-
-    return Vector2f(x, y);
-#endif
 }
 
 inline Float slope(Vector2f p1, Vector2f p2)

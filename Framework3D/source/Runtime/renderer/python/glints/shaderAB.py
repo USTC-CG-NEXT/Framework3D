@@ -1,4 +1,545 @@
-import  torch
+import torch
+import glints.microfacet as microfacet
+
+
+def cross_2d(a, b):
+    return a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0]
+
+
+def signed_area(lines, points):
+    line_pos = (lines[:, 0, :] + lines[:, 1, :]) / 2.0
+    line_direction = torch.nn.functional.normalize(lines[:, 1, :] - lines[:, 0, :])
+    distance = points - line_pos
+
+    x = cross_2d(distance, line_direction)
+    y = torch.sum(distance * line_direction, dim=1)
+
+    return torch.stack((x, y), dim=1)
+
+
+def slope(p1, p2):
+    return (p1[:, 1] - p2[:, 1]) / (p1[:, 0] - p2[:, 0])
+
+
+def intercept(p1, p2):
+    return (p1[:, 0] * p2[:, 1] - p2[:, 0] * p1[:, 1]) / (p1[:, 0] - p2[:, 0])
+
+
+def calc_power_series(tensor):
+    powers = [tensor]
+    for i in range(2, 7):
+        powers.append(powers[-1] * tensor)
+    return powers
+
+
+def power(tensor_powers, n):
+    return tensor_powers[n - 1]
+
+
+def calc_res_a(x, a, b, width_powers, halfX_powers, halfZ_powers, r_powers):
+    x_powers = calc_power_series(x)
+    halfX = power(halfX_powers, 1)
+    halfZ = power(halfZ_powers, 1)
+    r = power(r_powers, 1)
+    width = power(width_powers, 1)
+
+    rest = 16 * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * (
+        b * (-1 + power(halfZ_powers, 2) * power(r_powers, 2))
+        - 4 * a * halfX * halfZ * power(r_powers, 2) * width
+    ) * x + 8 * a * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 2 * power(
+        x_powers, 2
+    )
+
+    m = (
+        4
+        * power(r_powers, 2)
+        * power(width_powers, 2)
+        * (
+            -2
+            * b
+            * (-1 + power(halfZ_powers, 2) * power(r_powers, 2))
+            * (
+                halfX
+                * halfZ
+                * (-1 + power(halfZ_powers, 2) * power(r_powers, 2))
+                * (
+                    -2
+                    + (3 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                    * power(r_powers, 2)
+                    + power(halfZ_powers, 2)
+                    * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+                    * power(r_powers, 4)
+                )
+                * power(width_powers, 3)
+                - 2
+                * (
+                    power(halfZ_powers, 2)
+                    * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 3
+                    + 4
+                    * power(halfX_powers, 4)
+                    * power(halfZ_powers, 2)
+                    * power(r_powers, 4)
+                    * (3 + power(halfZ_powers, 2) * power(r_powers, 2))
+                    + power(halfX_powers, 2)
+                    * (
+                        1
+                        - 9 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 3 * power(halfZ_powers, 4) * power(r_powers, 4)
+                        + 5 * power(halfZ_powers, 6) * power(r_powers, 6)
+                    )
+                )
+                * power(width_powers, 2)
+                * x
+                + 4
+                * halfX
+                * halfZ
+                * (
+                    2
+                    + 3
+                    * (-5 * power(halfX_powers, 2) + 3 * power(halfZ_powers, 2))
+                    * power(r_powers, 2)
+                    + 6
+                    * (
+                        2 * power(halfX_powers, 4)
+                        - power(halfX_powers, 2) * power(halfZ_powers, 2)
+                        - 2 * power(halfZ_powers, 4)
+                    )
+                    * power(r_powers, 4)
+                    + power(halfZ_powers, 2)
+                    * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+                    * (4 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+                    * power(r_powers, 6)
+                )
+                * width
+                * power(x_powers, 2)
+                + 8
+                * (
+                    (1 + power(halfZ_powers, 2) * power(r_powers, 2))
+                    * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 2
+                    + 2
+                    * power(halfX_powers, 4)
+                    * (
+                        power(r_powers, 2)
+                        + 6 * power(halfZ_powers, 2) * power(r_powers, 4)
+                        + power(halfZ_powers, 4) * power(r_powers, 6)
+                    )
+                    + power(halfX_powers, 2)
+                    * (
+                        -1
+                        - 11 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 9 * power(halfZ_powers, 4) * power(r_powers, 4)
+                        + 3 * power(halfZ_powers, 6) * power(r_powers, 6)
+                    )
+                )
+                * power(x_powers, 3)
+            )
+            + a
+            * width
+            * (
+                32
+                * power(halfX_powers, 6)
+                * power(r_powers, 4)
+                * (
+                    1
+                    + 6 * power(halfZ_powers, 2) * power(r_powers, 2)
+                    + power(halfZ_powers, 4) * power(r_powers, 4)
+                )
+                * width
+                * power(x_powers, 2)
+                + power(halfZ_powers, 2)
+                * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 2
+                * width
+                * (
+                    (-1 + power(halfZ_powers, 4) * power(r_powers, 4))
+                    * power(width_powers, 2)
+                    - 4
+                    * (
+                        1
+                        + 6 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + power(halfZ_powers, 4) * power(r_powers, 4)
+                    )
+                    * power(x_powers, 2)
+                )
+                + 16
+                * power(halfX_powers, 5)
+                * halfZ
+                * power(r_powers, 4)
+                * x
+                * (
+                    -(
+                        (
+                            1
+                            + 6 * power(halfZ_powers, 2) * power(r_powers, 2)
+                            + power(halfZ_powers, 4) * power(r_powers, 4)
+                        )
+                        * power(width_powers, 2)
+                    )
+                    + 2
+                    * (
+                        5
+                        + 10 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + power(halfZ_powers, 4) * power(r_powers, 4)
+                    )
+                    * power(x_powers, 2)
+                )
+                + 2
+                * halfX
+                * halfZ
+                * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 2
+                * x
+                * (
+                    (
+                        2
+                        - 5 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        - 5 * power(halfZ_powers, 4) * power(r_powers, 4)
+                    )
+                    * power(width_powers, 2)
+                    + 4
+                    * (
+                        2
+                        + 15 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 3 * power(halfZ_powers, 4) * power(r_powers, 4)
+                    )
+                    * power(x_powers, 2)
+                )
+                - 2
+                * power(halfX_powers, 3)
+                * halfZ
+                * power(r_powers, 2)
+                * (-1 + power(halfZ_powers, 2) * power(r_powers, 2))
+                * x
+                * (
+                    (
+                        1
+                        + 50 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 13 * power(halfZ_powers, 4) * power(r_powers, 4)
+                    )
+                    * power(width_powers, 2)
+                    - 4
+                    * (
+                        19
+                        + 54 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 7 * power(halfZ_powers, 4) * power(r_powers, 4)
+                    )
+                    * power(x_powers, 2)
+                )
+                + 2
+                * power(halfX_powers, 4)
+                * power(r_powers, 2)
+                * width
+                * (
+                    (
+                        -1
+                        - 5 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 5 * power(halfZ_powers, 4) * power(r_powers, 4)
+                        + power(halfZ_powers, 6) * power(r_powers, 6)
+                    )
+                    * power(width_powers, 2)
+                    + 8
+                    * (
+                        -2
+                        - 21 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 4 * power(halfZ_powers, 4) * power(r_powers, 4)
+                        + 3 * power(halfZ_powers, 6) * power(r_powers, 6)
+                    )
+                    * power(x_powers, 2)
+                )
+                + power(halfX_powers, 2)
+                * width
+                * (
+                    (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 2
+                    * (
+                        1
+                        + 12 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + 3 * power(halfZ_powers, 4) * power(r_powers, 4)
+                    )
+                    * power(width_powers, 2)
+                    + 4
+                    * (
+                        1
+                        + 38 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        - 12 * power(halfZ_powers, 4) * power(r_powers, 4)
+                        - 30 * power(halfZ_powers, 6) * power(r_powers, 6)
+                        + 3 * power(halfZ_powers, 8) * power(r_powers, 8)
+                    )
+                    * power(x_powers, 2)
+                )
+            )
+        )
+    )
+
+    n = (
+        (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
+        * (
+            (1 + halfZ * r) * power(width_powers, 2)
+            - 4 * halfX * r * width * x
+            - 4 * (-1 + halfZ * r) * power(x_powers, 2)
+        )
+        * (
+            (-1 + halfZ * r) * power(width_powers, 2)
+            - 4 * halfX * r * width * x
+            - 4 * (1 + halfZ * r) * power(x_powers, 2)
+        )
+    )
+
+    return rest + m / n
+
+
+def sumpart_coeff_b(y, width_powers, halfX_powers, halfZ_powers, r_powers):
+    y_powers = calc_power_series(y)
+
+    m = (
+        (
+            (power(halfZ_powers, 1) - power(halfZ_powers, 3) * power(r_powers, 2)) ** 2
+            + power(halfX_powers, 2)
+            * (-1 + power(halfZ_powers, 4) * power(r_powers, 4))
+        )
+        * power(width_powers, 3)
+        - 4
+        * power(halfX_powers, 1)
+        * power(halfZ_powers, 1)
+        * (
+            -2
+            + (3 * power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2)
+            + power(halfZ_powers, 2)
+            * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * power(r_powers, 4)
+        )
+        * power(width_powers, 2)
+        * power(y_powers, 1)
+        + 4
+        * (
+            -7 * power(halfX_powers, 2)
+            + 7 * power(halfZ_powers, 2)
+            + 2
+            * (
+                3 * power(halfX_powers, 4)
+                - 2 * power(halfX_powers, 2) * power(halfZ_powers, 2)
+                - 4 * power(halfZ_powers, 4)
+            )
+            * power(r_powers, 2)
+            + power(halfZ_powers, 2)
+            * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * (2 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * power(r_powers, 4)
+        )
+        * power(width_powers, 1)
+        * power(y_powers, 2)
+        + 64
+        * power(halfX_powers, 1)
+        * power(halfZ_powers, 1)
+        * (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
+        * power(y_powers, 3)
+    )
+
+    n = (
+        power(halfX_powers, 1)
+        * power(halfZ_powers, 1)
+        * power(r_powers, 2)
+        * power(width_powers, 3)
+        + 2
+        * (
+            1
+            + (-2 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * power(r_powers, 2)
+        )
+        * power(width_powers, 2)
+        * power(y_powers, 1)
+        - 12
+        * power(halfX_powers, 1)
+        * power(halfZ_powers, 1)
+        * power(r_powers, 2)
+        * power(width_powers, 1)
+        * power(y_powers, 2)
+        - 8 * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * power(y_powers, 3)
+    )
+
+    return -m / n
+
+
+def sumpart_coeff_a(y, width_powers, halfX_powers, halfZ_powers, r_powers):
+    y_powers = calc_power_series(y)
+
+    m = (
+        halfX_powers[0]
+        * halfZ_powers[0]
+        * (-1 + power(halfZ_powers, 2) * power(r_powers, 2))
+        * (
+            -10
+            + (11 * power(halfX_powers, 2) + 9 * power(halfZ_powers, 2))
+            * power(r_powers, 2)
+            + power(halfZ_powers, 2)
+            * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * power(r_powers, 4)
+        )
+        * power(width_powers, 3)
+        - 4
+        * (
+            power(halfZ_powers, 2)
+            * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 3
+            + 2
+            * power(halfX_powers, 4)
+            * power(halfZ_powers, 2)
+            * power(r_powers, 4)
+            * (11 + power(halfZ_powers, 2) * power(r_powers, 2))
+            + power(halfX_powers, 2)
+            * (
+                1
+                - 21 * power(halfZ_powers, 2) * power(r_powers, 2)
+                + 17 * power(halfZ_powers, 4) * power(r_powers, 4)
+                + 3 * power(halfZ_powers, 6) * power(r_powers, 6)
+            )
+        )
+        * power(width_powers, 2)
+        * y_powers[0]
+        + 4
+        * halfX_powers[0]
+        * halfZ_powers[0]
+        * (
+            22
+            + 3
+            * (-23 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * power(r_powers, 2)
+            + 2
+            * (
+                22 * power(halfX_powers, 4)
+                + 7 * power(halfX_powers, 2) * power(halfZ_powers, 2)
+                - 14 * power(halfZ_powers, 4)
+            )
+            * power(r_powers, 4)
+            + power(halfZ_powers, 2)
+            * (power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * (4 * power(halfX_powers, 2) + 3 * power(halfZ_powers, 2))
+            * power(r_powers, 6)
+        )
+        * power(width_powers, 1)
+        * power(y_powers, 2)
+        + 64
+        * (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
+        * (
+            power(halfX_powers, 2)
+            - power(halfZ_powers, 2)
+            + power(halfZ_powers, 2)
+            * (5 * power(halfX_powers, 2) + power(halfZ_powers, 2))
+            * power(r_powers, 2)
+        )
+        * power(y_powers, 3)
+    )
+
+    n = (
+        4
+        * power(halfX_powers, 2)
+        * power(r_powers, 2)
+        * power(width_powers, 2)
+        * y_powers[0]
+        + 8 * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * power(y_powers, 3)
+        - 2
+        * power(width_powers, 2)
+        * (y_powers[0] + power(halfZ_powers, 2) * power(r_powers, 2) * y_powers[0])
+        - halfX_powers[0]
+        * halfZ_powers[0]
+        * power(r_powers, 2)
+        * power(width_powers, 1)
+        * (power(width_powers, 2) - 12 * power(y_powers, 2))
+    )
+
+    return m / n
+
+
+def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
+    r = torch.sqrt(1 - alpha * alpha)
+
+    width_powers = calc_power_series(width)
+    halfX_powers = calc_power_series(halfX)
+    halfZ_powers = calc_power_series(halfZ)
+    r_powers = calc_power_series(r)
+
+    temp = torch.sqrt(
+        -power(width_powers, 2)
+        + power(halfX_powers, 2) * power(r_powers, 2) * power(width_powers, 2)
+        + power(halfZ_powers, 2) * power(r_powers, 2) * power(width_powers, 2)
+    )
+
+    c = torch.stack(
+        [
+            (-(halfX * r * width) - temp) / (2 * (-1 + halfZ * r)),
+            (-(halfX * r * width) - temp) / (2 * (1 + halfZ * r)),
+            (-(halfX * r * width) + temp) / (2 * (-1 + halfZ * r)),
+            (-(halfX * r * width) + temp) / (2 * (1 + halfZ * r)),
+        ],
+        dim=0,
+    )
+
+    ret_a = torch.zeros_like(c[0])
+    ret_b = torch.zeros_like(c[0])
+
+    for i in range(4):
+        coeff_b = sumpart_coeff_b(
+            c[i], width_powers, halfX_powers, halfZ_powers, r_powers
+        )
+
+        coeff_a = sumpart_coeff_a(
+            c[i], width_powers, halfX_powers, halfZ_powers, r_powers
+        )
+
+        for j in range(4):
+            log_val_u = torch.log(upper[j] - c[i])
+            log_val_l = torch.log(lower[j] - c[i])
+            part_b = b[j] * (log_val_u - log_val_l) * coeff_b
+            ret_b += part_b
+
+            part_a = a[j] * (log_val_u - log_val_l) * coeff_a
+            ret_a += part_a
+
+    temp_1 = (
+        power(r_powers, 2) * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * width
+    ) / (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
+
+    ret_b *= temp_1
+    ret_a *= temp_1 * width
+
+    res = torch.zeros_like(ret_a)
+
+    for j in range(4):
+        temp = calc_res_a(
+            upper[j], a[j], b[j], width_powers, halfX_powers, halfZ_powers, r_powers
+        ) - calc_res_a(
+            lower[j], a[j], b[j], width_powers, halfX_powers, halfZ_powers, r_powers
+        )
+
+        res += temp
+
+    ret_a += res
+
+    coeff_b = (
+        -alpha
+        * alpha
+        / (
+            8
+            * torch.pi
+            * torch.pow(-1 + power(halfZ_powers, 2) * power(r_powers, 2), 3)
+        )
+    )
+    coeff_a = torch.pow(alpha, 2) / (
+        16 * torch.pi * torch.pow(-1 + power(halfZ_powers, 2) * power(r_powers, 2), 4)
+    )
+    ret_a *= coeff_a
+    ret_b *= coeff_b
+
+    return ret_b.real + ret_a.real
+
+
+def areaIntegrate(x, a, b):
+    return 0.5 * a * x * x + b * x
+
+
+def areaCalc(lower, upper, a, b):
+    ret = torch.zeros_like(lower[:, 0])
+    for i in range(4):
+        ret += areaIntegrate(upper[:, i], a[:, i], b[:, i]) - areaIntegrate(
+            lower[:, i], a[:, i], b[:, i]
+        )
+    return torch.abs(ret)
 
 
 # line shape: [n, 2, 2]
@@ -10,8 +551,10 @@ import  torch
 def ShadeLineElementAB(
     lines, patches, cam_positions, light_positions, glints_roughness, width
 ):
-    camera_pos_uv = cam_positions
-    light_pos_uv = light_positions
+    assert lines.shape[0] == patches.shape[0]
+
+    camera_pos_uv = cam_positions.cuda()
+    light_pos_uv = light_positions.cuda()
 
     p0 = patches[:, 0, :]
     p1 = patches[:, 1, :]
