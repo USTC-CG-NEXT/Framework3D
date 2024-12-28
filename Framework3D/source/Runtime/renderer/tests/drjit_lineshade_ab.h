@@ -317,14 +317,11 @@ inline auto calc_res_a(
               ((-1 + halfZ * r) * Power(width, 2) - 4 * halfX * r * width * x -
                4 * (1 + halfZ * r) * Power(x, 2))) *
              work_for_div;
-    std::cout << "m: " << m << " n: " << n << std::endl;
 
     // if (abs(n) < 1E-16)
     //{
     //     n = n / abs(n) * 1E-16;
     // }
-
-    std::cout << "rest: " << rest << std::endl;
 
     return rest + m / n;
 }
@@ -432,9 +429,6 @@ inline Float lineShadeAB(
                     (16. * M_PI * powf(-1 + Power(halfZ, 2) * Power(r, 2), 4));
     ret_a *= coeff_a;
     ret_b *= coeff_b;
-
-    std::cout << ret_a.real() << " " << ret_a.imag() << std::endl;
-    std::cout << ret_b.real() << " " << ret_b.imag() << std::endl;
 
     return GetReal(ret_b) + GetReal(ret_a);
 }
@@ -704,7 +698,6 @@ inline Float bsdf_f_line(
 
     auto ret = lum * Microfacet_G(wo, wi, micro_para) * Lum(F) /
                (4.f * cosThetaI * cosThetaO);
-    std::cout << "bsdf fline" << ret << std::endl;
     return ret;
 }
 
@@ -774,11 +767,6 @@ inline Vector2f ShadeLineElementAB(
     a[2] = slope(points[2], points[3]);
     a[3] = slope(points[3], points[0]);
 
-    for (int i = 0; i < 4; ++i) {
-        std::cout << a[i] << " ";
-    }
-    std::cout << std::endl;
-
     b[0] = intercept(points[0], points[1]);
     b[1] = intercept(points[1], points[2]);
     b[2] = intercept(points[2], points[3]);
@@ -802,22 +790,6 @@ inline Vector2f ShadeLineElementAB(
         lower[i] = select(lower[i] <= left_cut, left_cut, lower[i]);
     }
 
-    std::cout.precision(10);
-
-    std::cout << "uppers: ";
-
-    for (int i = 0; i < 4; ++i) {
-        std::cout << upper[i] << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "lowers: ";
-
-    for (int i = 0; i < 4; ++i) {
-        std::cout << lower[i] << " ";
-    }
-    std::cout << std::endl;
-
     auto temp = lineShadeAB(
                     lower,
                     upper,
@@ -830,8 +802,6 @@ inline Vector2f ShadeLineElementAB(
                 length(light_pos_uv - p) /
                 length(light_pos_uv - p) /* * Float(params.exposure)*/ *
                 bsdf_f_line(camera_dir, light_dir, Float(glints_roughness));
-
-    std::cout << temp << std::endl;
 
     auto patch_area = abs(cross_2d(p1 - p0, p2 - p0) / 2.f) +
                       abs(cross_2d(p2 - p0, p3 - p0) / 2.f);

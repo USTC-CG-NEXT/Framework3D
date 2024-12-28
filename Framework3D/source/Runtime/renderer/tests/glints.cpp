@@ -147,6 +147,25 @@ TEST(glints_brdf, cpp_old_code_reference)
     float line_width = 0.02;
     auto result = ShadeLineElementAB(line, patch, roughness, line_width);
     std::cout << result << std::endl;
+    for (int i = 0; i < 8; ++i) {
+        Vector2f begin_point = { 0.0f, 0.1f * (i + 1) };
+        Vector2f end_point = { 1.0f, 0.0f };
+        LineDrFloat line(begin_point, end_point);
+
+        PatchDrFloat patch;
+        patch.uv0 = { 0.28f - 0.01f * i, 0.24f - 0.01f * i };
+        patch.uv1 = { 0.65f - 0.01f * i, 0.35f - 0.01f * i };
+        patch.uv2 = { 0.76f - 0.01f * i, -0.27f - 0.01f * i };
+        patch.uv3 = { 0.25f - 0.01f * i, -0.25f - 0.01f * i };
+
+        patch.camera_pos_uv = glm::vec3{ 1.0f + 0.1f * i, 1.0f, 1.0f };
+        patch.light_pos_uv = glm::vec3{ -1.1f - 0.1f * i, 1.0f, 1.0f };
+
+        float roughness = 0.2f;
+        float line_width = 0.02f;
+        auto result = ShadeLineElementAB(line, patch, roughness, line_width);
+        std::cout << result << std::endl;
+    }
 }
 
 #endif

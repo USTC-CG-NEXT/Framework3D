@@ -117,7 +117,7 @@ def calc_res_a(x, a, b, width_powers, halfX_powers, halfZ_powers, r_powers):
                 + 8
                 * (
                     (1 + power(halfZ_powers, 2) * power(r_powers, 2))
-                    * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) ** 2
+                    * (halfZ - power(halfZ_powers, 3) * power(r_powers, 2)) ** 2
                     + 2
                     * power(halfX_powers, 4)
                     * (
@@ -169,13 +169,11 @@ def calc_res_a(x, a, b, width_powers, halfX_powers, halfZ_powers, r_powers):
                 * x
                 * (
                     -(
-                        (
-                            1
-                            + 6 * power(halfZ_powers, 2) * power(r_powers, 2)
-                            + power(halfZ_powers, 4) * power(r_powers, 4)
-                        )
-                        * power(width_powers, 2)
+                        1
+                        + 6 * power(halfZ_powers, 2) * power(r_powers, 2)
+                        + power(halfZ_powers, 4) * power(r_powers, 4)
                     )
+                    * power(width_powers, 2)
                     + 2
                     * (
                         5
@@ -270,8 +268,6 @@ def calc_res_a(x, a, b, width_powers, halfX_powers, halfZ_powers, r_powers):
         )
     ) * work_for_div
 
-    print("m", m)
-
     n = (
         (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
         * (
@@ -285,10 +281,6 @@ def calc_res_a(x, a, b, width_powers, halfX_powers, halfZ_powers, r_powers):
             - 4 * (1 + halfZ * r) * power(x_powers, 2)
         )
     ) * work_for_div
-
-    print("n", n)
-
-    print("rest", rest)
 
     return rest + m / n
 
@@ -647,8 +639,6 @@ def ShadeLineElementAB(
         ],
         dim=1,
     )
-
-    print("a", a)
 
     b = torch.stack(
         [
