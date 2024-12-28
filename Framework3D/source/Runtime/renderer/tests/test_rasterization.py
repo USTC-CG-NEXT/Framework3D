@@ -1,7 +1,7 @@
 import hd_USTC_CG_py
 import numpy as np
 import torch
-import glints.shader as shader
+import glints.shaderAB as shader
 import glints.renderer as renderer
 import glints.test_utils as test_utils
 import glints.rasterization as rasterization

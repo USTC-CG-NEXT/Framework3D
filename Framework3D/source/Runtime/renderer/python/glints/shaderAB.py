@@ -560,7 +560,7 @@ def areaCalc(lower, upper, a, b):
 # light_positions shape: [n, 3]
 # glints_roughness shape: [1]
 # width shape: [1]
-def ShadeLineElementAB(
+def ShadeLineElement(
     lines, patches, cam_positions, light_positions, glints_roughness, width
 ):
     assert lines.shape[0] == patches.shape[0]

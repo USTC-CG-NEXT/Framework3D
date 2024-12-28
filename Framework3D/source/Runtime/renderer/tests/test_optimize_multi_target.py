@@ -33,7 +33,7 @@ def perspective(fovx, aspect, near, far):
     return m
 
 
-import glints.shader as shader
+import glints.shaderAB as shader
 import imageio
 
 

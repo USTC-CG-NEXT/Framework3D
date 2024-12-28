@@ -1,5 +1,5 @@
 import torch
-import glints.shader as shader
+import glints.shaderAB as shader
 
 
 def render(
