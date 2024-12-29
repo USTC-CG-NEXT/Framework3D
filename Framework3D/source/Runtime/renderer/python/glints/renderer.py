@@ -97,6 +97,8 @@ def render(
             width,
         )[:, 0]
 
+    assert torch.isnan(contribution).sum() == 0
+
     contribution_accumulation.scatter_add_(
         0,
         intersection_pairs[:, 1].long(),
@@ -191,11 +193,21 @@ def prepare_target(
     patches = patches.reshape(-1, 4, 2)
     texture = imageio.imread(texture_name)
     torch_texture = torch.tensor(texture, device="cuda") / 255.0
+
+    torch_texture = (
+        0.2126 * torch_texture[:, :, 0]
+        + 0.7152 * torch_texture[:, :, 1]
+        + 0.0722 * torch_texture[:, :, 2]
+    )
+    torch_texture = torch_texture.unsqueeze(2).repeat(1, 1, 3)
+
     patch_uv_center = (
         1.0 / 4.0 * (patches[:, 0] + patches[:, 1] + patches[:, 2] + patches[:, 3])
     )
 
-    sampled_color = sample_texture_bilinear(torch_texture, flip_v(flip_u(patch_uv_center)))
+    sampled_color = sample_texture_bilinear(
+        torch_texture, flip_v(flip_u(patch_uv_center))
+    )
     if sampled_color.shape[1] == 4:
         sampled_color = sampled_color[:, :3]
     elif sampled_color.shape[1] == 1:

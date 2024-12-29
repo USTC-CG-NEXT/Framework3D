@@ -180,41 +180,46 @@ RGS(mesh)
     float3 direction;
 
     Payload payload;
-    payload.hit = false;
+    payload.hit = true;
 
-    traceRayAndSetPayload(
-        launch_index,
-        launch_dimensions,
-        0.5f,
-        0.5f,
-        origin,
-        direction,
-        payload);
+    Patch patch;
 
     if (payload.hit) {
-        Patch patch;
-
         traceRayAndSetPayload(
             launch_index, launch_dimensions, 0, 0, origin, direction, payload);
         patch.uv0 = payload.uv;
-
+    }
+    else {
+        return;
+    }
+    if (payload.hit) {
         traceRayAndSetPayload(
-            launch_index, launch_dimensions, 1, 0, origin, direction, payload);
+            launch_index, launch_dimensions, 0, 1, origin, direction, payload);
         patch.uv1 = payload.uv;
-
+    }
+    else {
+        return;
+    }
+    if (payload.hit) {
         traceRayAndSetPayload(
             launch_index, launch_dimensions, 1, 1, origin, direction, payload);
         patch.uv2 = payload.uv;
-
-        traceRayAndSetPayload(
-            launch_index, launch_dimensions, 0, 1, origin, direction, payload);
-        patch.uv3 = payload.uv;
-
-        auto id = mesh_params.append_buffer->Push(patch);
-        mesh_params.worldToUV[id] = payload.worldToUV;
-        mesh_params.pixel_targets[id] =
-            make_int2(launch_index.x, launch_index.y);
     }
+    else {
+        return;
+    }
+    if (payload.hit) {
+        traceRayAndSetPayload(
+            launch_index, launch_dimensions, 1, 0, origin, direction, payload);
+        patch.uv3 = payload.uv;
+    }
+    else {
+        return;
+    }
+
+    auto id = mesh_params.append_buffer->Push(patch);
+    mesh_params.worldToUV[id] = payload.worldToUV;
+    mesh_params.pixel_targets[id] = make_int2(launch_index.x, launch_index.y);
 }
 
 __device__ float2 operator*(const float2& a, const float b)
@@ -280,6 +285,10 @@ CHS(mesh)
 
 MISS(mesh)
 {
+    Payload payload;
+
+    payload.hit = false;
+    payload.set_self();
 }
 
 AHS(mesh)

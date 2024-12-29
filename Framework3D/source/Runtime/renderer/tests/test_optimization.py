@@ -1,3 +1,6 @@
+import os
+
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 import hd_USTC_CG_py
 
 import numpy as np
@@ -168,7 +171,7 @@ def perceptual_loss(image, target):
     blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1)
     mse_loss_value = torch.nn.functional.mse_loss(blurred_image, blurred_target)
 
-    return mse_loss_value + perceptual_loss_value * 0.0
+    return mse_loss_value + perceptual_loss_value * 0.01
 
 
 def loss_function(image, target):
@@ -206,29 +209,29 @@ def test_bspline_intersect_optimization():
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
 
-    camera_position_np = np.array([0, -3, 6], dtype=np.float32) / 1.3
-    light_position_np = np.array([6, 0, 6], dtype=np.float32)
+    camera_position_np = np.array([0, -6, 6], dtype=np.float32) / 1.3
+    light_position_np = np.array([6, -6, 6], dtype=np.float32)
 
     world_to_view_matrix = look_at(
         camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
     )
 
     view_to_clip_matrix = perspective(
-        np.pi / 7, resolution[0] / resolution[1], 0.1, 1000.0
+        np.pi / 10, resolution[0] / resolution[1], 0.1, 1000.0
     )
 
-    width = torch.tensor([0.001], device="cuda")
+    width = torch.tensor([0.001 * 0.4], device="cuda")
     glints_roughness = torch.tensor([0.0016], device="cuda")
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.1 / 4
+    max_length = 0.05
 
     numviews = 1
 
-    random_gen_closure = lambda: random_gen(0.025, 20000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.025, 40000, (0, 1), (0, 1))
 
-    exposure = torch.tensor([60.0], device="cuda")
+    exposure = torch.tensor([100.0], device="cuda")
     exposure.requires_grad_(True)
 
     for view in range(numviews):
@@ -236,7 +239,9 @@ def test_bspline_intersect_optimization():
         lines = random_gen_closure()
 
         lines.requires_grad_(True)
-        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam(
+            [lines, exposure], lr=0.001, betas=(0.9, 0.999), eps=1e-08
+        )
         angle = view * (2 * np.pi / numviews)
         rotation_matrix = np.array(
             [
@@ -307,12 +312,11 @@ def test_bspline_intersect_optimization():
                 for param in optimizer.param_groups[0]["params"]:
                     if param.grad is not None:
                         nan_mask = torch.isnan(param.grad)
-                        merged_nan_mask = nan_mask.any(dim=1).any(dim=1)
 
-                        print(f"Number of NaNs: {merged_nan_mask.sum()}")
-                        param.grad[merged_nan_mask] = torch.empty_like(
-                            param.grad[merged_nan_mask]
-                        ).uniform_(-0.1, 0.1)
+                        print(f"Number of NaNs: {nan_mask.sum()}")
+                        param.grad[nan_mask] = torch.zeros_like(
+                            param.grad[nan_mask]
+                        ).uniform_(-0.00001, 0.00001)
 
             optimizer.step()
 
@@ -345,8 +349,8 @@ def test_bspline_intersect_optimization():
                     with torch.no_grad():
                         lines[mask, 1] = lines[mask, 0] + direction * max_length
 
-            with torch.no_grad():
-                lines.clamp_(0, 1)
+            # with torch.no_grad():
+            #     lines.clamp_(0.000001, 0.999999)
 
             # if i % 3 == 0 and i < 90:
             #     with torch.no_grad():
@@ -356,18 +360,18 @@ def test_bspline_intersect_optimization():
             # if i < 80:
             #     with torch.no_grad():
             #         lines[merged_nan_mask] = random_gen_closure()[merged_nan_mask]
-            losses.append(loss.item())
+            losses.append(loss.item() / temperature)
 
             print(
                 f"View {view}, Iteration {i}, Loss: {loss.item()/temperature}, current exposure: {exposure.item()}"
             )
 
-            temperature *= 0.99
+            temperature *= 0.9943
 
             torch.cuda.empty_cache()
 
             test_utils.save_image(
-                linear_to_gamma(image), resolution, f"view_{view}/optimization_{i}.png"
+                (image), resolution, f"view_{view}/optimization_{i}.exr"
             )
 
         with open(f"view_{view}/lines.txt", "w") as f:

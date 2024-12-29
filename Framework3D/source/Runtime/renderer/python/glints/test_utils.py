@@ -83,4 +83,7 @@ def save_image(image, resolution, filename):
     image_cpu = np.rot90(image_cpu)
 
     # Save the image using imageio
-    imageio.imwrite(filename, (image_cpu * 255).astype(np.uint8))
+    if filename.endswith('.exr'):
+        imageio.imwrite(filename, image_cpu.astype(np.float32))
+    else:
+        imageio.imwrite(filename, (image_cpu * 255).astype(np.uint8))

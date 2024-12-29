@@ -20,11 +20,11 @@ def signed_area(lines, points):
 
 
 def slope(p1, p2):
-    return (p1[:, 1] - p2[:, 1]) / (p1[:, 0] - p2[:, 0])
+    return (p1[:, 1] - p2[:, 1]) / (p1[:, 0] - p2[:, 0] + 1e-9)
 
 
 def intercept(p1, p2):
-    return (p1[:, 0] * p2[:, 1] - p2[:, 0] * p1[:, 1]) / (p1[:, 0] - p2[:, 0])
+    return (p1[:, 0] * p2[:, 1] - p2[:, 0] * p1[:, 1]) / (p1[:, 0] - p2[:, 0] + 1e-9)
 
 
 def calc_power_series(tensor):
@@ -429,6 +429,8 @@ def sumpart_coeff_a(y, width_powers, halfX_powers, halfZ_powers, r_powers):
         * power(y_powers, 3)
     ) * work_for_div
 
+    assert torch.isnan(m).sum() == 0
+
     n = (
         4
         * power(halfX_powers, 2)
@@ -446,10 +448,13 @@ def sumpart_coeff_a(y, width_powers, halfX_powers, halfZ_powers, r_powers):
         * (power(width_powers, 2) - 12 * power(y_powers, 2))
     ) * work_for_div
 
+    assert torch.isnan(n).sum() == 0
+
     return m / n
 
 
 def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
+    assert torch.isnan(a).sum() == 0
     r = torch.sqrt(1 - alpha * alpha)
 
     width_powers = calc_power_series(width)
@@ -492,11 +497,19 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
         log_val_u = torch.log(upper - c[i].unsqueeze(1))
         log_val_l = torch.log(lower - c[i].unsqueeze(1))
 
-        part_b = b * (log_val_u - log_val_l) * coeff_b.unsqueeze(1)
-        ret_b += torch.sum(part_b, dim=1)
+        assert torch.isnan(log_val_u).sum() == 0
+        assert torch.isnan(log_val_l).sum() == 0
+        assert torch.isnan(a).sum() == 0
+
+        assert torch.isnan(coeff_a).sum() == 0
 
         part_a = a * (log_val_u - log_val_l) * coeff_a.unsqueeze(1)
+        assert torch.isnan(part_a).sum() == 0
         ret_a += torch.sum(part_a, dim=1)
+
+        part_b = b * (log_val_u - log_val_l) * coeff_b.unsqueeze(1)
+        assert torch.isnan(part_b).sum() == 0
+        ret_b += torch.sum(part_b, dim=1)
 
     assert torch.isnan(ret_a).sum() == 0
     assert torch.isnan(ret_b).sum() == 0
@@ -649,6 +662,8 @@ def ShadeLineElement(
         dim=1,
     )
 
+    assert torch.isnan(a).sum() == 0
+
     b = torch.stack(
         [
             intercept(points[:, 0], points[:, 1]),
@@ -724,3 +739,36 @@ def ShadeLineElement(
     assert torch.isnan(result).sum() == 0
 
     return torch.stack((result, glints_area), dim=1)
+
+
+import glints.bspline as bspline
+
+
+def ShadeBSplineElements(
+    ctr_points, patches, cam_positions, light_positions, glints_roughness, width
+):
+    assert ctr_points.shape[0] == patches.shape[0]
+    patch_center = (
+        patches[:, 0, :] + patches[:, 1, :] + patches[:, 2, :] + patches[:, 3, :]
+    ) / 4.0
+
+    t_closest = bspline.calc_closest(patch_center, ctr_points)
+    p = bspline.eval_quadratic_bspline_point(ctr_points, t_closest)
+    tangent = bspline.eval_quadratic_bspline_tangent(ctr_points, t_closest)
+    assert not torch.isnan(p).any(), "Point contains NaN values"
+    assert not torch.isnan(tangent).any(), "Tangent contains NaN values"
+
+    end1 = p - tangent * 0.02
+    end2 = p + tangent * 0.02
+
+    lines = torch.stack((end1, end2), dim=1)
+
+    ret = ShadeLineElement(
+        lines, patches, cam_positions, light_positions, glints_roughness, width
+    )
+
+    assert not torch.isnan(ret).any()
+    # nan_mask = torch.isnan(ret)
+    # print ("nan pairs count: ", torch.sum(nan_mask))
+
+    return ret

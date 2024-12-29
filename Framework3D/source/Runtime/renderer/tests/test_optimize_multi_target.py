@@ -167,12 +167,12 @@ def perceptual_loss(image, target):
     blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.0)
     blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.0)
     mse_loss_value = torch.nn.functional.l1_loss(blurred_image, blurred_target)
-    
+
     return mse_loss_value, 0.01 * perceptual_loss_value
 
 
 def loss_function(image, target):
-    return perceptual_loss(image, gamma_to_linear(target))
+    return perceptual_loss((image), target)
 
 
 def rotate_postion(postion_np, angle):
@@ -195,6 +195,12 @@ def straight_bspline_loss(lines):
     dir2 = (lines[:, 1] - lines[:, 2]) / length2.unsqueeze(1)
 
     return torch.mean(torch.sum(torch.abs(dir1 - dir2), dim=1))
+
+
+import os
+
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
+import cv2
 
 
 def test_bspline_intersect_optimization():
@@ -225,19 +231,19 @@ def test_bspline_intersect_optimization():
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [1920, 1080]
+    resolution = [1536, 1024]
 
-    camera_position_np = np.array([4.5, 0, 4], dtype=np.float32)
-    light_position_np = np.array([0.27064, 0.0, 1.98921], dtype=np.float32) * 1.3
+    camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
+    light_position_np = np.array([4.5, -4, 4], dtype=np.float32)
 
-    fov_in_degrees = 36
+    fov_in_degrees = 35
 
     view_to_clip_matrix = perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
 
-    width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.001], device="cuda")
+    width = torch.tensor([0.001 * 0.4], device="cuda")
+    glints_roughness = torch.tensor([0.0016], device="cuda")
 
     import matplotlib.pyplot as plt
 
@@ -245,7 +251,7 @@ def test_bspline_intersect_optimization():
 
     num_light_positions = 16
 
-    random_gen_closure = lambda: random_gen(0.03, 160000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.03, 60000, (0, 1), (0, 1))
 
     for light_pos_id in range(num_light_positions):
         if light_pos_id >= 8:
@@ -263,12 +269,17 @@ def test_bspline_intersect_optimization():
         lines.requires_grad_(True)
         # light_position_torch.requires_grad_(False)
 
-        optimizer = torch.optim.Adam([lines], lr=0.0003, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.01, betas=(0.9, 0.999), eps=1e-08)
         rnd_pick_target_id = 0
 
         import os
 
         os.makedirs(f"light_pos_{light_pos_id}", exist_ok=True)
+
+        exposure = torch.tensor([100.0], device="cuda")
+        exposure.requires_grad_(True)
+        temperature = 1.0
+
         with open(f"light_pos_{light_pos_id}/optimization.log", "a") as log_file:
 
             for i in range(800):
@@ -294,11 +305,8 @@ def test_bspline_intersect_optimization():
                     np.array([0.0, 0, 0.0]),
                     np.array([0.0, 0.0, 1.0]),
                 )
-                target = (
-                    imageio.imread(
-                        f"targets/render_{rnd_pick_target_id:03d}.png"
-                    ).astype(np.float32)
-                    / 255.0
+                target = cv2.imread(
+                    f"targets/render_{rnd_pick_target_id:03d}.exr", cv2.IMREAD_UNCHANGED
                 )[..., :3]
 
                 target = torch.tensor(target, dtype=torch.float32).cuda()
@@ -328,14 +336,16 @@ def test_bspline_intersect_optimization():
                     rotated_light_init_position,
                 )
                 # if i == 0:
-                blurred_image = torch.nn.functional.avg_pool2d(
-                    image.detach(), 5, stride=1, padding=2
-                ).detach()
-                image = image / blurred_image.max().detach()
+                # blurred_image = torch.nn.functional.avg_pool2d(
+                #     image.detach(), 5, stride=1, padding=2
+                # ).detach()
+                image = image * 100
 
                 straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
-                loss = mse_loss + perceptual_loss  # + straight_bspline_loss_value
+                loss = temperature * (
+                    mse_loss + perceptual_loss + straight_bspline_loss_value
+                )  #
                 loss.backward()
 
                 # Mask out NaN gradients
@@ -343,8 +353,9 @@ def test_bspline_intersect_optimization():
                     for param in optimizer.param_groups[0]["params"]:
                         if param.grad is not None:
                             nan_mask = torch.isnan(param.grad)
-                            merged_nan_mask = nan_mask.any(dim=1).any(dim=1)
-                            param.grad[merged_nan_mask] = 0.0
+                            param.grad[nan_mask] = torch.zeros_like(
+                                param.grad[nan_mask]
+                            ).uniform_(-0.00001, 0.00001)
 
                 optimizer.step()
 
@@ -382,8 +393,6 @@ def test_bspline_intersect_optimization():
                         lines[low_contribution_mask] = random_gen_closure()[
                             low_contribution_mask
                         ]
-                with torch.no_grad():
-                    lines[merged_nan_mask] = random_gen_closure()[merged_nan_mask]
 
                 if i == 0:
                     this_loss = loss.item()
@@ -391,12 +400,14 @@ def test_bspline_intersect_optimization():
                     last_loss = this_loss
                     this_loss = loss.item()
 
-                losses.append(loss.item())
+                losses.append(loss.item()/temperature)
 
                 torch.cuda.empty_cache()
 
+                temperature *= 0.9943
+
                 log_message = (
-                    f"light_pos_id {light_pos_id:2d}, Iteration {i:3d}, Loss: {loss.item():.6f}, "
+                    f"light_pos_id {light_pos_id:2d}, Iteration {i:3d}, Loss: {loss.item()/temperature:.6f}, "
                     f"mse_loss: {mse_loss.item():.6f}, perceptual_loss: {perceptual_loss.item():.6f}, "
                     f"straight_bspline_loss: {straight_bspline_loss_value.item():.6f}"
                 )
@@ -406,7 +417,7 @@ def test_bspline_intersect_optimization():
                 test_utils.save_image(
                     linear_to_gamma(image),
                     resolution,
-                    f"light_pos_{light_pos_id}/optimization_{i}.png",
+                    f"light_pos_{light_pos_id}/optimization_{i}.exr",
                 )
         # Plot the loss curve
         plt.figure(figsize=(10, 6))
