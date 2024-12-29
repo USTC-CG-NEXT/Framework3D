@@ -37,3 +37,6 @@
 [submodule "Framework3D/external/polyscope"]
 	path = Framework3D/external/polyscope
 	url = https://github.com/USTC-CG-NEXT/polyscope.git
+[submodule "Framework3D/external/libigl"]
+	path = Framework3D/external/libigl
+	url = https://github.com/libigl/libigl.git

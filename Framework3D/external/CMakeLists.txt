@@ -67,3 +67,8 @@ target_compile_definitions(glm INTERFACE GLM_ENABLE_EXPERIMENTAL)
 set_target_properties(glm PROPERTIES LINKER_LANGUAGE CXX)
 add_subdirectory(polyscope)
 set_target_properties(polyscope PROPERTIES ${OUTPUT_DIR})
+
+# libigl
+set(LIBIGL_RESTRICTED_TRIANGLE ON CACHE BOOL "" FORCE)
+add_subdirectory(libigl)
+set_target_properties(igl_core PROPERTIES ${OUTPUT_DIR})
