@@ -82,7 +82,7 @@ PolyscopeRenderer::PolyscopeRenderer(polyscope::CameraParameters prams)
     // polyscope::options::buildGui = false;
     polyscope::options::enableRenderErrorChecks = true;
     polyscope::init();
-    polyscope::view::setViewToCamera(prams);
+    // polyscope::view::setViewToCamera(prams);
     // Test register a structure
     // std::vector<glm::vec3> points;
     // for (int i = 0; i < 2000; i++) {
