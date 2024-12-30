@@ -453,14 +453,39 @@ def sumpart_coeff_a(y, width_powers, halfX_powers, halfZ_powers, r_powers):
     return m / n
 
 
-def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
+def lineShadeRef(lower, upper, a, b, alpha, halfX, halfZ, width):
+
+    print(
+        "lower",
+        lower.shape,
+        "upper",
+        upper.shape,
+        "a",
+        a.shape,
+        "b",
+        b.shape,
+        "alpha",
+        alpha.shape,
+        "halfX",
+        halfX.shape,
+        "halfZ",
+        halfZ.shape,
+        "width",
+        width.shape,
+    )  # lower torch.Size([8, 4]) upper torch.Size([8, 4]) a torch.Size([8, 4]) b torch.Size([8, 4]) alpha torch.Size([1]) halfX torch.Size([8]) halfZ torch.Size([8]) width torch.Size([1])
     assert torch.isnan(a).sum() == 0
     r = torch.sqrt(1 - alpha * alpha)
 
-    width_powers = calc_power_series(width)
+    width_powers = calc_power_series(
+        width
+    )  # a list of tensors, len = 8, each shaped [1] or [n]
     halfX_powers = calc_power_series(halfX)
     halfZ_powers = calc_power_series(halfZ)
     r_powers = calc_power_series(r)
+
+    width_powers_4 = calc_power_series(width.unsqueeze(1).repeat(1, 4))
+    halfX_powers_4 = calc_power_series(halfX.unsqueeze(1).repeat(1, 4))
+    halfZ_powers_4 = calc_power_series(halfZ.unsqueeze(1).repeat(1, 4))
 
     temp = torch.sqrt(
         -power(width_powers, 2)
@@ -564,16 +589,128 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     return ret_b.real + ret_a.real
 
 
+def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
+    print(
+        "lower",
+        lower.shape,
+        "upper",
+        upper.shape,
+        "a",
+        a.shape,
+        "b",
+        b.shape,
+        "alpha",
+        alpha.shape,
+        "halfX",
+        halfX.shape,
+        "halfZ",
+        halfZ.shape,
+        "width",
+        width.shape,
+    )
+    assert torch.isnan(a).sum() == 0
+    r = torch.sqrt(1 - alpha * alpha)
+
+    width_powers = calc_power_series(width)
+    halfX_powers = calc_power_series(halfX)
+    halfZ_powers = calc_power_series(halfZ)
+    r_powers = calc_power_series(r)
+
+    # For vectorized operations on 4 elements
+    width_powers_4 = calc_power_series(width.unsqueeze(1).repeat(1, 4))
+    halfX_powers_4 = calc_power_series(halfX.unsqueeze(1).repeat(1, 4))
+    halfZ_powers_4 = calc_power_series(halfZ.unsqueeze(1).repeat(1, 4))
+    r_powers_4 = calc_power_series(r.unsqueeze(1).repeat(1, 4))
+
+    temp = torch.sqrt(
+        -power(width_powers, 2)
+        + power(halfX_powers, 2) * power(r_powers, 2) * power(width_powers, 2)
+        + power(halfZ_powers, 2) * power(r_powers, 2) * power(width_powers, 2)
+    )
+
+    assert torch.isnan(temp).sum() == 0
+
+    c = torch.stack(
+        [
+            (-(halfX * r * width) - temp) / (2 * (-1 + halfZ * r)),
+            (-(halfX * r * width) - temp) / (2 * (1 + halfZ * r)),
+            (-(halfX * r * width) + temp) / (2 * (-1 + halfZ * r)),
+            (-(halfX * r * width) + temp) / (2 * (1 + halfZ * r)),
+        ],
+        dim=0,
+    )
+
+    assert torch.isnan(c).sum() == 0
+
+    # Vectorized operations
+    coeff_b = sumpart_coeff_b(
+        c.transpose(0, 1), width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
+    )
+
+    coeff_a = sumpart_coeff_a(
+        c.transpose(0, 1), width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
+    )
+
+    log_val_u = torch.log(upper - c.transpose(0, 1))
+    log_val_l = torch.log(lower - c.transpose(0, 1))
+
+    assert torch.isnan(log_val_u).sum() == 0
+    assert torch.isnan(log_val_l).sum() == 0
+    assert torch.isnan(a).sum() == 0
+    assert torch.isnan(coeff_a).sum() == 0
+
+    part_a = a * (log_val_u - log_val_l) * coeff_a
+    ret_a = torch.sum(part_a, dim=1)
+
+    part_b = b * (log_val_u - log_val_l) * coeff_b
+    ret_b = torch.sum(part_b, dim=1)
+
+    assert torch.isnan(ret_a).sum() == 0
+    assert torch.isnan(ret_b).sum() == 0
+
+    temp_1 = (
+        power(r_powers, 2) * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * width
+    ) / (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
+
+    ret_b *= temp_1
+    ret_a *= temp_1 * width
+
+    # Vectorize res calculation
+    res = calc_res_a(
+        upper, a, b, width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
+    ) - calc_res_a(
+        lower, a, b, width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
+    )
+
+    res = torch.sum(res, dim=1)
+    ret_a += res
+
+    coeff_b = (
+        -alpha
+        * alpha
+        / (
+            8
+            * torch.pi
+            * torch.pow(-1 + power(halfZ_powers, 2) * power(r_powers, 2), 3)
+        )
+    )
+    coeff_a = torch.pow(alpha, 2) / (
+        16 * torch.pi * torch.pow(-1 + power(halfZ_powers, 2) * power(r_powers, 2), 4)
+    )
+    ret_a *= coeff_a
+    ret_b *= coeff_b
+
+    return ret_b.real + ret_a.real
+
+
 def areaIntegrate(x, a, b):
     return 0.5 * a * x * x + b * x
 
 
 def areaCalc(lower, upper, a, b):
-    ret = torch.zeros_like(lower[:, 0])
-    for i in range(4):
-        ret += areaIntegrate(upper[:, i], a[:, i], b[:, i]) - areaIntegrate(
-            lower[:, i], a[:, i], b[:, i]
-        )
+    upper_area = areaIntegrate(upper, a, b)
+    lower_area = areaIntegrate(lower, a, b)
+    ret = torch.sum(upper_area - lower_area, dim=1)
     return torch.abs(ret)
 
 
@@ -702,6 +839,170 @@ def ShadeLineElement(
 
     temp = (
         lineShade(
+            lower,
+            upper,
+            a,
+            b,
+            torch.sqrt(
+                torch.complex(glints_roughness, torch.zeros_like(glints_roughness))
+            ),
+            half_vec[:, 0],
+            half_vec[:, 2],
+            width,
+        )
+        / torch.norm(light_pos_uv - p, dim=1)
+        / torch.norm(light_pos_uv - p, dim=1)
+        * microfacet.bsdf_f_line(camera_dir, light_dir, glints_roughness)
+    )
+
+    patch_area = torch.abs(cross_2d(p1 - p0, p2 - p0) / 2.0) + torch.abs(
+        cross_2d(p2 - p0, p3 - p0) / 2.0
+    )
+
+    mask = (
+        (minimum * maximum > 0)
+        & (torch.abs(minimum) > width)
+        & (torch.abs(maximum) > width)
+    )
+
+    result = torch.where(
+        mask,
+        torch.tensor(0.0, device=temp.device),
+        torch.abs(temp) / patch_area,
+    )
+
+    glints_area = areaCalc(lower, upper, a, b)
+
+    assert torch.isnan(result).sum() == 0
+
+    return torch.stack((result, glints_area), dim=1)
+
+
+# line shape: [n, 2, 2]
+# patch shape: [n, 4, 2]
+# cam_positions shape: [n, 3]
+# light_positions shape: [n, 3]
+# glints_roughness shape: [1]
+# width shape: [1]
+def ShadeLineElementRef(
+    lines, patches, cam_positions, light_positions, glints_roughness, width
+):
+    assert lines.shape[0] == patches.shape[0]
+    torch.set_printoptions(precision=10)
+
+    camera_pos_uv = cam_positions.cuda()
+    light_pos_uv = light_positions.cuda()
+
+    p0 = patches[:, 0, :]
+    p1 = patches[:, 1, :]
+    p2 = patches[:, 2, :]
+    p3 = patches[:, 3, :]
+
+    center = (p0 + p1 + p2 + p3) / 4.0
+
+    p = torch.stack(
+        (
+            center[:, 0],
+            center[:, 1],
+            torch.zeros(center.shape[0], device=center.device),
+        ),
+        dim=1,
+    )
+
+    camera_dir = torch.nn.functional.normalize(camera_pos_uv - p)
+    light_dir = torch.nn.functional.normalize(light_pos_uv - p)
+
+    cam_dir_2D = camera_dir[:, :2]
+    light_dir_2D = light_dir[:, :2]
+
+    line_direction = torch.nn.functional.normalize(lines[:, 1, :] - lines[:, 0, :])
+
+    local_cam_dir = torch.stack(
+        (
+            cross_2d(cam_dir_2D, line_direction),
+            torch.sum(cam_dir_2D * line_direction, dim=1),
+            camera_dir[:, 2],
+        ),
+        dim=1,
+    )
+
+    local_light_dir = torch.stack(
+        (
+            cross_2d(light_dir_2D, line_direction),
+            torch.sum(light_dir_2D * line_direction, dim=1),
+            light_dir[:, 2],
+        ),
+        dim=1,
+    )
+
+    half_vec = torch.nn.functional.normalize(local_cam_dir + local_light_dir)
+
+    points = torch.stack(
+        [
+            signed_area(lines, p0),
+            signed_area(lines, p1),
+            signed_area(lines, p2),
+            signed_area(lines, p3),
+        ],
+        dim=1,
+    )
+
+    minimum = torch.min(points[:, :, 0], dim=1).values
+    maximum = torch.max(points[:, :, 0], dim=1).values
+
+    left_cut = -width
+    right_cut = width
+
+    a = torch.stack(
+        [
+            slope(points[:, 0], points[:, 1]),
+            slope(points[:, 1], points[:, 2]),
+            slope(points[:, 2], points[:, 3]),
+            slope(points[:, 3], points[:, 0]),
+        ],
+        dim=1,
+    )
+
+    assert torch.isnan(a).sum() == 0
+
+    b = torch.stack(
+        [
+            intercept(points[:, 0], points[:, 1]),
+            intercept(points[:, 1], points[:, 2]),
+            intercept(points[:, 2], points[:, 3]),
+            intercept(points[:, 3], points[:, 0]),
+        ],
+        dim=1,
+    )
+
+    upper = torch.stack(
+        [
+            points[:, 1, 0],
+            points[:, 2, 0],
+            points[:, 3, 0],
+            points[:, 0, 0],
+        ],
+        dim=1,
+    )
+
+    lower = torch.stack(
+        [
+            points[:, 0, 0],
+            points[:, 1, 0],
+            points[:, 2, 0],
+            points[:, 3, 0],
+        ],
+        dim=1,
+    )
+
+    upper = torch.where(upper >= right_cut, right_cut, upper)
+    upper = torch.where(upper <= left_cut, left_cut, upper)
+
+    lower = torch.where(lower >= right_cut, right_cut, lower)
+    lower = torch.where(lower <= left_cut, left_cut, lower)
+
+    temp = (
+        lineShadeRef(
             lower,
             upper,
             a,
