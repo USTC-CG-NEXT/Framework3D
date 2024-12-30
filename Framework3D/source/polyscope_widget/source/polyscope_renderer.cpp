@@ -25,15 +25,6 @@ struct PolyscopeRenderPrivateData {
     nvrhi::StagingTextureHandle staging_texture;
 };
 
-polyscope::CameraParameters default_camera_params{
-    polyscope::CameraIntrinsics::fromFoVDegVerticalAndAspect(60, 2.),
-    polyscope::CameraExtrinsics::fromVectors(
-        glm::vec3{ 0., 0., -1. },  // world-space position
-        glm::vec3{ 0., 0., 1. },   // world-space look direction
-        glm::vec3{ 0., 1., 0. }    // world-space up direction
-        )
-};
-
 // int nPts = 2000;
 // float anotherParam = 0.0;
 
@@ -76,13 +67,12 @@ polyscope::CameraParameters default_camera_params{
 //     ImGui::PopItemWidth();
 // }
 
-PolyscopeRenderer::PolyscopeRenderer(polyscope::CameraParameters prams)
+PolyscopeRenderer::PolyscopeRenderer()
 {
     data_ = std::make_unique<PolyscopeRenderPrivateData>();
     // polyscope::options::buildGui = false;
     polyscope::options::enableRenderErrorChecks = true;
     polyscope::init();
-    // polyscope::view::setViewToCamera(prams);
     // Test register a structure
     // std::vector<glm::vec3> points;
     // for (int i = 0; i < 2000; i++) {

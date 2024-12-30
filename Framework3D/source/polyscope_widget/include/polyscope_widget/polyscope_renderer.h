@@ -15,13 +15,11 @@ class BaseCamera;
 class FreeCamera;
 class NodeTree;
 
-extern polyscope::CameraParameters default_camera_params;
 struct PolyscopeRenderPrivateData;
 
 class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
    public:
-    explicit PolyscopeRenderer(
-        polyscope::CameraParameters prams = default_camera_params);
+    explicit PolyscopeRenderer();
     ~PolyscopeRenderer() override;
 
     bool BuildUI() override;
