@@ -455,24 +455,6 @@ def sumpart_coeff_a(y, width_powers, halfX_powers, halfZ_powers, r_powers):
 
 def lineShadeRef(lower, upper, a, b, alpha, halfX, halfZ, width):
 
-    print(
-        "lower",
-        lower.shape,
-        "upper",
-        upper.shape,
-        "a",
-        a.shape,
-        "b",
-        b.shape,
-        "alpha",
-        alpha.shape,
-        "halfX",
-        halfX.shape,
-        "halfZ",
-        halfZ.shape,
-        "width",
-        width.shape,
-    )  # lower torch.Size([8, 4]) upper torch.Size([8, 4]) a torch.Size([8, 4]) b torch.Size([8, 4]) alpha torch.Size([1]) halfX torch.Size([8]) halfZ torch.Size([8]) width torch.Size([1])
     assert torch.isnan(a).sum() == 0
     r = torch.sqrt(1 - alpha * alpha)
 
@@ -568,7 +550,6 @@ def lineShadeRef(lower, upper, a, b, alpha, halfX, halfZ, width):
         )
 
         res += temp
-
     ret_a += res
 
     coeff_b = (
@@ -590,24 +571,7 @@ def lineShadeRef(lower, upper, a, b, alpha, halfX, halfZ, width):
 
 
 def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
-    print(
-        "lower",
-        lower.shape,
-        "upper",
-        upper.shape,
-        "a",
-        a.shape,
-        "b",
-        b.shape,
-        "alpha",
-        alpha.shape,
-        "halfX",
-        halfX.shape,
-        "halfZ",
-        halfZ.shape,
-        "width",
-        width.shape,
-    )
+
     assert torch.isnan(a).sum() == 0
     r = torch.sqrt(1 - alpha * alpha)
 
@@ -617,10 +581,10 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     r_powers = calc_power_series(r)
 
     # For vectorized operations on 4 elements
-    width_powers_4 = calc_power_series(width.unsqueeze(1).repeat(1, 4))
-    halfX_powers_4 = calc_power_series(halfX.unsqueeze(1).repeat(1, 4))
-    halfZ_powers_4 = calc_power_series(halfZ.unsqueeze(1).repeat(1, 4))
-    r_powers_4 = calc_power_series(r.unsqueeze(1).repeat(1, 4))
+    width_powers_4 = calc_power_series(width.unsqueeze(0).repeat(4, 1))
+    halfX_powers_4 = calc_power_series(halfX.unsqueeze(0).repeat(4, 1))
+    halfZ_powers_4 = calc_power_series(halfZ.unsqueeze(0).repeat(4, 1))
+    r_powers_4 = calc_power_series(r.unsqueeze(0).repeat(4, 1))
 
     temp = torch.sqrt(
         -power(width_powers, 2)
@@ -644,26 +608,47 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
 
     # Vectorized operations
     coeff_b = sumpart_coeff_b(
-        c.transpose(0, 1), width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
+        c, width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
     )
 
     coeff_a = sumpart_coeff_a(
-        c.transpose(0, 1), width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
+        c, width_powers_4, halfX_powers_4, halfZ_powers_4, r_powers_4
     )
 
-    log_val_u = torch.log(upper - c.transpose(0, 1))
-    log_val_l = torch.log(lower - c.transpose(0, 1))
+    print("upper.shape", upper.shape)  # [n,4]
+    print("c.shape", c.shape)  # [4,n]
+
+    # Reshape upper and lower: [n,4] -> [n,4,4] by repeating for each c
+    upper_expanded = upper.unsqueeze(1).repeat(1, 4, 1)  # [n,4,4]
+    lower_expanded = lower.unsqueeze(1).repeat(1, 4, 1)  # [n,4,4]
+
+    # Reshape c: [4,n] -> [n,4,4] by repeating and transposing
+    c_expanded = c.transpose(0, 1).unsqueeze(2).repeat(1, 1, 4)  # [n,4,4]
+
+    log_val_u = torch.log(upper_expanded - c_expanded)
+    log_val_l = torch.log(lower_expanded - c_expanded)
 
     assert torch.isnan(log_val_u).sum() == 0
     assert torch.isnan(log_val_l).sum() == 0
     assert torch.isnan(a).sum() == 0
     assert torch.isnan(coeff_a).sum() == 0
+    print(a.shape)  # [n,4]
+    print(coeff_a.shape)  # [4,n]
 
-    part_a = a * (log_val_u - log_val_l) * coeff_a
-    ret_a = torch.sum(part_a, dim=1)
+    # Reshape coeff_a/b to match log_val dimensions [n,4,4]
+    coeff_a = coeff_a.transpose(0, 1).unsqueeze(2).repeat(1, 1, 4)
+    coeff_b = coeff_b.transpose(0, 1).unsqueeze(2).repeat(1, 1, 4)
 
-    part_b = b * (log_val_u - log_val_l) * coeff_b
-    ret_b = torch.sum(part_b, dim=1)
+    # First multiply coefficients with log differences
+    part_a = (log_val_u - log_val_l) * coeff_a  # [n,4,4]
+    part_b = (log_val_u - log_val_l) * coeff_b  # [n,4,4]
+
+    # Then multiply by a/b and sum across both dimensions
+    part_a = part_a * a.unsqueeze(1)  # [n,4,4]
+    part_b = part_b * b.unsqueeze(1)  # [n,4,4]
+
+    ret_a = torch.sum(part_a, dim=(1, 2))  # [n]
+    ret_b = torch.sum(part_b, dim=(1, 2))  # [n]
 
     assert torch.isnan(ret_a).sum() == 0
     assert torch.isnan(ret_b).sum() == 0
@@ -683,6 +668,7 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     )
 
     res = torch.sum(res, dim=1)
+
     ret_a += res
 
     coeff_b = (
