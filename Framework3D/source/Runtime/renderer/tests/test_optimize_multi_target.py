@@ -213,7 +213,7 @@ def test_bspline_intersect_optimization():
         scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
         random_gen = test_utils.random_scatter_lines
 
-    scratch_context.set_max_pair_buffer_ratio(25.0)
+    scratch_context.set_max_pair_buffer_ratio(13.0)
 
     import torch
     import imageio
@@ -247,11 +247,11 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.05
+    max_length = 0.04
 
     num_light_positions = 16
 
-    random_gen_closure = lambda: random_gen(0.03, 60000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.03, 50000, (0, 1), (0, 1))
 
     for light_pos_id in range(num_light_positions):
         if light_pos_id >= 8:
@@ -269,7 +269,7 @@ def test_bspline_intersect_optimization():
         lines.requires_grad_(True)
         # light_position_torch.requires_grad_(False)
 
-        optimizer = torch.optim.Adam([lines], lr=0.01, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
         rnd_pick_target_id = 0
 
         import os
@@ -341,10 +341,10 @@ def test_bspline_intersect_optimization():
                 # ).detach()
                 image = image * 100
 
-                straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
+                # straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
                 loss = temperature * (
-                    mse_loss + perceptual_loss + straight_bspline_loss_value
+                    mse_loss + perceptual_loss 
                 )  #
                 loss.backward()
 
@@ -400,22 +400,20 @@ def test_bspline_intersect_optimization():
                     last_loss = this_loss
                     this_loss = loss.item()
 
-                losses.append(loss.item()/temperature)
+                losses.append(loss.item() / temperature)
 
                 torch.cuda.empty_cache()
-
-                temperature *= 0.9943
 
                 log_message = (
                     f"light_pos_id {light_pos_id:2d}, Iteration {i:3d}, Loss: {loss.item()/temperature:.6f}, "
                     f"mse_loss: {mse_loss.item():.6f}, perceptual_loss: {perceptual_loss.item():.6f}, "
-                    f"straight_bspline_loss: {straight_bspline_loss_value.item():.6f}"
+                    # f"straight_bspline_loss: {straight_bspline_loss_value.item():.6f}"
                 )
                 print(log_message)
                 log_file.write(log_message + "\n")
 
                 test_utils.save_image(
-                    linear_to_gamma(image),
+                    image,
                     resolution,
                     f"light_pos_{light_pos_id}/optimization_{i}.exr",
                 )

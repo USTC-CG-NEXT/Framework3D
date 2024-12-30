@@ -17,14 +17,9 @@ def test_shader():
     glints_roughness = torch.tensor([0.2], device="cuda")
     width = torch.tensor([0.02], device="cuda")
 
-    result2 = glints.shaderAB.ShadeLineElementRef(
-        lines, patches, cam_positions, light_positions, glints_roughness, width
-    )
-
     result = glints.shaderAB.ShadeLineElement(
         lines, patches, cam_positions, light_positions, glints_roughness, width
     )
-    print(result2)  # tensor([[0.0019914089, 0.0185666792]], device='cuda:0')
     print(result)  # tensor([[0.0019914089, 0.0185666792]], device='cuda:0')
 
 
@@ -91,11 +86,6 @@ def test_shader_expanded():
     result = glints.shaderAB.ShadeLineElement(
         lines, patches, cam_positions, light_positions, glints_roughness, width
     )
-
-    result2 = glints.shaderAB.ShadeLineElementRef(
-        lines, patches, cam_positions, light_positions, glints_roughness, width
-    )
-
     expected_result = torch.tensor(
         [
             [2.6758241002e-03, 1.7571991310e-02],
@@ -109,7 +99,6 @@ def test_shader_expanded():
         ],
         device="cuda:0",
     )
-    assert torch.allclose(result2, expected_result, atol=1e-6)
     assert torch.allclose(result, expected_result, atol=1e-6)
 
     print(result)
