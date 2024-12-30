@@ -5,6 +5,7 @@
 #include "GUI/widget.h"
 #include "polyscope/camera_parameters.h"
 #include "polyscope/polyscope.h"
+#include "polyscope/structure.h"
 #include "polyscope/types.h"
 #include "polyscope/view.h"
 #include "polyscope_widget/api.h"
@@ -46,6 +47,10 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
     void GetFrameBuffer();
     void DrawMenuBar();
     void DrawFrame();
+
+    polyscope::Structure* currPickStructure = nullptr;
+    void VisualizePickResult(
+        std::pair<polyscope::Structure*, size_t> pickResult);
 
     float drag_distSince_last_release = 0.0;
     void ProcessInputEvents();

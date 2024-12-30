@@ -1,6 +1,13 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include <array>
+#include <vector>
+
+#include "glm/fwd.hpp"
 #include "imgui_internal.h"
+#include "polyscope/curve_network.h"
+#include "polyscope/surface_mesh.h"
+
 #endif
 #include "RHI/rhi.hpp"
 #include "imgui.h"
@@ -213,6 +220,76 @@ void PolyscopeRenderer::DrawFrame()
     ImGui::EndChild();
 }
 
+// 根据选中的东西的内容，创建一个polyscope::structure，用于突出选中的内容
+void PolyscopeRenderer::VisualizePickResult(
+    std::pair<polyscope::Structure*, size_t> pickResult)
+{
+    // 若选中的东西和currPickStructure相同，则不做任何操作
+    // if (currPickStructure != nullptr &&
+    //     pickResult.first == currPickStructure) {
+    //     return;
+    // }
+
+    // 若选中的东西为空，则删除当前的polyscope::structure
+    if (pickResult.first == nullptr) {
+        if (currPickStructure != nullptr) {
+            currPickStructure->remove();
+            currPickStructure = nullptr;
+        }
+    }
+    else {
+        // 若选中的东西不为空，则创建一个polyscope::structure
+        if (currPickStructure != nullptr) {
+            if (currPickStructure == pickResult.first) {
+                return;
+            }
+            currPickStructure->remove();
+        }
+        // 得到选中的东西的类型
+        auto type = pickResult.first->typeName();
+        if (type == "Surface Mesh") {
+            // 检查选中的是顶点、面、边、半边还是角
+            auto mesh = dynamic_cast<polyscope::SurfaceMesh*>(pickResult.first);
+            auto ind = pickResult.second;
+            if (ind < mesh->nVertices()) {
+                // 获取顶点坐标
+                auto pos = mesh->vertexPositions.getValue(ind);
+                // 创建一个点云
+                std::vector<glm::vec3> points;
+                points.push_back(pos);
+                currPickStructure =
+                    polyscope::registerPointCloud("picked point", points);
+            }
+            else if (ind < mesh->nVertices() + mesh->nFaces()) {
+                // 获取面的顶点索引和顶点坐标
+                ind = ind - mesh->nVertices();
+                auto start = mesh->faceIndsStart[ind];
+                auto D = mesh->faceIndsStart[ind + 1] - start;
+                std::vector<glm::vec3> vertices;
+                for (size_t j = 0; j < D; j++) {
+                    auto iV = mesh->faceIndsEntries[start + j];
+                    vertices.push_back(mesh->vertexPositions.getValue(iV));
+                }
+                // 创建一个折线
+                currPickStructure = polyscope::registerCurveNetworkLoop(
+                    "picked face", vertices);
+            }
+            else if (
+                ind < mesh->nVertices() + mesh->nFaces() + mesh->nEdges()) {
+                // TODO
+            }
+            else if (
+                ind < mesh->nVertices() + mesh->nFaces() + mesh->nEdges() +
+                          mesh->nHalfedges()) {
+                // TODO
+            }
+            else {
+                // TODO
+            }
+        }
+    }
+}
+
 // Rewritten from processInputEvents() in polyscope.cpp
 void PolyscopeRenderer::ProcessInputEvents()
 {
@@ -234,8 +311,8 @@ void PolyscopeRenderer::ProcessInputEvents()
             if (xoffset != 0 || yoffset != 0) {
                 polyscope::requestRedraw();
 
-                // On some setups, shift flips the scroll direction, so take the
-                // max scrolling in any direction
+                // On some setups, shift flips the scroll direction, so take
+                // the max scrolling in any direction
                 double maxScroll = xoffset;
                 if (std::abs(yoffset) > std::abs(xoffset)) {
                     maxScroll = yoffset;
@@ -320,6 +397,7 @@ void PolyscopeRenderer::ProcessInputEvents()
                         polyscope::pick::pickAtScreenCoords(
                             glm::vec2{ p.x, p.y });
                     polyscope::pick::setSelection(pickResult);
+                    VisualizePickResult(pickResult);
                 }
 
                 // Reset the drag distance after any release
