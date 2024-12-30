@@ -373,9 +373,11 @@ def test_bspline_intersect_optimization():
             test_utils.save_image(
                 (image), resolution, f"view_{view}/optimization_{i}.exr"
             )
+        
+        reduced_lines = lines[~low_contribution_mask]        
 
         with open(f"view_{view}/lines.txt", "w") as f:
-            f.write(str(torch.nan_to_num(lines, nan=-1.0)[:, :, :2].tolist()))
+            f.write(str(torch.nan_to_num(reduced_lines, nan=-1.0)[:, :, :2].tolist()))
 
         # Plot the loss curve
         plt.plot(losses)
