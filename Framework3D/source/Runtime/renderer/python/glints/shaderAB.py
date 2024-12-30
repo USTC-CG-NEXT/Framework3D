@@ -518,11 +518,11 @@ def lineShadeRef(lower, upper, a, b, alpha, halfX, halfZ, width):
         part_b = b * (log_val_u - log_val_l) * coeff_b.unsqueeze(1)
         assert torch.isnan(part_b).sum() == 0
         ret_b += torch.sum(part_b, dim=1)
-        print("part_b_ref", part_b)
 
     assert torch.isnan(ret_a).sum() == 0
     assert torch.isnan(ret_b).sum() == 0
-
+    print ("ret_a_ref", ret_a)
+    print ("ret_b_ref", ret_b)
     temp_1 = (
         power(r_powers, 2) * (-1 + power(halfZ_powers, 2) * power(r_powers, 2)) * width
     ) / (-1 + (power(halfX_powers, 2) + power(halfZ_powers, 2)) * power(r_powers, 2))
@@ -552,6 +552,8 @@ def lineShadeRef(lower, upper, a, b, alpha, halfX, halfZ, width):
         )
 
         res += temp
+
+    print("res_ref", res)
     ret_a += res
 
     coeff_b = (
@@ -643,10 +645,12 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     part_a = part_a * a.unsqueeze(1)  # [n,4,4]
     part_b = part_b * b.unsqueeze(1)  # [n,4,4]
 
-    print("part_b", part_b)
 
     ret_a = torch.sum(part_a, dim=(1, 2))  # [n]
     ret_b = torch.sum(part_b, dim=(1, 2))  # [n]
+
+    print ("ret_a", ret_a)
+    print ("ret_b", ret_b)
 
     assert torch.isnan(ret_a).sum() == 0
     assert torch.isnan(ret_b).sum() == 0
@@ -663,7 +667,9 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
         upper, a, b, width_powers, halfX_powers_expanded, halfZ_powers_expanded, r_powers
     ) - calc_res_a(lower, a, b, width_powers, halfX_powers_expanded, halfZ_powers_expanded, r_powers)
 
-    res = torch.sum(res, dim=(0, 1))
+    res = torch.sum(res, dim=(1))
+
+    print ("res", res)
 
     ret_a += res
 
