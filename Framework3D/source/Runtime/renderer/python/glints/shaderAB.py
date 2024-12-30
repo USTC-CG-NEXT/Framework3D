@@ -580,6 +580,8 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     width_powers = calc_power_series(width)
     halfX_powers = calc_power_series(halfX)
     halfZ_powers = calc_power_series(halfZ)
+    halfX_powers_expanded = calc_power_series(halfX.unsqueeze(1))
+    halfZ_powers_expanded = calc_power_series(halfZ.unsqueeze(1))
     r_powers = calc_power_series(r)
 
     # For vectorized operations on 4 elements
@@ -609,14 +611,10 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     assert torch.isnan(c).sum() == 0
 
     # Vectorized operations
-    coeff_b = sumpart_coeff_b(
-        c, width_powers, halfX_powers, halfZ_powers, r_powers
-    )
+    coeff_b = sumpart_coeff_b(c, width_powers, halfX_powers, halfZ_powers, r_powers)
 
     coeff_a = sumpart_coeff_a(c, width_powers, halfX_powers, halfZ_powers, r_powers)
 
-    print("upper.shape", upper.shape)  # [n,4]
-    print("c.shape", c.shape)  # [4,n]
 
     # Reshape upper and lower: [n,4] -> [n,4,4] by repeating for each c
     upper_expanded = upper.unsqueeze(1).repeat(1, 4, 1)  # [n,4,4]
@@ -632,12 +630,10 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     assert torch.isnan(log_val_l).sum() == 0
     assert torch.isnan(a).sum() == 0
     assert torch.isnan(coeff_a).sum() == 0
-    print(a.shape)  # [n,4]
-    print(coeff_a.shape)  # [4,n]
 
     # Reshape coeff_a/b to match log_val dimensions [n,4,4]
-    coeff_a = coeff_a.transpose(0, 1).unsqueeze(2).repeat(1, 1,4)
-    coeff_b = coeff_b.transpose(0, 1).unsqueeze(2).repeat(1, 1,4)
+    coeff_a = coeff_a.transpose(0, 1).unsqueeze(2).repeat(1, 1, 4)
+    coeff_b = coeff_b.transpose(0, 1).unsqueeze(2).repeat(1, 1, 4)
 
     # First multiply coefficients with log differences
     part_a = (log_val_u - log_val_l) * coeff_a  # [n,4,4]
@@ -647,7 +643,7 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
     part_a = part_a * a.unsqueeze(1)  # [n,4,4]
     part_b = part_b * b.unsqueeze(1)  # [n,4,4]
 
-    print ("part_b", part_b)
+    print("part_b", part_b)
 
     ret_a = torch.sum(part_a, dim=(1, 2))  # [n]
     ret_b = torch.sum(part_b, dim=(1, 2))  # [n]
@@ -664,10 +660,8 @@ def lineShade(lower, upper, a, b, alpha, halfX, halfZ, width):
 
     # Vectorize res calculation
     res = calc_res_a(
-        upper, a, b, width_powers, halfX_powers, halfZ_powers, r_powers
-    ) - calc_res_a(
-        lower, a, b, width_powers, halfX_powers, halfZ_powers, r_powers
-    )
+        upper, a, b, width_powers, halfX_powers_expanded, halfZ_powers_expanded, r_powers
+    ) - calc_res_a(lower, a, b, width_powers, halfX_powers_expanded, halfZ_powers_expanded, r_powers)
 
     res = torch.sum(res, dim=(0, 1))
 
