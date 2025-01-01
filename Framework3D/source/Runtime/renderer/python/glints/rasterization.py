@@ -7,11 +7,11 @@ import numpy as np
 
 
 # view_to_clip
-def perspective(fovy, aspect, near, far):
-    f = 1.0 / np.tan(fovy / 2.0)
+def perspective(fovx, aspect, near, far):
+    f = 1.0 / np.tan(fovx / 2.0)
     m = np.zeros((4, 4))
-    m[0, 0] = f / aspect
-    m[1, 1] = f
+    m[0, 0] = f
+    m[1, 1] = f * aspect
     m[2, 2] = (far + near) / (near - far)
     m[2, 3] = 2.0 * far * near / (near - far)
     m[3, 2] = -1.0

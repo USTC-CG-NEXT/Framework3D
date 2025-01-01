@@ -1,5 +1,6 @@
 import torch
 
+
 def create_patches(size, step, device="cuda"):
     patches = torch.zeros((size, size, 4, 2), device=device)
     x = torch.linspace(-1, 1 - step, size, device=device)
@@ -12,6 +13,7 @@ def create_patches(size, step, device="cuda"):
     patches[:, :, 3] = torch.stack((xv, yv + step), dim=-1)
 
     return patches.reshape(-1, 4, 2)
+
 
 # random scatter lines with length 0.1, within the range of [-1, 1] * [-1, 1]
 def random_scatter_lines(length, count, width_range, height_range):
@@ -29,6 +31,7 @@ def random_scatter_lines(length, count, width_range, height_range):
 
     return lines
 
+
 def generate_random_scatter_lines_directed(
     length, count, width_range, height_range, angle_range
 ):
@@ -45,6 +48,7 @@ def generate_random_scatter_lines_directed(
     lines[:, 1, :3] = torch.stack((x_end, y_end, z_end), dim=1)
 
     return lines
+
 
 def random_scatter_bsplines(edge_length, count, width_range, height_range):
     x_start = torch.FloatTensor(count).uniform_(*width_range).to("cuda")
@@ -64,9 +68,11 @@ def random_scatter_bsplines(edge_length, count, width_range, height_range):
 
     return triangles
 
+
 import numpy as np
 import imageio
 import os
+
 
 def save_image(image, resolution, filename):
     # Create the directory if it does not exist
@@ -83,7 +89,31 @@ def save_image(image, resolution, filename):
     image_cpu = np.rot90(image_cpu)
 
     # Save the image using imageio
-    if filename.endswith('.exr'):
+    if filename.endswith(".exr"):
         imageio.imwrite(filename, image_cpu.astype(np.float32))
     else:
         imageio.imwrite(filename, (image_cpu * 255).astype(np.uint8))
+
+
+import os
+
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
+import cv2
+
+
+def read_image(filename):
+    if filename.endswith(".exr"):
+        # Read EXR image using OpenCV
+        image = cv2.imread(filename, cv2.IMREAD_UNCHANGED)[..., :3]
+        image_tensor = torch.tensor(image, dtype=torch.float32).cuda()
+    else:
+        # Read regular image using imageio
+        image = imageio.imread(filename)
+        image_tensor = torch.from_numpy(image).float()
+        # Normalize regular images to [0,1]
+        image_tensor /= 255.0
+
+    # Rotate the image clockwise by 90 degrees
+    image_tensor = torch.rot90(image_tensor, k=1, dims=(0, 1))
+
+    return image_tensor

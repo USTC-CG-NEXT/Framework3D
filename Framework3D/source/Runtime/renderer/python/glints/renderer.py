@@ -138,14 +138,14 @@ import imageio
 # return shape (N, 3)
 def sample_texture_nearest(texture, uv):
     uv = torch.clamp(uv, 0.0, 1.0)
-    uv = uv * torch.tensor([texture.shape[1], texture.shape[0]], device="cuda")
+    uv = uv * torch.tensor([texture.shape[0], texture.shape[1]], device="cuda")
     uv = uv.long()
-    return texture[uv[:, 1], uv[:, 0]]
+    return texture[uv[:, 0], uv[:, 1]]
 
 
 def sample_texture_bilinear(texture, uv):
     uv = torch.clamp(uv, 0.0, 1.0)
-    uv = uv * torch.tensor([texture.shape[1], texture.shape[0]], device="cuda")
+    uv = uv * torch.tensor([texture.shape[0], texture.shape[1]], device="cuda")
     uv = uv.long()
     u = uv[:, 0]
     v = uv[:, 1]
@@ -156,10 +156,10 @@ def sample_texture_bilinear(texture, uv):
     u_next = u + 1
     v_next = v + 1
     return (
-        texture[v, u] * (1 - u_frac) * (1 - v_frac)
-        + texture[v, u_next] * u_frac * (1 - v_frac)
-        + texture[v_next, u] * (1 - u_frac) * v_frac
-        + texture[v_next, u_next] * u_frac * v_frac
+        texture[u, v] * (1 - u_frac) * (1 - v_frac)
+        + texture[u_next, v] * u_frac * (1 - v_frac)
+        + texture[u, v_next] * (1 - u_frac) * v_frac
+        + texture[u_next, v_next] * u_frac * v_frac
     )
 
 
@@ -191,8 +191,8 @@ def prepare_target(
     )
 
     patches = patches.reshape(-1, 4, 2)
-    texture = imageio.imread(texture_name)
-    torch_texture = torch.tensor(texture, device="cuda") / 255.0
+    texture = test_utils.read_image(texture_name)
+    torch_texture = torch.tensor(texture, device="cuda")
 
     torch_texture = (
         0.2126 * torch_texture[:, :, 0]
@@ -220,3 +220,56 @@ def prepare_target(
     image[targets[:, 0].long(), targets[:, 1].long()] = sampled_color
 
     return image
+
+
+import glints.test_utils as test_utils
+
+
+def target_bake_to_texture(
+    target_name,
+    context,
+    vertices,
+    indices,
+    vertex_buffer_stride,
+    uv_resolution,
+    world_to_view_matrix,
+    view_to_clip_matrix,
+):
+    """
+    The inverse process of prepare_target. This function bakes the target image to a texture.
+    """
+
+    if isinstance(target_name, str):
+        target_image = test_utils.read_image(target_name)
+    else:
+        target_image = target_name
+    resolution = target_image.shape[:2]
+
+    patches, worldToUV, targets = context.intersect_mesh_with_rays(
+        vertices,
+        indices,
+        vertex_buffer_stride,
+        resolution,
+        world_to_view_matrix.flatten(),
+        view_to_clip_matrix.flatten(),
+    )
+
+    patches = patches.reshape(-1, 4, 2)
+    patch_uv_center = (
+        1.0 / 4.0 * (patches[:, 0] + patches[:, 1] + patches[:, 2] + patches[:, 3])
+    )
+    assert torch.all(patch_uv_center >= 0) and torch.all(patch_uv_center <= 1)
+    uv_center_pixel_id = patch_uv_center * torch.tensor(uv_resolution, device="cuda")
+
+    targets_uv = targets / torch.tensor(resolution, device="cuda")
+
+    assert torch.all(targets_uv >= 0) and torch.all(targets_uv <= 1)
+
+    uv_texture = torch.zeros(uv_resolution[0], uv_resolution[1], 3, device="cuda")
+    target_sampled = sample_texture_bilinear(target_image, flip_u(flip_v(targets_uv)))
+
+    uv_texture[uv_center_pixel_id[:, 0].long(), uv_center_pixel_id[:, 1].long()] = (
+        target_sampled
+    )
+
+    return uv_texture

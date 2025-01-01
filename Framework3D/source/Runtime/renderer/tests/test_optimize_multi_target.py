@@ -164,9 +164,9 @@ def perceptual_loss(image, target):
     # )
     perceptual_loss_value = lpips_loss_fn(reshaped_image, reshaped_target)
 
-    blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.0)
+    blurred_image = TF.gaussian_blur(image, kernel_size=5, sigma=2.0)
     blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.0)
-    mse_loss_value = torch.nn.functional.l1_loss(blurred_image, blurred_target)
+    mse_loss_value = torch.nn.functional.mse_loss(blurred_image, blurred_target)
 
     return mse_loss_value, 0.01 * perceptual_loss_value
 
@@ -197,6 +197,69 @@ def straight_bspline_loss(lines):
     return torch.mean(torch.sum(torch.abs(dir1 - dir2), dim=1))
 
 
+def to_luminance(image):
+    return 0.2126 * image[..., 0] + 0.7152 * image[..., 1] + 0.0722 * image[..., 2]
+
+
+def initilize_based_on_target(targets, edge_length, count, width_range, height_range):
+
+    all_triangles = []
+    for i in range(21):
+        test_utils.save_image(
+            targets[i], [512, 512], f"uv_baked/baked_{i:03d}.exr"
+        )
+
+    num_points_per_target = count // len(targets)
+    for target in targets:
+        # Calculate CDF for current target
+        target_luminance = to_luminance(target)
+        flat_pdf = target_luminance.T.flatten()
+        cdf = torch.cumsum(flat_pdf, dim=0)
+        cdf = cdf / cdf[-1]
+
+        # Generate points for current target
+        random_values = (
+            torch.FloatTensor(num_points_per_target, 1).uniform_(0, 1).to("cuda")
+        )
+        flat_indices = torch.searchsorted(cdf, random_values, right=True).squeeze()
+
+        H, W = target.shape[:2]
+        y_indices = flat_indices // W
+        x_indices = flat_indices % W
+
+        x_start = (x_indices.float() / W) * (
+            width_range[1] - width_range[0]
+        ) + width_range[0]
+        y_start = (y_indices.float() / H) * (
+            height_range[1] - height_range[0]
+        ) + height_range[0]
+        z_start = torch.FloatTensor(num_points_per_target).uniform_(-1, 1).to("cuda")
+        angles = (
+            torch.FloatTensor(num_points_per_target, 2)
+            .uniform_(0, 2 * torch.pi)
+            .to("cuda")
+        )
+
+        x1 = x_start + edge_length * torch.cos(angles[:, 0])
+        y1 = y_start + edge_length * torch.sin(angles[:, 0])
+        z1 = torch.FloatTensor(num_points_per_target).uniform_(-1, 1).to("cuda")
+        z2 = z1
+        x2 = x_start + edge_length * torch.cos(angles[:, 1])
+        y2 = y_start + edge_length * torch.sin(angles[:, 1])
+
+        target_triangles = torch.zeros((num_points_per_target, 3, 3), device="cuda")
+        target_triangles[:, 0, :3] = torch.stack((x1, y1, z1), dim=1)
+        target_triangles[:, 1, :3] = torch.stack((x_start, y_start, z_start), dim=1)
+        target_triangles[:, 2, :3] = torch.stack((x2, y2, z2), dim=1)
+        print(target_triangles.shape)
+
+        all_triangles.append(target_triangles.clone())
+
+    triangles = torch.cat(all_triangles, dim=0)
+
+    return triangles
+
+
 import os
 
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
@@ -213,7 +276,7 @@ def test_bspline_intersect_optimization():
         scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
         random_gen = test_utils.random_scatter_lines
 
-    scratch_context.set_max_pair_buffer_ratio(13.0)
+    scratch_context.set_max_pair_buffer_ratio(12.0)
 
     import torch
     import imageio
@@ -234,7 +297,7 @@ def test_bspline_intersect_optimization():
     resolution = [1536, 1024]
 
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
-    light_position_np = np.array([4.5, -4, 4], dtype=np.float32)
+    light_position_np = np.array([0, 0, 6], dtype=np.float32)
 
     fov_in_degrees = 35
 
@@ -247,12 +310,55 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.04
+    max_length = 0.05
 
     num_light_positions = 16
 
-    random_gen_closure = lambda: random_gen(0.03, 50000, (0, 1), (0, 1))
+    targets = []
+    for i in range(21):
+        target = cv2.imread(f"targets/render_{i:03d}.exr", cv2.IMREAD_UNCHANGED)[
+            ..., :3
+        ]
+        target = torch.tensor(target, dtype=torch.float32).cuda()
+        target = torch.rot90(target, k=3, dims=[0, 1])
+        targets.append(target)
 
+    uv_resolution = [512, 512]
+
+    baked_textures = []
+    for i in range(21):
+        camera_rotate_angle = (i * (30 / 20) - 15) * (np.pi / 180)
+
+        rotated_camera_position = rotate_postion(
+            camera_position_np, camera_rotate_angle
+        )
+
+        world_to_view_matrix = look_at(
+            rotated_camera_position,
+            np.array([0.0, 0, 0.0]),
+            np.array([0.0, 0.0, 1.0]),
+        )
+        baked = renderer.target_bake_to_texture(
+            torch.rot90(targets[0], k=2, dims=[0, 1]),
+            context,
+            vertices,
+            indices,
+            vertex_buffer_stride,
+            uv_resolution,
+            world_to_view_matrix,
+            view_to_clip_matrix,
+        )
+
+        baked_textures.append(baked.clone())
+
+    for i in range(1, 21):
+        test_utils.save_image(
+            baked_textures[i], uv_resolution, f"baked_texture_{i}.exr"
+        )
+
+    random_gen_closure = lambda: initilize_based_on_target(
+        baked_textures, 0.03, 100000, (0, 1), (0, 1)
+    )
     for light_pos_id in range(num_light_positions):
         if light_pos_id >= 8:
             continue
@@ -269,14 +375,14 @@ def test_bspline_intersect_optimization():
         lines.requires_grad_(True)
         # light_position_torch.requires_grad_(False)
 
-        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.000, betas=(0.9, 0.999), eps=1e-08)
         rnd_pick_target_id = 0
 
         import os
 
         os.makedirs(f"light_pos_{light_pos_id}", exist_ok=True)
 
-        exposure = torch.tensor([100.0], device="cuda")
+        exposure = torch.tensor([1.0], device="cuda")
         exposure.requires_grad_(True)
         temperature = 1.0
 
@@ -305,15 +411,10 @@ def test_bspline_intersect_optimization():
                     np.array([0.0, 0, 0.0]),
                     np.array([0.0, 0.0, 1.0]),
                 )
-                target = cv2.imread(
-                    f"targets/render_{rnd_pick_target_id:03d}.exr", cv2.IMREAD_UNCHANGED
-                )[..., :3]
-
-                target = torch.tensor(target, dtype=torch.float32).cuda()
-                target = torch.rot90(target, k=3, dims=[0, 1])
+                target = targets[rnd_pick_target_id]
 
                 test_utils.save_image(
-                    target, resolution, f"light_pos_{light_pos_id}/target_{i}.png"
+                    target, resolution, f"light_pos_{light_pos_id}/target_{i}.exr"
                 )
 
                 target = target / target.max()
@@ -341,11 +442,11 @@ def test_bspline_intersect_optimization():
                 # ).detach()
                 image = image * 100
 
-                # straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
+                straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
-                loss = temperature * (
-                    mse_loss + perceptual_loss 
-                )  #
+                loss = temperature * (mse_loss + perceptual_loss)  #
+                if case == "bspline":
+                    loss = loss + straight_bspline_loss_value
                 loss.backward()
 
                 # Mask out NaN gradients
@@ -357,48 +458,36 @@ def test_bspline_intersect_optimization():
                                 param.grad[nan_mask]
                             ).uniform_(-0.00001, 0.00001)
 
-                optimizer.step()
+                # optimizer.step()
 
                 # Clamp lines to max length
 
-                if case == "bspline":
-                    length1 = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
-                    length2 = torch.norm(lines[:, 1] - lines[:, 2], dim=1)
-                    mask1 = length1 > max_length
-                    mask2 = length2 > max_length
-                    if mask1.any():
-                        direction = (lines[mask1, 1] - lines[mask1, 0]) / length1[
-                            mask1
-                        ].unsqueeze(1)
-                        with torch.no_grad():
-                            lines[mask1, 0] = lines[mask1, 1] - direction * max_length
-                    if mask2.any():
-                        direction = (lines[mask2, 1] - lines[mask2, 2]) / length2[
-                            mask2
-                        ].unsqueeze(1)
-                        with torch.no_grad():
-                            lines[mask2, 2] = lines[mask2, 1] - direction * max_length
-                else:
-                    lengths = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
-                    mask = lengths > max_length
-                    if mask.any():
-                        direction = (lines[mask, 1] - lines[mask, 0]) / lengths[
-                            mask
-                        ].unsqueeze(1)
-                        with torch.no_grad():
-                            lines[mask, 1] = lines[mask, 0] + direction * max_length
-
-                if i % 20 == 0 and i < 400:
-                    with torch.no_grad():
-                        lines[low_contribution_mask] = random_gen_closure()[
-                            low_contribution_mask
-                        ]
-
-                if i == 0:
-                    this_loss = loss.item()
-                else:
-                    last_loss = this_loss
-                    this_loss = loss.item()
+                # if case == "bspline":
+                #     length1 = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
+                #     length2 = torch.norm(lines[:, 1] - lines[:, 2], dim=1)
+                #     mask1 = length1 > max_length
+                #     mask2 = length2 > max_length
+                #     if mask1.any():
+                #         direction = (lines[mask1, 1] - lines[mask1, 0]) / length1[
+                #             mask1
+                #         ].unsqueeze(1)
+                #         with torch.no_grad():
+                #             lines[mask1, 0] = lines[mask1, 1] - direction * max_length
+                #     if mask2.any():
+                #         direction = (lines[mask2, 1] - lines[mask2, 2]) / length2[
+                #             mask2
+                #         ].unsqueeze(1)
+                #         with torch.no_grad():
+                #             lines[mask2, 2] = lines[mask2, 1] - direction * max_length
+                # else:
+                #     lengths = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
+                #     mask = lengths > max_length
+                #     if mask.any():
+                #         direction = (lines[mask, 1] - lines[mask, 0]) / lengths[
+                #             mask
+                #         ].unsqueeze(1)
+                #         with torch.no_grad():
+                #             lines[mask, 1] = lines[mask, 0] + direction * max_length
 
                 losses.append(loss.item() / temperature)
 
@@ -407,7 +496,7 @@ def test_bspline_intersect_optimization():
                 log_message = (
                     f"light_pos_id {light_pos_id:2d}, Iteration {i:3d}, Loss: {loss.item()/temperature:.6f}, "
                     f"mse_loss: {mse_loss.item():.6f}, perceptual_loss: {perceptual_loss.item():.6f}, "
-                    # f"straight_bspline_loss: {straight_bspline_loss_value.item():.6f}"
+                    f"straight_bspline_loss: {straight_bspline_loss_value.item():.6f}"
                 )
                 print(log_message)
                 log_file.write(log_message + "\n")
