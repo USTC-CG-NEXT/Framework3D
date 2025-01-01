@@ -269,6 +269,34 @@ os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 import cv2
 
 
+def fix_max_length(lines, max_length, case):
+    if case == "bspline":
+        length1 = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
+        length2 = torch.norm(lines[:, 1] - lines[:, 2], dim=1)
+        mask1 = length1 > max_length
+        mask2 = length2 > max_length
+        if mask1.any():
+            direction = (lines[mask1, 1] - lines[mask1, 0]) / length1[mask1].unsqueeze(
+                1
+            )
+            with torch.no_grad():
+                lines[mask1, 0] = lines[mask1, 1] - direction * max_length
+        if mask2.any():
+            direction = (lines[mask2, 1] - lines[mask2, 2]) / length2[mask2].unsqueeze(
+                1
+            )
+            with torch.no_grad():
+                lines[mask2, 2] = lines[mask2, 1] - direction * max_length
+    else:
+        lengths = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
+        mask = lengths > max_length
+        if mask.any():
+            direction = (lines[mask, 1] - lines[mask, 0]) / lengths[mask].unsqueeze(1)
+            with torch.no_grad():
+                lines[mask, 1] = lines[mask, 0] + direction * max_length
+    return lines
+
+
 def test_bspline_intersect_optimization():
     case = "bspline"
     context = hd_USTC_CG_py.MeshIntersectionContext()
@@ -397,9 +425,9 @@ def test_bspline_intersect_optimization():
 
             for i in range(800):
                 # if i < 2 or np.random.rand() < last_loss / this_loss:
-                # rnd_pick_target_id = np.random.randint(0, 21)
+                rnd_pick_target_id = np.random.randint(0, 21)
 
-                rnd_pick_target_id = (rnd_pick_target_id + 1) % 21
+                # rnd_pick_target_id = (rnd_pick_target_id + 1) % 21
 
                 camera_rotate_angle = (rnd_pick_target_id * (10 / 20) - 10) * (
                     np.pi / 180
@@ -424,7 +452,7 @@ def test_bspline_intersect_optimization():
 
                 optimizer.zero_grad()
 
-                image1, low_contribution_mask = renderer.render(
+                image, low_contribution_mask = renderer.render(
                     context,
                     scratch_context,
                     lines,
@@ -463,33 +491,7 @@ def test_bspline_intersect_optimization():
 
                 # Clamp lines to max length
 
-                if case == "bspline":
-                    length1 = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
-                    length2 = torch.norm(lines[:, 1] - lines[:, 2], dim=1)
-                    mask1 = length1 > max_length
-                    mask2 = length2 > max_length
-                    if mask1.any():
-                        direction = (lines[mask1, 1] - lines[mask1, 0]) / length1[
-                            mask1
-                        ].unsqueeze(1)
-                        with torch.no_grad():
-                            lines[mask1, 0] = lines[mask1, 1] - direction * max_length
-                    if mask2.any():
-                        direction = (lines[mask2, 1] - lines[mask2, 2]) / length2[
-                            mask2
-                        ].unsqueeze(1)
-                        with torch.no_grad():
-                            lines[mask2, 2] = lines[mask2, 1] - direction * max_length
-                else:
-                    lengths = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
-                    mask = lengths > max_length
-                    if mask.any():
-                        direction = (lines[mask, 1] - lines[mask, 0]) / lengths[
-                            mask
-                        ].unsqueeze(1)
-                        with torch.no_grad():
-                            lines[mask, 1] = lines[mask, 0] + direction * max_length
-
+                lines = fix_max_length(lines, max_length, case)
                 losses.append(loss.item() / temperature)
 
                 torch.cuda.empty_cache()
@@ -507,6 +509,7 @@ def test_bspline_intersect_optimization():
                     resolution,
                     f"light_pos_{light_pos_id}/optimization_{i}.exr",
                 )
+
         # Plot the loss curve
         plt.figure(figsize=(10, 6))
         plt.plot(losses, label=f"light_pos_id {light_pos_id}")
