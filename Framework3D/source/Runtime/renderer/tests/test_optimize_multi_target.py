@@ -217,7 +217,7 @@ def initilize_based_on_target(targets, edge_length, count, width_range, height_r
             torch.linspace(1.0, 0.0, 1024).unsqueeze(1).expand(1024, 1024).cuda()
         )
 
-        target_luminance = target_luminance#  * brightness_left_to_right_decrease_mask
+        target_luminance = target_luminance  #  * brightness_left_to_right_decrease_mask
 
         flat_pdf = target_luminance.T.flatten()
         cdf = torch.cumsum(flat_pdf, dim=0)
@@ -317,6 +317,7 @@ def test_bspline_intersect_optimization():
 
     num_light_positions = 16
 
+    all_target_max = torch.tensor(0.0, device="cuda")
     targets = []
     for i in range(21):
         target = cv2.imread(f"targets/render_{i:03d}.exr", cv2.IMREAD_UNCHANGED)[
@@ -326,11 +327,14 @@ def test_bspline_intersect_optimization():
         target = torch.rot90(target, k=3, dims=[0, 1])
         targets.append(target)
 
+        target_max = target.max()
+        all_target_max = torch.max(target_max, all_target_max)
+
     uv_resolution = [1024, 1024]
 
     baked_textures = []
     for i in range(21):
-        camera_rotate_angle = (i * (30 / 20) - 15) * (np.pi / 180)
+        camera_rotate_angle = (i * (10 / 20) - 1.0) * (np.pi / 180)
 
         rotated_camera_position = rotate_postion(
             camera_position_np, camera_rotate_angle
@@ -397,7 +401,7 @@ def test_bspline_intersect_optimization():
 
                 rnd_pick_target_id = (rnd_pick_target_id + 1) % 21
 
-                camera_rotate_angle = (rnd_pick_target_id * (30 / 20) - 15) * (
+                camera_rotate_angle = (rnd_pick_target_id * (10 / 20) - 10) * (
                     np.pi / 180
                 )
 
@@ -416,15 +420,11 @@ def test_bspline_intersect_optimization():
                 )
                 target = targets[rnd_pick_target_id]
 
-                test_utils.save_image(
-                    target, resolution, f"light_pos_{light_pos_id}/target_{i}.exr"
-                )
-
                 target = target / target.max()
 
                 optimizer.zero_grad()
 
-                image, low_contribution_mask = renderer.render(
+                image1, low_contribution_mask = renderer.render(
                     context,
                     scratch_context,
                     lines,
@@ -439,14 +439,12 @@ def test_bspline_intersect_optimization():
                     rotated_camera_position,
                     rotated_light_init_position,
                 )
-                # if i == 0:
-                # blurred_image = torch.nn.functional.avg_pool2d(
-                #     image.detach(), 5, stride=1, padding=2
-                # ).detach()
+
                 image = image * 40
 
                 straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
+
                 loss = temperature * (mse_loss + perceptual_loss)  #
                 if case == "bspline":
                     loss = loss + straight_bspline_loss_value
