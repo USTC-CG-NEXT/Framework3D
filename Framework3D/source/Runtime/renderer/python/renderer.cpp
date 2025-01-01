@@ -25,7 +25,7 @@ NB_MODULE(hd_USTC_CG_py, m)
                float width) {
                 auto [pairs, size] = self.intersect_line_with_rays(
                     lines.data(),
-                    static_cast<unsigned>(lines.shape(0)),
+                    static_cast<unsigned>(lines.shape(0) * lines.shape(1)),
                     patches.data(),
                     patches.shape(0),
                     width);

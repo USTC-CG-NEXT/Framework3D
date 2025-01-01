@@ -266,7 +266,13 @@ def target_bake_to_texture(
     assert torch.all(targets_uv >= 0) and torch.all(targets_uv <= 1)
 
     uv_texture = torch.zeros(uv_resolution[0], uv_resolution[1], 3, device="cuda")
-    target_sampled = sample_texture_bilinear(target_image, flip_u(flip_v(targets_uv)))
+    target_sampled = sample_texture_nearest(target_image, flip_u(flip_v(targets_uv)))
+
+    uv_texture_0 = targets_uv[:, 0]
+    uv_texture_1 = targets_uv[:, 1]
+    uv_texture_2 = targets_uv[:, 0]
+
+    uv_texture_all = torch.stack([uv_texture_0, uv_texture_1, uv_texture_2], dim=1)
 
     uv_texture[uv_center_pixel_id[:, 0].long(), uv_center_pixel_id[:, 1].long()] = (
         target_sampled

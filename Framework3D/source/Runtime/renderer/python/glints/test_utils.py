@@ -83,7 +83,6 @@ def save_image(image, resolution, filename):
     image_cpu = image.detach().cpu().numpy()
 
     # Clamp the image values to be between 0 and 1
-    image_cpu = np.clip(image_cpu, 0, 1)
 
     # Rotate the image counterclockwise by 90 degrees
     image_cpu = np.rot90(image_cpu)
@@ -92,6 +91,7 @@ def save_image(image, resolution, filename):
     if filename.endswith(".exr"):
         imageio.imwrite(filename, image_cpu.astype(np.float32))
     else:
+        image_cpu = np.clip(image_cpu, 0, 1)
         imageio.imwrite(filename, (image_cpu * 255).astype(np.uint8))
 
 

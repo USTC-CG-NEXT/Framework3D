@@ -225,11 +225,11 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.05
+    max_length = 0.04
 
     numviews = 1
 
-    random_gen_closure = lambda: random_gen(0.025, 40000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.025, 30000, (0, 1), (0, 1))
 
     exposure = torch.tensor([100.0], device="cuda")
     exposure.requires_grad_(True)

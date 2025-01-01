@@ -164,9 +164,9 @@ def perceptual_loss(image, target):
     # )
     perceptual_loss_value = lpips_loss_fn(reshaped_image, reshaped_target)
 
-    blurred_image = TF.gaussian_blur(image, kernel_size=5, sigma=2.0)
+    blurred_image = TF.gaussian_blur(image, kernel_size=3, sigma=1.0)
     blurred_target = TF.gaussian_blur(target, kernel_size=3, sigma=1.0)
-    mse_loss_value = torch.nn.functional.mse_loss(blurred_image, blurred_target)
+    mse_loss_value = torch.nn.functional.l1_loss(blurred_image, blurred_target)
 
     return mse_loss_value, 0.01 * perceptual_loss_value
 
@@ -205,14 +205,20 @@ def initilize_based_on_target(targets, edge_length, count, width_range, height_r
 
     all_triangles = []
     for i in range(21):
-        test_utils.save_image(
-            targets[i], [512, 512], f"uv_baked/baked_{i:03d}.exr"
-        )
+        test_utils.save_image(targets[i], [1024, 1024], f"uv_baked/baked_{i:03d}.exr")
 
     num_points_per_target = count // len(targets)
     for target in targets:
         # Calculate CDF for current target
         target_luminance = to_luminance(target)
+
+        # the mask decrease from left to right by coordinate, from 0.8 to 0.2 linearly, shape [1024, 1024]
+        brightness_left_to_right_decrease_mask = (
+            torch.linspace(1.0, 0.0, 1024).unsqueeze(1).expand(1024, 1024).cuda()
+        )
+
+        target_luminance = target_luminance#  * brightness_left_to_right_decrease_mask
+
         flat_pdf = target_luminance.T.flatten()
         cdf = torch.cumsum(flat_pdf, dim=0)
         cdf = cdf / cdf[-1]
@@ -221,7 +227,7 @@ def initilize_based_on_target(targets, edge_length, count, width_range, height_r
         random_values = (
             torch.FloatTensor(num_points_per_target, 1).uniform_(0, 1).to("cuda")
         )
-        flat_indices = torch.searchsorted(cdf, random_values, right=True).squeeze()
+        flat_indices = torch.searchsorted(cdf, random_values).squeeze()
 
         H, W = target.shape[:2]
         y_indices = flat_indices // W
@@ -251,13 +257,10 @@ def initilize_based_on_target(targets, edge_length, count, width_range, height_r
         target_triangles[:, 0, :3] = torch.stack((x1, y1, z1), dim=1)
         target_triangles[:, 1, :3] = torch.stack((x_start, y_start, z_start), dim=1)
         target_triangles[:, 2, :3] = torch.stack((x2, y2, z2), dim=1)
-        print(target_triangles.shape)
 
         all_triangles.append(target_triangles.clone())
 
-    triangles = torch.cat(all_triangles, dim=0)
-
-    return triangles
+    return torch.cat(all_triangles, dim=0).contiguous()
 
 
 import os
@@ -276,7 +279,7 @@ def test_bspline_intersect_optimization():
         scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
         random_gen = test_utils.random_scatter_lines
 
-    scratch_context.set_max_pair_buffer_ratio(12.0)
+    scratch_context.set_max_pair_buffer_ratio(30.0)
 
     import torch
     import imageio
@@ -294,10 +297,10 @@ def test_bspline_intersect_optimization():
     assert indices.is_contiguous()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [1536, 1024]
+    resolution = [768, 512]
 
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
-    light_position_np = np.array([0, 0, 6], dtype=np.float32)
+    light_position_np = np.array([4.0, 0.0, 6], dtype=np.float32)
 
     fov_in_degrees = 35
 
@@ -310,7 +313,7 @@ def test_bspline_intersect_optimization():
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.05
+    max_length = 0.2
 
     num_light_positions = 16
 
@@ -323,7 +326,7 @@ def test_bspline_intersect_optimization():
         target = torch.rot90(target, k=3, dims=[0, 1])
         targets.append(target)
 
-    uv_resolution = [512, 512]
+    uv_resolution = [1024, 1024]
 
     baked_textures = []
     for i in range(21):
@@ -339,7 +342,7 @@ def test_bspline_intersect_optimization():
             np.array([0.0, 0.0, 1.0]),
         )
         baked = renderer.target_bake_to_texture(
-            torch.rot90(targets[0], k=2, dims=[0, 1]),
+            torch.rot90(targets[i], k=2, dims=[0, 1]),
             context,
             vertices,
             indices,
@@ -357,7 +360,7 @@ def test_bspline_intersect_optimization():
         )
 
     random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.03, 100000, (0, 1), (0, 1)
+        baked_textures, 0.03, 60000, (0, 1), (0, 1)
     )
     for light_pos_id in range(num_light_positions):
         if light_pos_id >= 8:
@@ -370,13 +373,13 @@ def test_bspline_intersect_optimization():
         # light_position_torch = torch.tensor(rotated_light_init_position, device="cuda")
 
         losses = []
-        lines = random_gen_closure()
+        lines = random_gen_closure().clone().contiguous().cuda()
 
         lines.requires_grad_(True)
         # light_position_torch.requires_grad_(False)
 
-        optimizer = torch.optim.Adam([lines], lr=0.000, betas=(0.9, 0.999), eps=1e-08)
-        rnd_pick_target_id = 0
+        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+        rnd_pick_target_id = 10
 
         import os
 
@@ -390,7 +393,7 @@ def test_bspline_intersect_optimization():
 
             for i in range(800):
                 # if i < 2 or np.random.rand() < last_loss / this_loss:
-                #     rnd_pick_target_id = np.random.randint(0, 21)
+                # rnd_pick_target_id = np.random.randint(0, 21)
 
                 rnd_pick_target_id = (rnd_pick_target_id + 1) % 21
 
@@ -440,7 +443,7 @@ def test_bspline_intersect_optimization():
                 # blurred_image = torch.nn.functional.avg_pool2d(
                 #     image.detach(), 5, stride=1, padding=2
                 # ).detach()
-                image = image * 100
+                image = image * 40
 
                 straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                 mse_loss, perceptual_loss = loss_function(image, target)
@@ -458,36 +461,36 @@ def test_bspline_intersect_optimization():
                                 param.grad[nan_mask]
                             ).uniform_(-0.00001, 0.00001)
 
-                # optimizer.step()
+                optimizer.step()
 
                 # Clamp lines to max length
 
-                # if case == "bspline":
-                #     length1 = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
-                #     length2 = torch.norm(lines[:, 1] - lines[:, 2], dim=1)
-                #     mask1 = length1 > max_length
-                #     mask2 = length2 > max_length
-                #     if mask1.any():
-                #         direction = (lines[mask1, 1] - lines[mask1, 0]) / length1[
-                #             mask1
-                #         ].unsqueeze(1)
-                #         with torch.no_grad():
-                #             lines[mask1, 0] = lines[mask1, 1] - direction * max_length
-                #     if mask2.any():
-                #         direction = (lines[mask2, 1] - lines[mask2, 2]) / length2[
-                #             mask2
-                #         ].unsqueeze(1)
-                #         with torch.no_grad():
-                #             lines[mask2, 2] = lines[mask2, 1] - direction * max_length
-                # else:
-                #     lengths = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
-                #     mask = lengths > max_length
-                #     if mask.any():
-                #         direction = (lines[mask, 1] - lines[mask, 0]) / lengths[
-                #             mask
-                #         ].unsqueeze(1)
-                #         with torch.no_grad():
-                #             lines[mask, 1] = lines[mask, 0] + direction * max_length
+                if case == "bspline":
+                    length1 = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
+                    length2 = torch.norm(lines[:, 1] - lines[:, 2], dim=1)
+                    mask1 = length1 > max_length
+                    mask2 = length2 > max_length
+                    if mask1.any():
+                        direction = (lines[mask1, 1] - lines[mask1, 0]) / length1[
+                            mask1
+                        ].unsqueeze(1)
+                        with torch.no_grad():
+                            lines[mask1, 0] = lines[mask1, 1] - direction * max_length
+                    if mask2.any():
+                        direction = (lines[mask2, 1] - lines[mask2, 2]) / length2[
+                            mask2
+                        ].unsqueeze(1)
+                        with torch.no_grad():
+                            lines[mask2, 2] = lines[mask2, 1] - direction * max_length
+                else:
+                    lengths = torch.norm(lines[:, 1] - lines[:, 0], dim=1)
+                    mask = lengths > max_length
+                    if mask.any():
+                        direction = (lines[mask, 1] - lines[mask, 0]) / lengths[
+                            mask
+                        ].unsqueeze(1)
+                        with torch.no_grad():
+                            lines[mask, 1] = lines[mask, 0] + direction * max_length
 
                 losses.append(loss.item() / temperature)
 
