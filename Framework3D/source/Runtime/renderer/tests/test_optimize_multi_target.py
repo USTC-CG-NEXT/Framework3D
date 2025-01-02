@@ -175,17 +175,35 @@ def loss_function(image, target):
     return perceptual_loss((image), target)
 
 
-def rotate_postion(postion_np, angle):
+def rotate_postion(position_np, angle, axis=np.array([0, 0, 1], dtype=np.float32)):
+    axis = axis / np.linalg.norm(axis)
+    cos_angle = np.cos(angle)
+    sin_angle = np.sin(angle)
+    one_minus_cos = 1 - cos_angle
+
     rotation_matrix = np.array(
         [
-            [np.cos(angle), -np.sin(angle), 0],
-            [np.sin(angle), np.cos(angle), 0],
-            [0, 0, 1],
+            [
+                cos_angle + axis[0] * axis[0] * one_minus_cos,
+                axis[0] * axis[1] * one_minus_cos - axis[2] * sin_angle,
+                axis[0] * axis[2] * one_minus_cos + axis[1] * sin_angle,
+            ],
+            [
+                axis[1] * axis[0] * one_minus_cos + axis[2] * sin_angle,
+                cos_angle + axis[1] * axis[1] * one_minus_cos,
+                axis[1] * axis[2] * one_minus_cos - axis[0] * sin_angle,
+            ],
+            [
+                axis[2] * axis[0] * one_minus_cos - axis[1] * sin_angle,
+                axis[2] * axis[1] * one_minus_cos + axis[0] * sin_angle,
+                cos_angle + axis[2] * axis[2] * one_minus_cos,
+            ],
         ],
         dtype=np.float32,
     )
-    rotated_camera_position = np.dot(rotation_matrix, postion_np)
-    return rotated_camera_position
+
+    rotated_position = np.dot(rotation_matrix, position_np)
+    return rotated_position
 
 
 def straight_bspline_loss(lines):
@@ -327,8 +345,8 @@ def test_bspline_intersect_optimization():
     vertex_buffer_stride = 5 * 4
     resolution = [768, 512]
 
-    camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
-    light_position_np = np.array([4.0, 0.0, 6], dtype=np.float32)
+    camera_position_np = np.array([0.0, 0, 5.0], dtype=np.float32)
+    light_position_np = np.array([6.0, 0.0, 6], dtype=np.float32)
 
     fov_in_degrees = 35
 
@@ -337,11 +355,11 @@ def test_bspline_intersect_optimization():
     )
 
     width = torch.tensor([0.001 * 0.4], device="cuda")
-    glints_roughness = torch.tensor([0.0016], device="cuda")
+    glints_roughness = torch.tensor([0.0086], device="cuda")
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.2
+    max_length = 0.05
 
     num_light_positions = 16
 
@@ -362,16 +380,18 @@ def test_bspline_intersect_optimization():
 
     baked_textures = []
     for i in range(21):
-        camera_rotate_angle = (i * (10 / 20) - 1.0) * (np.pi / 180)
+        camera_rotate_angle = (i * (20 / 20) - 1.0) * (np.pi / 180)
 
         rotated_camera_position = rotate_postion(
-            camera_position_np, camera_rotate_angle
+            camera_position_np,
+            camera_rotate_angle,
+            axis=np.array([-1, 0, 0], dtype=np.float32)
         )
 
         world_to_view_matrix = look_at(
             rotated_camera_position,
             np.array([0.0, 0, 0.0]),
-            np.array([0.0, 0.0, 1.0]),
+            np.array([-1.0, 0.0, 0.0]),
         )
         baked = renderer.target_bake_to_texture(
             torch.rot90(targets[i], k=2, dims=[0, 1]),
@@ -392,16 +412,14 @@ def test_bspline_intersect_optimization():
         )
 
     random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.03, 60000, (0, 1), (0, 1)
+        baked_textures, 0.01, 100000, (0, 1), (0, 1)
     )
     for light_pos_id in range(num_light_positions):
         if light_pos_id >= 8:
             continue
 
         light_rotation_angle = light_pos_id * (2 * np.pi / num_light_positions)
-        rotated_light_init_position = rotate_postion(
-            light_position_np, light_rotation_angle
-        )
+        rotated_light_init_position = light_position_np
         # light_position_torch = torch.tensor(rotated_light_init_position, device="cuda")
 
         losses = []
@@ -411,7 +429,7 @@ def test_bspline_intersect_optimization():
         # light_position_torch.requires_grad_(False)
 
         optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
-        rnd_pick_target_id = 10
+        iterative_rnd_pick_target_id = 10
 
         import os
 
@@ -425,58 +443,62 @@ def test_bspline_intersect_optimization():
 
             for i in range(800):
                 # if i < 2 or np.random.rand() < last_loss / this_loss:
-                rnd_pick_target_id = np.random.randint(0, 21)
+                rnd_pick_target_ids = np.random.randint(0, 21, size=3)
+                iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % 21
+                rnd_pick_target_ids[-1] = iterative_rnd_pick_target_id
 
-                # rnd_pick_target_id = (rnd_pick_target_id + 1) % 21
+                total_loss = 0
+                for rnd_pick_target_id in rnd_pick_target_ids:
+                    camera_rotate_angle = (rnd_pick_target_id * (20 / 20) - 10) * (
+                        np.pi / 180
+                    )
 
-                camera_rotate_angle = (rnd_pick_target_id * (10 / 20) - 10) * (
-                    np.pi / 180
-                )
+                    rotated_camera_position = rotate_postion(
+                        camera_position_np,
+                        camera_rotate_angle,
+                        axis=np.array([-1, 0, 0], dtype=np.float32)
+                    )
 
-                rotated_camera_position = rotate_postion(
-                    camera_position_np, camera_rotate_angle
-                )
+                    rotated_light_init_position = light_position_np
 
-                rotated_light_init_position = rotate_postion(
-                    light_position_np, camera_rotate_angle
-                )
+                    world_to_view_matrix = look_at(
+                        rotated_camera_position,
+                        np.array([0.0, 0, 0.0]),
+                        np.array([-1.0, 0.0, 0.0]),
+                    )
+                    target = targets[rnd_pick_target_id]
 
-                world_to_view_matrix = look_at(
-                    rotated_camera_position,
-                    np.array([0.0, 0, 0.0]),
-                    np.array([0.0, 0.0, 1.0]),
-                )
-                target = targets[rnd_pick_target_id]
+                    target = target / all_target_max
 
-                target = target / target.max()
+                    optimizer.zero_grad()
 
-                optimizer.zero_grad()
+                    image, low_contribution_mask = renderer.render(
+                        context,
+                        scratch_context,
+                        lines,
+                        width,
+                        glints_roughness,
+                        vertices,
+                        indices,
+                        vertex_buffer_stride,
+                        resolution,
+                        world_to_view_matrix,
+                        view_to_clip_matrix,
+                        rotated_camera_position,
+                        rotated_light_init_position,
+                    )
 
-                image, low_contribution_mask = renderer.render(
-                    context,
-                    scratch_context,
-                    lines,
-                    width,
-                    glints_roughness,
-                    vertices,
-                    indices,
-                    vertex_buffer_stride,
-                    resolution,
-                    world_to_view_matrix,
-                    view_to_clip_matrix,
-                    rotated_camera_position,
-                    rotated_light_init_position,
-                )
+                    image = image * 40
 
-                image = image * 40
+                    straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
+                    mse_loss, perceptual_loss = loss_function(image, target)
 
-                straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
-                mse_loss, perceptual_loss = loss_function(image, target)
+                    loss = temperature * (mse_loss + perceptual_loss)  #
+                    if case == "bspline":
+                        loss = loss + straight_bspline_loss_value
+                    total_loss += loss
 
-                loss = temperature * (mse_loss + perceptual_loss)  #
-                if case == "bspline":
-                    loss = loss + straight_bspline_loss_value
-                loss.backward()
+                total_loss.backward()
 
                 # Mask out NaN gradients
                 with torch.no_grad():
@@ -492,12 +514,12 @@ def test_bspline_intersect_optimization():
                 # Clamp lines to max length
 
                 lines = fix_max_length(lines, max_length, case)
-                losses.append(loss.item() / temperature)
+                losses.append(total_loss.item() / temperature)
 
                 torch.cuda.empty_cache()
 
                 log_message = (
-                    f"light_pos_id {light_pos_id:2d}, Iteration {i:3d}, Loss: {loss.item()/temperature:.6f}, "
+                    f"light_pos_id {light_pos_id:2d}, Iteration {i:3d}, Loss: {total_loss.item()/temperature:.6f}, "
                     f"mse_loss: {mse_loss.item():.6f}, perceptual_loss: {perceptual_loss.item():.6f}, "
                     f"straight_bspline_loss: {straight_bspline_loss_value.item():.6f}"
                 )
