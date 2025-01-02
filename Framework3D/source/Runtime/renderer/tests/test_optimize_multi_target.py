@@ -36,100 +36,6 @@ def perspective(fovx, aspect, near, far):
 import glints.shaderAB as shader
 import imageio
 
-
-# def test_line_intersect_optimization():
-
-#     context = hd_USTC_CG_py.MeshIntersectionContext()
-#     scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
-#     scratch_context.set_max_pair_buffer_ratio(12.0)
-
-#     import torch
-#     import imageio
-
-#     vertices = torch.tensor(
-#         [
-#             [-1, -1, 0.0, 0, 0],
-#             [1.0, -1.0, 0.0, 1, 0],
-#             [1.0, 1.0, 0.0, 1, 1],
-#             [-1.0, 1.0, 0.0, 0, 1],
-#         ]
-#     ).cuda()
-#     print(vertices.dtype)
-#     assert vertices.is_contiguous()
-#     indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
-#     assert indices.is_contiguous()
-
-#     vertex_buffer_stride = 5 * 4
-#     resolution = [1536, 1024]
-
-#     camera_position_np = np.array([2, 2, 3], dtype=np.float32)
-#     light_position_np = np.array([2, -2, 3], dtype=np.float32)
-
-#     world_to_view_matrix = look_at(
-#         camera_position_np, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
-#     )
-
-#     view_to_clip_matrix = perspective(np.pi / 3, 1.0, 0.1, 1000.0)
-
-#     import glints.test_utils as test_utils
-#     import glints.renderer as renderer
-
-#     lines = test_utils.random_scatter_lines(0.09, 40000, (0, 1), (0, 1))
-#     width = torch.tensor([0.001], device="cuda")
-#     glints_roughness = torch.tensor([0.0002], device="cuda")
-
-#     lines.requires_grad_(True)
-
-#     optimizer = torch.optim.Adam([lines], lr=0.003)
-
-#     import matplotlib.pyplot as plt
-
-#     losses = []
-
-#     for i in range(100):
-#         optimizer.zero_grad()
-
-#         image = renderer.render(
-#             context,
-#             scratch_context,
-#             lines,
-#             width,
-#             glints_roughness,
-#             vertices,
-#             indices,
-#             vertex_buffer_stride,
-#             resolution,
-#             world_to_view_matrix,
-#             view_to_clip_matrix,
-#             camera_position_np,
-#             light_position_np,
-#         )
-#         image *= 10
-
-#         loss = torch.mean((image - 0.5) ** 2)
-#         loss.backward()
-#         optimizer.step()
-
-#         losses.append(loss.item())
-
-#         # Check torch vmem occupation status
-#         allocated_memory = torch.cuda.memory_allocated()
-#         reserved_memory = torch.cuda.memory_reserved()
-#         print(f"Allocated memory: {allocated_memory / (1024 ** 2):.2f} MB")
-#         print(f"Reserved memory: {reserved_memory / (1024 ** 2):.2f} MB")
-#         torch.cuda.empty_cache()
-#         print(f"Iteration {i}, Loss: {loss.item()}")
-#         test_utils.save_image(image, resolution, f"optimization_{i}.png")
-
-#     # Plot the loss curve
-#     plt.plot(losses)
-#     plt.xlabel("Iteration")
-#     plt.ylabel("Loss")
-#     plt.title("Loss Curve")
-#     plt.savefig("loss_curve.png")
-
-#     test_utils.save_image(image, resolution, "optimization.png")
-
 import torch
 
 import glints.test_utils as test_utils
@@ -315,6 +221,13 @@ def fix_max_length(lines, max_length, case):
     return lines
 
 
+def redistribute_low_contribution_points(lines, low_contribution_mask, random_line_gen):
+    with torch.no_grad():
+        if low_contribution_mask.any():
+            lines[low_contribution_mask] = random_line_gen()[low_contribution_mask]
+        return lines
+
+
 def test_bspline_intersect_optimization():
     case = "bspline"
     context = hd_USTC_CG_py.MeshIntersectionContext()
@@ -346,7 +259,7 @@ def test_bspline_intersect_optimization():
     resolution = [768, 512]
 
     camera_position_np = np.array([0.0, 0, 5.0], dtype=np.float32)
-    light_position_np = np.array([-6.0, 0.0, 6], dtype=np.float32)
+    light_position_np = np.array([8.0, 0.0, 8], dtype=np.float32)
 
     fov_in_degrees = 35
 
@@ -355,7 +268,7 @@ def test_bspline_intersect_optimization():
     )
 
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.0036], device="cuda")
+    glints_roughness = torch.tensor([0.0016], device="cuda")
 
     import matplotlib.pyplot as plt
 
@@ -443,7 +356,7 @@ def test_bspline_intersect_optimization():
 
             for i in range(800):
                 # if i < 2 or np.random.rand() < last_loss / this_loss:
-                rnd_pick_target_ids = np.random.randint(0, 21, size=8)
+                rnd_pick_target_ids = np.random.randint(0, 21, size=6)
                 iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % 21
                 rnd_pick_target_ids[-1] = iterative_rnd_pick_target_id
 
@@ -495,7 +408,7 @@ def test_bspline_intersect_optimization():
                         light_position_torch,
                     )
 
-                    image = image * 60
+                    image = image * 150
 
                     straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                     mse_loss, perceptual_loss = loss_function(image, target)
@@ -520,6 +433,10 @@ def test_bspline_intersect_optimization():
 
                 # Clamp lines to max length
 
+                if i < 400 and i % 7 == 0:
+                    lines = redistribute_low_contribution_points(
+                        lines, low_contribution_mask, random_gen_closure
+                    )
                 lines = fix_max_length(lines, max_length, case)
                 losses.append(total_loss.item() / temperature)
 
