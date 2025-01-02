@@ -354,8 +354,8 @@ def test_bspline_intersect_optimization():
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
 
-    width = torch.tensor([0.001 * 0.4], device="cuda")
-    glints_roughness = torch.tensor([0.0016], device="cuda")
+    width = torch.tensor([0.001 * 0.6], device="cuda")
+    glints_roughness = torch.tensor([0.0026], device="cuda")
 
     import matplotlib.pyplot as plt
 
@@ -491,7 +491,7 @@ def test_bspline_intersect_optimization():
 
                     image = image * 100
 
-                    straight_bspline_loss_value = straight_bspline_loss(lines) * 0.1
+                    straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                     mse_loss, perceptual_loss = loss_function(image, target)
 
                     loss = temperature * (mse_loss + perceptual_loss)  #
