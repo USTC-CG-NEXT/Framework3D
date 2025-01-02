@@ -346,7 +346,7 @@ def test_bspline_intersect_optimization():
     resolution = [768, 512]
 
     camera_position_np = np.array([0.0, 0, 5.0], dtype=np.float32)
-    light_position_np = np.array([6.0, 0.0, 6], dtype=np.float32)
+    light_position_np = np.array([3.0, 0.0, 6], dtype=np.float32)
 
     fov_in_degrees = 35
 
@@ -355,7 +355,7 @@ def test_bspline_intersect_optimization():
     )
 
     width = torch.tensor([0.001 * 0.4], device="cuda")
-    glints_roughness = torch.tensor([0.0086], device="cuda")
+    glints_roughness = torch.tensor([0.0016], device="cuda")
 
     import matplotlib.pyplot as plt
 
@@ -380,7 +380,7 @@ def test_bspline_intersect_optimization():
 
     baked_textures = []
     for i in range(21):
-        camera_rotate_angle = (i * (20 / 20) - 1.0) * (np.pi / 180)
+        camera_rotate_angle = (i * (20.0 / 20) - 10.0) * (np.pi / 180)
 
         rotated_camera_position = rotate_postion(
             camera_position_np,
@@ -412,7 +412,7 @@ def test_bspline_intersect_optimization():
         )
 
     random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.01, 100000, (0, 1), (0, 1)
+        baked_textures, 0.01, 80000, (0, 1), (0, 1)
     )
     for light_pos_id in range(num_light_positions):
         if light_pos_id >= 8:
@@ -424,11 +424,12 @@ def test_bspline_intersect_optimization():
 
         losses = []
         lines = random_gen_closure().clone().contiguous().cuda()
+        lines = fix_max_length(lines, max_length, case)
 
         lines.requires_grad_(True)
         # light_position_torch.requires_grad_(False)
 
-        optimizer = torch.optim.Adam([lines], lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+        optimizer = torch.optim.Adam([lines], lr=0.0001, betas=(0.9, 0.999), eps=1e-08)
         iterative_rnd_pick_target_id = 10
 
         import os
@@ -443,13 +444,13 @@ def test_bspline_intersect_optimization():
 
             for i in range(800):
                 # if i < 2 or np.random.rand() < last_loss / this_loss:
-                rnd_pick_target_ids = np.random.randint(0, 21, size=3)
+                rnd_pick_target_ids = np.random.randint(0, 21, size=4)
                 iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % 21
                 rnd_pick_target_ids[-1] = iterative_rnd_pick_target_id
 
                 total_loss = 0
                 for rnd_pick_target_id in rnd_pick_target_ids:
-                    camera_rotate_angle = (rnd_pick_target_id * (20 / 20) - 10) * (
+                    camera_rotate_angle = (rnd_pick_target_id * (20.0 / 20) - 10) * (
                         np.pi / 180
                     )
 
@@ -488,9 +489,9 @@ def test_bspline_intersect_optimization():
                         rotated_light_init_position,
                     )
 
-                    image = image * 40
+                    image = image * 100
 
-                    straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
+                    straight_bspline_loss_value = straight_bspline_loss(lines) * 0.1
                     mse_loss, perceptual_loss = loss_function(image, target)
 
                     loss = temperature * (mse_loss + perceptual_loss)  #
