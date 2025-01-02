@@ -220,7 +220,7 @@ def test_bspline_intersect_optimization():
         np.pi / 10, resolution[0] / resolution[1], 0.1, 1000.0
     )
 
-    width = torch.tensor([0.001 * 0.4], device="cuda")
+    width = torch.tensor([0.001], device="cuda")
     glints_roughness = torch.tensor([0.0016], device="cuda")
 
     import matplotlib.pyplot as plt
@@ -229,7 +229,7 @@ def test_bspline_intersect_optimization():
 
     numviews = 1
 
-    random_gen_closure = lambda: random_gen(0.025, 30000, (0, 1), (0, 1))
+    random_gen_closure = lambda: random_gen(0.025, 15000, (0, 1), (0, 1))
 
     exposure = torch.tensor([100.0], device="cuda")
     exposure.requires_grad_(True)

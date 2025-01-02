@@ -754,8 +754,10 @@ inline Vector2f ShadeLineElementAB(
     auto maximum = std::max(
         std::max(std::max(points[0].x, points[1].x), points[2].x), points[3].x);
 
-    Float left_cut = -line_width;
-    Float right_cut = line_width;
+    float cut = 0.4f;
+
+    Float left_cut = -cut * line_width;
+    Float right_cut = cut * line_width;
 
     Float a[4];
     Float b[4];

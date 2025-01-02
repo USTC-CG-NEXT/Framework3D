@@ -346,7 +346,7 @@ def test_bspline_intersect_optimization():
     resolution = [768, 512]
 
     camera_position_np = np.array([0.0, 0, 5.0], dtype=np.float32)
-    light_position_np = np.array([3.0, 0.0, 6], dtype=np.float32)
+    light_position_np = np.array([-6.0, 0.0, 6], dtype=np.float32)
 
     fov_in_degrees = 35
 
@@ -354,12 +354,12 @@ def test_bspline_intersect_optimization():
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
 
-    width = torch.tensor([0.001 * 0.6], device="cuda")
-    glints_roughness = torch.tensor([0.0026], device="cuda")
+    width = torch.tensor([0.001], device="cuda")
+    glints_roughness = torch.tensor([0.0036], device="cuda")
 
     import matplotlib.pyplot as plt
 
-    max_length = 0.05
+    max_length = 0.2
 
     num_light_positions = 16
 
@@ -385,7 +385,7 @@ def test_bspline_intersect_optimization():
         rotated_camera_position = rotate_postion(
             camera_position_np,
             camera_rotate_angle,
-            axis=np.array([-1, 0, 0], dtype=np.float32)
+            axis=np.array([-1, 0, 0], dtype=np.float32),
         )
 
         world_to_view_matrix = look_at(
@@ -412,7 +412,7 @@ def test_bspline_intersect_optimization():
         )
 
     random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.01, 80000, (0, 1), (0, 1)
+        baked_textures, 0.01, 60000, (0, 1), (0, 1)
     )
     for light_pos_id in range(num_light_positions):
         if light_pos_id >= 8:
@@ -420,7 +420,6 @@ def test_bspline_intersect_optimization():
 
         light_rotation_angle = light_pos_id * (2 * np.pi / num_light_positions)
         rotated_light_init_position = light_position_np
-        # light_position_torch = torch.tensor(rotated_light_init_position, device="cuda")
 
         losses = []
         lines = random_gen_closure().clone().contiguous().cuda()
@@ -444,7 +443,7 @@ def test_bspline_intersect_optimization():
 
             for i in range(800):
                 # if i < 2 or np.random.rand() < last_loss / this_loss:
-                rnd_pick_target_ids = np.random.randint(0, 21, size=4)
+                rnd_pick_target_ids = np.random.randint(0, 21, size=8)
                 iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % 21
                 rnd_pick_target_ids[-1] = iterative_rnd_pick_target_id
 
@@ -457,10 +456,17 @@ def test_bspline_intersect_optimization():
                     rotated_camera_position = rotate_postion(
                         camera_position_np,
                         camera_rotate_angle,
-                        axis=np.array([-1, 0, 0], dtype=np.float32)
+                        axis=np.array([-1, 0, 0], dtype=np.float32),
                     )
 
-                    rotated_light_init_position = light_position_np
+                    rotated_light_position = rotate_postion(
+                        light_position_np,
+                        light_rotation_angle,
+                        axis=np.array([-1, 0, 0]),
+                    )
+                    light_position_torch = torch.tensor(
+                        rotated_light_position, device="cuda"
+                    )
 
                     world_to_view_matrix = look_at(
                         rotated_camera_position,
@@ -486,10 +492,10 @@ def test_bspline_intersect_optimization():
                         world_to_view_matrix,
                         view_to_clip_matrix,
                         rotated_camera_position,
-                        rotated_light_init_position,
+                        light_position_torch,
                     )
 
-                    image = image * 100
+                    image = image * 60
 
                     straight_bspline_loss_value = straight_bspline_loss(lines) * 0.001
                     mse_loss, perceptual_loss = loss_function(image, target)

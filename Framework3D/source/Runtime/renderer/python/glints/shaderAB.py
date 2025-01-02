@@ -654,8 +654,9 @@ def ShadeLineElement(
     minimum = torch.min(points[:, :, 0], dim=1).values
     maximum = torch.max(points[:, :, 0], dim=1).values
 
-    left_cut = -width
-    right_cut = width
+    cut = 0.4
+    left_cut = -cut * width
+    right_cut = cut * width
 
     a = torch.stack(
         [
@@ -729,8 +730,8 @@ def ShadeLineElement(
 
     mask = (
         (minimum * maximum > 0)
-        & (torch.abs(minimum) > width)
-        & (torch.abs(maximum) > width)
+        & (torch.abs(minimum) > cut * width)
+        & (torch.abs(maximum) > cut * width)
     )
 
     result = torch.where(
