@@ -5,8 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), f"../pyt
 
 
 def test_solve_cubic():
-    import glints.bspline
     import torch
+    import glints.bspline
 
     a = torch.tensor([1.0]).cuda()
     b = torch.tensor([3.0]).cuda()
@@ -41,7 +41,8 @@ def test_closest_point():
     ctr_points = ctr_points.repeat(p.shape[0], 1, 1)
 
     t = glints.bspline.calc_closest(p, ctr_points).cuda()
-    print(t)
+    print(t.shape)
+    print(ctr_points.shape)
 
     position = glints.bspline.eval_quadratic_bspline_point(ctr_points, t)
     tangent = glints.bspline.eval_quadratic_bspline_tangent(ctr_points, t)
@@ -60,9 +61,34 @@ def test_plot_b_spline():
     t = torch.linspace(-1, 4, steps=100).cuda()
     y = glints.bspline.quadratic_piecewise_bspline(t).cpu().numpy()
 
-    plt.plot(t.cpu().numpy(), y)
-    plt.xlabel("t")
-    plt.ylabel("B-Spline Value")
-    plt.title("Quadratic Piecewise B-Spline")
-    plt.grid(True)
+    # plt.plot(t.cpu().numpy(), y)
+    # plt.xlabel("t")
+    # plt.ylabel("B-Spline Value")
+    # plt.title("Quadratic Piecewise B-Spline")
+    # plt.grid(True)
     # plt.show()
+    # plt.close()
+
+
+def test_eval_quadratic_bspline_point():
+    import glints.bspline
+    import torch
+
+    ctr_points = torch.tensor(
+        [
+            [[0.0, 0.0, 0.0], [0.5, 0.5, 0.0], [1.0, 0.2, 0.0]],
+            [[0.0, 0.0, 0.0], [0.5, 0.5, 0.0], [1.0, 0.2, 0.0]],
+        ]
+    ).cuda()
+
+    evaluated = [
+        glints.bspline.eval_quadratic_bspline_point(ctr_points, t)
+        for t in torch.linspace(1, 2, steps=16)
+    ]
+
+    stacked_evaluated = torch.stack(evaluated).permute(1, 0, 2)
+
+    with open(f"test_eval_quadratic_bspline_point.txt", "w") as f:
+        f.write(str(stacked_evaluated.cpu().numpy().tolist()))
+
+
