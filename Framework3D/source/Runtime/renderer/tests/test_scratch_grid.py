@@ -39,20 +39,20 @@ def test_render_scratch_field():
 
     test_utils.save_image(image * 5, resolution, "scratch_field_initial.exr")
 
-    target_image = torch.ones_like(image, device="cuda")
+    target_image = r.prepare_target("texture.png", resolution)
 
-    for _ in range(1000):  # Number of optimization steps
+    for _ in range(200):  # Number of optimization steps
         optimizer.zero_grad()
         divergence = field.calc_divergence()
         loss_divergence = loss_fn(divergence, torch.zeros_like(divergence))
 
         smoothness = field.calc_smoothness()
-        loss_smoothness = loss_fn(smoothness, torch.zeros_like(smoothness))
+        loss_smoothness = loss_fn(smoothness, torch.zeros_like(smoothness)) * 0.01
 
-        # image = glints.scratch_grid.render_scratch_field(r, resolution, field)
-        # loss_image = loss_fn(image, target_image)
+        image = glints.scratch_grid.render_scratch_field(r, resolution, field)
+        loss_image = loss_fn(image, target_image)
 
-        total_loss = 1 * (loss_divergence + loss_smoothness)
+        total_loss = loss_divergence + loss_smoothness + loss_image
         total_loss.backward()
         optimizer.step()
 
@@ -61,8 +61,8 @@ def test_render_scratch_field():
             loss_divergence.item(),
             "loss_smoothness",
             loss_smoothness.item(),
-            # "loss_image",
-            # loss_image.item(),
+            "loss_image",
+            loss_image.item(),
             "total_loss",
             total_loss.item(),
         )

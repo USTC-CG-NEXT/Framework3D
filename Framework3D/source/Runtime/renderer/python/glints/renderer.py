@@ -48,6 +48,8 @@ def render(
     )
 
     intersected_lines = lines[intersection_pairs[:, 0].long()]
+    if line_weight is not None:
+        intersect_lines_weight = line_weight[intersection_pairs[:, 0].long()]
     intersected_patches = patches[intersection_pairs[:, 1].long()]
     intersected_targets = targets[intersection_pairs[:, 1].long()]
     intersected_worldToUV = worldToUV[intersection_pairs[:, 1].long()]
@@ -102,6 +104,9 @@ def render(
         )[:, 0]
 
     assert torch.isnan(contribution).sum() == 0
+
+    if line_weight is not None:
+        contribution = contribution * intersect_lines_weight
 
     contribution_accumulation.scatter_add_(
         0,

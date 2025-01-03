@@ -122,7 +122,7 @@ def render_scratch_field(renderer, resolution, field):
     lines, line_weight = field.sample(uv)
 
     image, low_contribution_mask = renderer.render(
-        resolution, lines, force_single_line=True
+        resolution, lines, force_single_line=True, line_weight=line_weight
     )
 
     return image
