@@ -13,9 +13,7 @@ class ScratchField:
         )
         self.field = torch.stack(
             [torch.cos(random_theta), torch.sin(random_theta)], dim=3
-        )
-
-        self.field[:, :, :, 1] += 2
+        )*3
 
         self.field.requires_grad = True
 
@@ -32,7 +30,11 @@ class ScratchField:
             dx = (field_x[2:, 1:-1] - field_x[:-2, 1:-1]) / 2.0
             dy = (field_y[1:-1, 2:] - field_y[1:-1, :-2]) / 2.0
 
-            divergence[1:-1, 1:-1, i] = dx + dy
+            lengths = torch.norm(self.field, dim=3)
+
+            divergence[1:-1, 1:-1, i] = (
+                (dx + dy) * self.n
+            )
 
         assert torch.isnan(divergence).sum() == 0
 
