@@ -41,7 +41,7 @@ def test_render_scratch_field():
 
     image = glints.scratch_grid.render_scratch_field(r, resolution, field)
 
-    test_utils.save_image(image * 5, resolution, "scratch_field_initial.exr")
+    test_utils.save_image(image, resolution, "scratch_field_initial.exr")
 
     target_image = r.prepare_target("texture.png", resolution)
 
@@ -82,4 +82,4 @@ def test_render_scratch_field():
 
     image = glints.scratch_grid.render_scratch_field(r, resolution, field)
 
-    test_utils.save_image(image * 5, resolution, "scratch_field.exr")
+    test_utils.save_image(image, resolution, "scratch_field.exr")
