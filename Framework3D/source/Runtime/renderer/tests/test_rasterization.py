@@ -14,20 +14,6 @@ def setup_context():
     return context, scratch_context
 
 
-def setup_vertices_and_indices():
-    vertices = torch.tensor(
-        [
-            [-1, -1, 0.0, 0, 0],
-            [1.0, -1.0, 0.0, 1, 0],
-            [1.0, 1.0, 0.0, 1, 1],
-            [-1.0, 1.0, 0.0, 0, 1],
-        ]
-    ).cuda()
-    assert vertices.is_contiguous()
-    indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
-    assert indices.is_contiguous()
-    return vertices, indices
-
 
 def setup_matrices(camera_position_np, resolution):
     world_to_view_matrix = rasterization.look_at(
@@ -45,7 +31,7 @@ def save_image(image, resolution, filename):
 
 def test_bake_texture():
     r = renderer.Renderer()
-    vertices, indices = setup_vertices_and_indices()
+    vertices, indices = renderer.plane_board_scene_vertices_and_indices()
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
@@ -63,7 +49,7 @@ def test_bake_texture():
 
 def test_prepare_target_rewrite():
     r = renderer.Renderer()
-    vertices, indices = setup_vertices_and_indices()
+    vertices, indices = renderer.plane_board_scene_vertices_and_indices()
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
@@ -129,84 +115,63 @@ def test_prepare_target_rewrite():
 #         image *= 10
 #         save_image(image, resolution, f"{prefix}_{i}.png")
 
+def test_rasterize_mesh():
+    r = renderer.Renderer()
+    vertices, indices = renderer.plane_board_scene_vertices_and_indices()
+    vertex_buffer_stride = 5 * 4
+    resolution = [1536 * 2, 1024 * 2]
+    camera_position_np = np.array([3, 0.5, 3])
 
-# def test_rasterize_mesh():
-#     context, _ = setup_context()
-#     vertices, indices = setup_vertices_and_indices()
-#     vertex_buffer_stride = 5 * 4
-#     resolution = [1536 * 2, 1024 * 2]
-#     camera_position_np = np.array([3, 0.5, 3])
-#     world_to_view_matrix, view_to_clip_matrix = setup_matrices(
-#         camera_position_np, resolution
-#     )
+    r.set_mesh(vertices, indices, vertex_buffer_stride)
+    r.set_camera_position(camera_position_np)
+    r.set_perspective(np.pi / 3, resolution[0] / resolution[1], 0.1, 1000.0)
 
-#     patches, worldToUV, targets = context.intersect_mesh_with_rays(
-#         vertices,
-#         indices,
-#         vertex_buffer_stride,
-#         resolution,
-#         world_to_view_matrix.flatten(),
-#         view_to_clip_matrix.flatten(),
-#     )
+    patches, worldToUV, targets, uv_centers = r.preliminary_render(resolution)
 
-#     print("patches_count", patches.shape[0])
+    print("patches_count", patches.shape[0])
 
-#     image = torch.zeros(
-#         (resolution[0], resolution[1], 3), dtype=torch.float32, device="cuda"
-#     )
-#     image[targets[:, 0].long(), targets[:, 1].long()] = patches[:, :3]
-#     save_image(image, resolution, "uv.png")
-
-#     scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
-#     scratch_context.set_max_pair_buffer_ratio(10.0)
-#     lines = test_utils.random_scatter_lines(0.05, 40000, (-1, 1), (-1, 1))
-
-#     intersection_pairs = scratch_context.intersect_line_with_rays(lines, patches, 0.001)
-#     print("intersection_pairs count", intersection_pairs.shape[0])
-
-#     contribution_accumulation = torch.zeros(
-#         (patches.shape[0],), dtype=torch.float32, device="cuda"
-#     )
-#     contribution = torch.ones(intersection_pairs.shape[0], device="cuda")
-#     contribution_accumulation.scatter_add_(
-#         0, intersection_pairs[:, 1].long(), contribution
-#     )
-#     image[targets[:, 0].long(), targets[:, 1].long()] = (
-#         contribution_accumulation.unsqueeze(1).expand(-1, 3)
-#     )
-#     save_image(image, resolution, "mesh.png")
+    image = torch.zeros(
+        (resolution[0], resolution[1], 3), dtype=torch.float32, device="cuda"
+    )
+    image[targets[:, 0].long(), targets[:, 1].long()] = patches[:, :3]
+    save_image(image, resolution, "uv.png")
 
 
-# def test_render_directed_scratches():
-#     context, scratch_context = setup_context()
-#     scratch_context.set_max_pair_buffer_ratio(15.0)
-#     lines = test_utils.generate_random_scatter_lines_directed(
-#         0.03, 80000, (0, 1), (0, 1), (-5 / 180 * np.pi, 5 / 180 * np.pi)
-#     )
-#     width = torch.tensor([0.001], device="cuda")
-#     glints_roughness = torch.tensor([0.002], device="cuda")
+def test_render_directed_scratches():
+    r = renderer.Renderer()
+    r.scratch_context.set_max_pair_buffer_ratio(15.0)
+    lines = test_utils.generate_random_scatter_lines_directed(
+        0.03, 20000, (0, 1), (0, 1), (-5 / 180 * np.pi, 5 / 180 * np.pi)
+    )
+    r.set_width(torch.tensor([0.001], device="cuda"))
+    r.set_glints_roughness(torch.tensor([0.002], device="cuda"))
 
-#     vertices, indices = setup_vertices_and_indices()
-#     vertex_buffer_stride = 5 * 4
-#     resolution = [1536 * 2, 1024 * 2]
-#     camera_position_np = np.array([2, 2, 3], dtype=np.float32)
-#     light_position_np = np.array([2, -2, 3], dtype=np.float32)
+    vertices, indices = renderer.plane_board_scene_vertices_and_indices()
+    vertex_buffer_stride = 5 * 4
+    resolution = [1536 * 2, 1024 * 2]
+    camera_position_np = np.array([2, 2, 3], dtype=np.float32)
+    light_position_np = np.array([2, -2, 3], dtype=np.float32)
 
-#     render_image(
-#         context,
-#         scratch_context,
-#         lines,
-#         width,
-#         glints_roughness,
-#         vertices,
-#         indices,
-#         vertex_buffer_stride,
-#         resolution,
-#         camera_position_np,
-#         light_position_np,
-#         60,
-#         "raster_test/directed_intersection",
-#     )
+    r.set_camera_position(camera_position_np)
+    r.set_light_position(light_position_np)
+    r.set_perspective(np.pi / 3, resolution[0] / resolution[1], 0.1, 1000.0)
+    r.set_mesh(vertices, indices, vertex_buffer_stride)
+
+    for i in range(2):
+        angle = i * (2 * np.pi / 2)
+        rotation_matrix = np.array(
+            [
+                [np.cos(angle), -np.sin(angle), 0],
+                [np.sin(angle), np.cos(angle), 0],
+                [0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
+        rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
+        r.set_camera_position(rotated_camera_position)
+        image, _ = r.render(resolution, lines)
+        image *= 10
+        save_image(image, resolution, f"raster_test/directed_intersection_{i}.png")
 
 
 # def test_render_scratches(scratch_type="linear"):
@@ -248,7 +213,7 @@ def test_prepare_target_rewrite():
 
 def test_prepare_target():
     r = renderer.Renderer()
-    vertices, indices = setup_vertices_and_indices()
+    vertices, indices = renderer.plane_board_scene_vertices_and_indices()
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)

@@ -16,6 +16,8 @@ def render(
     view_to_clip_matrix,
     camera_position_np,
     light_position,
+    force_single_line=False,
+    line_weight=None,
 ):
     patches, worldToUV, targets = context.intersect_mesh_with_rays(
         vertices,
@@ -32,8 +34,10 @@ def render(
     diag_2 = reshaped_patches[:, 3, :] - reshaped_patches[:, 1, :]
     l_diag_1 = torch.norm(diag_1, dim=1)
     l_diag_2 = torch.norm(diag_2, dim=1)
-
-    intersect_width = torch.max(torch.cat((l_diag_1, l_diag_2)))
+    if not force_single_line:
+        intersect_width = torch.max(torch.cat((l_diag_1, l_diag_2)))
+    else:
+        intersect_width = torch.min(torch.cat((l_diag_1, l_diag_2))) / 1000
 
     intersection_pairs = scratch_context.intersect_line_with_rays(
         lines, patches, intersect_width
@@ -281,6 +285,21 @@ def target_bake_to_texture(
     return uv_texture
 
 
+def plane_board_scene_vertices_and_indices():
+    vertices = torch.tensor(
+        [
+            [-1, -1, 0.0, 0, 0],
+            [1.0, -1.0, 0.0, 1, 0],
+            [1.0, 1.0, 0.0, 1, 1],
+            [-1.0, 1.0, 0.0, 0, 1],
+        ]
+    ).cuda()
+    assert vertices.is_contiguous()
+    indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
+    assert indices.is_contiguous()
+    return vertices, indices
+
+
 import numpy as np
 import glints.rasterization as rasterization
 import hd_USTC_CG_py
@@ -296,16 +315,21 @@ class Renderer:
             self.scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
         self.world_to_view_matrix = np.eye(4)
         self.view_to_clip_matrix = np.eye(4)
+        self.vertex_buffer_stride = 5 * 4
+        self.glints_roughness = torch.tensor([0.0016], device="cuda")
+        self.scratch_context.set_max_pair_buffer_ratio(20)
 
     def set_light_position(self, light_position):
         self.light_position = light_position
 
     def set_camera_position(self, camera_position):
+        self.camera_position = camera_position
         self.world_to_view_matrix = rasterization.look_at(
             camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
         )
 
     def set_look_at(self, eye, center, up):
+        self.camera_position = eye
         self.world_to_view_matrix = rasterization.look_at(eye, center, up)
 
     def set_perspective(self, fovx, aspect, near, far):
@@ -317,16 +341,36 @@ class Renderer:
     def set_glints_roughness(self, glints_roughness):
         self.glints_roughness = glints_roughness
 
-    def set_mesh(self, vertices, indices, vertex_buffer_stride):
+    def set_mesh(self, vertices, indices, vertex_buffer_stride=5 * 4):
         self.vertices = vertices
         self.indices = indices
         self.vertex_buffer_stride = vertex_buffer_stride
 
-    def render(self, resolution):
+    def preliminary_render(self, resolution):
+        """
+        Only get the patches in this step.
+        """
+
+        patches, worldToUV, targets = self.context.intersect_mesh_with_rays(
+            self.vertices,
+            self.indices,
+            self.vertex_buffer_stride,
+            resolution,
+            self.world_to_view_matrix.flatten(),
+            self.view_to_clip_matrix.flatten(),
+        )
+
+        reshaped_patches = patches.reshape(-1, 4, 2)
+
+        uv_centers = reshaped_patches.mean(dim=1)
+
+        return patches, worldToUV, targets, uv_centers
+
+    def render(self, resolution, lines, force_single_line=False, line_weight=None):
         return render(
             self.context,
             self.scratch_context,
-            self.lines,
+            lines,
             self.width,
             self.glints_roughness,
             self.vertices,
@@ -337,6 +381,8 @@ class Renderer:
             self.view_to_clip_matrix,
             self.camera_position,
             self.light_position,
+            force_single_line,
+            line_weight,
         )
 
     def prepare_target(self, texture_name, uv_resolution):

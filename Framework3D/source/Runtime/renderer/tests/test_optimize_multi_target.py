@@ -306,7 +306,7 @@ def test_bspline_intersect_optimization():
         )
 
     random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.01, 60000, (0, 1), (0, 1)
+        baked_textures, 0.05, 50000, (0, 1), (0, 1)
     )
     for light_pos_id in range(num_light_positions):
 
@@ -329,7 +329,7 @@ def test_bspline_intersect_optimization():
 
         with open(f"light_pos_{light_pos_id}/optimization.log", "a") as log_file:
             for i in range(200):
-                rnd_pick_target_ids = np.random.randint(0, 21, size=6)
+                rnd_pick_target_ids = np.random.randint(0, 21, size=3)
                 iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % 21
                 rnd_pick_target_ids[-1] = iterative_rnd_pick_target_id
 
@@ -398,7 +398,7 @@ def test_bspline_intersect_optimization():
 
                 optimizer.step()
 
-                if i < 400 and i % 7 == 0:
+                if i < 100 and i % 5 == 0:
                     lines = redistribute_low_contribution_points(
                         lines, low_contribution_mask, random_gen_closure
                     )
