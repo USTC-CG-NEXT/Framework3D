@@ -279,3 +279,86 @@ def target_bake_to_texture(
     )
 
     return uv_texture
+
+
+import numpy as np
+import glints.rasterization as rasterization
+import hd_USTC_CG_py
+
+
+class Renderer:
+    def __init__(self, t="lines"):
+        self.context = hd_USTC_CG_py.MeshIntersectionContext()
+        self.type = t
+        if t == "lines":
+            self.scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
+        else:
+            self.scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
+        self.world_to_view_matrix = np.eye(4)
+        self.view_to_clip_matrix = np.eye(4)
+
+    def set_light_position(self, light_position):
+        self.light_position = light_position
+
+    def set_camera_position(self, camera_position):
+        self.world_to_view_matrix = rasterization.look_at(
+            camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
+        )
+
+    def set_look_at(self, eye, center, up):
+        self.world_to_view_matrix = rasterization.look_at(eye, center, up)
+
+    def set_perspective(self, fovx, aspect, near, far):
+        self.view_to_clip_matrix = rasterization.perspective(fovx, aspect, near, far)
+
+    def set_width(self, width):
+        self.width = width
+
+    def set_glints_roughness(self, glints_roughness):
+        self.glints_roughness = glints_roughness
+
+    def set_mesh(self, vertices, indices, vertex_buffer_stride):
+        self.vertices = vertices
+        self.indices = indices
+        self.vertex_buffer_stride = vertex_buffer_stride
+
+    def render(self, resolution):
+        return render(
+            self.context,
+            self.scratch_context,
+            self.lines,
+            self.width,
+            self.glints_roughness,
+            self.vertices,
+            self.indices,
+            self.vertex_buffer_stride,
+            resolution,
+            self.world_to_view_matrix,
+            self.view_to_clip_matrix,
+            self.camera_position,
+            self.light_position,
+        )
+
+    def prepare_target(self, texture_name, uv_resolution):
+        return prepare_target(
+            texture_name,
+            self.context,
+            self.vertices,
+            self.indices,
+            self.vertex_buffer_stride,
+            uv_resolution,
+            self.world_to_view_matrix,
+            self.view_to_clip_matrix,
+        )
+
+    def target_bake_to_texture(self, target_name, uv_resolution):
+        return target_bake_to_texture(
+            target_name,
+            self.context,
+            self.vertices,
+            self.indices,
+            self.vertex_buffer_stride,
+            uv_resolution,
+            self.world_to_view_matrix,
+            self.view_to_clip_matrix,
+        )

@@ -44,58 +44,37 @@ def save_image(image, resolution, filename):
 
 
 def test_bake_texture():
-    context, scratch_context = setup_context()
-    scratch_context.set_max_pair_buffer_ratio(10.0)
+    r = renderer.Renderer()
     vertices, indices = setup_vertices_and_indices()
-
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
-
-    # Need to keep this line since fov is different from other functions
+    r.set_camera_position(camera_position_np)
     fov_in_degrees = 35
-    world_to_view_matrix, _ = setup_matrices(camera_position_np, resolution)
-    view_to_clip_matrix = rasterization.perspective(
+    r.set_perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
+    r.set_mesh(vertices, indices, vertex_buffer_stride)
 
     uv_resolution = [512, 512]
-    uv_texture = renderer.target_bake_to_texture(
-        "targets/render_010.exr",
-        context,
-        vertices,
-        indices,
-        vertex_buffer_stride,
-        uv_resolution,
-        world_to_view_matrix,
-        view_to_clip_matrix,
-    )
-    test_utils.save_image(uv_texture, uv_resolution, "baked_texture.exr")
+    uv_texture = r.target_bake_to_texture("targets/render_010.exr", uv_resolution)
+    save_image(uv_texture, uv_resolution, "baked_texture.exr")
 
 
 def test_prepare_target_rewrite():
-    context, _ = setup_context()
+    r = renderer.Renderer()
     vertices, indices = setup_vertices_and_indices()
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
-
-    # Need to keep this line since fov is different from other functions
+    r.set_camera_position(camera_position_np)
     fov_in_degrees = 35
-    world_to_view_matrix, _ = setup_matrices(camera_position_np, resolution)
-    view_to_clip_matrix = rasterization.perspective(
+    r.set_perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
-    image = renderer.prepare_target(
-        "baked_texture.exr",
-        context,
-        vertices,
-        indices,
-        vertex_buffer_stride,
-        resolution,
-        world_to_view_matrix,
-        view_to_clip_matrix,
-    )
+    r.set_mesh(vertices, indices, vertex_buffer_stride)
+
+    image = r.prepare_target("baked_texture.exr", resolution)
     save_image(image, resolution, "rewrite_target.exr")
 
 
@@ -268,27 +247,17 @@ def test_prepare_target_rewrite():
 
 
 def test_prepare_target():
-    context, _ = setup_context()
+    r = renderer.Renderer()
     vertices, indices = setup_vertices_and_indices()
     vertex_buffer_stride = 5 * 4
     resolution = [1536, 1024]
     camera_position_np = np.array([4.0, 0, 2.5], dtype=np.float32)
-    world_to_view_matrix, _ = setup_matrices(
-        camera_position_np, resolution
-    )
+    r.set_camera_position(camera_position_np)
     fov_in_degrees = 35
-    view_to_clip_matrix = rasterization.perspective(
+    r.set_perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
+    r.set_mesh(vertices, indices, vertex_buffer_stride)
 
-    image = renderer.prepare_target(
-        "texture.png",
-        context,
-        vertices,
-        indices,
-        vertex_buffer_stride,
-        resolution,
-        world_to_view_matrix,
-        view_to_clip_matrix,
-    )
+    image = r.prepare_target("texture.png", resolution)
     save_image(image, resolution, "target.png")
