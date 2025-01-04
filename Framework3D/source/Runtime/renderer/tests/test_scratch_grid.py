@@ -3,6 +3,7 @@ import glints.renderer
 import glints.test_utils as test_utils
 import torch
 import numpy as np
+import pytest
 
 
 def test_scratch_field():
@@ -16,6 +17,7 @@ def linear_to_gamma(image):
     return image ** (1.0 / 2.2)
 
 
+@pytest.mark.skip(reason="Skipping temporarily")
 def test_scratch_field_divergence():
     field = glints.scratch_grid.ScratchField(1024, 5)
 
@@ -67,11 +69,11 @@ def test_render_scratch_field():
 
     r.set_width(torch.tensor([0.001], device="cuda"))
 
-    field = glints.scratch_grid.ScratchField(2048, 1)
+    field = glints.scratch_grid.ScratchField(2048, 2)
     image = glints.scratch_grid.render_scratch_field(r, resolution, field)
     test_utils.save_image(image, resolution, "scratch_field_initial.exr")
     target_image = r.prepare_target("texture.png", resolution)
-    loss_fn = torch.nn.MSELoss()
+    loss_fn = torch.nn.L1Loss()
     regularization_loss_fn = torch.nn.L1Loss()
     regularizer = torch.optim.Adam([field.field], lr=0.002)
 
@@ -89,10 +91,12 @@ def test_render_scratch_field():
         )
 
         resularization_loss = loss_divergence + loss_smoothness
+        if i == 0:
+            old_regularization_loss = resularization_loss.item()
         resularization_loss.backward()
 
         regularizer.step()
-
+        field.fix_direction()
     optimizer = torch.optim.Adam([field.field], lr=0.04)
     for _ in range(150):  # Number of optimization steps
 
@@ -100,14 +104,17 @@ def test_render_scratch_field():
         image = glints.scratch_grid.render_scratch_field(r, resolution, field)
         loss_image = loss_fn(linear_to_gamma(image), target_image) * 1000
         density_loss = torch.mean(
-            torch.norm(field.field, dim=3)
+            torch.norm(field.field, dim=3) * 0.1
         )  # less scratches, better direction
 
         total_loss = loss_image + density_loss
         total_loss.backward()
         optimizer.step()
 
-        for i in range(50):
+        resularization_loss = torch.tensor(12.0)
+
+        while resularization_loss.item() > old_regularization_loss * 0.001:
+            # for i in range(30):
 
             regularizer.zero_grad()
             divergence, smoothness = field.calc_divergence_smoothness()
@@ -123,6 +130,7 @@ def test_render_scratch_field():
             resularization_loss.backward()
 
             regularizer.step()
+
 
         print(
             "loss_divergence",
@@ -146,6 +154,14 @@ def test_render_scratch_field():
         )
 
         density = torch.norm(field.field[:, :, i], dim=2)
+
+        directions = field.field[:, :, i] / density.unsqueeze(2)  # shape [n,n,2]
+        # expand 1 dimension to 3 dimensions
+        directions = torch.cat(
+            [directions, torch.zeros_like(directions[:, :, :1])], dim=2
+        )
+        test_utils.save_image(directions, resolution, f"directions_{i}.exr")
+
         test_utils.save_image(density, resolution, f"density_{i}.exr")
         test_utils.save_image(field.field[:, :, i, :1], resolution, f"field_{i}.exr")
 

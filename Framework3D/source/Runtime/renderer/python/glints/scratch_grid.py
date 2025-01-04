@@ -57,7 +57,7 @@ class ScratchField:
                 - same_directioned_field_down[:, :, 1]
             )
 
-            divergence[1:-1, 1:-1, i] = (dx + dy) * self.n
+            divergence[1:-1, 1:-1, i] = torch.abs(dx + dy) * self.n
 
             smoothness[1:-1, 1:-1, i] = dx**2 + dy**2
 
@@ -68,6 +68,11 @@ class ScratchField:
     def same_density_projection(self):
         lengths = torch.norm(self.field, dim=3)
         self.field /= lengths.unsqueeze(3)
+
+    def fix_direction(self):
+        with torch.no_grad():
+            sign_x = torch.sign(self.field[:, :, :, 0])
+            self.field *= sign_x.unsqueeze(3)
 
     def sample(self, uv):
         """
