@@ -9,6 +9,7 @@ import torch
 import glints.test_utils as test_utils
 import glints.renderer as renderer
 import glints.bspline as bspline
+from glints.renderer import Renderer
 import matplotlib.pyplot as plt
 
 
@@ -225,16 +226,8 @@ def redistribute_low_contribution_points(lines, low_contribution_mask, random_li
 
 
 def test_bspline_intersect_optimization():
-    case = "bspline"
-    context = hd_USTC_CG_py.MeshIntersectionContext()
-    if case == "bspline":
-        scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
-        random_gen = test_utils.random_scatter_bsplines
-    else:
-        scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
-        random_gen = test_utils.random_scatter_lines
-
-    scratch_context.set_max_pair_buffer_ratio(30.0)
+    r = Renderer(t="bspline")
+    random_gen = test_utils.random_scatter_bsplines
 
     vertices = torch.tensor(
         [
@@ -246,19 +239,18 @@ def test_bspline_intersect_optimization():
     ).cuda()
     indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
 
-    vertex_buffer_stride = 5 * 4
+    r.set_mesh(vertices, indices)
+
     resolution = [768, 512]
 
     camera_position_np = np.array([0.0, 0, 5.0], dtype=np.float32)
     light_position_np = np.array([8.0, 0.0, 8], dtype=np.float32)
 
     fov_in_degrees = 35
-    view_to_clip_matrix = perspective(
-        np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
-    )
+    r.set_perspective(np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0)
 
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.0016], device="cuda")
+    r.set_width(width)
 
     max_length = 0.2
     num_light_positions = 16
@@ -283,20 +275,10 @@ def test_bspline_intersect_optimization():
             camera_rotate_angle,
             axis=np.array([-1, 0, 0], dtype=np.float32),
         )
-        world_to_view_matrix = look_at(
-            rotated_camera_position,
-            np.array([0.0, 0, 0.0]),
-            np.array([-1.0, 0.0, 0.0]),
-        )
-        baked = renderer.target_bake_to_texture(
+        r.set_camera_position(rotated_camera_position)
+        baked = r.target_bake_to_texture(
             torch.rot90(targets[i], k=2, dims=[0, 1]),
-            context,
-            vertices,
-            indices,
-            vertex_buffer_stride,
             uv_resolution,
-            world_to_view_matrix,
-            view_to_clip_matrix,
         )
         baked_textures.append(baked.clone())
 
@@ -315,7 +297,7 @@ def test_bspline_intersect_optimization():
 
         losses = []
         lines = random_gen_closure().clone().contiguous().cuda()
-        lines = fix_max_length(lines, max_length, case)
+        lines = fix_max_length(lines, max_length, "bspline")
         lines.requires_grad_(True)
 
         optimizer = torch.optim.Adam([lines], lr=0.00005, betas=(0.9, 0.999), eps=1e-08)
@@ -351,29 +333,15 @@ def test_bspline_intersect_optimization():
                     light_position_torch = torch.tensor(
                         rotated_light_position, device="cuda"
                     )
-                    world_to_view_matrix = look_at(
-                        rotated_camera_position,
-                        np.array([0.0, 0, 0.0]),
-                        np.array([-1.0, 0.0, 0.0]),
-                    )
+                    r.set_camera_position(rotated_camera_position)
+                    r.set_light_position(rotated_light_position)
                     target = targets[rnd_pick_target_id] / all_target_max
 
                     optimizer.zero_grad()
 
-                    image, low_contribution_mask = renderer.render(
-                        context,
-                        scratch_context,
-                        lines,
-                        width,
-                        glints_roughness,
-                        vertices,
-                        indices,
-                        vertex_buffer_stride,
+                    image, low_contribution_mask = r.render(
                         resolution,
-                        world_to_view_matrix,
-                        view_to_clip_matrix,
-                        rotated_camera_position,
-                        light_position_torch,
+                        lines,
                     )
 
                     image = image * 150
@@ -382,8 +350,7 @@ def test_bspline_intersect_optimization():
                     mse_loss, perceptual_loss = loss_function(image, target)
 
                     loss = temperature * (mse_loss + perceptual_loss)
-                    if case == "bspline":
-                        loss += straight_bspline_loss_value
+                    loss += straight_bspline_loss_value
                     total_loss += loss
 
                 total_loss.backward()
@@ -402,7 +369,7 @@ def test_bspline_intersect_optimization():
                     lines = redistribute_low_contribution_points(
                         lines, low_contribution_mask, random_gen_closure
                     )
-                lines = fix_max_length(lines, max_length, case)
+                lines = fix_max_length(lines, max_length, "bspline")
                 losses.append(total_loss.item() / temperature)
 
                 torch.cuda.empty_cache()

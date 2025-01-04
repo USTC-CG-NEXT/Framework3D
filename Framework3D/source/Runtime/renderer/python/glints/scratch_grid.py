@@ -9,54 +9,61 @@ class ScratchField:
         self.m = m
 
         random_theta = (
-            torch.rand((n, n, m), dtype=torch.float32, device="cuda") * 2 * 3.14159
+            torch.rand((n, n, m), dtype=torch.float32, device="cuda")
+            - 0.5
+            + 0.5 * torch.pi
         )
-        self.field = torch.stack(
-            [torch.cos(random_theta), torch.sin(random_theta)], dim=3
-        )*3
+
+        self.field = (
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 5
+        )
 
         self.field.requires_grad = True
 
-    def calc_divergence(self):
+    def calc_divergence_smoothness(self):
 
         divergence = torch.zeros(
             (self.n, self.n, self.m), dtype=torch.float32, device="cuda"
         )
 
-        for i in range(self.m):
-            field_x = self.field[:, :, i, 0]
-            field_y = self.field[:, :, i, 1]
-
-            dx = (field_x[2:, 1:-1] - field_x[:-2, 1:-1]) / 2.0
-            dy = (field_y[1:-1, 2:] - field_y[1:-1, :-2]) / 2.0
-
-            lengths = torch.norm(self.field, dim=3)
-
-            divergence[1:-1, 1:-1, i] = (
-                (dx + dy) * self.n
-            )
-
-        assert torch.isnan(divergence).sum() == 0
-
-        return divergence
-
-    def calc_smoothness(self):
-        # Calculate the smoothness of the field
         smoothness = torch.zeros(
             (self.n, self.n, self.m), dtype=torch.float32, device="cuda"
         )
 
         for i in range(self.m):
-            field_x = self.field[:, :, i, 0]
-            field_y = self.field[:, :, i, 1]
-            # this is a vector field, calculate the smoothness of the field
-            # and this is going to be the loss later. We want the field to be smooth
 
-            dx = field_x[2:, 1:-1] - field_x[1:-1, 1:-1]
-            dy = field_y[1:-1, 2:] - field_y[1:-1, 1:-1]
+            field = self.field[:, :, i]
+
+            field_left = field[1:-1, :-2]
+            same_directioned_field_left = field_left
+
+            field_right = field[1:-1, 2:]
+            sign_right = torch.sign(torch.sum(field_left * field_right, dim=2))
+            same_directioned_field_right = field_right * sign_right.unsqueeze(2)
+
+            field_up = field[:-2, 1:-1]
+            same_directioned_field_up = field_up
+
+            field_down = field[2:, 1:-1]
+            sign_down = torch.sign(torch.sum(field_up * field_down, dim=2))
+            same_directioned_field_down = field_down * sign_down.unsqueeze(2)
+
+            dx = (
+                same_directioned_field_right[:, :, 0]
+                - same_directioned_field_left[:, :, 0]
+            )
+            dy = (
+                same_directioned_field_up[:, :, 1]
+                - same_directioned_field_down[:, :, 1]
+            )
+
+            divergence[1:-1, 1:-1, i] = (dx + dy) * self.n
+
             smoothness[1:-1, 1:-1, i] = dx**2 + dy**2
 
-        return smoothness
+        assert torch.isnan(divergence).sum() == 0
+
+        return divergence, smoothness
 
     def same_density_projection(self):
         lengths = torch.norm(self.field, dim=3)
