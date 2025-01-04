@@ -73,7 +73,7 @@ def test_render_scratch_field():
     target_image = r.prepare_target("texture.png", resolution)
     loss_fn = torch.nn.MSELoss()
     regularization_loss_fn = torch.nn.L1Loss()
-    regularizer = torch.optim.Adam([field.field], lr=0.004)
+    regularizer = torch.optim.Adam([field.field], lr=0.002)
 
     for i in range(400):
 
@@ -94,13 +94,16 @@ def test_render_scratch_field():
         regularizer.step()
 
     optimizer = torch.optim.Adam([field.field], lr=0.04)
-    for _ in range(200):  # Number of optimization steps
+    for _ in range(150):  # Number of optimization steps
 
         optimizer.zero_grad()
         image = glints.scratch_grid.render_scratch_field(r, resolution, field)
         loss_image = loss_fn(linear_to_gamma(image), target_image) * 1000
+        density_loss = torch.mean(
+            torch.norm(field.field, dim=3)
+        )  # less scratches, better direction
 
-        total_loss = loss_image
+        total_loss = loss_image + density_loss
         total_loss.backward()
         optimizer.step()
 
@@ -126,6 +129,8 @@ def test_render_scratch_field():
             loss_divergence.item(),
             "loss_smoothness",
             loss_smoothness.item(),
+            "density_loss",
+            density_loss.item(),
             "loss_image",
             loss_image.item(),
             "total_loss",
@@ -139,6 +144,9 @@ def test_render_scratch_field():
         test_utils.save_image(
             100 * smoothness[:, :, i], resolution, f"smoothness_{i}.exr"
         )
+
+        density = torch.norm(field.field[:, :, i], dim=2)
+        test_utils.save_image(density, resolution, f"density_{i}.exr")
         test_utils.save_image(field.field[:, :, i, :1], resolution, f"field_{i}.exr")
 
     image = glints.scratch_grid.render_scratch_field(r, resolution, field)
