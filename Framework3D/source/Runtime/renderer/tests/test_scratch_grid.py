@@ -60,7 +60,7 @@ def test_render_scratch_field():
     camera_position_np = np.array([4.0, 0.1, 2.5], dtype=np.float32)
     r.set_camera_position(camera_position_np)
     fov_in_degrees = 35
-    resolution = [1536, 1024]
+    resolution = [768, 512]
     r.set_perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
@@ -69,13 +69,13 @@ def test_render_scratch_field():
 
     r.set_width(torch.tensor([0.001], device="cuda"))
 
-    field = glints.scratch_grid.ScratchField(2048, 2)
+    field = glints.scratch_grid.ScratchField(256, 2)
     image = glints.scratch_grid.render_scratch_field(r, resolution, field)
     test_utils.save_image(image, resolution, "scratch_field_initial.exr")
     target_image = r.prepare_target("texture.png", resolution)
     loss_fn = torch.nn.L1Loss()
     regularization_loss_fn = torch.nn.L1Loss()
-    regularizer = torch.optim.Adam([field.field], lr=0.002)
+    regularizer = torch.optim.Adam([field.field], lr=0.005)
 
     for i in range(400):
 
@@ -98,6 +98,7 @@ def test_render_scratch_field():
         regularizer.step()
         field.fix_direction()
     optimizer = torch.optim.Adam([field.field], lr=0.04)
+    torch.set_printoptions(precision=5)
     for _ in range(150):  # Number of optimization steps
 
         optimizer.zero_grad()
@@ -111,9 +112,11 @@ def test_render_scratch_field():
         total_loss.backward()
         optimizer.step()
 
-        resularization_loss = torch.tensor(12.0)
+        resularization_loss = torch.tensor(10000000000000.0)
 
-        while resularization_loss.item() > old_regularization_loss * 0.001:
+        regularization_steps = 0
+
+        while resularization_loss.item() > old_regularization_loss * 0.1:
             # for i in range(30):
 
             regularizer.zero_grad()
@@ -130,9 +133,12 @@ def test_render_scratch_field():
             resularization_loss.backward()
 
             regularizer.step()
+            regularization_steps += 1
 
 
         print(
+            "iteration:",
+            _,
             "loss_divergence",
             loss_divergence.item(),
             "loss_smoothness",
@@ -142,10 +148,14 @@ def test_render_scratch_field():
             "loss_image",
             loss_image.item(),
             "total_loss",
-            total_loss.item(),
+            total_loss,
+            "regularization_steps",
+            regularization_steps
         )
 
-    for i in range(1):
+    field.fix_direction()
+
+    for i in range(2):
         test_utils.save_image(
             1000 * divergence[:, :, i], resolution, f"divergence_{i}.exr"
         )

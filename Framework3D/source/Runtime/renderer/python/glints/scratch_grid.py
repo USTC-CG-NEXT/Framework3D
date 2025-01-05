@@ -9,13 +9,11 @@ class ScratchField:
         self.m = m
 
         random_theta = (
-            torch.rand((n, n, m), dtype=torch.float32, device="cuda")
-            - 0.5
-            + 1.5 * torch.pi
-        )
+            torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
+        ) * 0.3 + 0.5 * torch.pi
 
         self.field = (
-            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 5
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.5
         )
 
         self.field.requires_grad = True
@@ -71,7 +69,7 @@ class ScratchField:
 
     def fix_direction(self):
         with torch.no_grad():
-            sign_x = torch.sign(self.field[:, :, :, 0])
+            sign_x = torch.sign(self.field[:, :, :, 1])
             self.field *= sign_x.unsqueeze(3)
 
     def sample(self, uv):
