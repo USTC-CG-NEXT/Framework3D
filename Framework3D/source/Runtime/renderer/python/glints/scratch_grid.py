@@ -1,6 +1,7 @@
 # A scratch field is a torch tensor, shaped [n,n,m,2]
 
 import torch
+import numpy as np
 
 
 class ScratchField:
@@ -10,7 +11,7 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.4 + 0.5 * torch.pi
+        ) * 0.2 + 0.5 * torch.pi
 
         self.field = (
             torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.5
@@ -110,10 +111,18 @@ class ScratchField:
         u = u.unsqueeze(1).unsqueeze(2)
         v = v.unsqueeze(1).unsqueeze(2)
 
-        f00 = self.field[u0, v0]
+        f00 = self.field[u0, v0]  # shape [count, m, 2]
         f01 = self.field[u0, v1]
+        f01_same_direction_mask = torch.sign(torch.sum(f00 * f01, dim=2)).unsqueeze(2)
+        f01 = f01 * f01_same_direction_mask
+
         f10 = self.field[u1, v0]
+        f10_same_direction_mask = torch.sign(torch.sum(f00 * f10, dim=2)).unsqueeze(2)
+        f10 = f10 * f10_same_direction_mask
+
         f11 = self.field[u1, v1]
+        f11_same_direction_mask = torch.sign(torch.sum(f00 * f11, dim=2)).unsqueeze(2)
+        f11 = f11 * f11_same_direction_mask
 
         sampled_mask = torch.zeros_like(self.field, dtype=torch.bool)
         sampled_mask[u0, v0] = True
@@ -147,6 +156,34 @@ class ScratchField:
         lines = lines.reshape(-1, 2, 3).contiguous()
 
         return lines, line_weight, sampled_mask
+
+    def discretize_to_lines(self, density):
+        cpu_field = self.field.detach().cpu().numpy()
+        b_spline_ctr_points = []
+        while True:
+            init_point = self.__importance_sample_field(cpu_field)
+            if init_point is None:
+                break
+
+            integral_curve = self.__grow_init_point(init_point)
+            ctr_points = self.__b_spline_fit(integral_curve)  # a list of ctr points
+            cpu_field = self.__remove_curve_from_field(integral_curve, cpu_field)
+
+            b_spline_ctr_points += ctr_points
+
+        return torch.tensor(b_spline_ctr_points, device="cuda")
+
+    def __importance_sample_field(self, cpu_field):
+        pass
+
+    def __grow_init_point(self, init_point):
+        pass
+
+    def __b_spline_fit(self, integral_curve):
+        pass
+
+    def __remove_curve_from_field(self, integral_curve, cpu_field):
+        pass
 
 
 def render_scratch_field(renderer, resolution, field):

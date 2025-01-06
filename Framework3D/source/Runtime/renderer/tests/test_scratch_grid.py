@@ -17,8 +17,57 @@ def linear_to_gamma(image):
     return image ** (1.0 / 2.2)
 
 
+def render_and_save_field(field, resolution, filename):
+    r = glints.renderer.Renderer()
+    vertices, indices = glints.renderer.plane_board_scene_vertices_and_indices()
+    camera_position_np = np.array([4.0, 0.1, 2.5], dtype=np.float32)
+    r.set_camera_position(camera_position_np)
+    fov_in_degrees = 35
+    r.set_perspective(
+        np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
+    )
+    r.set_mesh(vertices, indices)
+    r.set_light_position(torch.tensor([4.0, -0.1, 2.5], device="cuda"))
+
+    r.set_width(torch.tensor([0.001], device="cuda"))
+
+    image, sampled_mask = glints.scratch_grid.render_scratch_field(r, resolution, field)
+    test_utils.save_image(image, resolution, filename)
+
 @pytest.mark.skip(reason="Skipping temporarily")
 def test_scratch_field_divergence():
+    n = 1024
+    m = 1
+    field = glints.scratch_grid.ScratchField(n, m)
+    for scale in [0.1, 0.2, 0.3, 0.4, 0.5]:
+        random_theta = (
+            torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
+        ) * scale
+        field.field = (
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.5
+        )
+        divergence, smoothness = field.calc_divergence_smoothness()
+        test_utils.save_image(divergence[:, :, 0], [n, n], f"divergence_{scale}.exr")
+
+        print(f"scale: {scale}, divergence: {torch.mean(divergence).item()}")
+
+    for scale in [0.1, 0.2, 0.3, 0.4, 0.5]:
+        random_theta = (
+            torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
+        ) * scale + (
+            torch.rand((n, n, m), dtype=torch.float32, device="cuda") > 0
+        ) * torch.pi
+        field.field = (
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.5
+        )
+        divergence, smoothness = field.calc_divergence_smoothness()
+        test_utils.save_image(divergence[:, :, 0], [n, n], f"divergence_{scale}.exr")
+
+        print(f"scale: {scale}, divergence: {torch.mean(divergence).item()}")
+
+
+@pytest.mark.skip(reason="Skipping temporarily")
+def test_scratch_field_divergence_optimization():
     field = glints.scratch_grid.ScratchField(1024, 5)
 
     optimizer = torch.optim.Adam([field.field], lr=0.01)
@@ -82,12 +131,12 @@ def optimize_field(
         regularizer.step()
         field.fix_direction()
 
-    for _ in range(150):
+    for _ in range(300):
         optimizer.zero_grad()
         image, sampled_mask = glints.scratch_grid.render_scratch_field(
             renderer, resolution, field
         )
-        loss_image = loss_fn(linear_to_gamma(image), target_image) * 100
+        loss_image = loss_fn(linear_to_gamma(image), target_image) * 1000
         density_loss = torch.mean(
             torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 0.1
         )
@@ -100,7 +149,7 @@ def optimize_field(
         regularization_steps = 0
 
         if True:
-            while resularization_loss.item() > old_regularization_loss * 0.5:
+            while resularization_loss.item() > old_regularization_loss:
                 regularizer.zero_grad()
                 divergence, smoothness = field.calc_divergence_smoothness()
                 loss_divergence = regularization_loss_fn(
@@ -154,6 +203,7 @@ def save_images(field, resolution, divergence, smoothness):
         test_utils.save_image(field.field[:, :, i, :1], resolution, f"field_{i}.exr")
 
 
+@pytest.mark.skip(reason="Skipping temporarily")
 def test_render_scratch_field():
     r = glints.renderer.Renderer()
 
@@ -170,14 +220,14 @@ def test_render_scratch_field():
 
     r.set_width(torch.tensor([0.001], device="cuda"))
 
-    field = glints.scratch_grid.ScratchField(512, 2)
+    field = glints.scratch_grid.ScratchField(512, 3)
     image, sampled_mask = glints.scratch_grid.render_scratch_field(r, resolution, field)
     test_utils.save_image(image, resolution, "scratch_field_initial.exr")
     target_image = r.prepare_target("texture.png", resolution)
     loss_fn = torch.nn.L1Loss()
     regularization_loss_fn = torch.nn.L1Loss()
     regularizer = torch.optim.Adam([field.field], lr=0.005)
-    optimizer = torch.optim.Adam([field.field], lr=0.04)
+    optimizer = torch.optim.Adam([field.field], lr=0.01)
 
     optimize_field(
         field,
@@ -195,3 +245,8 @@ def test_render_scratch_field():
 
     image, sampled_mask = glints.scratch_grid.render_scratch_field(r, resolution, field)
     test_utils.save_image(image, resolution, "scratch_field.exr")
+
+    directions = torch.rot90(field.field[:, :, 0, :2])
+    test_utils.plot_arrows(
+        directions, "directions", spacing=16, scale=0.1, filename="directions.pdf"
+    )
