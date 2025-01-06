@@ -306,7 +306,7 @@ def test_bspline_intersect_optimization():
         )
 
     random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.05, 50000, (0, 1), (0, 1)
+        baked_textures, 0.05, 30000, (0, 1), (0, 1)
     )
     for light_pos_id in range(num_light_positions):
 

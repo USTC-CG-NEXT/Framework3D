@@ -72,6 +72,22 @@ class ScratchField:
             sign_x = torch.sign(self.field[:, :, :, 1])
             self.field *= sign_x.unsqueeze(3)
 
+    def fill_masked_holes(self, sampled_mask):
+        non_sampled_mask = ~sampled_mask
+        with torch.no_grad():
+            for i in range(self.m):
+                for dim in range(2):
+                    max_pooled = torch.nn.functional.max_pool2d(
+                        self.field[:, :, i, dim].unsqueeze(0).unsqueeze(0),
+                        kernel_size=3,
+                        stride=1,
+                        padding=1,
+                    )
+
+                    self.field[:, :, i, dim][
+                        non_sampled_mask[:, :, i, dim]
+                    ] = max_pooled.squeeze()[non_sampled_mask[:, :, i, dim]]
+
     def sample(self, uv):
         """
         uv: torch.tensor of shape [count,2], where uv[:,0] is u and uv[:,1] is v, both in [0,1]

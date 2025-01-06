@@ -56,7 +56,7 @@ lpips_loss_fn = lpips.LPIPS(net="alex").cuda()
 
 import torchvision.transforms.functional as TF
 
-import glints.bspline 
+import glints.bspline
 
 
 def perceptual_loss(image, target):
@@ -180,7 +180,7 @@ def initilize_based_on_target(targets, edge_length, count, width_range, height_r
 
         all_triangles.append(target_triangles.clone())
 
-    return torch.cat(all_triangles, dim=0).contiguous() # shaped [count, 3, 3]
+    return torch.cat(all_triangles, dim=0).contiguous()  # shaped [count, 3, 3]
 
 
 import os
@@ -306,12 +306,11 @@ def test_bspline_intersect_optimization():
         )
 
     random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.05, 50000, (0, 1), (0, 1)
+        baked_textures, 0.1, 15000, (0, 1), (0, 1)
     )
     for light_pos_id in range(num_light_positions):
 
         light_rotation_angle = light_pos_id * (2 * np.pi / num_light_positions)
-        rotated_light_init_position = light_position_np
 
         losses = []
         lines = random_gen_closure().clone().contiguous().cuda()
@@ -328,8 +327,8 @@ def test_bspline_intersect_optimization():
         temperature = 1.0
 
         with open(f"light_pos_{light_pos_id}/optimization.log", "a") as log_file:
-            for i in range(200):
-                rnd_pick_target_ids = np.random.randint(0, 21, size=3)
+            for i in range(300):
+                rnd_pick_target_ids = np.random.randint(0, 21, size=5)
                 iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % 21
                 rnd_pick_target_ids[-1] = iterative_rnd_pick_target_id
 
@@ -434,12 +433,9 @@ def test_bspline_intersect_optimization():
         for t in torch.linspace(1, 2, steps=16).cuda():
             evaluated.append(
                 bspline.eval_quadratic_bspline_point(lines, t.repeat(lines.shape[0]))
-            )  
+            )
 
         stacked_evaluated = torch.stack(evaluated).permute(1, 0, 2)
 
-
-
         with open(f"light_pos_{light_pos_id}/lines.txt", "w") as f:
             f.write(str(stacked_evaluated.detach().cpu().numpy().tolist()))
-

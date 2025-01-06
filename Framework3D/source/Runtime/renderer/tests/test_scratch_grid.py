@@ -53,88 +53,66 @@ def test_scratch_field_divergence():
     test_utils.save_image(image, resolution, "test_divergence_scratch_field.exr")
 
 
-def test_render_scratch_field():
-    r = glints.renderer.Renderer()
-
-    vertices, indices = glints.renderer.plane_board_scene_vertices_and_indices()
-    camera_position_np = np.array([4.0, 0.1, 2.5], dtype=np.float32)
-    r.set_camera_position(camera_position_np)
-    fov_in_degrees = 35
-    resolution = [768, 512]
-    r.set_perspective(
-        np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
-    )
-    r.set_mesh(vertices, indices)
-    r.set_light_position(torch.tensor([4.0, -0.1, 2.5], device="cuda"))
-
-    r.set_width(torch.tensor([0.001], device="cuda"))
-
-    field = glints.scratch_grid.ScratchField(256, 2)
-    image = glints.scratch_grid.render_scratch_field(r, resolution, field)
-    test_utils.save_image(image, resolution, "scratch_field_initial.exr")
-    target_image = r.prepare_target("texture.png", resolution)
-    loss_fn = torch.nn.L1Loss()
-    regularization_loss_fn = torch.nn.L1Loss()
-    regularizer = torch.optim.Adam([field.field], lr=0.005)
-
+def optimize_field(
+    field,
+    renderer,
+    resolution,
+    target_image,
+    loss_fn,
+    regularization_loss_fn,
+    regularizer,
+    optimizer,
+):
+    old_regularization_loss = None
     for i in range(400):
-
         regularizer.zero_grad()
         divergence, smoothness = field.calc_divergence_smoothness()
-
         loss_divergence = regularization_loss_fn(
             divergence, torch.zeros_like(divergence)
         )
-
         loss_smoothness = regularization_loss_fn(
             smoothness, torch.zeros_like(smoothness)
         )
-
         resularization_loss = loss_divergence + loss_smoothness
+
         if i == 0:
             old_regularization_loss = resularization_loss.item()
-        resularization_loss.backward()
 
+        resularization_loss.backward()
         regularizer.step()
         field.fix_direction()
-    optimizer = torch.optim.Adam([field.field], lr=0.04)
-    torch.set_printoptions(precision=5)
-    for _ in range(150):  # Number of optimization steps
 
+    for _ in range(150):
         optimizer.zero_grad()
-        image = glints.scratch_grid.render_scratch_field(r, resolution, field)
-        loss_image = loss_fn(linear_to_gamma(image), target_image) * 1000
+        image, sampled_mask = glints.scratch_grid.render_scratch_field(
+            renderer, resolution, field
+        )
+        loss_image = loss_fn(linear_to_gamma(image), target_image) * 100
         density_loss = torch.mean(
-            torch.norm(field.field, dim=3) * 0.1
-        )  # less scratches, better direction
-
+            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 0.1
+        )
         total_loss = loss_image + density_loss
         total_loss.backward()
         optimizer.step()
+        field.fill_masked_holes(sampled_mask)
 
         resularization_loss = torch.tensor(10000000000000.0)
-
         regularization_steps = 0
 
-        while resularization_loss.item() > old_regularization_loss * 0.1:
-            # for i in range(30):
-
-            regularizer.zero_grad()
-            divergence, smoothness = field.calc_divergence_smoothness()
-            loss_divergence = regularization_loss_fn(
-                divergence, torch.zeros_like(divergence)
-            )
-
-            loss_smoothness = regularization_loss_fn(
-                smoothness, torch.zeros_like(smoothness)
-            )
-
-            resularization_loss = loss_divergence + loss_smoothness
-            resularization_loss.backward()
-
-            regularizer.step()
-            regularization_steps += 1
-
+        if True:
+            while resularization_loss.item() > old_regularization_loss * 0.5:
+                regularizer.zero_grad()
+                divergence, smoothness = field.calc_divergence_smoothness()
+                loss_divergence = regularization_loss_fn(
+                    divergence, torch.zeros_like(divergence)
+                )
+                loss_smoothness = regularization_loss_fn(
+                    smoothness, torch.zeros_like(smoothness)
+                )
+                resularization_loss = loss_divergence + loss_smoothness
+                resularization_loss.backward()
+                regularizer.step()
+                regularization_steps += 1
 
         print(
             "iteration:",
@@ -148,14 +126,16 @@ def test_render_scratch_field():
             "loss_image",
             loss_image.item(),
             "total_loss",
-            total_loss,
+            total_loss.item(),
             "regularization_steps",
-            regularization_steps
+            regularization_steps,
         )
 
     field.fix_direction()
 
-    for i in range(2):
+
+def save_images(field, resolution, divergence, smoothness):
+    for i in range(field.field.shape[2]):
         test_utils.save_image(
             1000 * divergence[:, :, i], resolution, f"divergence_{i}.exr"
         )
@@ -164,17 +144,54 @@ def test_render_scratch_field():
         )
 
         density = torch.norm(field.field[:, :, i], dim=2)
-
-        directions = field.field[:, :, i] / density.unsqueeze(2)  # shape [n,n,2]
-        # expand 1 dimension to 3 dimensions
+        directions = field.field[:, :, i] / density.unsqueeze(2)
         directions = torch.cat(
             [directions, torch.zeros_like(directions[:, :, :1])], dim=2
         )
-        test_utils.save_image(directions, resolution, f"directions_{i}.exr")
 
+        test_utils.save_image(directions, resolution, f"directions_{i}.exr")
         test_utils.save_image(density, resolution, f"density_{i}.exr")
         test_utils.save_image(field.field[:, :, i, :1], resolution, f"field_{i}.exr")
 
-    image = glints.scratch_grid.render_scratch_field(r, resolution, field)
 
+def test_render_scratch_field():
+    r = glints.renderer.Renderer()
+
+    vertices, indices = glints.renderer.plane_board_scene_vertices_and_indices()
+    camera_position_np = np.array([4.0, 0.0, 3.5], dtype=np.float32)
+    r.set_camera_position(camera_position_np)
+    fov_in_degrees = 35
+    resolution = [768 * 2, 512 * 2]
+    r.set_perspective(
+        np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
+    )
+    r.set_mesh(vertices, indices)
+    r.set_light_position(torch.tensor([4.0, -0.0, 4.5], device="cuda"))
+
+    r.set_width(torch.tensor([0.001], device="cuda"))
+
+    field = glints.scratch_grid.ScratchField(512, 2)
+    image, sampled_mask = glints.scratch_grid.render_scratch_field(r, resolution, field)
+    test_utils.save_image(image, resolution, "scratch_field_initial.exr")
+    target_image = r.prepare_target("texture.png", resolution)
+    loss_fn = torch.nn.L1Loss()
+    regularization_loss_fn = torch.nn.L1Loss()
+    regularizer = torch.optim.Adam([field.field], lr=0.005)
+    optimizer = torch.optim.Adam([field.field], lr=0.04)
+
+    optimize_field(
+        field,
+        r,
+        resolution,
+        target_image,
+        loss_fn,
+        regularization_loss_fn,
+        regularizer,
+        optimizer,
+    )
+
+    divergence, smoothness = field.calc_divergence_smoothness()
+    save_images(field, resolution, divergence, smoothness)
+
+    image, sampled_mask = glints.scratch_grid.render_scratch_field(r, resolution, field)
     test_utils.save_image(image, resolution, "scratch_field.exr")
