@@ -287,6 +287,21 @@ def target_bake_to_texture(
         target_sampled
     )
 
+    # fill the holes. if the pixel is zero valued, fill it with a neighbor pixel with max filter
+    fill_mask = uv_texture.sum(dim=2) == 0
+
+    for i in range(3):
+        uv_texture[:, :, i][fill_mask] = torch.nn.functional.max_pool2d(
+            uv_texture[:, :, i].unsqueeze(0).unsqueeze(0), 3, 1, 1
+        ).squeeze()[fill_mask]
+
+    fill_mask = uv_texture.sum(dim=2) == 0
+
+    for i in range(3):
+        uv_texture[:, :, i][fill_mask] = torch.nn.functional.max_pool2d(
+            uv_texture[:, :, i].unsqueeze(0).unsqueeze(0), 3, 1, 1
+        ).squeeze()[fill_mask]
+
     return uv_texture
 
 
