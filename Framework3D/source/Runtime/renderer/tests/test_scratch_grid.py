@@ -34,6 +34,12 @@ def render_and_save_field(field, resolution, filename):
     image, sampled_mask = glints.scratch_grid.render_scratch_field(r, resolution, field)
     test_utils.save_image(image, resolution, filename)
 
+
+def test_scratch_field_discretizing():
+    r = glints.renderer.Renderer()
+
+    
+
 @pytest.mark.skip(reason="Skipping temporarily")
 def test_scratch_field_divergence():
     n = 1024

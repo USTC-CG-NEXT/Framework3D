@@ -158,25 +158,91 @@ class ScratchField:
         return lines, line_weight, sampled_mask
 
     def discretize_to_lines(self, density):
-        cpu_field = self.field.detach().cpu().numpy()
         b_spline_ctr_points = []
-        while True:
-            init_point = self.__importance_sample_field(cpu_field)
-            if init_point is None:
-                break
 
-            integral_curve = self.__grow_init_point(init_point)
-            ctr_points = self.__b_spline_fit(integral_curve)  # a list of ctr points
-            cpu_field = self.__remove_curve_from_field(integral_curve, cpu_field)
+        for i in range(self.m):
 
-            b_spline_ctr_points += ctr_points
+            np_sub_field = self.field[:, :, i].detach().cpu().numpy()
+            while True:
+
+                np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
+                np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
+
+                init_point = self.__importance_sample_field(np_sub_density_field)
+                if init_point is None:
+                    break
+
+                integral_curve = self.__grow_init_point(
+                    np_sub_direction_field, init_point
+                )
+                ctr_points = self.__b_spline_fit(integral_curve)  # a list of ctr points
+
+                np_sub_density_field = self.__remove_curve_from_field(
+                    integral_curve, np_sub_density_field
+                )
+
+                b_spline_ctr_points += ctr_points
 
         return torch.tensor(b_spline_ctr_points, device="cuda")
 
-    def __importance_sample_field(self, cpu_field):
-        pass
+    def __importance_sample_field(self, density_field):
 
-    def __grow_init_point(self, init_point):
+        # Build suffix sum array using vectorized operations
+        width = density_field.shape[0]
+        height = density_field.shape[1]
+
+        flattened_pdf = density_field.T.flatten()
+        flattened_pdf /= np.sum(flattened_pdf)
+
+        flattened_cdf = np.cumsum(flattened_pdf)
+
+        random_number = np.random.rand()
+        idx = np.searchsorted(flattened_cdf, random_number)
+
+        x = idx % width
+        y = idx // width
+
+        return np.array([x, y]) + 0.5
+
+    def __as_index(self, point):
+        return point.astype(int)
+
+    def __grow_init_point(self, np_sub_direction_field, init_point):
+        integral_curve = [init_point]
+
+        step = 1.0
+
+        while True:
+
+            current_pos = integral_curve[-1]
+
+            floored_pos = np.floor(current_pos).astype(int)
+
+            weight = current_pos - floored_pos
+
+            # bilinear interpolation of the direction field
+            v00 = np_sub_direction_field[self.__as_index(integral_curve[-1])]
+            v01 = np_sub_direction_field[self.__as_index(integral_curve[-1]) + [0, 1]]
+            v10 = np_sub_direction_field[self.__as_index(integral_curve[-1]) + [1, 0]]
+            v11 = np_sub_direction_field[self.__as_index(integral_curve[-1]) + [1, 1]]
+
+            v = (
+                v00 * (1 - weight[0]) * (1 - weight[1])
+                + v01 * (1 - weight[0]) * weight[1]
+                + v10 * weight[0] * (1 - weight[1])
+                + v11 * weight[0] * weight[1]
+            )
+
+            next_pos = current_pos + v * step
+
+            if (
+                next_pos[0] < 0
+                or next_pos[0] >= self.n
+                or next_pos[1] < 0
+                or next_pos[1] >= self.n
+            ):
+                break
+
         pass
 
     def __b_spline_fit(self, integral_curve):
