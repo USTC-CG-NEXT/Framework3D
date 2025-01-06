@@ -10,7 +10,7 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.3 + 0.5 * torch.pi
+        ) * 0.7 + 0.5 * torch.pi
 
         self.field = (
             torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.5
@@ -99,6 +99,12 @@ class ScratchField:
         f10 = self.field[u1, v0]
         f11 = self.field[u1, v1]
 
+        sampled_mask = torch.zeros_like(self.field, dtype=torch.bool)
+        sampled_mask[u0, v0] = True
+        sampled_mask[u1, v0] = True
+        sampled_mask[u0, v1] = True
+        sampled_mask[u1, v1] = True
+
         sampled = (
             (1 - u) * (1 - v) * f00
             + (1 - u) * v * f01
@@ -124,17 +130,17 @@ class ScratchField:
         lines = torch.cat([lines_begin, lines_end], dim=1)
         lines = lines.reshape(-1, 2, 3).contiguous()
 
-        return lines, line_weight
+        return lines, line_weight, sampled_mask
 
 
 def render_scratch_field(renderer, resolution, field):
 
     _, _, _, uv = renderer.preliminary_render(resolution)
 
-    lines, line_weight = field.sample(uv)
+    lines, line_weight, sampled_mask = field.sample(uv)
 
     image, low_contribution_mask = renderer.render(
         resolution, lines, force_single_line=True, line_weight=line_weight
     )
 
-    return image
+    return image, sampled_mask
