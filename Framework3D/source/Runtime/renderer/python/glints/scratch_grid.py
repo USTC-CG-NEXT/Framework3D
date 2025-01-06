@@ -10,7 +10,7 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.7 + 0.5 * torch.pi
+        ) * 0.4 + 0.5 * torch.pi
 
         self.field = (
             torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.5
