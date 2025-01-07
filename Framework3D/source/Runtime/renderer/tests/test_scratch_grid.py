@@ -48,7 +48,7 @@ def sub_test_field(field, arrow_distance, filename):
     np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
     init_points = []
 
-    test_points = 1
+    test_points = 10
 
     for i in range(test_points):
         init_point = field._ScratchField__importance_sample_field(
@@ -79,10 +79,12 @@ def sub_test_field(field, arrow_distance, filename):
             np_sub_direction_field, np_sub_density_field, init_points[i], 0.2
         )
 
-        plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red")
+        plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red", linewidth=3)
 
-        # fitted_curve = field._ScratchField__b_spline_fit(grown_curve)
-        # print("fitted_curve", fitted_curve)
+        fitted_curve = field._ScratchField__b_spline_fit(
+            grown_curve, max_segments=100, error_tolerance=0.5
+        )
+        plt.plot(fitted_curve[:, 1], fitted_curve[:, 0], color="green")
 
     plt.savefig(filename)
     plt.close()
@@ -91,11 +93,13 @@ def sub_test_field(field, arrow_distance, filename):
 def optimize_divergence(field):
     field.field.requires_grad = True
     optimizer = torch.optim.Adam([field.field], lr=0.02)
-    for i in range(5000):
+    for i in range(1000):
 
         optimizer.zero_grad()
         divergence, smoothness = field.calc_divergence_smoothness()
-        divergence_loss = torch.mean(divergence**2 + smoothness**2)
+        divergence_loss = torch.nn.functional.smooth_l1_loss(
+            divergence, torch.zeros_like(divergence)
+        ) + torch.nn.functional.smooth_l1_loss(smoothness, torch.zeros_like(smoothness))
         divergence_loss.backward()
         optimizer.step()
 
@@ -119,10 +123,10 @@ def test_scratch_field_discretizing():
     )
 
     print("case 0, field shape", field.field.shape)
-    #sub_test_field(field, 16, "case0.pdf")
+    sub_test_field(field, 16, "case0.pdf")
 
-    # optimize_divergence(field)
-    #sub_test_field(field, 16, "case0_optimized.pdf")
+    optimize_divergence(field)
+    sub_test_field(field, 16, "case0_optimized.pdf")
 
     #  case 1: a field with a single direction, all with the same length
 
@@ -149,7 +153,7 @@ def test_scratch_field_discretizing():
 
     print("case 2, field shape", field.field.shape)
 
-    #sub_test_field(field, 16, "case2.pdf")
+    # sub_test_field(field, 16, "case2.pdf")
 
     # case 3: a field pointing to the center of the image
 

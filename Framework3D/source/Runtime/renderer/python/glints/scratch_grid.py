@@ -3,6 +3,7 @@
 import torch
 import numpy as np
 from scipy.interpolate import BSpline
+from scipy.interpolate import splprep, splev
 
 
 class ScratchField:
@@ -162,10 +163,8 @@ class ScratchField:
         b_spline_ctr_points = []
 
         for i in range(self.m):
-
             np_sub_field = self.field[:, :, i].detach().cpu().numpy()
             while True:
-
                 np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
                 np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
 
@@ -215,7 +214,7 @@ class ScratchField:
         np_sub_density_field,
         init_point,
         density,
-        max_len=0.6,
+        max_len=1.0,
     ):
 
         max_len_int = int(max_len * self.n)
@@ -321,27 +320,30 @@ class ScratchField:
 
         return np.array(integral_curve)
 
-    def __b_spline_fit(self, integral_curve):
+    def __b_spline_fit(self, integral_curve, error_tolerance=0.04, max_segments=10):
         """
         integral_curve: np.array of shape [n,2]
         """
+        # Initial fit
+        segments = 6
 
-        t = np.linspace(0, 1, len(integral_curve))
-        t = np.concatenate(
-            ([0, 0, 0], t, [1, 1, 1])
-        )  # Quadratic B-spline requires 3 extra knots at the beginning and end
+        # Dynamically add more segments until error is below tolerance
+        while True:
+            t = np.linspace(0, 1, segments)
+            tck, u = splprep(
+                [integral_curve[:, 0], integral_curve[:, 1]], t=t, k=2, task=-1
+            )
+            fit_points = np.array(splev(u, tck)).T
+            error = np.mean(np.sqrt(np.sum((integral_curve - fit_points) ** 2, axis=1)))
+            if error <= error_tolerance or segments >= max_segments:
+                break
+            segments += 1
+        print("t", tck[0])
+        # Evaluate the final B-spline fit
+        unew = np.linspace(0, 1.0, 50)
+        fitted_curve = np.array(splev(unew, tck)).T
 
-        print("t", t)
-        c = np.pad(
-            integral_curve, ((1, 1), (0, 0)), "edge"
-        )  # Pad control points to match the number of knots
-        k = 2  # Quadratic B-spline
-
-        spline = BSpline(t, c, k)
-        return spline
-
-    def __remove_curve_from_field(self, integral_curve, cpu_field):
-        pass
+        return fitted_curve
 
 
 def render_scratch_field(renderer, resolution, field):
