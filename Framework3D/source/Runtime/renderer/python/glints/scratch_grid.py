@@ -173,7 +173,7 @@ class ScratchField:
                     break
 
                 integral_curve = self.__grow_init_point(
-                    np_sub_direction_field, init_point
+                    np_sub_direction_field, np_sub_density_field, init_point, density
                 )
                 ctr_points = self.__b_spline_fit(integral_curve)  # a list of ctr points
 
@@ -195,7 +195,7 @@ class ScratchField:
         flattened_pdf = density_field.t().flatten()
         flattened_pdf /= torch.sum(flattened_pdf)
 
-        flattened_cdf = torch.cumsum(flattened_pdf, dim=0)
+        flattened_cdf = torch.cumsum(flattened_pdf, dim=0)  # much faster than np.cumsum
 
         random_number = torch.rand(1, device="cuda")
         idx = torch.searchsorted(flattened_cdf, random_number).item()
@@ -208,24 +208,52 @@ class ScratchField:
     def __as_index(self, point):
         return point.astype(int)
 
-    def __grow_init_point(self, np_sub_direction_field, init_point):
+    def __grow_init_point(
+        self, np_sub_direction_field, np_sub_density_field, init_point, density
+    ):
         integral_curve = [init_point]
 
         step = 1.0
 
         while True:
-
             current_pos = integral_curve[-1]
-
             floored_pos = np.floor(current_pos).astype(int)
-
             weight = current_pos - floored_pos
+            index00 = floored_pos
+            index01 = floored_pos + [0, 1]
+            index10 = floored_pos + [1, 0]
+            index11 = floored_pos + [1, 1]
+
+            weight_group = [
+                (1 - weight[0]) * (1 - weight[1]),
+                (1 - weight[0]) * weight[1],
+                weight[0] * (1 - weight[1]),
+                weight[0] * weight[1],
+            ]  # this multiplying the density is the density it consumes
+
+            density_group = [weight * density for weight in weight_group]
+
+            if (
+                np_sub_density_field[tuple(index00)] < density_group[0]
+                or np_sub_density_field[tuple(index01)] < density_group[1]
+                or np_sub_density_field[tuple(index10)] < density_group[2]
+                or np_sub_density_field[tuple(index11)] < density_group[3]
+            ):
+                break
+
+            np_sub_density_field -= density_group[0]
+            np_sub_density_field -= density_group[1]
+            np_sub_density_field -= density_group[2]
+            np_sub_density_field -= density_group[3]
 
             # bilinear interpolation of the direction field
-            v00 = np_sub_direction_field[self.__as_index(integral_curve[-1])]
-            v01 = np_sub_direction_field[self.__as_index(integral_curve[-1]) + [0, 1]]
-            v10 = np_sub_direction_field[self.__as_index(integral_curve[-1]) + [1, 0]]
-            v11 = np_sub_direction_field[self.__as_index(integral_curve[-1]) + [1, 1]]
+            v00 = np_sub_direction_field[index00[0], index00[1]]
+            v01 = np_sub_direction_field[index01[0], index01[1]]
+            v01 *= np.sign(np.dot(v00, v01))
+            v10 = np_sub_direction_field[index10[0], index10[1]]
+            v10 *= np.sign(np.dot(v00, v10))
+            v11 = np_sub_direction_field[index11[0], index11[1]]
+            v11 *= np.sign(np.dot(v00, v11))
 
             v = (
                 v00 * (1 - weight[0]) * (1 - weight[1])
@@ -238,13 +266,15 @@ class ScratchField:
 
             if (
                 next_pos[0] < 0
-                or next_pos[0] >= self.n
+                or next_pos[0] > self.n - 1
                 or next_pos[1] < 0
-                or next_pos[1] >= self.n
+                or next_pos[1] > self.n - 1
             ):
                 break
 
-        pass
+            integral_curve.append(next_pos)
+
+        return np.array(integral_curve)
 
     def __b_spline_fit(self, integral_curve):
         pass
