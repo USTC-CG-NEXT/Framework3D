@@ -85,12 +85,18 @@ bool ImGui_Renderer::Init(std::shared_ptr<ShaderFactory> shaderFactory)
     io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
     io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
     io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
-    io.KeyMap[ImGuiKey_A] = 'A';
-    io.KeyMap[ImGuiKey_C] = 'C';
-    io.KeyMap[ImGuiKey_V] = 'V';
-    io.KeyMap[ImGuiKey_X] = 'X';
-    io.KeyMap[ImGuiKey_Y] = 'Y';
-    io.KeyMap[ImGuiKey_Z] = 'Z';
+    // io.KeyMap[ImGuiKey_A] = 'A';
+    // io.KeyMap[ImGuiKey_C] = 'C';
+    // io.KeyMap[ImGuiKey_V] = 'V';
+    // io.KeyMap[ImGuiKey_X] = 'X';
+    // io.KeyMap[ImGuiKey_Y] = 'Y';
+    // io.KeyMap[ImGuiKey_Z] = 'Z';
+    for (int i = 0; i < 26; i++) {
+        io.KeyMap[ImGuiKey_A + i] = 'A' + i;
+    }
+    for (int i = 0; i < 10; i++) {
+        io.KeyMap[ImGuiKey_0 + i] = '0' + i;
+    }
 
     imgui_nvrhi = std::make_unique<ImGui_NVRHI>();
     return imgui_nvrhi->init(GetDevice(), shaderFactory);
