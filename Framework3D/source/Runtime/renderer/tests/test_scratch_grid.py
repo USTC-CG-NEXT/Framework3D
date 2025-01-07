@@ -38,71 +38,82 @@ def render_and_save_field(field, resolution, filename):
 import matplotlib.pyplot as plt
 
 
-def test_scratch_field_discretizing():
+def sub_test_field(field, arrow_distance, filename):
 
-    def sub_test_field(field, filename):
+    # test importance sample
 
-        # test importance sample
+    np_sub_field = field.field[:, :, 0, :].detach().cpu().numpy()
 
-        np_sub_field = field.field[:, :, 0, :].cpu().numpy()
+    np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
+    np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
+    init_points = []
 
-        np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
-        np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
-        init_points = []
+    test_points = 1
 
-        for i in range(10):
-            init_point = field._ScratchField__importance_sample_field(
-                np_sub_density_field
-            )  # np.array([x, y])
-            if init_point is not None:
-                init_points.append(init_point)
+    for i in range(test_points):
+        init_point = field._ScratchField__importance_sample_field(
+            np_sub_density_field
+        )  # np.array([x, y])
+        if init_point is not None:
+            init_points.append(init_point)
 
-        plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(10, 10))
 
-        # draw the arrows
-        arrow_distance = 32
-        plt.quiver(
-            np.arange(0, 1024, arrow_distance),
-            np.arange(0, 1024, arrow_distance),
-            np_sub_direction_field[::arrow_distance, ::arrow_distance, 0],
-            np_sub_direction_field[::arrow_distance, ::arrow_distance, 1],
+    # draw the arrows
+    W = field.field.shape[1]
+    H = field.field.shape[0]
+
+    plt.quiver(
+        np.arange(0, W, arrow_distance),
+        np.arange(0, H, arrow_distance),
+        np_sub_direction_field[::arrow_distance, ::arrow_distance, 1],
+        np_sub_direction_field[::arrow_distance, ::arrow_distance, 0],
+    )
+
+    # do the scatter plot of init_points
+    init_points = np.array(init_points)
+    plt.scatter(init_points[:, 1], init_points[:, 0], s=1)
+
+    for i in range(test_points):
+        grown_curve = field._ScratchField__grow_init_point(
+            np_sub_direction_field, np_sub_density_field, init_points[i], 0.6
         )
 
-        # do the scatter plot of init_points
-        init_points = np.array(init_points)
-        plt.scatter(init_points[:, 0], init_points[:, 1], s=1)
+        plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red")
 
-        for i in range(10):
-            grown_curve = field._ScratchField__grow_init_point(
-                np_sub_direction_field, np_sub_density_field, init_points[i], 0.001
-            )
+        # fitted_curve = field._ScratchField__b_spline_fit(grown_curve)
+        # print("fitted_curve", fitted_curve)
 
-            plt.plot(grown_curve[:, 0], grown_curve[:, 1], color="red")
+    plt.savefig(filename)
+    plt.close()
 
-        plt.savefig(filename)
-        plt.close()
+
+# @pytest.mark.skip(reason="Skipping temporarily")
+def test_scratch_field_discretizing():
 
     field = glints.scratch_grid.ScratchField(1024, 1)
 
     # case 0: a field with random directions
 
     random_theta = (
-        torch.rand((1024, 1024, 5), dtype=torch.float32, device="cuda") - 0.5
-    ) * 0.4 * np.pi + 0.5 * torch.pi
+        (torch.rand((1024, 1024, 5), dtype=torch.float32, device="cuda") - 0.5)
+        * 0.8
+        * np.pi
+    )
     field.field = (
-        torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 10
+        torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 100
     )
 
     print("case 0, field shape", field.field.shape)
 
-    sub_test_field(field, "case0.pdf")
+    sub_test_field(field, 16, "case0.pdf")
 
     #  case 1: a field with a single direction, all with the same length
 
     # case 2: a field all pointting to the outside of the image
     pointing_outside_theta = torch.atan2(
-        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1),
         torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0),
+        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1),
     )
     pointing_outside_length = torch.sqrt(
         torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0) ** 2
@@ -122,7 +133,7 @@ def test_scratch_field_discretizing():
 
     print("case 2, field shape", field.field.shape)
 
-    sub_test_field(field, "case2.pdf")
+    sub_test_field(field, 16, "case2.pdf")
 
     # case 3: a field pointing to the center of the image
 
@@ -131,10 +142,7 @@ def test_scratch_field_discretizing():
         torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0),
         torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1),
     )
-    rotating_theta = (
-        rotating_theta
-        + torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1) / 1024 * 2 * np.pi
-    )
+    rotating_theta = rotating_theta + 0.5 * np.pi
     field.field = (
         torch.stack(
             [
@@ -149,7 +157,7 @@ def test_scratch_field_discretizing():
 
     print("case 4, field shape", field.field.shape)
 
-    sub_test_field(field, "case4.pdf")
+    sub_test_field(field, 16, "case4.pdf")
 
 
 @pytest.mark.skip(reason="Skipping temporarily")
@@ -249,7 +257,7 @@ def optimize_field(
         regularizer.step()
         field.fix_direction()
 
-    for _ in range(300):
+    for _ in range(200):
         optimizer.zero_grad()
         image, sampled_mask = glints.scratch_grid.render_scratch_field(
             renderer, resolution, field
@@ -365,6 +373,9 @@ def test_render_scratch_field():
     test_utils.save_image(image, resolution, "scratch_field.exr")
 
     directions = torch.rot90(field.field[:, :, 0, :2])
+
+    sub_test_field(field, "scratch_field.pdf")
+
     test_utils.plot_arrows(
         directions, "directions", spacing=16, scale=0.1, filename="directions.pdf"
     )

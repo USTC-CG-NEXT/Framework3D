@@ -2,6 +2,7 @@
 
 import torch
 import numpy as np
+from scipy.interpolate import BSpline
 
 
 class ScratchField:
@@ -213,10 +214,26 @@ class ScratchField:
     ):
         integral_curve = [init_point]
 
-        step = 1.0
+        moving_forward = True
 
         while True:
-            current_pos = integral_curve[-1]
+            if moving_forward:
+                current_pos = integral_curve[-1]
+            else:
+                current_pos = integral_curve[0]
+
+            if (
+                current_pos[0] < 0
+                or current_pos[0] > self.n - 1
+                or current_pos[1] < 0
+                or current_pos[1] > self.n - 1
+            ):
+                if moving_forward:
+                    moving_forward = False
+                    continue
+                else:
+                    break
+
             floored_pos = np.floor(current_pos).astype(int)
             weight = current_pos - floored_pos
             index00 = floored_pos
@@ -234,20 +251,29 @@ class ScratchField:
             density_group = [weight * density for weight in weight_group]
 
             if (
-                np_sub_density_field[tuple(index00)] < density_group[0]
-                or np_sub_density_field[tuple(index01)] < density_group[1]
-                or np_sub_density_field[tuple(index10)] < density_group[2]
-                or np_sub_density_field[tuple(index11)] < density_group[3]
+                np_sub_density_field[index00[0], index00[1]] < density_group[0]
+                or np_sub_density_field[index01[0], index01[1]] < density_group[1]
+                or np_sub_density_field[index10[0], index10[1]] < density_group[2]
+                or np_sub_density_field[index11[0], index11[1]] < density_group[3]
             ):
-                break
 
-            np_sub_density_field -= density_group[0]
-            np_sub_density_field -= density_group[1]
-            np_sub_density_field -= density_group[2]
-            np_sub_density_field -= density_group[3]
+                if moving_forward:
+                    moving_forward = False
+                    continue
+                else:
+                    print("break because of density")
+                    break
+
+            np_sub_density_field[index00[0], index00[1]] -= density_group[0]
+            np_sub_density_field[index01[0], index01[1]] -= density_group[1]
+            np_sub_density_field[index10[0], index10[1]] -= density_group[2]
+            np_sub_density_field[index11[0], index11[1]] -= density_group[3]
 
             # bilinear interpolation of the direction field
             v00 = np_sub_direction_field[index00[0], index00[1]]
+            if not moving_forward:
+                v00 *= -1
+
             v01 = np_sub_direction_field[index01[0], index01[1]]
             v01 *= np.sign(np.dot(v00, v01))
             v10 = np_sub_direction_field[index10[0], index10[1]]
@@ -262,22 +288,36 @@ class ScratchField:
                 + v11 * weight[0] * weight[1]
             )
 
+            v = v / np.linalg.norm(v)
+
+            step = np.min(np.abs(2.0 / v))
+
             next_pos = current_pos + v * step
-
-            if (
-                next_pos[0] < 0
-                or next_pos[0] > self.n - 1
-                or next_pos[1] < 0
-                or next_pos[1] > self.n - 1
-            ):
-                break
-
-            integral_curve.append(next_pos)
+            if moving_forward:
+                integral_curve.append(next_pos)
+            else:
+                integral_curve.insert(0, next_pos)
 
         return np.array(integral_curve)
 
     def __b_spline_fit(self, integral_curve):
-        pass
+        """
+        integral_curve: np.array of shape [n,2]
+        """
+
+        t = np.linspace(0, 1, len(integral_curve))
+        t = np.concatenate(
+            ([0, 0, 0], t, [1, 1, 1])
+        )  # Quadratic B-spline requires 3 extra knots at the beginning and end
+
+        print("t", t)
+        c = np.pad(
+            integral_curve, ((1, 1), (0, 0)), "edge"
+        )  # Pad control points to match the number of knots
+        k = 2  # Quadratic B-spline
+
+        spline = BSpline(t, c, k)
+        return spline
 
     def __remove_curve_from_field(self, integral_curve, cpu_field):
         pass
