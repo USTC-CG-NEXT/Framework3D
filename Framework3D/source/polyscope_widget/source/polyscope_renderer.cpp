@@ -176,7 +176,7 @@ void PolyscopeRenderer::GetFrameBuffer()
 void PolyscopeRenderer::DrawMenuBar()
 {
     if (ImGui::BeginMenuBar()) {
-        if (ImGui::BeginMenu("Camera")) {
+        if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Save Image")) {
                 polyscope::screenshot();
             }
