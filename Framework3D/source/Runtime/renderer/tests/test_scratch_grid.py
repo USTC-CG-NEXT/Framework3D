@@ -76,7 +76,7 @@ def sub_test_field(field, arrow_distance, filename):
 
     for i in range(test_points):
         grown_curve = field._ScratchField__grow_init_point(
-            np_sub_direction_field, np_sub_density_field, init_points[i], 0.6
+            np_sub_direction_field, np_sub_density_field, init_points[i], 0.2
         )
 
         plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red")
@@ -88,36 +88,52 @@ def sub_test_field(field, arrow_distance, filename):
     plt.close()
 
 
+def optimize_divergence(field):
+    field.field.requires_grad = True
+    optimizer = torch.optim.Adam([field.field], lr=0.02)
+    for i in range(5000):
+
+        optimizer.zero_grad()
+        divergence, smoothness = field.calc_divergence_smoothness()
+        divergence_loss = torch.mean(divergence**2 + smoothness**2)
+        divergence_loss.backward()
+        optimizer.step()
+
+        print("divergence_loss", divergence_loss.item())
+
+
 # @pytest.mark.skip(reason="Skipping temporarily")
 def test_scratch_field_discretizing():
 
-    field = glints.scratch_grid.ScratchField(1024, 1)
+    field = glints.scratch_grid.ScratchField(512, 1)
 
     # case 0: a field with random directions
 
     random_theta = (
-        (torch.rand((1024, 1024, 5), dtype=torch.float32, device="cuda") - 0.5)
-        * 0.8
+        (torch.rand((512, 512, 5), dtype=torch.float32, device="cuda") - 0.5)
+        * 0.5
         * np.pi
     )
     field.field = (
-        torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 100
+        torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 10
     )
 
     print("case 0, field shape", field.field.shape)
+    #sub_test_field(field, 16, "case0.pdf")
 
-    sub_test_field(field, 16, "case0.pdf")
+    # optimize_divergence(field)
+    #sub_test_field(field, 16, "case0_optimized.pdf")
 
     #  case 1: a field with a single direction, all with the same length
 
     # case 2: a field all pointting to the outside of the image
     pointing_outside_theta = torch.atan2(
-        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0),
-        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1),
+        torch.linspace(-256, 255, 512, device="cuda").unsqueeze(0),
+        torch.linspace(-256, 255, 512, device="cuda").unsqueeze(1),
     )
     pointing_outside_length = torch.sqrt(
-        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0) ** 2
-        + torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1) ** 2
+        torch.linspace(-256, 255, 512, device="cuda").unsqueeze(0) ** 2
+        + torch.linspace(-256, 255, 512, device="cuda").unsqueeze(1) ** 2
     )
     field.field = (
         torch.stack(
@@ -133,14 +149,14 @@ def test_scratch_field_discretizing():
 
     print("case 2, field shape", field.field.shape)
 
-    sub_test_field(field, 16, "case2.pdf")
+    #sub_test_field(field, 16, "case2.pdf")
 
     # case 3: a field pointing to the center of the image
 
     # case 4: a field rotating around the center of the image
     rotating_theta = torch.atan2(
-        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0),
-        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1),
+        torch.linspace(-256, 255, 512, device="cuda").unsqueeze(0),
+        torch.linspace(-256, 255, 512, device="cuda").unsqueeze(1),
     )
     rotating_theta = rotating_theta + 0.5 * np.pi
     field.field = (
@@ -162,7 +178,7 @@ def test_scratch_field_discretizing():
 
 @pytest.mark.skip(reason="Skipping temporarily")
 def test_scratch_field_divergence():
-    n = 1024
+    n = 512
     m = 1
     field = glints.scratch_grid.ScratchField(n, m)
     for scale in [0.1, 0.2, 0.3, 0.4, 0.5]:
@@ -194,7 +210,7 @@ def test_scratch_field_divergence():
 
 @pytest.mark.skip(reason="Skipping temporarily")
 def test_scratch_field_divergence_optimization():
-    field = glints.scratch_grid.ScratchField(1024, 5)
+    field = glints.scratch_grid.ScratchField(512, 5)
 
     optimizer = torch.optim.Adam([field.field], lr=0.01)
     for i in range(1000):
@@ -207,14 +223,14 @@ def test_scratch_field_divergence_optimization():
 
         print("divergence_loss", divergence_loss.item())
 
-    test_utils.save_image(divergence[:, :, 0], [1024, 1024], "divergence.exr")
+    test_utils.save_image(divergence[:, :, 0], [512, 512], "divergence.exr")
 
     r = glints.renderer.Renderer()
     vertices, indices = glints.renderer.plane_board_scene_vertices_and_indices()
     camera_position_np = np.array([4.0, 0.1, 2.5], dtype=np.float32)
     r.set_camera_position(camera_position_np)
     fov_in_degrees = 35
-    resolution = [1536, 1024]
+    resolution = [1536, 512]
     r.set_perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
@@ -264,7 +280,7 @@ def optimize_field(
         )
         loss_image = loss_fn(linear_to_gamma(image), target_image) * 1000
         density_loss = torch.mean(
-            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 0.1
+            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 0.3
         )
         total_loss = loss_image + density_loss
         total_loss.backward()
@@ -337,7 +353,7 @@ def test_render_scratch_field():
     camera_position_np = np.array([4.0, 0.0, 3.5], dtype=np.float32)
     r.set_camera_position(camera_position_np)
     fov_in_degrees = 35
-    resolution = [768 * 2, 512 * 2]
+    resolution = [768 * 2, 256 * 2]
     r.set_perspective(
         np.pi * fov_in_degrees / 180.0, resolution[0] / resolution[1], 0.1, 1000.0
     )
@@ -346,7 +362,7 @@ def test_render_scratch_field():
 
     r.set_width(torch.tensor([0.001], device="cuda"))
 
-    field = glints.scratch_grid.ScratchField(512, 3)
+    field = glints.scratch_grid.ScratchField(256, 3)
     image, sampled_mask = glints.scratch_grid.render_scratch_field(r, resolution, field)
     test_utils.save_image(image, resolution, "scratch_field_initial.exr")
     target_image = r.prepare_target("texture.png", resolution)

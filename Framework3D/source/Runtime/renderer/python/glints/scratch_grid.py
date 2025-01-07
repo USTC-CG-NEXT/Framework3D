@@ -71,7 +71,7 @@ class ScratchField:
 
     def fix_direction(self):
         with torch.no_grad():
-            sign_x = torch.sign(self.field[:, :, :, 1])
+            sign_x = torch.sign(self.field[:, :, :, 0])
             self.field *= sign_x.unsqueeze(3)
 
     def fill_masked_holes(self, sampled_mask):
@@ -210,11 +210,22 @@ class ScratchField:
         return point.astype(int)
 
     def __grow_init_point(
-        self, np_sub_direction_field, np_sub_density_field, init_point, density
+        self,
+        np_sub_direction_field,
+        np_sub_density_field,
+        init_point,
+        density,
+        max_len=0.6,
     ):
+
+        max_len_int = int(max_len * self.n)
         integral_curve = [init_point]
 
         moving_forward = True
+
+        last_step = None
+
+        length = 0
 
         while True:
             if moving_forward:
@@ -230,6 +241,7 @@ class ScratchField:
             ):
                 if moving_forward:
                     moving_forward = False
+                    last_step = None
                     continue
                 else:
                     break
@@ -259,6 +271,7 @@ class ScratchField:
 
                 if moving_forward:
                     moving_forward = False
+                    last_step = None
                     continue
                 else:
                     print("break because of density")
@@ -290,13 +303,21 @@ class ScratchField:
 
             v = v / np.linalg.norm(v)
 
-            step = np.min(np.abs(2.0 / v))
+            step = np.min(np.abs(2.0 / v)) * v
 
-            next_pos = current_pos + v * step
+            step *= np.sign(np.dot(v, last_step)) if last_step is not None else 1
+
+            last_step = step
+
+            next_pos = current_pos + step
             if moving_forward:
                 integral_curve.append(next_pos)
             else:
                 integral_curve.insert(0, next_pos)
+
+            length += np.linalg.norm(step)
+            if length > max_len_int:
+                break
 
         return np.array(integral_curve)
 
