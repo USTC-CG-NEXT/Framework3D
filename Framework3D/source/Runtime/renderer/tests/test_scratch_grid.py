@@ -35,10 +35,78 @@ def render_and_save_field(field, resolution, filename):
     test_utils.save_image(image, resolution, filename)
 
 
-def test_scratch_field_discretizing():
-    r = glints.renderer.Renderer()
+import matplotlib.pyplot as plt
 
-    
+
+def test_scratch_field_discretizing():
+
+    def sub_test_field(field):
+
+        # test importance sample
+
+        np_sub_field = field.field[:, :, 0, :].cpu().numpy()
+
+        np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
+        np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
+        init_points = []
+
+        for i in range(10000):
+            print("sampling the point", i)
+            init_point = field._ScratchField__importance_sample_field(
+                np_sub_density_field
+            )  # np.array([x, y])
+            if init_point is not None:
+                init_points.append(init_point)
+
+        # do the scatter plot of init_points
+        init_points = np.array(init_points)
+        plt.scatter(init_points[:, 0], init_points[:, 1], s=1)
+        plt.show()
+
+    field = glints.scratch_grid.ScratchField(1024, 1)
+
+    # case 0: a field with random directions
+
+    random_theta = (
+        torch.rand((1024, 1024, 5), dtype=torch.float32, device="cuda") - 0.5
+    ) * 0.2 + 0.5 * torch.pi
+    field.field = torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3)
+
+    print("case 0, field shape", field.field.shape)
+
+    # sub_test_field(field)
+
+    #  case 1: a field with a single direction, all with the same length
+
+    # case 2: a field all pointting to the outside of the image
+    pointing_outside_theta = torch.atan2(
+        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0),
+        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1),
+    )
+    pointing_outside_length = torch.sqrt(
+        torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(0) ** 2
+        + torch.linspace(-512, 511, 1024, device="cuda").unsqueeze(1) ** 2
+    )
+    field.field = (
+        torch.stack(
+            [
+                torch.cos(pointing_outside_theta) * pointing_outside_length,
+                torch.sin(pointing_outside_theta) * pointing_outside_length,
+            ],
+            dim=2,
+        )
+        .unsqueeze(2)
+        .repeat(1, 1, 5, 1)
+    )
+
+    print("case 2, field shape", field.field.shape)
+
+    sub_test_field(field)
+
+    # case 3: a field pointing to the center of the image
+
+    # case 4: a field rotating around the center of the image
+
 
 @pytest.mark.skip(reason="Skipping temporarily")
 def test_scratch_field_divergence():

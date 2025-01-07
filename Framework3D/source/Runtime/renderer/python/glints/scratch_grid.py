@@ -191,13 +191,14 @@ class ScratchField:
         width = density_field.shape[0]
         height = density_field.shape[1]
 
-        flattened_pdf = density_field.T.flatten()
-        flattened_pdf /= np.sum(flattened_pdf)
+        density_field = torch.tensor(density_field, device="cuda", dtype=torch.float32)
+        flattened_pdf = density_field.t().flatten()
+        flattened_pdf /= torch.sum(flattened_pdf)
 
-        flattened_cdf = np.cumsum(flattened_pdf)
+        flattened_cdf = torch.cumsum(flattened_pdf, dim=0)
 
-        random_number = np.random.rand()
-        idx = np.searchsorted(flattened_cdf, random_number)
+        random_number = torch.rand(1, device="cuda")
+        idx = torch.searchsorted(flattened_cdf, random_number).item()
 
         x = idx % width
         y = idx // width
