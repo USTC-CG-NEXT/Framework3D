@@ -57,34 +57,36 @@ def sub_test_field(field, arrow_distance, filename):
         if init_point is not None:
             init_points.append(init_point)
 
-    plt.figure(figsize=(10, 10))
+    lines  = field.discretize_to_lines(0.01)
 
-    # draw the arrows
-    W = field.field.shape[1]
-    H = field.field.shape[0]
+    # plt.figure(figsize=(10, 10))
 
-    plt.quiver(
-        np.arange(0, W, arrow_distance),
-        np.arange(0, H, arrow_distance),
-        np_sub_direction_field[::arrow_distance, ::arrow_distance, 1],
-        np_sub_direction_field[::arrow_distance, ::arrow_distance, 0],
-    )
+    # # draw the arrows
+    # W = field.field.shape[1]
+    # H = field.field.shape[0]
 
-    # do the scatter plot of init_points
-    init_points = np.array(init_points)
-    plt.scatter(init_points[:, 1], init_points[:, 0], s=1)
+    # plt.quiver(
+    #     np.arange(0, W, arrow_distance),
+    #     np.arange(0, H, arrow_distance),
+    #     np_sub_direction_field[::arrow_distance, ::arrow_distance, 1],
+    #     np_sub_direction_field[::arrow_distance, ::arrow_distance, 0],
+    # )
 
-    for i in range(test_points):
-        grown_curve = field._ScratchField__grow_init_point(
-            np_sub_direction_field, np_sub_density_field, init_points[i], 0.2
-        )
+    # # do the scatter plot of init_points
+    # init_points = np.array(init_points)
+    # plt.scatter(init_points[:, 1], init_points[:, 0], s=1)
 
-        plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red", linewidth=3)
+    # for i in range(test_points):
+    #     grown_curve = field._ScratchField__grow_init_point(
+    #         np_sub_direction_field, np_sub_density_field, init_points[i], 0.2
+    #     )
 
-        fitted_curve = field._ScratchField__b_spline_fit(
-            grown_curve, max_segments=100, error_tolerance=0.5
-        )
-        plt.plot(fitted_curve[:, 1], fitted_curve[:, 0], color="green")
+    #     plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red", linewidth=3)
+
+    #     fitted_curve = field._ScratchField__b_spline_fit(
+    #         grown_curve, max_segments=100, error_tolerance=0.5
+    #     )
+    #     plt.plot(fitted_curve[:, 1], fitted_curve[:, 0], color="green")
 
     plt.savefig(filename)
     plt.close()

@@ -177,10 +177,6 @@ class ScratchField:
                 )
                 ctr_points = self.__b_spline_fit(integral_curve)  # a list of ctr points
 
-                np_sub_density_field = self.__remove_curve_from_field(
-                    integral_curve, np_sub_density_field
-                )
-
                 b_spline_ctr_points += ctr_points
 
         return torch.tensor(b_spline_ctr_points, device="cuda")
@@ -320,7 +316,7 @@ class ScratchField:
 
         return np.array(integral_curve)
 
-    def __b_spline_fit(self, integral_curve, error_tolerance=0.04, max_segments=10):
+    def __b_spline_fit(self, integral_curve, error_tolerance=0.5, max_segments=10):
         """
         integral_curve: np.array of shape [n,2]
         """
@@ -338,12 +334,23 @@ class ScratchField:
             if error <= error_tolerance or segments >= max_segments:
                 break
             segments += 1
-        print("t", tck[0])
-        # Evaluate the final B-spline fit
-        unew = np.linspace(0, 1.0, 50)
-        fitted_curve = np.array(splev(unew, tck)).T
+        print("t", tck)
+        c = np.array(tck[1])
 
-        return fitted_curve
+        print (c.shape) # (2, n)
+        control_points = np.zeros((c.shape[1] + 2, 3, 2))
+        for i in range(c.shape[1]+2):
+            index_in_c = i - 1
+            if i == 0:
+                index_in_c = 0
+            if i == c.shape[1]+1:
+                index_in_c = c.shape[1] - 1
+
+            for j in range(3):
+
+        
+
+        return control_points
 
 
 def render_scratch_field(renderer, resolution, field):
