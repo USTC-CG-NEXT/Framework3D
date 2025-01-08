@@ -339,6 +339,17 @@ class Renderer:
         self.glints_roughness = torch.tensor([0.0016], device="cuda")
         self.scratch_context.set_max_pair_buffer_ratio(20)
 
+    def set_type(self, t):
+        self.type = t
+        if t == "lines":
+            self.scratch_context = hd_USTC_CG_py.ScratchIntersectionContext()
+        else:
+            self.scratch_context = hd_USTC_CG_py.BSplineScratchIntersectionContext()
+        self.scratch_context.set_max_pair_buffer_ratio(20)
+
+    def set_max_pair_buffer_ratio(self, ratio):
+        self.scratch_context.set_max_pair_buffer_ratio(ratio)
+
     def set_light_position(self, light_position):
         self.light_position = light_position
 

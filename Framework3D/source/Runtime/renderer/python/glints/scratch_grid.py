@@ -16,7 +16,7 @@ class ScratchField:
         ) * 0.2 + 0.5 * torch.pi
 
         self.field = (
-            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.5
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 3
         )
 
         self.field.requires_grad = True
@@ -159,7 +159,7 @@ class ScratchField:
 
         return lines, line_weight, sampled_mask
 
-    def discretize_to_lines(self, density):
+    def discretize_to_lines(self, density, threshold=0.1):
         b_spline_ctr_points = None
 
         for i in range(self.m):
@@ -177,7 +177,7 @@ class ScratchField:
             while True:
                 current_mean_density = np.mean(np_sub_density_field)
 
-                if current_mean_density < init_mean_density * 0.7:
+                if current_mean_density < init_mean_density * threshold:
                     break
                 else:
                     idx += 1
@@ -195,9 +195,20 @@ class ScratchField:
                         ctr_points
                         if b_spline_ctr_points is None
                         else np.concatenate([b_spline_ctr_points, ctr_points], axis=0)
-                    )
+                    )  # shaped [n,3,2]
 
-        return torch.tensor(b_spline_ctr_points, device="cuda")
+        b_spline_ctr_points = torch.tensor(b_spline_ctr_points, device="cuda")
+        b_spline_ctr_points = (
+            torch.cat(
+                [
+                    b_spline_ctr_points,
+                    torch.zeros(b_spline_ctr_points.shape[0], 3, 1, device="cuda"),
+                ],
+                dim=2,
+            )
+            / self.n
+        )
+        return b_spline_ctr_points.float().contiguous()
 
     def __importance_sample_field(self, density_field):
 
@@ -211,8 +222,8 @@ class ScratchField:
 
         flattened_cdf = torch.cumsum(flattened_pdf, dim=0)  # much faster than np.cumsum
 
-        random_number = torch.rand(1, device="cuda")
-        idx = torch.searchsorted(flattened_cdf, random_number).item()
+        random_number = torch.rand(16, device="cuda")
+        idx = torch.searchsorted(flattened_cdf, random_number).cpu().numpy()
 
         x = idx % width
         y = idx // width
@@ -230,7 +241,7 @@ class ScratchField:
         density,
         max_len=0.8,
     ):
-
+        print(init_point)
         max_len_int = int(max_len * self.n)
         integral_curve = [init_point]
 
