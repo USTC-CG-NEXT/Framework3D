@@ -4,6 +4,7 @@ import glints.test_utils as test_utils
 import torch
 import numpy as np
 import pytest
+import glints.bspline as bspline
 
 
 def test_scratch_field():
@@ -38,7 +39,22 @@ def render_and_save_field(field, resolution, filename):
 import matplotlib.pyplot as plt
 
 
-def sub_test_field(field, arrow_distance, filename):
+def control_points_to_lines(ctr_points):
+
+    evaluated = []
+    for t in torch.linspace(1, 2, 16, device=ctr_points.device):
+        evaluated.append(
+            bspline.eval_quadratic_bspline_point(
+                ctr_points, t.repeat(ctr_points.shape[0])
+            )
+        )
+
+    evaluated = torch.stack(evaluated, dim=0)
+
+    return evaluated
+
+
+def sub_test_field(field, arrow_distance, filename, discretize_density=10):
 
     # test importance sample
 
@@ -46,47 +62,68 @@ def sub_test_field(field, arrow_distance, filename):
 
     np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
     np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
-    init_points = []
 
-    test_points = 10
+    plt.figure(figsize=(10, 10))
 
-    for i in range(test_points):
-        init_point = field._ScratchField__importance_sample_field(
-            np_sub_density_field
-        )  # np.array([x, y])
-        if init_point is not None:
-            init_points.append(init_point)
+    # draw the arrows
+    W = field.field.shape[1]
+    H = field.field.shape[0]
 
-    lines  = field.discretize_to_lines(0.01)
+    plt.quiver(
+        np.arange(0, W, arrow_distance),
+        np.arange(0, H, arrow_distance),
+        np_sub_direction_field[::arrow_distance, ::arrow_distance, 1],
+        np_sub_direction_field[::arrow_distance, ::arrow_distance, 0],
+    )
 
-    # plt.figure(figsize=(10, 10))
+    test_points = 0
+    if test_points > 0:
+        init_points = []
 
-    # # draw the arrows
-    # W = field.field.shape[1]
-    # H = field.field.shape[0]
+        for i in range(test_points):
+            init_point = field._ScratchField__importance_sample_field(
+                np_sub_density_field
+            )  # np.array([x, y])
+            if init_point is not None:
+                init_points.append(init_point)
+        # do the scatter plot of init_points
+        init_points = np.array(init_points)
+        plt.scatter(init_points[:, 1], init_points[:, 0], s=1)
+        for i in range(test_points):
+            grown_curve = field._ScratchField__grow_init_point(
+                np_sub_direction_field, np_sub_density_field, init_points[i], 0.2
+            )
 
-    # plt.quiver(
-    #     np.arange(0, W, arrow_distance),
-    #     np.arange(0, H, arrow_distance),
-    #     np_sub_direction_field[::arrow_distance, ::arrow_distance, 1],
-    #     np_sub_direction_field[::arrow_distance, ::arrow_distance, 0],
-    # )
+            plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red", linewidth=3)
 
-    # # do the scatter plot of init_points
-    # init_points = np.array(init_points)
-    # plt.scatter(init_points[:, 1], init_points[:, 0], s=1)
+            control_points = field._ScratchField__b_spline_fit(
+                grown_curve, max_segments=100, error_tolerance=0.05
+            )  # shaped (n,3,2)
 
-    # for i in range(test_points):
-    #     grown_curve = field._ScratchField__grow_init_point(
-    #         np_sub_direction_field, np_sub_density_field, init_points[i], 0.2
-    #     )
+            if control_points is not None:
+                plotable_curve = control_points_to_lines(torch.tensor(control_points))
+                plt.plot(plotable_curve[:, :, 1], plotable_curve[:, :, 0], color="blue")
+                # plt.scatter(
+                #     control_points[:, 0, 1], control_points[:, 0, 0], color="green"
+                # )
+                plt.scatter(
+                    control_points[:, 1, 1], control_points[:, 1, 0], color="green"
+                )
+                # plt.scatter(
+                #     control_points[:, 2, 1], control_points[:, 2, 0], color="green"
+                # )
 
-    #     plt.plot(grown_curve[:, 1], grown_curve[:, 0], color="red", linewidth=3)
+    else:
+        lines = field.discretize_to_lines(discretize_density)
+        print("control point count", lines.shape[0])
 
-    #     fitted_curve = field._ScratchField__b_spline_fit(
-    #         grown_curve, max_segments=100, error_tolerance=0.5
-    #     )
-    #     plt.plot(fitted_curve[:, 1], fitted_curve[:, 0], color="green")
+        plotable_curve = control_points_to_lines(lines).detach().cpu().numpy()
+        plt.plot(
+            plotable_curve[:, :, 1],
+            plotable_curve[:, :, 0],
+            color="green",
+            linewidth=0.5,
+        )
 
     plt.savefig(filename)
     plt.close()
@@ -101,11 +138,11 @@ def optimize_divergence(field):
         divergence, smoothness = field.calc_divergence_smoothness()
         divergence_loss = torch.nn.functional.smooth_l1_loss(
             divergence, torch.zeros_like(divergence)
-        ) + torch.nn.functional.smooth_l1_loss(smoothness, torch.zeros_like(smoothness))
+        )  # + torch.nn.functional.smooth_l1_loss(smoothness, torch.zeros_like(smoothness))
         divergence_loss.backward()
         optimizer.step()
 
-        print("divergence_loss", divergence_loss.item())
+        # print("divergence_loss", divergence_loss.item())
 
 
 # @pytest.mark.skip(reason="Skipping temporarily")
@@ -117,7 +154,7 @@ def test_scratch_field_discretizing():
 
     random_theta = (
         (torch.rand((512, 512, 5), dtype=torch.float32, device="cuda") - 0.5)
-        * 0.5
+        * 0.8
         * np.pi
     )
     field.field = (
@@ -127,7 +164,12 @@ def test_scratch_field_discretizing():
     print("case 0, field shape", field.field.shape)
     sub_test_field(field, 16, "case0.pdf")
 
+    field.field = (
+        torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 10
+    )
+
     optimize_divergence(field)
+
     sub_test_field(field, 16, "case0_optimized.pdf")
 
     #  case 1: a field with a single direction, all with the same length
@@ -155,7 +197,7 @@ def test_scratch_field_discretizing():
 
     print("case 2, field shape", field.field.shape)
 
-    # sub_test_field(field, 16, "case2.pdf")
+    sub_test_field(field, 16, "case2.pdf", discretize_density=40)
 
     # case 3: a field pointing to the center of the image
 
@@ -164,6 +206,12 @@ def test_scratch_field_discretizing():
         torch.linspace(-256, 255, 512, device="cuda").unsqueeze(0),
         torch.linspace(-256, 255, 512, device="cuda").unsqueeze(1),
     )
+
+    density = torch.sqrt(
+        torch.linspace(-256, 255, 512, device="cuda").unsqueeze(0) ** 2
+        + torch.linspace(-256, 255, 512, device="cuda").unsqueeze(1) ** 2
+    )
+
     rotating_theta = rotating_theta + 0.5 * np.pi
     field.field = (
         torch.stack(
@@ -175,11 +223,11 @@ def test_scratch_field_discretizing():
         )
         .unsqueeze(2)
         .repeat(1, 1, 5, 1)
-    )
+    ) * density.unsqueeze(2).unsqueeze(2)
 
     print("case 4, field shape", field.field.shape)
 
-    sub_test_field(field, 16, "case4.pdf")
+    sub_test_field(field, 16, "case4.pdf", discretize_density=40)
 
 
 @pytest.mark.skip(reason="Skipping temporarily")

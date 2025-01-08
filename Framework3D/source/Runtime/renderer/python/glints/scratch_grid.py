@@ -160,24 +160,42 @@ class ScratchField:
         return lines, line_weight, sampled_mask
 
     def discretize_to_lines(self, density):
-        b_spline_ctr_points = []
+        b_spline_ctr_points = None
 
         for i in range(self.m):
             np_sub_field = self.field[:, :, i].detach().cpu().numpy()
+            np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
+            np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
+
+            assert np.all(np_sub_density_field >= 0)
+
+            init_mean_density = np.mean(np_sub_density_field)
+
+            print_freq = 100
+            idx = 0
+
             while True:
-                np_sub_density_field = np.linalg.norm(np_sub_field, axis=2)
-                np_sub_direction_field = np_sub_field / np_sub_density_field[:, :, None]
+                current_mean_density = np.mean(np_sub_density_field)
 
-                init_point = self.__importance_sample_field(np_sub_density_field)
-                if init_point is None:
+                if current_mean_density < init_mean_density * 0.7:
                     break
-
+                else:
+                    idx += 1
+                    if idx % print_freq == 0:
+                        print("current_mean_density", current_mean_density)
+                init_point = self.__importance_sample_field(np_sub_density_field)
                 integral_curve = self.__grow_init_point(
                     np_sub_direction_field, np_sub_density_field, init_point, density
                 )
                 ctr_points = self.__b_spline_fit(integral_curve)  # a list of ctr points
 
-                b_spline_ctr_points += ctr_points
+                if ctr_points is not None:
+
+                    b_spline_ctr_points = (
+                        ctr_points
+                        if b_spline_ctr_points is None
+                        else np.concatenate([b_spline_ctr_points, ctr_points], axis=0)
+                    )
 
         return torch.tensor(b_spline_ctr_points, device="cuda")
 
@@ -210,7 +228,7 @@ class ScratchField:
         np_sub_density_field,
         init_point,
         density,
-        max_len=1.0,
+        max_len=0.8,
     ):
 
         max_len_int = int(max_len * self.n)
@@ -269,7 +287,6 @@ class ScratchField:
                     last_step = None
                     continue
                 else:
-                    print("break because of density")
                     break
 
             np_sub_density_field[index00[0], index00[1]] -= density_group[0]
@@ -320,12 +337,23 @@ class ScratchField:
         """
         integral_curve: np.array of shape [n,2]
         """
+
+        if integral_curve.shape[0] < 3:
+            return None
         # Initial fit
         segments = 6
 
         # Dynamically add more segments until error is below tolerance
         while True:
-            t = np.linspace(0, 1, segments)
+            t = np.linspace(-3 / segments, 1 + 3 / segments, segments)
+            t[0] = 0
+            t[1] = 0
+            t[2] = 0
+
+            t[-1] = 1
+            t[-2] = 1
+            t[-3] = 1
+
             tck, u = splprep(
                 [integral_curve[:, 0], integral_curve[:, 1]], t=t, k=2, task=-1
             )
@@ -334,21 +362,20 @@ class ScratchField:
             if error <= error_tolerance or segments >= max_segments:
                 break
             segments += 1
-        print("t", tck)
-        c = np.array(tck[1])
+        c = np.array(tck[1]).T  # Transpose c
 
-        print (c.shape) # (2, n)
-        control_points = np.zeros((c.shape[1] + 2, 3, 2))
-        for i in range(c.shape[1]+2):
-            index_in_c = i - 1
-            if i == 0:
-                index_in_c = 0
-            if i == c.shape[1]+1:
-                index_in_c = c.shape[1] - 1
-
+        control_points = np.zeros((c.shape[0], 3, 2))
+        for i in range(c.shape[0]):
+            mid_index_in_c = i
             for j in range(3):
+                select_index = mid_index_in_c - 1 + j
 
-        
+                if select_index < 0:
+                    select_index = 0
+                elif select_index >= c.shape[0]:
+                    select_index = c.shape[0] - 1
+
+                control_points[i, j] = c[select_index]
 
         return control_points
 
