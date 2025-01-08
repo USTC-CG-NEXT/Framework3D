@@ -13,10 +13,10 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.2 + 0.5 * torch.pi
+        ) * 0.1 + 0.0 * torch.pi
 
         self.field = (
-            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 3
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 10
         )
 
         self.field.requires_grad = True
@@ -159,8 +159,11 @@ class ScratchField:
 
         return lines, line_weight, sampled_mask
 
-    def discretize_to_lines(self, density, threshold=0.1):
+    def discretize_to_lines(self, density_ratio, threshold=0.1):
         b_spline_ctr_points = None
+
+        density = (torch.mean(torch.norm(self.field, dim=3)) * density_ratio).item()
+        print("density", density)
 
         for i in range(self.m):
             np_sub_field = self.field[:, :, i].detach().cpu().numpy()
@@ -182,20 +185,30 @@ class ScratchField:
                 else:
                     idx += 1
                     if idx % print_freq == 0:
-                        print("current_mean_density", current_mean_density)
-                init_point = self.__importance_sample_field(np_sub_density_field)
-                integral_curve = self.__grow_init_point(
-                    np_sub_direction_field, np_sub_density_field, init_point, density
-                )
-                ctr_points = self.__b_spline_fit(integral_curve)  # a list of ctr points
+                        print("current_mean_density", current_mean_density, "idx", idx)
+                init_points = self.__importance_sample_field(np_sub_density_field).T
 
-                if ctr_points is not None:
+                for i in range(init_points.shape[0]):
+                    init_point = init_points[i]
+                    integral_curve = self.__grow_init_point(
+                        np_sub_direction_field,
+                        np_sub_density_field,
+                        init_point,
+                        density,
+                    )
+                    ctr_points = self.__b_spline_fit(
+                        integral_curve
+                    )  # a list of ctr points
 
-                    b_spline_ctr_points = (
-                        ctr_points
-                        if b_spline_ctr_points is None
-                        else np.concatenate([b_spline_ctr_points, ctr_points], axis=0)
-                    )  # shaped [n,3,2]
+                    if ctr_points is not None:
+
+                        b_spline_ctr_points = (
+                            ctr_points
+                            if b_spline_ctr_points is None
+                            else np.concatenate(
+                                [b_spline_ctr_points, ctr_points], axis=0
+                            )
+                        )  # shaped [n,3,2]
 
         b_spline_ctr_points = torch.tensor(b_spline_ctr_points, device="cuda")
         b_spline_ctr_points = (
@@ -222,11 +235,11 @@ class ScratchField:
 
         flattened_cdf = torch.cumsum(flattened_pdf, dim=0)  # much faster than np.cumsum
 
-        random_number = torch.rand(16, device="cuda")
-        idx = torch.searchsorted(flattened_cdf, random_number).cpu().numpy()
+        random_number = torch.rand(32, device="cuda")
+        idx = torch.searchsorted(flattened_cdf, random_number)
 
-        x = idx % width
-        y = idx // width
+        x = (idx % width).cpu().numpy()
+        y = (idx // width).cpu().numpy()
 
         return np.array([x, y]) + 0.5
 
@@ -241,7 +254,6 @@ class ScratchField:
         density,
         max_len=0.8,
     ):
-        print(init_point)
         max_len_int = int(max_len * self.n)
         integral_curve = [init_point]
 
@@ -344,7 +356,7 @@ class ScratchField:
 
         return np.array(integral_curve)
 
-    def __b_spline_fit(self, integral_curve, error_tolerance=0.5, max_segments=10):
+    def __b_spline_fit(self, integral_curve, error_tolerance=0.3, max_segments=40):
         """
         integral_curve: np.array of shape [n,2]
         """
@@ -402,3 +414,110 @@ def render_scratch_field(renderer, resolution, field):
     )
 
     return image, sampled_mask
+
+
+def optimize_field(
+    field,
+    renderer,
+    resolution,
+    target_image,
+    loss_fn,
+    regularization_loss_fn,
+    regularizer,
+    optimizer,
+    epochs=500,
+    enable_smoothness_regularization=True,
+    enable_divergence_regularization=True,
+):
+
+    enable_regularization = (
+        enable_smoothness_regularization or enable_divergence_regularization
+    )
+
+    def calculate_regularization_loss(field, regularization_loss_fn):
+        divergence, smoothness = field.calc_divergence_smoothness()
+        loss_divergence = regularization_loss_fn(
+            divergence, torch.zeros_like(divergence)
+        )
+        loss_smoothness = regularization_loss_fn(
+            smoothness, torch.zeros_like(smoothness)
+        )
+
+        if not enable_smoothness_regularization:
+            return loss_divergence
+        if not enable_divergence_regularization:
+            return loss_smoothness
+        return loss_divergence + loss_smoothness
+
+    if enable_regularization:
+        old_regularization_loss = None
+        for i in range(150):
+            regularizer.zero_grad()
+            regularization_loss = calculate_regularization_loss(
+                field, regularization_loss_fn
+            )
+
+            if i == 0:
+                old_regularization_loss = regularization_loss.item()
+
+            regularization_loss.backward()
+            regularizer.step()
+            field.fix_direction()
+    losses = []
+    for _ in range(epochs):
+        optimizer.zero_grad()
+        image, sampled_mask = render_scratch_field(renderer, resolution, field)
+        loss_image = loss_fn(image, target_image) * 1000
+        density_loss = torch.mean(
+            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 0.1
+        )
+        total_loss = loss_image + density_loss
+        total_loss.backward()
+        optimizer.step()
+        field.fill_masked_holes(sampled_mask)
+
+        regularization_steps = 0
+        regularization_loss = torch.tensor(10000000000000.0)
+
+        if enable_regularization:
+            while (
+                regularization_loss.item() > old_regularization_loss * 0.1
+                and regularization_steps < 80
+            ):
+                regularizer.zero_grad()
+                regularization_loss = calculate_regularization_loss(
+                    field, regularization_loss_fn
+                )
+                regularization_loss.backward()
+                regularizer.step()
+                regularization_steps += 1
+
+            print(
+                "iteration:",
+                _,
+                "regularization_loss",
+                regularization_loss.item(),
+                "density_loss",
+                density_loss.item(),
+                "loss_image",
+                loss_image.item(),
+                "total_loss",
+                total_loss.item(),
+                "regularization_steps",
+                regularization_steps,
+            )
+        else:
+            print(
+                "iteration:",
+                _,
+                "density_loss",
+                density_loss.item(),
+                "loss_image",
+                loss_image.item(),
+                "total_loss",
+                total_loss.item(),
+            )
+        losses.append(total_loss.item())
+
+    field.fix_direction()
+    return losses

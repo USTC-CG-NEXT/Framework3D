@@ -337,7 +337,7 @@ class Renderer:
         self.view_to_clip_matrix = np.eye(4)
         self.vertex_buffer_stride = 5 * 4
         self.glints_roughness = torch.tensor([0.0016], device="cuda")
-        self.scratch_context.set_max_pair_buffer_ratio(20)
+        self.scratch_context.set_max_pair_buffer_ratio(40)
 
     def set_type(self, t):
         self.type = t

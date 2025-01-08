@@ -122,14 +122,14 @@ def read_image(filename):
 import matplotlib.pyplot as plt
 
 
-def plot_arrows(tensor, title, spacing=8, scale=1, filename=None):
+def plot_arrows(tensor, title, spacing=8, filename=None):
     n = tensor.shape[0]
     X, Y = np.meshgrid(np.arange(0, n, spacing), np.arange(0, n, spacing))
     U = tensor[::spacing, ::spacing, 0].detach().cpu().numpy()
     V = tensor[::spacing, ::spacing, 1].detach().cpu().numpy()
 
     plt.figure(figsize=(10, 10))
-    plt.quiver(X, Y, U, V, scale_units="xy", scale=scale)
+    plt.quiver(X, Y, U, V, scale_units="xy")
     plt.title(title)
     plt.gca().invert_yaxis()
 
