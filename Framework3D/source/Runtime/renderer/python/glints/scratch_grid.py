@@ -483,7 +483,7 @@ def optimize_field(
             image, sampled_mask = render_scratch_field(renderer, resolution, field)
             loss_image = loss_fn(image, target_images[0])
         density_loss = torch.mean(
-            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 1e-5
+            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 1e-6
         )
         total_loss = loss_image + density_loss
         total_loss.backward()
@@ -495,7 +495,7 @@ def optimize_field(
         if enable_regularization:
             while (
                 regularization_loss.item() > old_regularization_loss * 0.1
-                and regularization_steps < 45
+                and regularization_steps < 100
             ):
                 regularizer.zero_grad()
                 regularization_loss = calculate_regularization_loss(
