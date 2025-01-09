@@ -13,10 +13,10 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.1 + 0.0 * torch.pi
+        ) * 0.3 + 0.5 * torch.pi
 
         self.field = (
-            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 10
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.1
         )
 
         self.field.requires_grad = True
@@ -178,6 +178,7 @@ class ScratchField:
             idx = 0
 
             while True:
+                np_sub_density_field[np_sub_density_field < 0.1 * density] = 0
                 current_mean_density = np.mean(np_sub_density_field)
 
                 if current_mean_density < init_mean_density * threshold:
@@ -482,7 +483,7 @@ def optimize_field(
         if enable_regularization:
             while (
                 regularization_loss.item() > old_regularization_loss * 0.1
-                and regularization_steps < 80
+                and regularization_steps < 5
             ):
                 regularizer.zero_grad()
                 regularization_loss = calculate_regularization_loss(
