@@ -338,6 +338,7 @@ class Renderer:
         self.vertex_buffer_stride = 5 * 4
         self.glints_roughness = torch.tensor([0.0016], device="cuda")
         self.scratch_context.set_max_pair_buffer_ratio(40)
+        self.camera_up = np.array([0.0, 0.0, 1.0])
 
     def set_type(self, t):
         self.type = t
@@ -356,11 +357,12 @@ class Renderer:
     def set_camera_position(self, camera_position):
         self.camera_position = camera_position
         self.world_to_view_matrix = rasterization.look_at(
-            camera_position, np.array([0.0, 0, 0.0]), np.array([0.0, 0.0, 1.0])
+            camera_position, np.array([0.0, 0, 0.0]), self.camera_up
         )
 
     def set_look_at(self, eye, center, up):
         self.camera_position = eye
+        self.camera_up = up
         self.world_to_view_matrix = rasterization.look_at(eye, center, up)
 
     def set_perspective(self, fovx, aspect, near, far):
@@ -370,7 +372,7 @@ class Renderer:
         self.width = width
 
     def set_glints_roughness(self, glints_roughness):
-        self.glints_roughness = glints_roughness
+        self.glints_roughness = torch.tensor([glints_roughness], device="cuda")
 
     def set_mesh(self, vertices, indices, vertex_buffer_stride=5 * 4):
         self.vertices = vertices

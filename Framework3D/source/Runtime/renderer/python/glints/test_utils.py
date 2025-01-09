@@ -137,3 +137,34 @@ def plot_arrows(tensor, title, spacing=8, filename=None):
         plt.savefig(filename)
     else:
         plt.show()
+
+
+def rotate_postion(position_np, angle, axis=np.array([0, 0, 1], dtype=np.float32)):
+    axis = axis / np.linalg.norm(axis)
+    cos_angle = np.cos(angle)
+    sin_angle = np.sin(angle)
+    one_minus_cos = 1 - cos_angle
+
+    rotation_matrix = np.array(
+        [
+            [
+                cos_angle + axis[0] * axis[0] * one_minus_cos,
+                axis[0] * axis[1] * one_minus_cos - axis[2] * sin_angle,
+                axis[0] * axis[2] * one_minus_cos + axis[1] * sin_angle,
+            ],
+            [
+                axis[1] * axis[0] * one_minus_cos + axis[2] * sin_angle,
+                cos_angle + axis[1] * axis[1] * one_minus_cos,
+                axis[1] * axis[2] * one_minus_cos - axis[0] * sin_angle,
+            ],
+            [
+                axis[2] * axis[0] * one_minus_cos - axis[1] * sin_angle,
+                axis[2] * axis[1] * one_minus_cos + axis[0] * sin_angle,
+                cos_angle + axis[2] * axis[2] * one_minus_cos,
+            ],
+        ],
+        dtype=np.float32,
+    )
+
+    rotated_position = np.dot(rotation_matrix, position_np)
+    return rotated_position

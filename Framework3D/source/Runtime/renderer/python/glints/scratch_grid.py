@@ -13,10 +13,11 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.3 + 0.5 * torch.pi
+        ) * 0.3 + 0.0 * torch.pi
 
         self.field = (
-            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3) * 0.1
+            torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3)
+            * 0.00001
         )
 
         self.field.requires_grad = True
@@ -58,9 +59,9 @@ class ScratchField:
                 - same_directioned_field_down[:, :, 1]
             )
 
-            divergence[1:-1, 1:-1, i] = torch.abs(dx + dy) * self.n
+            divergence[1:-1, 1:-1, i] = torch.abs(-dx - dy) * self.n / 512
 
-            smoothness[1:-1, 1:-1, i] = dx**2 + dy**2
+            smoothness[1:-1, 1:-1, i] = (dx**2 + dy**2) * self.n / 512 * self.n / 512
 
         assert torch.isnan(divergence).sum() == 0
 
@@ -339,7 +340,7 @@ class ScratchField:
 
             v = v / np.linalg.norm(v)
 
-            step = np.min(np.abs(2.0 / v)) * v
+            step = np.min(np.abs(1.0 / v)) * v
 
             step *= np.sign(np.dot(v, last_step)) if last_step is not None else 1
 
@@ -421,7 +422,7 @@ def optimize_field(
     field,
     renderer,
     resolution,
-    target_image,
+    target_images,
     loss_fn,
     regularization_loss_fn,
     regularizer,
@@ -429,6 +430,7 @@ def optimize_field(
     epochs=500,
     enable_smoothness_regularization=True,
     enable_divergence_regularization=True,
+    camera_positions=[],
 ):
 
     enable_regularization = (
@@ -463,19 +465,29 @@ def optimize_field(
 
             regularization_loss.backward()
             regularizer.step()
-            field.fix_direction()
+            # field.fix_direction()
     losses = []
+    sampled_mask = None
     for _ in range(epochs):
         optimizer.zero_grad()
-        image, sampled_mask = render_scratch_field(renderer, resolution, field)
-        loss_image = loss_fn(image, target_image) * 1000
+        # if sampled_mask is not None:
+        #     field.fill_masked_holes(sampled_mask)
+        if len(camera_positions) > 0:
+            assert len(camera_positions) == len(target_images)
+            loss_image = torch.tensor(0.0, device="cuda")
+            for i in range(len(camera_positions)):
+                renderer.set_camera_position(camera_positions[i])
+                image, sampled_mask = render_scratch_field(renderer, resolution, field)
+                loss_image += loss_fn(image, target_images[i])
+        else:
+            image, sampled_mask = render_scratch_field(renderer, resolution, field)
+            loss_image = loss_fn(image, target_images[0])
         density_loss = torch.mean(
-            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 0.1
+            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 1e-5
         )
         total_loss = loss_image + density_loss
         total_loss.backward()
         optimizer.step()
-        field.fill_masked_holes(sampled_mask)
 
         regularization_steps = 0
         regularization_loss = torch.tensor(10000000000000.0)
@@ -483,7 +495,7 @@ def optimize_field(
         if enable_regularization:
             while (
                 regularization_loss.item() > old_regularization_loss * 0.1
-                and regularization_steps < 5
+                and regularization_steps < 45
             ):
                 regularizer.zero_grad()
                 regularization_loss = calculate_regularization_loss(
@@ -520,5 +532,5 @@ def optimize_field(
             )
         losses.append(total_loss.item())
 
-    field.fix_direction()
+    # field.fix_direction()
     return losses
