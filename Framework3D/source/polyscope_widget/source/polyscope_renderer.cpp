@@ -7,6 +7,7 @@
 #include "imgui_internal.h"
 #include "polyscope/curve_network.h"
 #include "polyscope/surface_mesh.h"
+#include "polyscope/transformation_gizmo.h"
 
 #endif
 #include "RHI/rhi.hpp"
@@ -93,6 +94,15 @@ PolyscopeRenderer::PolyscopeRenderer()
 
 PolyscopeRenderer::~PolyscopeRenderer()
 {
+    // Deconstruct slice planes here
+    while (!polyscope::state::slicePlanes.empty()) {
+        polyscope::state::slicePlanes.pop_back();
+    }
+
+    // The deconstruction is complex, I only deconstruct slice planes here to
+    // avoid exceptions.
+    // The polyscope::shutdown() function does not deconstruct global variables
+
     polyscope::shutdown();
 }
 
@@ -112,7 +122,7 @@ bool PolyscopeRenderer::BuildUI()
     DrawFrame();
     ProcessInputEvents();
     polyscope::view::updateFlight();
-    polyscope::buildUserGuiAndInvokeCallback();
+    // polyscope::buildUserGuiAndInvokeCallback();
     return true;
 }
 
@@ -144,7 +154,7 @@ void PolyscopeRenderer::BackBufferResized(
 
 void PolyscopeRenderer::GetFrameBuffer()
 {
-    buffer = polyscope::screenshotToBuffer(false);
+    buffer = polyscope::screenshotToBufferCustom(false);
     // 上下翻转。每4个数为一个像素，分别为RGBA；每polyscope::view::windowWidth个像素为一行，行内像素顺序不变
     for (int i = 0; i < polyscope::view::windowHeight; i++) {
         memcpy(
@@ -301,8 +311,34 @@ void PolyscopeRenderer::ProcessInputEvents()
         polyscope::requestRedraw();
     }
 
+    ImGuiWindow* window = ImGui::FindWindowByName(child_window_name.c_str());
+    glm::vec2 windowPos{ 0., 0. };
+    if (window) {
+        ImVec2 p = window->Pos;
+        windowPos = glm::vec2{ p.x, p.y };
+    }
+
+    // Handle transformation gizmo interactions
+    bool widgetCapturedMouse = false;
+    if (is_hovered) {
+        for (polyscope::WeakHandle<polyscope::Widget> wHandle :
+             polyscope::state::widgets) {
+            if (wHandle.isValid()) {
+                polyscope::Widget& w = wHandle.get();
+                polyscope::TransformationGizmo* tg =
+                    dynamic_cast<polyscope::TransformationGizmo*>(&w);
+                if (tg) {
+                    widgetCapturedMouse = tg->interactCustom(windowPos);
+                    if (widgetCapturedMouse) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     // Handle scroll events for 3D view
-    if (polyscope::state::doDefaultMouseInteraction) {
+    if (polyscope::state::doDefaultMouseInteraction && !widgetCapturedMouse) {
         // if (!io.WantCaptureMouse && !widgetCapturedMouse) {
         if (is_active && is_hovered) {
             double xoffset = io.MouseWheelH;
@@ -359,13 +395,6 @@ void PolyscopeRenderer::ProcessInputEvents()
                     polyscope::view::processZoom(dragDelta.y * 5);
                 }
                 if (isRotate) {
-                    ImGuiWindow* window =
-                        ImGui::FindWindowByName(child_window_name.c_str());
-                    glm::vec2 windowPos{ 0., 0. };
-                    if (window) {
-                        ImVec2 p = window->Pos;
-                        windowPos = glm::vec2{ p.x, p.y };
-                    }
                     glm::vec2 currPos{ (io.MousePos.x - windowPos.x) /
                                            polyscope::view::windowWidth,
                                        1.0 -
@@ -390,8 +419,6 @@ void PolyscopeRenderer::ProcessInputEvents()
                 // Don't pick at the end of a long drag
                 if (drag_distSince_last_release < dragIgnoreThreshold) {
                     // ImVec2 p = ImGui::GetMousePos();
-                    ImGuiWindow* window =
-                        ImGui::FindWindowByName(child_window_name.c_str());
                     ImVec2 p = ImGui::GetMousePos() - window->Pos;
                     std::pair<polyscope::Structure*, size_t> pickResult =
                         polyscope::pick::pickAtScreenCoords(
