@@ -13,7 +13,7 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.3 + 0.5 * torch.pi
+        ) * 0.3 + 0.0 * torch.pi  # 调参，控制初始场的方向，一般用处不大
 
         self.field = (
             torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3)
@@ -475,7 +475,8 @@ def optimize_field(
             image, sampled_mask = render_scratch_field(renderer, resolution, field)
             loss_image = loss_fn(image, target_images[0])
         density_loss = torch.mean(
-            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 1e-4
+            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1)
+            * 1e-4  # 调参，压制整个场的划痕数量，控制场的密度
         )
         total_loss = loss_image + density_loss
 
@@ -484,8 +485,8 @@ def optimize_field(
         if use_regularization_as_loss:
             if enable_regularization:
                 regularization_loss = (
-                    calculate_regularization_loss(field, regularization_loss_fn) * 1e-2
-                )
+                    calculate_regularization_loss(field, regularization_loss_fn) * 1e-1
+                )  # 调参，控制正则化项的权重
                 total_loss += regularization_loss
             total_loss.backward()
             optimizer.step()
