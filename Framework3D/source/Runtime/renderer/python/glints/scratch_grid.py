@@ -13,7 +13,7 @@ class ScratchField:
 
         random_theta = (
             torch.rand((n, n, m), dtype=torch.float32, device="cuda") - 0.5
-        ) * 0.3 + 0.0 * torch.pi
+        ) * 0.3 + 0.5 * torch.pi
 
         self.field = (
             torch.stack([torch.cos(random_theta), torch.sin(random_theta)], dim=3)
@@ -453,19 +453,11 @@ def optimize_field(
         return loss_divergence + loss_smoothness
 
     if enable_regularization:
-        old_regularization_loss = None
-        for i in range(150):
-            regularizer.zero_grad()
-            regularization_loss = calculate_regularization_loss(
-                field, regularization_loss_fn
-            )
+        regularization_loss = calculate_regularization_loss(
+            field, regularization_loss_fn
+        )
+        old_regularization_loss = regularization_loss.item()
 
-            if i == 0:
-                old_regularization_loss = regularization_loss.item()
-
-            regularization_loss.backward()
-            regularizer.step()
-            # field.fix_direction()
     losses = []
     sampled_mask = None
     for _ in range(epochs):
@@ -483,54 +475,95 @@ def optimize_field(
             image, sampled_mask = render_scratch_field(renderer, resolution, field)
             loss_image = loss_fn(image, target_images[0])
         density_loss = torch.mean(
-            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 1e-6
+            torch.norm(field.field[sampled_mask].reshape(-1, 2), dim=1) * 1e-4
         )
         total_loss = loss_image + density_loss
-        total_loss.backward()
-        optimizer.step()
 
-        regularization_steps = 0
-        regularization_loss = torch.tensor(10000000000000.0)
+        use_regularization_as_loss = True
 
-        if enable_regularization:
-            while (
-                regularization_loss.item() > old_regularization_loss * 0.1
-                and regularization_steps < 100
-            ):
-                regularizer.zero_grad()
-                regularization_loss = calculate_regularization_loss(
-                    field, regularization_loss_fn
+        if use_regularization_as_loss:
+            if enable_regularization:
+                regularization_loss = (
+                    calculate_regularization_loss(field, regularization_loss_fn) * 1e-2
                 )
-                regularization_loss.backward()
-                regularizer.step()
-                regularization_steps += 1
+                total_loss += regularization_loss
+            total_loss.backward()
+            optimizer.step()
 
-            print(
-                "iteration:",
-                _,
-                "regularization_loss",
-                regularization_loss.item(),
-                "density_loss",
-                density_loss.item(),
-                "loss_image",
-                loss_image.item(),
-                "total_loss",
-                total_loss.item(),
-                "regularization_steps",
-                regularization_steps,
-            )
+            if enable_regularization:
+
+                print(
+                    "iteration:",
+                    _,
+                    "regularization_loss",
+                    regularization_loss.item(),
+                    "density_loss",
+                    density_loss.item(),
+                    "loss_image",
+                    loss_image.item(),
+                    "total_loss",
+                    total_loss.item(),
+                )
+            else:
+                print(
+                    "iteration:",
+                    _,
+                    "density_loss",
+                    density_loss.item(),
+                    "loss_image",
+                    loss_image.item(),
+                    "total_loss",
+                    total_loss.item(),
+                )
+            losses.append(total_loss.item())
+
         else:
-            print(
-                "iteration:",
-                _,
-                "density_loss",
-                density_loss.item(),
-                "loss_image",
-                loss_image.item(),
-                "total_loss",
-                total_loss.item(),
-            )
-        losses.append(total_loss.item())
+
+            total_loss.backward()
+            optimizer.step()
+
+            regularization_steps = 0
+            regularization_loss = torch.tensor(10000000000000.0)
+
+            if enable_regularization:
+                while (
+                    regularization_loss.item() > old_regularization_loss * 0.1
+                    and regularization_steps < 100
+                ):
+                    regularizer.zero_grad()
+                    regularization_loss = calculate_regularization_loss(
+                        field, regularization_loss_fn
+                    )
+                    regularization_loss.backward()
+                    regularizer.step()
+                    regularization_steps += 1
+
+                print(
+                    "iteration:",
+                    _,
+                    "regularization_loss",
+                    regularization_loss.item(),
+                    "density_loss",
+                    density_loss.item(),
+                    "loss_image",
+                    loss_image.item(),
+                    "total_loss",
+                    total_loss.item(),
+                    "regularization_steps",
+                    regularization_steps,
+                )
+            else:
+                print(
+                    "iteration:",
+                    _,
+                    "density_loss",
+                    density_loss.item(),
+                    "loss_image",
+                    loss_image.item(),
+                    "total_loss",
+                    total_loss.item(),
+                )
+            losses.append(total_loss.item())
 
     # field.fix_direction()
     return losses
