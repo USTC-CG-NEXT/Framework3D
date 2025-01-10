@@ -424,7 +424,7 @@ void PolyscopeRenderer::ProcessInputEvents()
                         polyscope::pick::pickAtScreenCoords(
                             glm::vec2{ p.x, p.y });
                     polyscope::pick::setSelection(pickResult);
-                    VisualizePickResult(pickResult);
+                    // VisualizePickResult(pickResult);
                 }
 
                 // Reset the drag distance after any release
