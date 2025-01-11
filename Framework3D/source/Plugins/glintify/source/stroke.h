@@ -1,0 +1,9 @@
+#pragma once
+
+#include <glintify/api.h>
+
+#include <RHI/internal/cuda_extension.hpp>
+
+USTC_CG_NAMESPACE_OPEN_SCOPE
+
+USTC_CG_NAMESPACE_CLOSE_SCOPE
