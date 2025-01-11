@@ -14,8 +14,7 @@ NODE_DECLARATION_FUNCTION(test_function_1)
 
 NODE_EXECUTION_FUNCTION(test_function_1)
 {
-    auto f = [](const ArrayXvar& x) { return (x * x).sum();
-    };
+    auto f = [](const ArrayXvar& x) { return (x * x).sum(); };
     params.set_output<std::function<var(const ArrayXvar&)>>(
         "Function", std::move(f));
     return true;

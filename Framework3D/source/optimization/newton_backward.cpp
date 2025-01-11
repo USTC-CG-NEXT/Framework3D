@@ -8,7 +8,7 @@ using namespace autodiff;
 
 NODE_DEF_OPEN_SCOPE
 
-NODE_DECLARATION_FUNCTION(newton)
+NODE_DECLARATION_FUNCTION(newton_backward)
 {
     b.add_input<std::function<var(const ArrayXvar&)>>("Cost function");
     //b.add_input<Eigen::VectorXd>("Initial point");
@@ -18,7 +18,7 @@ NODE_DECLARATION_FUNCTION(newton)
     b.add_output<double>("Minimum");
 }
 
-NODE_EXECUTION_FUNCTION(newton)
+NODE_EXECUTION_FUNCTION(newton_backward)
 {
     auto f =
         params.get_input<std::function<var(const ArrayXvar&)>>("Cost function");
@@ -55,6 +55,6 @@ NODE_EXECUTION_FUNCTION(newton)
     return true;
 }
 
-NODE_DECLARATION_REQUIRED(newton);
-NODE_DECLARATION_UI(newton);
+NODE_DECLARATION_REQUIRED(newton_backward);
+NODE_DECLARATION_UI(newton_backward);
 NODE_DEF_CLOSE_SCOPE

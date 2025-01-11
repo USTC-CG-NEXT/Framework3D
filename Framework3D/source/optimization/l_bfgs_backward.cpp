@@ -9,7 +9,7 @@ NODE_DEF_OPEN_SCOPE
 
 using namespace autodiff;
 
-NODE_DECLARATION_FUNCTION(L_BFGS)
+NODE_DECLARATION_FUNCTION(l_bfgs_backward)
 {
     b.add_input<std::function<var(const ArrayXvar&)>>("Cost function");
     //b.add_input<Eigen::VectorXd>("Initial point");
@@ -20,7 +20,7 @@ NODE_DECLARATION_FUNCTION(L_BFGS)
     b.add_output<double>("Minimum");
 }
 
-NODE_EXECUTION_FUNCTION(L_BFGS)
+NODE_EXECUTION_FUNCTION(l_bfgs_backward)
 {
     auto f =
         params.get_input<std::function<var(const ArrayXvar&)>>("Cost function");
@@ -125,6 +125,6 @@ NODE_EXECUTION_FUNCTION(L_BFGS)
 
     return true;
 }
-NODE_DECLARATION_REQUIRED(L_BFGS);
-NODE_DECLARATION_UI(L_BFGS);
+NODE_DECLARATION_REQUIRED(l_bfgs_backward);
+NODE_DECLARATION_UI(l_bfgs_backward);
 NODE_DEF_CLOSE_SCOPE
