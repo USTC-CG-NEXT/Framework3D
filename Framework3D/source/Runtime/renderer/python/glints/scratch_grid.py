@@ -73,7 +73,7 @@ class ScratchField:
 
     def fix_direction(self):
         with torch.no_grad():
-            sign_x = torch.sign(self.field[:, :, :, 0])
+            sign_x = torch.sign(self.field[:, :, :, 1])
             self.field *= sign_x.unsqueeze(3)
 
     def fill_masked_holes(self, sampled_mask):

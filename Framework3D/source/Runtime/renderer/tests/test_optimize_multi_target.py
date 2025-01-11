@@ -50,6 +50,9 @@ def linear_to_gamma(image):
     return image ** (1 / 2.2)
 
 
+target_count = 80  # 监督信号的数量
+angle_range = 20  # 监督信号的角度范围
+
 import lpips
 
 lpips_loss_fn = lpips.LPIPS(net="alex").cuda()
@@ -124,7 +127,7 @@ def to_luminance(image):
 def initilize_based_on_target(targets, edge_length, count, width_range, height_range):
 
     all_triangles = []
-    for i in range(21):
+    for i in range((target_count + 1)):
         test_utils.save_image(targets[i], [1024, 1024], f"uv_baked/baked_{i:03d}.exr")
 
     num_points_per_target = count // len(targets)
@@ -247,10 +250,10 @@ def test_bspline_intersect_optimization():
     indices = torch.tensor([0, 1, 2, 0, 2, 3], dtype=torch.uint32).cuda()
 
     vertex_buffer_stride = 5 * 4
-    resolution = [768, 512]
+    resolution = [1200, 800]
 
-    camera_position_np = np.array([0.0, 0, 5.0], dtype=np.float32)
-    light_position_np = np.array([8.0, 0.0, 8], dtype=np.float32)
+    camera_position_np = np.array([-2.0, 0, 6.0], dtype=np.float32)
+    light_position_np = np.array([-2.0, 0.0, 2.5], dtype=np.float32)
 
     fov_in_degrees = 35
     view_to_clip_matrix = perspective(
@@ -258,14 +261,14 @@ def test_bspline_intersect_optimization():
     )
 
     width = torch.tensor([0.001], device="cuda")
-    glints_roughness = torch.tensor([0.0016], device="cuda")
+    glints_roughness = torch.tensor([0.0016 / 2], device="cuda")
 
-    max_length = 0.2
+    max_length = 0.8
     num_light_positions = 16
 
     all_target_max = torch.tensor(0.0, device="cuda")
     targets = []
-    for i in range(21):
+    for i in range((target_count + 1)):
         target = cv2.imread(f"targets/render_{i:03d}.exr", cv2.IMREAD_UNCHANGED)[
             ..., :3
         ]
@@ -276,8 +279,10 @@ def test_bspline_intersect_optimization():
 
     uv_resolution = [1024, 1024]
     baked_textures = []
-    for i in range(21):
-        camera_rotate_angle = (i * (20.0 / 20) - 10.0) * (np.pi / 180)
+    for i in range((target_count + 1)):
+        camera_rotate_angle = (i * (angle_range / target_count) - angle_range / 2) * (
+            np.pi / 180
+        )
         rotated_camera_position = rotate_postion(
             camera_position_np,
             camera_rotate_angle,
@@ -300,25 +305,26 @@ def test_bspline_intersect_optimization():
         )
         baked_textures.append(baked.clone())
 
-    for i in range(1, 21):
+    for i in range(1, (target_count + 1)):
         test_utils.save_image(
             baked_textures[i], uv_resolution, f"baked_texture_{i}.exr"
         )
 
-    random_gen_closure = lambda: initilize_based_on_target(
-        baked_textures, 0.1, 15000, (0, 1), (0, 1)
-    )
+    # random_gen_closure = lambda: initilize_based_on_target(
+    #     baked_textures, 0.1, 15000, (0, 1), (0, 1)
+    # )
     for light_pos_id in range(num_light_positions):
 
         light_rotation_angle = light_pos_id * (2 * np.pi / num_light_positions)
 
         losses = []
-        lines = random_gen_closure().clone().contiguous().cuda()
+        # lines = random_gen_closure().clone().contiguous().cuda()
+        lines = torch.load("lines.pt").cuda()
         lines = fix_max_length(lines, max_length, case)
         lines.requires_grad_(True)
 
         optimizer = torch.optim.Adam([lines], lr=0.00005, betas=(0.9, 0.999), eps=1e-08)
-        iterative_rnd_pick_target_id = 10
+        iterative_rnd_pick_target_id = target_count / 2
 
         os.makedirs(f"light_pos_{light_pos_id}", exist_ok=True)
 
@@ -328,15 +334,18 @@ def test_bspline_intersect_optimization():
 
         with open(f"light_pos_{light_pos_id}/optimization.log", "a") as log_file:
             for i in range(300):
-                rnd_pick_target_ids = np.random.randint(0, 21, size=5)
-                iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % 21
+                rnd_pick_target_ids = np.random.randint(0, (target_count + 1), size=1)
+                iterative_rnd_pick_target_id = (iterative_rnd_pick_target_id + 1) % (
+                    target_count + 1
+                )
                 rnd_pick_target_ids[-1] = iterative_rnd_pick_target_id
 
                 total_loss = 0
                 for rnd_pick_target_id in rnd_pick_target_ids:
-                    camera_rotate_angle = (rnd_pick_target_id * (20.0 / 20) - 10) * (
-                        np.pi / 180
-                    )
+                    camera_rotate_angle = (
+                        rnd_pick_target_id * (angle_range / target_count)
+                        - angle_range / 2
+                    ) * (np.pi / 180)
                     rotated_camera_position = rotate_postion(
                         camera_position_np,
                         camera_rotate_angle,
@@ -397,10 +406,10 @@ def test_bspline_intersect_optimization():
 
                 optimizer.step()
 
-                if i < 100 and i % 5 == 0:
-                    lines = redistribute_low_contribution_points(
-                        lines, low_contribution_mask, random_gen_closure
-                    )
+                # if i < 100 and i % 5 == 0:
+                #     lines = redistribute_low_contribution_points(
+                #         lines, low_contribution_mask, random_gen_closure
+                #     )
                 lines = fix_max_length(lines, max_length, case)
                 losses.append(total_loss.item() / temperature)
 
