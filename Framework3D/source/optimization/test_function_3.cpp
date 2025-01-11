@@ -15,8 +15,7 @@ NODE_DECLARATION_FUNCTION(test_function_3)
 NODE_EXECUTION_FUNCTION(test_function_3)
 {
     auto f = [](var x) { return 2 * x; };
-    params.set_output<std::function<var(var)>>(
-        "Function", std::move(f));
+    params.set_output<std::function<var(var)>>("Function", std::move(f));
     return true;
 }
 

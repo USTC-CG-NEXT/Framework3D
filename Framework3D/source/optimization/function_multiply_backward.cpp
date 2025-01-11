@@ -7,14 +7,14 @@ using namespace autodiff;
 
 NODE_DEF_OPEN_SCOPE
 
-NODE_DECLARATION_FUNCTION(function_multiply)
+NODE_DECLARATION_FUNCTION(function_multiply_backward)
 {
     b.add_input<std::function<var(const ArrayXvar&)>>("Function_1");
     b.add_input<std::function<var(const ArrayXvar&)>>("Function_2");
     b.add_output<std::function<var(const ArrayXvar&)>>("Function_result");
 }
 
-NODE_EXECUTION_FUNCTION(function_multiply)
+NODE_EXECUTION_FUNCTION(function_multiply_backward)
 {
     auto f1 =
         params.get_input<std::function<var(const ArrayXvar&)>>("Function_1");
@@ -29,5 +29,5 @@ NODE_EXECUTION_FUNCTION(function_multiply)
     return true;
 }
 
-NODE_DECLARATION_UI(function_multiply);
+NODE_DECLARATION_UI(function_multiply_backward);
 NODE_DEF_CLOSE_SCOPE

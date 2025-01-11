@@ -7,30 +7,28 @@ using namespace autodiff;
 
 NODE_DEF_OPEN_SCOPE
 
-NODE_DECLARATION_FUNCTION(hessian)
+NODE_DECLARATION_FUNCTION(gradient_backward)
 {
     b.add_input<std::function<var(const ArrayXvar&)>>("Function");
-    //b.add_input<Eigen::VectorXd>("Target Point");
-    b.add_output<Eigen::MatrixXd>("Gradient");
+//    b.add_input<Eigen::VectorXd>("Target Point");
+    b.add_output<Eigen::VectorXd>("Gradient");
 }
 
-NODE_EXECUTION_FUNCTION(hessian)
+NODE_EXECUTION_FUNCTION(gradient_backward)
 {
     auto f = params.get_input<std::function<var(const ArrayXvar&)>>("Function");
     Eigen::VectorXd x0(3);
+//    Eigen::VectorXd x0 = params.get_input<Eigen::VectorXd>("Target Point");
     x0 << 1, 2, 3;
-   //Eigen::VectorXd x0 = params.get_input<Eigen::VectorXd>("Target Point");
     ArrayXvar x = x0.template cast<var>();
     var y = f(x);
-    Eigen::VectorXd g;
-    Eigen::MatrixXd H = hessian(y, x, g);
+    Eigen::VectorXd g = gradient(y, x);
 
-    params.set_output<Eigen::MatrixXd>("Hessian", std::move(H));
+    params.set_output<Eigen::VectorXd>("Gradient", std::move(g));
 
     return true;
 }
 
-NODE_DECLARATION_REQUIRED(hessian);
-
-NODE_DECLARATION_UI(hessian);
+NODE_DECLARATION_REQUIRED(gradient_backward);
+NODE_DECLARATION_UI(gradient_backward);
 NODE_DEF_CLOSE_SCOPE
