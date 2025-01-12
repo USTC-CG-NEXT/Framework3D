@@ -27,6 +27,7 @@ NODE_EXECUTION_FUNCTION(arap_energy)
     double energy = 0;
 
     for (int i = 0; i < sigmas.rows(); i++) {
+        //std::cout << sigmas(i, 0) << "\t" << sigmas(i, 1) << std::endl;
         energy += areas(i) * (pow(sigmas(i, 0) - 1, 2) + pow(sigmas(i, 1) - 1, 2));
         sum_area += areas(i);
     }
