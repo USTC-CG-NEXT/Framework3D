@@ -68,55 +68,47 @@ __device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         right_point = temp;
     }
 
+    auto tangent_space_light_pos = world_to_tangent_point(light_pos);
+
     float half_stroke_width = stroke_width / 2.0f;
 
     unsigned valid_sample_count = 0;
 
-    auto beginner_dir = eval_required_direction(left_point, light_pos);
-    auto center_point = left_point + (right_point - left_point) / 2.0f;
+    glm::vec2 center_point;
 
-    auto ratio = std::abs(beginner_dir.y) / (std::abs(beginner_dir.x) + 0.01f);
-    ratio = 1;
+    center_point.y = left_point.y;
 
-    auto case_id = scratch_index % 2;
-    auto init_pos_step = scratch_index / 2;
+    auto that_direction = world_to_tangent_point(virtual_point_position) -
+                          tangent_space_light_pos;
+    center_point.x = tangent_space_light_pos.x -
+                     (tangent_space_light_pos.y - center_point.y) *
+                         that_direction.x / that_direction.y;
 
-    bool init_pos_going_right = case_id % 2 == 0;
-
-    auto pos = center_point +
-               (init_pos_going_right ? glm::vec2(1, 0) : glm::vec2(-1, 0)) *
-                   ratio * float(init_pos_step) / float(MAX_SCRATCH_COUNT) /
-                   2.0f * (right_point - left_point);
+    auto pos = center_point + glm::vec2(-1, 0) * float(scratch_index) * 0.5f /
+                                  float(MAX_SCRATCH_COUNT) * 2.0f;
 
     glm::vec2 old_dir;
 
-    bool allow_going_left = false;
+    for (int i = 0; i < SAMPLE_POINT_COUNT; ++i) {
+        scratches[scratch_index].should_begin_new_line_mask[i] = false;
+    }
 
     for (int i = 0; i < SAMPLE_POINT_COUNT; ++i) {
         auto dir = eval_required_direction(pos, light_pos);
 
-        // if (!allow_going_left) {
-        //     if (dir.x < 0) {
-        //         break;
-        //     }
-        // }
-
-        auto scratch_going_upward = dir.y > 0;
-
-        if (scratch_going_upward) {
-            pos.y -= half_stroke_width;
-        }
-        else {
-            pos.y += half_stroke_width;
-        }
-
         if (i == 0) {
-            //if (scratch_going_upward) {
-            //    dir *= dir.y > 0 ? 1 : -1;
-            //}
-            //else {
-            //    dir *= dir.y > 0 ? -1 : 1;
-            //}
+            auto scratch_going_right = dir.x > 0;
+            if (!scratch_going_right) {
+                dir *= -1;
+            }
+
+            bool scratch_going_upward = dir.y > 0;
+            if (scratch_going_upward) {
+                pos.y -= half_stroke_width;
+            }
+            else {
+                pos.y += half_stroke_width;
+            }
         }
         else {
             dir = same_direction(dir, old_dir);
@@ -124,30 +116,34 @@ __device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 
         old_dir = dir;
 
-        auto step =
-            1 / float(SAMPLE_POINT_COUNT) / (std::abs(dir.x) + 0.1f) * 0.5f;
-
-        step = 1;
-
-        scratches[scratch_index].sample_point[i] = pos;
-        valid_sample_count++;
-
-        dir = glm::vec2(0, 1);
+        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 20.f;
 
         pos += dir * step;
 
-        // if (pos.x < left_point.x || pos.x > right_point.x) {
-        //     break;
-        // }
+        if (pos.x < left_point.x || pos.x > right_point.x) {
+            scratches[scratch_index]
+                .should_begin_new_line_mask[valid_sample_count] = true;
 
-        // if (pos.y < left_point.y - half_stroke_width ||
-        //     pos.y > right_point.y + half_stroke_width) {
-        //     allow_going_left = true;
-        //     break;
-        // }
+            continue;
+        }
+
+        if (pos.y < left_point.y - half_stroke_width ||
+            pos.y > right_point.y + half_stroke_width) {
+            scratches[scratch_index]
+                .should_begin_new_line_mask[valid_sample_count] = true;
+            continue;
+        }
+
+        scratches[scratch_index].sample_point[valid_sample_count] = pos;
+        valid_sample_count++;
     }
 
     scratches[scratch_index].valid_sample_count = valid_sample_count;
+
+    if (scratch_index==0) {
+        scratches[0].sample_point[0] = center_point;
+        scratches[0].sample_point[1] = center_point + glm::vec2(0, -1);
+    }
 }
 
 void calc_scratches(

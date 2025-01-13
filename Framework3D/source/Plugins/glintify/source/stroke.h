@@ -6,15 +6,16 @@
 #include <glm/glm.hpp>
 
 #include "glm/common.hpp"
-#include "glm/common.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
 
-#define SAMPLE_POINT_COUNT 64
+#define SAMPLE_POINT_COUNT 1024
 
 class Scratch {
    public:
     glm::vec2 sample_point[SAMPLE_POINT_COUNT];
+
+    bool should_begin_new_line_mask[SAMPLE_POINT_COUNT];
 
     unsigned int valid_sample_count = 0;
 };
@@ -27,7 +28,7 @@ class Stroke {
    public:
     glm::vec3 virtual_point_position;
 
-    float stroke_width = 0.025f;
+    float stroke_width = 0.05f;
 
     unsigned int scratch_count = 0;
 
@@ -57,6 +58,7 @@ class Stroke {
     __device__ glm::vec2 eval_required_direction(
         glm::vec2 uv_space_pos,
         glm::vec3 light_pos);
+
     __device__ void calc_scratch(int scratch_index, glm::vec3 light_pos);
 
     void set_virtual_point_position(const glm::vec3 vec)

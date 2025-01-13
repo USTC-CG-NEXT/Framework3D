@@ -18,7 +18,7 @@ class StrokeEditWidget : public USTC_CG::IWidget {
     bool BuildUI() override
     {
         if (ImGui::SliderFloat3(
-                "Camera Position", &camera_position.x, -10.0f, -1.0f)) {
+                "Camera Position", &camera_position.x, -10.0f, 10.0f)) {
             stroke_system->set_camera_position(camera_position);
         }
 

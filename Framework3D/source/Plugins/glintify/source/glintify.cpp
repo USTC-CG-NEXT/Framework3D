@@ -15,6 +15,13 @@ std::vector<std::vector<glm::vec2>> StrokeSystem::get_all_endpoints()
         for (int j = 0; j < stroke.scratch_count; ++j) {
             std::vector<glm::vec2> stroke_endpoints;
             for (int k = 0; k < stroke.scratches[j].valid_sample_count; ++k) {
+                if (stroke.scratches[j].should_begin_new_line_mask[k] &&
+                    !stroke_endpoints.empty()) {
+                    if (stroke_endpoints.size() > 1) {
+                        endpoints.push_back(stroke_endpoints);
+                    }
+                    stroke_endpoints.clear();
+                }
                 stroke_endpoints.push_back(stroke.scratches[j].sample_point[k]);
             }
 
