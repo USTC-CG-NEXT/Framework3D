@@ -320,6 +320,7 @@ struct AppendStructuredBuffer {
 };
 }  // namespace cuda
 
+#define HOST_DEVICE __host__ __device__
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 
 #endif

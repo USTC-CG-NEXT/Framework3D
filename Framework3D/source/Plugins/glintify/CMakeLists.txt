@@ -1,7 +1,7 @@
 USTC_CG_ADD_LIB(
 	glintify
 	WITH_CUDA
-	PUBLIC_LIBS GUI gf RHI SLANG::slang shaders_interface
+	PUBLIC_LIBS GUI gf RHI SLANG::slang shaders_interface glm::glm GUI
 	PYTHON_WRAP_DIR python
 )
 
