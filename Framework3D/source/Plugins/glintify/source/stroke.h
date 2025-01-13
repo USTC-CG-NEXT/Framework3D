@@ -6,9 +6,10 @@
 #include <glm/glm.hpp>
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-#define SAMPLE_POINTS 64
+#define SAMPLE_POINTS 16
 
 class Scratch {
+   public:
     glm::vec2 begin[SAMPLE_POINTS];
     glm::vec2 end[SAMPLE_POINTS];
 };
@@ -18,16 +19,19 @@ class Scratch {
 #define MAX_RANGES 10
 
 class Stroke {
+   public:
     glm::vec3 cam_local_pos;
     glm::vec3 light_local_pos;
 
-    unsigned int scratch_count;
+    unsigned int scratch_count = 0;
 
     Scratch scratches[MAX_SCRATCH_COUNT];
     float init_seed[MAX_SCRATCH_COUNT];
     glm::vec2 range[MAX_RANGES];
 
     HOST_DEVICE void calc_seeds();
+
+    HOST_DEVICE void calc_scratch(int scratch_index);
 
 };  // Relation to scratch: one to many
 
