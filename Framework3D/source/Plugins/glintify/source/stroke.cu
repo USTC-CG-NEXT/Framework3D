@@ -73,38 +73,50 @@ __device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
     unsigned valid_sample_count = 0;
 
     auto beginner_dir = eval_required_direction(left_point, light_pos);
-
-    auto ratio = std::abs(beginner_dir.y) / (std::abs(beginner_dir.x) + 0.1f);
-
     auto center_point = left_point + (right_point - left_point) / 2.0f;
 
-    auto case_id = scratch_index % 4;
-    auto init_pos_step = scratch_index / 4;
+    auto ratio = std::abs(beginner_dir.y) / (std::abs(beginner_dir.x) + 0.01f);
+    ratio = 1;
+
+    auto case_id = scratch_index % 2;
+    auto init_pos_step = scratch_index / 2;
 
     bool init_pos_going_right = case_id % 2 == 0;
-    bool scratch_going_upward = case_id / 2 == 0;
 
     auto pos = center_point +
-
-    if (scratch_going_upward) {
-        pos.y -= half_stroke_width;
-    }
-    else {
-        pos.y += half_stroke_width;
-    }
+               (init_pos_going_right ? glm::vec2(1, 0) : glm::vec2(-1, 0)) *
+                   ratio * float(init_pos_step) / float(MAX_SCRATCH_COUNT) /
+                   2.0f * (right_point - left_point);
 
     glm::vec2 old_dir;
+
+    bool allow_going_left = false;
 
     for (int i = 0; i < SAMPLE_POINT_COUNT; ++i) {
         auto dir = eval_required_direction(pos, light_pos);
 
+        // if (!allow_going_left) {
+        //     if (dir.x < 0) {
+        //         break;
+        //     }
+        // }
+
+        auto scratch_going_upward = dir.y > 0;
+
+        if (scratch_going_upward) {
+            pos.y -= half_stroke_width;
+        }
+        else {
+            pos.y += half_stroke_width;
+        }
+
         if (i == 0) {
-            if (scratch_going_upward) {
-                dir *= dir.y > 0 ? 1 : -1;
-            }
-            else {
-                dir *= dir.y > 0 ? -1 : 1;
-            }
+            //if (scratch_going_upward) {
+            //    dir *= dir.y > 0 ? 1 : -1;
+            //}
+            //else {
+            //    dir *= dir.y > 0 ? -1 : 1;
+            //}
         }
         else {
             dir = same_direction(dir, old_dir);
@@ -115,19 +127,24 @@ __device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         auto step =
             1 / float(SAMPLE_POINT_COUNT) / (std::abs(dir.x) + 0.1f) * 0.5f;
 
+        step = 1;
+
         scratches[scratch_index].sample_point[i] = pos;
         valid_sample_count++;
 
+        dir = glm::vec2(0, 1);
+
         pos += dir * step;
 
-        if (pos.x < left_point.x || pos.x > right_point.x) {
-            break;
-        }
+        // if (pos.x < left_point.x || pos.x > right_point.x) {
+        //     break;
+        // }
 
-        if (pos.y < left_point.y - half_stroke_width ||
-            pos.y > right_point.y + half_stroke_width) {
-            break;
-        }
+        // if (pos.y < left_point.y - half_stroke_width ||
+        //     pos.y > right_point.y + half_stroke_width) {
+        //     allow_going_left = true;
+        //     break;
+        // }
     }
 
     scratches[scratch_index].valid_sample_count = valid_sample_count;
