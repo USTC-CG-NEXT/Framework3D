@@ -7,9 +7,9 @@
 #include "glm/glm.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class GLINTIFY_API StrokeSystem {
+class StrokeSystem {
    public:
-    std::vector<glm::vec2> get_all_endpoints();
+    std::vector<std::vector<glm::vec2>> get_all_endpoints();
 
     void set_camera_position(const glm::vec3& position)
     {
@@ -22,8 +22,10 @@ class GLINTIFY_API StrokeSystem {
     }
 
     void calc_scratches();
+    void add_virtual_point(const glm::vec3& vec);
 
    private:
+    glm::vec3 virtual_point_position;
     glm::vec3 world_camera_position;
     glm::vec3 world_light_position;
     std::vector<cuda::CUDALinearBufferHandle> strokes;

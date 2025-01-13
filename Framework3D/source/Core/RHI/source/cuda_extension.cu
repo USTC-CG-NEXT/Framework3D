@@ -32,8 +32,8 @@ CUDALinearBuffer::CUDALinearBuffer(const cuda::CUDALinearBufferDesc& in_desc)
 {
     log::info(
         "Allocating vMem of size(MB) : %d\n",
-        desc.size * desc.element_count / 1024 / 1024);
-    d_vec.resize(desc.size * desc.element_count);
+        desc.element_size * desc.element_count / 1024 / 1024);
+    d_vec.resize(desc.element_size * desc.element_count);
 }
 
 CUDALinearBuffer::~CUDALinearBuffer()

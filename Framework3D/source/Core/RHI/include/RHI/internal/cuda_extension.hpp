@@ -9,12 +9,15 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <string>
+#include <typeindex>
+#include <utility>
 
+#include "cuda_extension_utils.h"
 #include "optix/ShaderNameAbbre.h"
 #include "optix/optix.h"
-
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 namespace cuda {
@@ -63,12 +66,12 @@ RHI_API OptiXTraversableHandle create_mesh_optix_traversable(
     bool rebuilding = false);
 
 struct CUDALinearBufferDesc {
-    unsigned size;
     unsigned element_count;
+    unsigned element_size;
 
-    CUDALinearBufferDesc(unsigned size = 0, unsigned element_size = 0)
-        : size(size),
-          element_count(element_size)
+    CUDALinearBufferDesc(unsigned element_count = 0, unsigned element_size = 0)
+        : element_size(element_size),
+          element_count(element_count)
     {
     }
 
@@ -86,7 +89,7 @@ class ICUDALinearBuffer : public nvrhi::IResource {
     {
         auto host_data = get_host_data();
         auto data_ptr = host_data.data();
-        auto size = getDesc().size;
+        auto size = getDesc().element_size;
 
         auto ret = std::vector<T>(
             reinterpret_cast<T*>(data_ptr),
@@ -321,6 +324,114 @@ struct AppendStructuredBuffer {
 }  // namespace cuda
 
 #define HOST_DEVICE __host__ __device__
+
+template<typename F>
+inline int GetBlockSize(const char* description, F kernel)
+{
+    // Note: this isn't reentrant, but that's fine for our purposes...
+    static std::map<std::type_index, int> kernelBlockSizes;
+
+    auto index = std::type_index(typeid(F));
+
+    auto iter = kernelBlockSizes.find(index);
+    if (iter != kernelBlockSizes.end())
+        return iter->second;
+
+    int minGridSize, blockSize;
+    CUDA_CHECK(cudaOccupancyMaxPotentialBlockSize(
+        &minGridSize, &blockSize, kernel, 0, 0));
+    kernelBlockSizes[index] = blockSize;
+
+    return blockSize;
+}
+
+template<typename F>
+void GPUParallelFor(const char* description, int nItems, F func);
+
+template<typename F>
+void GPUParallelFor2D(const char* description, int2 resolution, F func);
+#ifdef __CUDACC__
+
+template<typename F>
+__global__ void Kernel(F func, int nItems)
+{
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid >= nItems)
+        return;
+
+    func(tid);
+}
+
+template<typename F>
+__global__ void Kernel2D(F func, int2 resolution)
+{
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    int i = tid / resolution.x;  // row num
+    int j = tid % resolution.x;  // collum num
+
+    if (i >= resolution.y)
+        return;
+
+    func(i, j);
+}
+
+#include <iostream>
+
+template<typename F>
+void GPUParallelFor(const char* description, int nItems, F func)
+{
+#ifdef NVTX
+    nvtxRangePush(description);
+#endif
+
+#ifdef _DEBUG
+    std::cerr << "Launching " << std::string(description) << " with size "
+              << nItems << std::endl;
+#endif
+    if (nItems > 0) {
+        auto kernel = &Kernel<F>;
+
+        int blockSize = GetBlockSize(description, kernel);
+
+        int gridSize = (nItems + blockSize - 1) / blockSize;
+        kernel<<<gridSize, blockSize>>>(func, nItems);
+    }
+
+#ifdef NVTX
+    nvtxRangePop();
+#endif
+}
+
+template<typename F>
+void GPUParallelFor2D(const char* description, int2 resolution, F func)
+{
+#ifdef NVTX
+    nvtxRangePush(description);
+#endif
+
+#ifdef _DEBUG
+    std::cerr << "Launching " << std::string(description) << " with size ("
+              << resolution.x << ", " << resolution.y << ")" << std::endl;
+#endif
+
+    auto kernel = &Kernel2D<F>;
+
+    int blockSize = GetBlockSize(description, kernel);
+
+    int gridSize = (resolution.x * resolution.y + blockSize - 1) / blockSize;
+    kernel<<<gridSize, blockSize>>>(func, resolution);
+
+#ifdef NVTX
+    nvtxRangePop();
+#endif
+}
+
+#endif
+
+#define GPU_LAMBDA(...)    [ =, *this ] __device__(__VA_ARGS__) mutable
+#define GPU_LAMBDA_Ex(...) [=] __device__(__VA_ARGS__) mutable
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE
 
 #endif

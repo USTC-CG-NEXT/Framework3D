@@ -163,7 +163,7 @@ ScratchIntersectionContext::intersect_line_with_rays(
     this->_buffer_size = buffer_size;
 
     CUDALinearBufferDesc desc;
-    desc.size = sizeof(Patch);
+    desc.element_size = sizeof(Patch);
     desc.element_count = patch_count;
 
     patches_buffer = borrow_cuda_linear_buffer(desc, patches);

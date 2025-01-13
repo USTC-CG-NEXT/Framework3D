@@ -6,12 +6,13 @@
 #include <glm/glm.hpp>
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
-#define SAMPLE_POINTS 16
+namespace stroke {
+
+#define SAMPLE_POINT_COUNT 16
 
 class Scratch {
    public:
-    glm::vec2 begin[SAMPLE_POINTS];
-    glm::vec2 end[SAMPLE_POINTS];
+    glm::vec2 sample_point[SAMPLE_POINT_COUNT];
 };
 
 #define MAX_SCRATCH_COUNT 128
@@ -22,6 +23,7 @@ class Stroke {
    public:
     glm::vec3 cam_local_pos;
     glm::vec3 light_local_pos;
+    glm::vec3 virtual_point_position;
 
     unsigned int scratch_count = 0;
 
@@ -31,8 +33,19 @@ class Stroke {
 
     HOST_DEVICE void calc_seeds();
 
-    HOST_DEVICE void calc_scratch(int scratch_index);
+    __device__ void calc_scratch(int scratch_index);
 
+    void set_virtual_point_position(const glm::vec3 vec)
+    {
+        virtual_point_position = vec;
+    }
 };  // Relation to scratch: one to many
+
+void calc_scratches(
+    cuda::CUDALinearBufferHandle strokes,
+    glm::vec3 camera_position,
+    glm::vec3 light_position);
+
+}  // namespace stroke
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -10,11 +10,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include "RHI/internal/cuda_extension_utils.h"
 #include "RHI/internal/optix/optix.h"
 #include "RHI/internal/optix/optix_function_table_definition.h"
 #include "RHI/internal/optix/optix_stack_size.h"
 #include "RHI/internal/optix/optix_stubs.h"
-#include "cuda_extension_utils.h"
 #include "nvrhi/nvrhi.h"
 #include "nvrtc_config.h"
 
@@ -829,7 +829,7 @@ CUdeviceptr CUDALinearBufferView::get_device_ptr()
 
 thrust::host_vector<uint8_t> CUDALinearBufferView::get_host_data()
 {
-    thrust::host_vector<uint8_t> host_data(desc.size * desc.element_count);
+    thrust::host_vector<uint8_t> host_data(desc.element_size * desc.element_count);
     cudaMemcpy(
         host_data.data(), cuda_ptr, host_data.size(), cudaMemcpyDeviceToHost);
     return host_data;
@@ -838,7 +838,7 @@ thrust::host_vector<uint8_t> CUDALinearBufferView::get_host_data()
 void CUDALinearBufferView::assign_host_data(
     const thrust::host_vector<uint8_t>& data)
 {
-    assert(data.size() == desc.size * desc.element_count);
+    assert(data.size() == desc.element_size * desc.element_count);
     cudaMemcpy(cuda_ptr, data.data(), data.size(), cudaMemcpyHostToDevice);
 }
 
