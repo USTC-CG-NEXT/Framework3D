@@ -43,23 +43,23 @@ class Stroke {
      * @param world World position of the point
      * @return The tangent space position of the point
      */
-    __device__ glm::vec3 world_to_tangent_point(glm::vec3 world);
+    HOST_DEVICE glm::vec3 world_to_tangent_point(glm::vec3 world);
 
-    __device__ glm::vec3 world_to_tangent_vector(glm::vec3 world);
+    HOST_DEVICE glm::vec3 world_to_tangent_vector(glm::vec3 world);
 
     /**
      * A function to calculate the world position of a point
      * @param tangent Tangent space position of the point
      * @return The world position of the point
      */
-    __device__ glm::vec3 tangent_to_world_point(glm::vec3 tangent);
+    HOST_DEVICE glm::vec3 tangent_to_world_point(glm::vec3 tangent);
 
-    __device__ glm::vec3 tangent_to_world_vector(glm::vec3 tangent);
-    __device__ glm::vec2 eval_required_direction(
+    HOST_DEVICE glm::vec3 tangent_to_world_vector(glm::vec3 tangent);
+    HOST_DEVICE glm::vec2 eval_required_direction(
         glm::vec2 uv_space_pos,
         glm::vec3 light_pos);
 
-    __device__ void calc_scratch(int scratch_index, glm::vec3 light_pos);
+    HOST_DEVICE void calc_scratch(int scratch_index, glm::vec3 light_pos);
 
     void set_virtual_point_position(const glm::vec3 vec)
     {

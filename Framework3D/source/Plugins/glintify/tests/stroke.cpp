@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "glintify/glintify.hpp"
+#include "../source/stroke.h"
 
 using namespace USTC_CG;
 
@@ -19,3 +20,5 @@ TEST(StrokeSystem, get_all_endpoints)
     ASSERT_EQ(endpoints.size(), 128);
     ASSERT_EQ(endpoints[0].size(), 16);
 }
+
+

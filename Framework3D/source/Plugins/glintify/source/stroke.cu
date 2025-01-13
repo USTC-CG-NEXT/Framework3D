@@ -9,28 +9,28 @@ namespace stroke {
 // By controlling the density of the scratches.
 // But how does that mean exactly?
 
-__device__ glm::vec3 Stroke::world_to_tangent_point(
+HOST_DEVICE glm::vec3 Stroke::world_to_tangent_point(
     glm::vec3 world)  // A default implementation
 {
     return world * 0.5f + glm::vec3(0.5f, 0.5f, 0.0f);
 }
 
-__device__ glm::vec3 Stroke::world_to_tangent_vector(glm::vec3 world)
+HOST_DEVICE glm::vec3 Stroke::world_to_tangent_vector(glm::vec3 world)
 {
     return world;
 }
 
-__device__ glm::vec3 Stroke::tangent_to_world_point(glm::vec3 tangent)
+HOST_DEVICE glm::vec3 Stroke::tangent_to_world_point(glm::vec3 tangent)
 {
     return (tangent - glm::vec3(0.5f, 0.5f, 0.0f)) * 2.0f;
 }
 
-__device__ glm::vec3 Stroke::tangent_to_world_vector(glm::vec3 tangent)
+HOST_DEVICE glm::vec3 Stroke::tangent_to_world_vector(glm::vec3 tangent)
 {
     return tangent;
 }
 
-__device__ glm::vec2 Stroke::eval_required_direction(
+HOST_DEVICE glm::vec2 Stroke::eval_required_direction(
     glm::vec2 uv_space_pos,
     glm::vec3 light_pos)
 {
@@ -44,10 +44,10 @@ __device__ glm::vec2 Stroke::eval_required_direction(
     auto half_vec = 0.5f * (glm::normalize(tangent_space_cam_dir) +
                             glm::normalize(tangent_space_light_dir));
 
-    return -glm::normalize(glm::vec2(-half_vec.y, half_vec.x));
+    return glm::normalize(glm::vec2(-half_vec.y, half_vec.x));
 }
 
-__device__ glm::vec2 same_direction(glm::vec2 vec, glm::vec2 reference)
+HOST_DEVICE glm::vec2 same_direction(glm::vec2 vec, glm::vec2 reference)
 {
     if (glm::dot(vec, reference) < 0) {
         return -vec;
@@ -55,7 +55,7 @@ __device__ glm::vec2 same_direction(glm::vec2 vec, glm::vec2 reference)
     return vec;
 }
 
-__device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
+HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 {
     scratch_count = MAX_SCRATCH_COUNT;
 
@@ -78,14 +78,17 @@ __device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 
     center_point.y = left_point.y;
 
-    auto that_direction = world_to_tangent_point(virtual_point_position) -
-                          tangent_space_light_pos;
-    center_point.x = tangent_space_light_pos.x -
-                     (tangent_space_light_pos.y - center_point.y) *
+    auto uv_vpt = world_to_tangent_point(virtual_point_position);
+
+    uv_vpt.y = 2.0f * center_point.y - uv_vpt.y;
+
+    glm::vec2 that_direction = uv_vpt - tangent_space_light_pos;
+    center_point.x = tangent_space_light_pos.x +
+                     (center_point.y - tangent_space_light_pos.y) *
                          that_direction.x / that_direction.y;
 
-    auto pos = center_point + glm::vec2(-1, 0) * float(scratch_index) * 0.5f /
-                                  float(MAX_SCRATCH_COUNT) * 2.0f;
+    auto pos = center_point + glm::vec2(-1, 0) * float(scratch_index) /
+                                  float(MAX_SCRATCH_COUNT);
 
     glm::vec2 old_dir;
 
@@ -116,6 +119,10 @@ __device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 
         old_dir = dir;
 
+        if (std::abs(dir.y) > 0.95) {
+            break;
+        }
+
         auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 20.f;
 
         pos += dir * step;
@@ -140,10 +147,10 @@ __device__ void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 
     scratches[scratch_index].valid_sample_count = valid_sample_count;
 
-    if (scratch_index==0) {
-        scratches[0].sample_point[0] = center_point;
-        scratches[0].sample_point[1] = center_point + glm::vec2(0, -1);
-    }
+    // if (scratch_index == 0) {
+    //     scratches[0].sample_point[0] = center_point;
+    //     scratches[0].sample_point[1] = center_point + glm::vec2(0, -1);
+    // }
 }
 
 void calc_scratches(
