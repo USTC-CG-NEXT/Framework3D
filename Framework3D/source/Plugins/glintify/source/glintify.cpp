@@ -14,7 +14,7 @@ std::vector<std::vector<glm::vec2>> StrokeSystem::get_all_endpoints()
 
         for (int j = 0; j < stroke.scratch_count; ++j) {
             std::vector<glm::vec2> stroke_endpoints;
-            for (int k = 0; k < SAMPLE_POINT_COUNT; ++k) {
+            for (int k = 0; k < stroke.scratches[j].valid_sample_count; ++k) {
                 stroke_endpoints.push_back(stroke.scratches[j].sample_point[k]);
             }
 
@@ -23,6 +23,24 @@ std::vector<std::vector<glm::vec2>> StrokeSystem::get_all_endpoints()
     }
 
     return endpoints;
+}
+
+void StrokeSystem::fill_ranges()
+{
+    if (!consider_occlusion) {
+        if (on_plane_board) {
+            std::vector<Stroke*> stroke_addrs;
+
+            for (const auto& stroke : strokes) {
+                stroke_addrs.push_back(
+                    reinterpret_cast<Stroke*>(stroke->get_device_ptr()));
+            }
+
+            auto d_strokes = cuda::create_cuda_linear_buffer(stroke_addrs);
+            stroke::calc_simple_plane_projected_ranges(
+                d_strokes, world_camera_position, camera_move_range);
+        }
+    }
 }
 
 void StrokeSystem::calc_scratches()
@@ -35,6 +53,8 @@ void StrokeSystem::calc_scratches()
     }
 
     auto d_strokes = cuda::create_cuda_linear_buffer(stroke_addrs);
+
+    fill_ranges();
 
     stroke::calc_scratches(
         d_strokes, world_camera_position, world_light_position);
