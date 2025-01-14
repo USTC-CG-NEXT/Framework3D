@@ -38,7 +38,7 @@ HOST_DEVICE glm::vec2 Stroke::eval_required_direction(
 
     glm::vec2 tangent_space_cam_dir =
         uv_space_vpt_pos - glm::vec3(uv_space_pos, 0);
-    if (uv_space_vpt_pos.z < 0) {
+    if (uv_space_vpt_pos.z > 0) {
         tangent_space_cam_dir *= -1;
     }
 
@@ -127,7 +127,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
             break;
         }
 
-        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 50.f;
+        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 25.f;
 
         pos += dir * step;
 
@@ -208,13 +208,13 @@ void calc_simple_plane_projected_ranges(
 
             glm::vec2 on_image_left =
                 (tangent_vpt - tangent_camera_left) *
-                    (tangent_camera_left.z) /
+                    (0 - tangent_camera_left.z) /
                     (tangent_vpt.z - tangent_camera_left.z) +
                 tangent_camera_left;
 
             glm::vec2 on_image_right =
                 (tangent_vpt - tangent_camera_right) *
-                    (tangent_camera_right.z) /
+                    (0 - tangent_camera_right.z) /
                     (tangent_vpt.z - tangent_camera_right.z) +
                 tangent_camera_right;
 

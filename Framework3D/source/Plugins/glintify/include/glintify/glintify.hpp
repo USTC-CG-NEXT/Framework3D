@@ -34,7 +34,7 @@ class StrokeSystem {
         strokes.clear();
     }
 
-   private:
+   public:
     void fill_ranges();
 
     glm::vec3 virtual_point_position;

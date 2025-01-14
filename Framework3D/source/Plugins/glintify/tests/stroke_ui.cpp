@@ -86,8 +86,10 @@ class StrokeVisualizeWidget : public USTC_CG::IWidget {
             if (!line.empty())
                 for (int i = 0; i < line.size() - 1; ++i) {
                     DrawLine(
-                        ImVec2(scale * line[i].x, scale * line[i].y),
-                        ImVec2(scale * line[i + 1].x, scale * line[i + 1].y),
+                        ImVec2(scale * line[i].x, scale * (1.0f - line[i].y)),
+                        ImVec2(
+                            scale * line[i + 1].x,
+                            scale * (1.0f - line[i + 1].y)),
                         1.0f,
                         IM_COL32(255, 255, 255, 255));
                 }
