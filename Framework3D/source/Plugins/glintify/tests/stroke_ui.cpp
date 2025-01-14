@@ -33,14 +33,14 @@ class StrokeEditWidget : public USTC_CG::IWidget {
             stroke_system->set_camera_move_range(camera_move_range);
         }
 
-        if (ImGui::SliderFloat3(
-                "Virtual Point Position",
-                &virtual_point_position.x,
-                -1.0f,
-                1.0f)) {
-            stroke_system->clear();
-            stroke_system->add_virtual_point(virtual_point_position);
-        }
+        //if (ImGui::SliderFloat3(
+        //        "Virtual Point Position",
+        //        &virtual_point_position.x,
+        //        -1.0f,
+        //        1.0f)) {
+        //    stroke_system->clear();
+        //    stroke_system->add_virtual_point(virtual_point_position);
+        //}
 
         if (ImGui::Button("Save")) {
             auto end_points = stroke_system->get_all_endpoints();
@@ -92,8 +92,9 @@ class StrokeVisualizeWidget : public USTC_CG::IWidget {
    public:
     bool BuildUI() override
     {
-        auto lines = stroke_system->get_all_endpoints();
         stroke_system->calc_scratches();
+
+        auto lines = stroke_system->get_all_endpoints();
 
         float scale = std::min(width, height);
 
