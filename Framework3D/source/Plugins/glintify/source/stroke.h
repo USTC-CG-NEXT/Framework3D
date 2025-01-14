@@ -9,7 +9,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
 
-#define SAMPLE_POINT_COUNT 256
+#define SAMPLE_POINT_COUNT 512
 
 class Scratch {
    public:
@@ -28,7 +28,7 @@ class Stroke {
    public:
     glm::vec3 virtual_point_position;
 
-    float stroke_width = 0.0505f;
+    float stroke_width = 0.105f;
 
     unsigned int scratch_count = 0;
 

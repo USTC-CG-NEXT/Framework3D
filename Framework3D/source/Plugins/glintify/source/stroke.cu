@@ -91,8 +91,16 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
                      (center_point.y - tangent_space_light_pos.y) *
                          that_direction.x / that_direction.y;
 
-    auto pos = center_point + glm::vec2(-1, 0) * float(scratch_index + 0.5f) /
-                                  float(MAX_SCRATCH_COUNT) / 1.f;
+    auto vertical_movement =
+        glm::vec2(0, 1) * stroke_width *
+        (float(scratch_index / 2 + 0.1f) / float(MAX_SCRATCH_COUNT) - 0.5f) *
+        4.0f;
+
+    auto pos = center_point + glm::vec2(0.0001, 0) +
+               glm::vec2(-1, 0) * float(scratch_index + 0.1f) /
+                   float(MAX_SCRATCH_COUNT);
+
+    pos = center_point + vertical_movement;
 
     glm::vec2 old_dir;
 
@@ -104,18 +112,24 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         auto dir = eval_required_direction(pos, light_pos);
 
         if (i == 0) {
+
+            
             auto scratch_going_right = dir.x > 0;
             if (!scratch_going_right) {
                 dir *= -1;
             }
+            bool other_way = scratch_index % 2 == 1;
+            if (other_way) {
+                dir *= -1;
+            }
 
-            bool scratch_going_upward = dir.y > 0;
-            if (scratch_going_upward) {
-                pos.y -= half_stroke_width;
-            }
-            else {
-                pos.y += half_stroke_width;
-            }
+            // bool scratch_going_upward = dir.y > 0;
+            // if (scratch_going_upward) {
+            //     pos.y -= half_stroke_width;
+            // }
+            // else {
+            //     pos.y += half_stroke_width;
+            // }
         }
         else {
             dir = same_direction(dir, old_dir);
@@ -127,7 +141,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
             break;
         }
 
-        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 25.f;
+        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 20.f;
 
         pos += dir * step;
 
