@@ -51,7 +51,7 @@ class StrokeEditWidget : public USTC_CG::IWidget {
     }
 
    private:
-    glm::vec3 camera_position = glm::vec3(0, 0, -3);
+    glm::vec3 camera_position = glm::vec3(0, 0.8, -3);
     glm::vec3 light_position = glm::vec3(0, 3, -3);
     glm::vec2 camera_move_range = glm::vec2(-1, 1);
 

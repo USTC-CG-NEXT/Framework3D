@@ -1,7 +1,7 @@
 USTC_CG_ADD_LIB(
 	glintify
 	WITH_CUDA
-	PUBLIC_LIBS GUI gf RHI SLANG::slang shaders_interface glm::glm GUI
+	PUBLIC_LIBS GUI gf RHI SLANG::slang shaders_interface glm::glm GUI OpenMeshCore
 	# PYTHON_WRAP_DIR python
 )
 

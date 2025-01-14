@@ -93,8 +93,8 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 
     auto vertical_movement =
         glm::vec2(0, 1) * stroke_width *
-        (float(scratch_index / 2 + 0.1f) / float(MAX_SCRATCH_COUNT) - 0.5f) *
-        4.0f;
+        (float(scratch_index / 2 + 0.5f) / float(MAX_SCRATCH_COUNT) - 0.25f) *
+        40.0f;
 
     auto pos = center_point + glm::vec2(0.0001, 0) +
                glm::vec2(-1, 0) * float(scratch_index + 0.1f) /
@@ -112,8 +112,6 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         auto dir = eval_required_direction(pos, light_pos);
 
         if (i == 0) {
-
-            
             auto scratch_going_right = dir.x > 0;
             if (!scratch_going_right) {
                 dir *= -1;
@@ -141,8 +139,9 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
             break;
         }
 
-        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 20.f;
-
+        auto step = 1.0f / float(SAMPLE_POINT_COUNT) ;
+        scratches[scratch_index].sample_point[valid_sample_count] = pos;
+        valid_sample_count++;
         pos += dir * step;
 
         if (pos.x < left_point.x || pos.x > right_point.x) {
@@ -158,9 +157,6 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
                 .should_begin_new_line_mask[valid_sample_count] = true;
             continue;
         }
-
-        scratches[scratch_index].sample_point[valid_sample_count] = pos;
-        valid_sample_count++;
     }
 
     scratches[scratch_index].valid_sample_count = valid_sample_count;

@@ -28,7 +28,7 @@ class Stroke {
    public:
     glm::vec3 virtual_point_position;
 
-    float stroke_width = 0.105f;
+    float stroke_width = 0.005f;
 
     unsigned int scratch_count = 0;
 
