@@ -1,6 +1,5 @@
-#include <glintify/glintify.hpp>
 
-#include "stroke.h"
+#include "glintify/stroke.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
@@ -139,7 +138,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
             break;
         }
 
-        auto step = 1.0f / float(SAMPLE_POINT_COUNT) ;
+        auto step = 2.0f / float(SAMPLE_POINT_COUNT);
         scratches[scratch_index].sample_point[valid_sample_count] = pos;
         valid_sample_count++;
         pos += dir * step;

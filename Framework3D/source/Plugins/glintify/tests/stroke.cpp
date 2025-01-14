@@ -1,11 +1,10 @@
-#include "../source/stroke.h"
+#include "glintify/stroke.h"
 
 #include <GUI/widget.h>
 #include <GUI/window.h>
 #include <gtest/gtest.h>
 
-#include "../source/stroke.h"
-#include "glintify/glintify.hpp"
+#include <glintify/glintify.hpp>
 
 using namespace USTC_CG;
 //

@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "glintify/glintify.hpp"
+#include "glintify/mesh.hpp"
 
 class StrokeEditWidget : public USTC_CG::IWidget {
    public:
@@ -41,6 +42,20 @@ class StrokeEditWidget : public USTC_CG::IWidget {
             stroke_system->add_virtual_point(virtual_point_position);
         }
 
+        if (ImGui::Button("Save")) {
+            auto end_points = stroke_system->get_all_endpoints();
+            std::ofstream file("stroke.txt");
+            file << "[";
+            for (auto& line : end_points) {
+                file << "[";
+                for (auto& point : line) {
+                    file << "[" << point.x << ", " << point.y << "],";
+                }
+                file << "],";
+            }
+            file << "]";
+        }
+
         return true;
     }
 
@@ -53,7 +68,7 @@ class StrokeEditWidget : public USTC_CG::IWidget {
    private:
     glm::vec3 camera_position = glm::vec3(0, 0.8, -3);
     glm::vec3 light_position = glm::vec3(0, 3, -3);
-    glm::vec2 camera_move_range = glm::vec2(-1, 1);
+    glm::vec2 camera_move_range = glm::vec2(-0.7, 0.7);
 
     glm::vec3 virtual_point_position = glm::vec3(0, 0, -1);
 
@@ -106,8 +121,14 @@ int main()
     using namespace USTC_CG;
 
     auto stroke_system = std::make_shared<StrokeSystem>();
+    auto mesh = USTC_CG::Mesh::load_from_obj("cube.obj");
+    auto edge_samples = mesh.sample_on_edges(0.099f);
 
-    stroke_system->add_virtual_point({ 0, 0, -1 });
+    for (auto& sample : edge_samples) {
+        stroke_system->add_virtual_point(sample);
+    }
+
+    // stroke_system->add_virtual_point({ 0, 0, -1 });
 
     Window window;
 

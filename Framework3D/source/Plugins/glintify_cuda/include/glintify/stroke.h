@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glintify/api.h>
-
 #include <RHI/internal/cuda_extension.hpp>
 #include <glm/glm.hpp>
 
@@ -20,7 +18,7 @@ class Scratch {
     unsigned int valid_sample_count = 0;
 };
 
-#define MAX_SCRATCH_COUNT 128
+#define MAX_SCRATCH_COUNT 64
 
 #define MAX_RANGES 10
 

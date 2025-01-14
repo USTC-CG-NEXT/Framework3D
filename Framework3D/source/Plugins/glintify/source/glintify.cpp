@@ -1,6 +1,7 @@
 #include <glintify/glintify.hpp>
 
-#include "stroke.h"
+#include "Logger/Logger.h"
+#include "glintify/stroke.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using namespace stroke;
@@ -24,11 +25,13 @@ std::vector<std::vector<glm::vec2>> StrokeSystem::get_all_endpoints()
                 }
                 stroke_endpoints.push_back(stroke.scratches[j].sample_point[k]);
             }
-
-            endpoints.push_back(stroke_endpoints);
+            if (stroke_endpoints.size() > 1) {
+                endpoints.push_back(stroke_endpoints);
+            }
         }
     }
 
+    log::warning("endpoints size: %d", endpoints.size());
     return endpoints;
 }
 

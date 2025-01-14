@@ -1,2 +1,3 @@
 add_subdirectory(diff_optics)
 add_subdirectory(glintify)
+add_subdirectory(glintify_cuda)
