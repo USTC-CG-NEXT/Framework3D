@@ -36,9 +36,13 @@ HOST_DEVICE glm::vec2 Stroke::eval_required_direction(
 {
     auto uv_space_vpt_pos = world_to_tangent_point(virtual_point_position);
 
-    auto tangent_space_cam_dir = uv_space_vpt_pos - glm::vec3(uv_space_pos, 0);
+    glm::vec2 tangent_space_cam_dir =
+        uv_space_vpt_pos - glm::vec3(uv_space_pos, 0);
+    if (uv_space_vpt_pos.z < 0) {
+        tangent_space_cam_dir *= -1;
+    }
 
-    auto tangent_space_light_dir =
+    glm::vec2 tangent_space_light_dir =
         world_to_tangent_point(light_pos) - glm::vec3(uv_space_pos, 0);
 
     auto half_vec = 0.5f * (glm::normalize(tangent_space_cam_dir) +
@@ -87,8 +91,8 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
                      (center_point.y - tangent_space_light_pos.y) *
                          that_direction.x / that_direction.y;
 
-    auto pos = center_point + glm::vec2(-1, 0) * float(scratch_index) /
-                                  float(MAX_SCRATCH_COUNT);
+    auto pos = center_point + glm::vec2(-1, 0) * float(scratch_index + 0.5f) /
+                                  float(MAX_SCRATCH_COUNT) / 1.f;
 
     glm::vec2 old_dir;
 
@@ -119,11 +123,11 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 
         old_dir = dir;
 
-        if (std::abs(dir.y) > 0.95) {
+        if (std::abs(dir.y) > 0.999) {
             break;
         }
 
-        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 20.f;
+        auto step = stroke_width / float(SAMPLE_POINT_COUNT) * 50.f;
 
         pos += dir * step;
 
@@ -204,13 +208,13 @@ void calc_simple_plane_projected_ranges(
 
             glm::vec2 on_image_left =
                 (tangent_vpt - tangent_camera_left) *
-                    abs(tangent_camera_left.z) /
+                    (tangent_camera_left.z) /
                     (tangent_vpt.z - tangent_camera_left.z) +
                 tangent_camera_left;
 
             glm::vec2 on_image_right =
                 (tangent_vpt - tangent_camera_right) *
-                    abs(tangent_camera_right.z) /
+                    (tangent_camera_right.z) /
                     (tangent_vpt.z - tangent_camera_right.z) +
                 tangent_camera_right;
 

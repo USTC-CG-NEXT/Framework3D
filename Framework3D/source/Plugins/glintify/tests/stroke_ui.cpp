@@ -35,8 +35,8 @@ class StrokeEditWidget : public USTC_CG::IWidget {
         if (ImGui::SliderFloat3(
                 "Virtual Point Position",
                 &virtual_point_position.x,
-                -10.0f,
-                10.0f)) {
+                -1.0f,
+                1.0f)) {
             stroke_system->clear();
             stroke_system->add_virtual_point(virtual_point_position);
         }
