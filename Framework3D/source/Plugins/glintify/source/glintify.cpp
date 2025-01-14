@@ -39,22 +39,39 @@ std::vector<std::vector<glm::vec2>> StrokeSystem::get_all_endpoints()
     return endpoints_cache;
 }
 
-void StrokeSystem::fill_ranges()
+void StrokeSystem::fill_ranges(bool consider_occlusion)
 {
+    std::vector<Stroke*> stroke_addrs;
+
+    for (const auto& stroke : strokes) {
+        stroke_addrs.push_back(
+            reinterpret_cast<Stroke*>(stroke->get_device_ptr()));
+    }
+
+    auto d_strokes = cuda::create_cuda_linear_buffer(stroke_addrs);
+
     if (!consider_occlusion) {
         if (on_plane_board) {
-            std::vector<Stroke*> stroke_addrs;
-
-            for (const auto& stroke : strokes) {
-                stroke_addrs.push_back(
-                    reinterpret_cast<Stroke*>(stroke->get_device_ptr()));
-            }
-
-            auto d_strokes = cuda::create_cuda_linear_buffer(stroke_addrs);
             stroke::calc_simple_plane_projected_ranges(
                 d_strokes, world_camera_position, camera_move_range);
         }
     }
+    else {
+        stroke::calc_planar_ranges_with_occlusion(
+            d_strokes,
+            occlusion_vertices,
+            occlusion_indices,
+            world_camera_position,
+            camera_move_range);
+    }
+}
+
+void StrokeSystem::set_occlusion(
+    const std::vector<glm::vec3>& vertices,
+    const std::vector<unsigned int>& indices)
+{
+    this->occlusion_vertices = vertices;
+    this->occlusion_indices = indices;
 }
 
 void StrokeSystem::calc_scratches()

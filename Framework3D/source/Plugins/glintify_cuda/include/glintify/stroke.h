@@ -1,9 +1,20 @@
 #pragma once
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
+#ifndef __CUDACC_RTC__
 #include <RHI/internal/cuda_extension.hpp>
-#include <glm/glm.hpp>
+#include <utility>
+using std::pair;
 
-#include "glm/common.hpp"
+#else
+#define USTC_CG_NAMESPACE_OPEN_SCOPE  namespace USTC_CG {
+#define USTC_CG_NAMESPACE_CLOSE_SCOPE }
+#define HOST_DEVICE                   __host__ __device__
+#include <cuda/std/utility>
+using cuda::std::pair;
+#endif
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
 
@@ -32,7 +43,7 @@ class Stroke {
 
     Scratch scratches[MAX_SCRATCH_COUNT];
 
-    std::pair<glm::vec2, glm::vec2> range[MAX_RANGES];
+    pair<glm::vec2, glm::vec2> range[MAX_RANGES];
     unsigned int range_count = 0;
 
     HOST_DEVICE void calc_seeds();
@@ -41,18 +52,31 @@ class Stroke {
      * @param world World position of the point
      * @return The tangent space position of the point
      */
-    HOST_DEVICE glm::vec3 world_to_tangent_point(glm::vec3 world);
+    HOST_DEVICE glm::vec3 world_to_tangent_point(
+        glm::vec3 world)  // A default implementation
+    {
+        return world * 0.5f + glm::vec3(0.5f, 0.5f, 0.0f);
+    }
 
-    HOST_DEVICE glm::vec3 world_to_tangent_vector(glm::vec3 world);
+    HOST_DEVICE glm::vec3 world_to_tangent_vector(glm::vec3 world)
+    {
+        return world;
+    }
 
     /**
      * A function to calculate the world position of a point
      * @param tangent Tangent space position of the point
      * @return The world position of the point
      */
-    HOST_DEVICE glm::vec3 tangent_to_world_point(glm::vec3 tangent);
+    HOST_DEVICE glm::vec3 tangent_to_world_point(glm::vec3 tangent)
+    {
+        return (tangent - glm::vec3(0.5f, 0.5f, 0.0f)) * 2.0f;
+    }
 
-    HOST_DEVICE glm::vec3 tangent_to_world_vector(glm::vec3 tangent);
+    HOST_DEVICE glm::vec3 tangent_to_world_vector(glm::vec3 tangent)
+    {
+        return tangent;
+    }
     HOST_DEVICE glm::vec2 eval_required_direction(
         glm::vec2 uv_space_pos,
         glm::vec3 light_pos);
@@ -64,6 +88,7 @@ class Stroke {
         virtual_point_position = vec;
     }
 };  // Relation to scratch: one to many
+#ifndef __CUDACC_RTC__
 
 void calc_scratches(
     cuda::CUDALinearBufferHandle strokes,
@@ -77,6 +102,13 @@ void calc_simple_plane_projected_ranges(
     glm::vec3 world_camera_position,
     glm::vec2 camera_move_range);
 
+void calc_planar_ranges_with_occlusion(
+    const cuda::CUDALinearBufferHandle& d_strokes,
+    const std::vector<glm::vec3>& occlusion_vertices,
+    const std::vector<unsigned>& occlusion_indices,
+    glm::vec3 world_camera_position,
+    glm::vec2 camera_move_range);
+#endif
 }  // namespace stroke
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -29,6 +29,9 @@ class StrokeSystem {
         is_dirty = true;
     }
 
+    void set_occlusion(const std::vector<glm::vec3>& vertices, const std::vector<unsigned>& indices);
+
+
     void calc_scratches();
     void add_virtual_point(const glm::vec3& vec);
 
@@ -37,8 +40,7 @@ class StrokeSystem {
         strokes.clear();
     }
 
-   private:
-    void fill_ranges();
+    void fill_ranges(bool consider_occlusion = false);
 
     bool is_dirty = true;
 
@@ -47,9 +49,11 @@ class StrokeSystem {
     glm::vec2 camera_move_range;
     glm::vec3 world_light_position;
     std::vector<cuda::CUDALinearBufferHandle> strokes;
-    bool consider_occlusion = false;
+    ;
     bool on_plane_board = true;
     std::vector<std::vector<glm::vec2>> endpoints_cache;
+    std::vector<glm::vec3> occlusion_vertices;
+    std::vector<unsigned int> occlusion_indices;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -57,6 +57,16 @@ RHI_API OptiXTraversableHandle create_linear_curve_optix_traversable(
     bool rebuilding = false,
     OptixPrimitiveType primitive_type = OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR);
 
+/**
+ *
+ * @param vertexBuffer The size of the vector is for key frames
+ * @param numVertices
+ * @param vertexBufferStride
+ * @param indexBuffer
+ * @param numPrimitives
+ * @param rebuilding
+ * @return
+ */
 RHI_API OptiXTraversableHandle create_mesh_optix_traversable(
     std::vector<CUdeviceptr> vertexBuffer,
     unsigned int numVertices,
@@ -221,6 +231,8 @@ class IOptiXPipeline : public nvrhi::IResource {
 using OptiXModuleHandle = nvrhi::RefCountPtr<IOptiXModule>;
 using OptiXPipelineHandle = nvrhi::RefCountPtr<IOptiXPipeline>;
 using OptiXProgramGroupHandle = nvrhi::RefCountPtr<IOptiXProgramGroup>;
+
+RHI_API void add_extra_relative_include_dir_for_optix(const std::string& dir);
 
 RHI_API const char* get_ptx_string_from_cu(
     const char* filename,

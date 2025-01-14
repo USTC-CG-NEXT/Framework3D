@@ -45,8 +45,8 @@ static void context_log_cb(
     const char* message,
     void* /*cbdata */)
 {
-    // std::cerr << "[" << std::setw(2) << level << "][" << std::setw(12) << tag
-    //           << "]: " << message << "\n";
+    std::cerr << "[" << std::setw(2) << level << "][" << std::setw(12) << tag
+              << "]: " << message << "\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,6 +128,13 @@ static void getCuStringFromFile(
 
 static std::string g_nvrtcLog;
 
+std::vector<std::string> extra_relative_include_dirs;
+
+void add_extra_relative_include_dir_for_optix(const std::string& dir)
+{
+    extra_relative_include_dirs.push_back(dir);
+}
+
 static bool getPtxFromCuString(
     std::string& ptx,
     const char* sample_name,
@@ -163,6 +170,11 @@ static bool getPtxFromCuString(
     for (const char* dir : rel_dirs) {
         include_dirs.push_back("-I" + base_dir + '/' + dir);
     }
+
+    for (const std::string& dir : extra_relative_include_dirs) {
+        include_dirs.push_back("-I" + base_dir + dir);
+    }
+
     for (const std::string& dir : include_dirs) {
         options.push_back(dir.c_str());
     }
@@ -829,7 +841,8 @@ CUdeviceptr CUDALinearBufferView::get_device_ptr()
 
 thrust::host_vector<uint8_t> CUDALinearBufferView::get_host_data()
 {
-    thrust::host_vector<uint8_t> host_data(desc.element_size * desc.element_count);
+    thrust::host_vector<uint8_t> host_data(
+        desc.element_size * desc.element_count);
     cudaMemcpy(
         host_data.data(), cuda_ptr, host_data.size(), cudaMemcpyDeviceToHost);
     return host_data;

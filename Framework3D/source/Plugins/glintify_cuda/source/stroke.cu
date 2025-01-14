@@ -1,4 +1,6 @@
 
+#include <glm/glm.hpp>
+
 #include "glintify/stroke.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -7,28 +9,6 @@ namespace stroke {
 // Another question would be how to consider the luminance? the shading?
 // By controlling the density of the scratches.
 // But how does that mean exactly?
-
-HOST_DEVICE glm::vec3 Stroke::world_to_tangent_point(
-    glm::vec3 world)  // A default implementation
-{
-    return world * 0.5f + glm::vec3(0.5f, 0.5f, 0.0f);
-}
-
-HOST_DEVICE glm::vec3 Stroke::world_to_tangent_vector(glm::vec3 world)
-{
-    return world;
-}
-
-HOST_DEVICE glm::vec3 Stroke::tangent_to_world_point(glm::vec3 tangent)
-{
-    return (tangent - glm::vec3(0.5f, 0.5f, 0.0f)) * 2.0f;
-}
-
-HOST_DEVICE glm::vec3 Stroke::tangent_to_world_vector(glm::vec3 tangent)
-{
-    return tangent;
-}
-
 HOST_DEVICE glm::vec2 Stroke::eval_required_direction(
     glm::vec2 uv_space_pos,
     glm::vec3 light_pos)
@@ -62,15 +42,6 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 {
     scratch_count = MAX_SCRATCH_COUNT;
 
-    auto left_point = range[0].first;
-    auto right_point = range[0].second;
-
-    if (left_point.x > right_point.x) {
-        auto temp = left_point;
-        left_point = right_point;
-        right_point = temp;
-    }
-
     auto tangent_space_light_pos = world_to_tangent_point(light_pos);
 
     float half_stroke_width = stroke_width / 2.0f;
@@ -79,7 +50,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
 
     glm::vec2 center_point;
 
-    center_point.y = left_point.y;
+    center_point.y = range[0].first.y;
 
     auto uv_vpt = world_to_tangent_point(virtual_point_position);
 
@@ -143,18 +114,35 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         valid_sample_count++;
         pos += dir * step;
 
-        if (pos.x < left_point.x || pos.x > right_point.x) {
+        bool not_in_any_range = true;
+
+        for (int j = 0; j < range_count; ++j) {
+            auto left_point = range[j].first;
+            auto right_point = range[j].second;
+
+            if (left_point.x > right_point.x) {
+                auto temp = left_point;
+                left_point = right_point;
+                right_point = temp;
+            }
+
+            if (pos.x >= left_point.x && pos.x <= right_point.x) {
+                not_in_any_range = false;
+                break;
+            }
+        }
+
+        if (not_in_any_range) {
             scratches[scratch_index]
                 .should_begin_new_line_mask[valid_sample_count] = true;
 
             continue;
         }
 
-        if (pos.y < left_point.y - half_stroke_width ||
-            pos.y > right_point.y + half_stroke_width) {
+        if (pos.y < center_point.y - half_stroke_width ||
+            pos.y > center_point.y + half_stroke_width) {
             scratches[scratch_index]
                 .should_begin_new_line_mask[valid_sample_count] = true;
-            continue;
         }
     }
 
@@ -226,6 +214,12 @@ void calc_simple_plane_projected_ranges(
                     (0 - tangent_camera_right.z) /
                     (tangent_vpt.z - tangent_camera_right.z) +
                 tangent_camera_right;
+
+            if (on_image_left.x > on_image_right.x) {
+                auto temp = on_image_left;
+                on_image_left = on_image_right;
+                on_image_right = temp;
+            }
 
             stroke->range_count = 1;
             stroke->range[0] = std::make_pair(on_image_left, on_image_right);
