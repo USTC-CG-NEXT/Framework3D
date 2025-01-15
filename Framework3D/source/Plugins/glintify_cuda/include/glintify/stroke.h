@@ -29,7 +29,7 @@ class Scratch {
     unsigned int valid_sample_count = 0;
 };
 
-#define MAX_SCRATCH_COUNT 64
+#define MAX_SCRATCH_COUNT 128
 
 #define MAX_RANGES 10
 
@@ -102,12 +102,6 @@ void calc_simple_plane_projected_ranges(
     glm::vec3 world_camera_position,
     glm::vec2 camera_move_range);
 
-void calc_planar_ranges_with_occlusion(
-    const cuda::CUDALinearBufferHandle& d_strokes,
-    const std::vector<glm::vec3>& occlusion_vertices,
-    const std::vector<unsigned>& occlusion_indices,
-    glm::vec3 world_camera_position,
-    glm::vec2 camera_move_range);
 #endif
 }  // namespace stroke
 

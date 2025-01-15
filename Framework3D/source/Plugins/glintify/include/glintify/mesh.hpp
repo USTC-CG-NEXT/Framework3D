@@ -7,16 +7,22 @@
 
 #include "OpenMesh/Core/IO/MeshIO.hh"
 #include "OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh"
+#include "OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 using OpenMeshPolyMesh =
     OpenMesh::PolyMesh_ArrayKernelT<OpenMesh::DefaultTraits>;
+
+using OpenMeshTriMesh = OpenMesh::TriMesh_ArrayKernelT<OpenMesh::DefaultTraits>;
 
 class Mesh {
    public:
     static Mesh load_from_obj(const std::string& filename);
 
     std::vector<glm::vec3> sample_on_edges(float distance);
+
+    void refresh();
+    Mesh get_triangulated_mesh();
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;

@@ -64,7 +64,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
     auto vertical_movement =
         glm::vec2(0, 1) * stroke_width *
         (float(scratch_index / 2 + 0.5f) / float(MAX_SCRATCH_COUNT) - 0.25f) *
-        40.0f;
+        90.0f;
 
     auto pos = center_point + glm::vec2(0.0001, 0) +
                glm::vec2(-1, 0) * float(scratch_index + 0.1f) /

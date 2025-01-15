@@ -29,8 +29,9 @@ class StrokeSystem {
         is_dirty = true;
     }
 
-    void set_occlusion(const std::vector<glm::vec3>& vertices, const std::vector<unsigned>& indices);
-
+    void set_occlusion(
+        const std::vector<glm::vec3>& vertices,
+        const std::vector<unsigned>& indices);
 
     void calc_scratches();
     void add_virtual_point(const glm::vec3& vec);
@@ -49,11 +50,22 @@ class StrokeSystem {
     glm::vec2 camera_move_range;
     glm::vec3 world_light_position;
     std::vector<cuda::CUDALinearBufferHandle> strokes;
-    ;
     bool on_plane_board = true;
     std::vector<std::vector<glm::vec2>> endpoints_cache;
     std::vector<glm::vec3> occlusion_vertices;
     std::vector<unsigned int> occlusion_indices;
+
+   private:
+    // Occlusion test pipeline
+    std::once_flag optix_init_flag;
+
+    void prepare_occlusion_test_pipeline();
+
+    cuda::OptiXProgramGroupHandle miss;
+    cuda::OptiXModuleHandle hg_module;
+    cuda::OptiXProgramGroupHandle hit_group;
+    cuda::OptiXPipelineHandle pipeline;
+    cuda::OptiXProgramGroupHandle raygen;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

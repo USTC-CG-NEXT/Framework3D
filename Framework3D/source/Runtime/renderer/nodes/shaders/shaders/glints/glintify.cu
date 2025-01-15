@@ -1,10 +1,8 @@
 #include <optix_device.h>
 
-#include "glintify/stroke.h"
-
-
 #include "../Optix/ShaderNameAbbre.h"
 #include "glintify/glintify_params.h"
+#include "glintify/stroke.h"
 
 inline unsigned GetLaunchID()
 {
@@ -39,14 +37,25 @@ RGS(mesh_glintify)
     auto camera_left = params.camera_position;
     camera_left.x += camera_move_range.x;
 
+
     auto camera_right = params.camera_position;
     camera_right.x += camera_move_range.y;
 
+    auto tangent_vpt =
+        stroke->world_to_tangent_point(stroke->virtual_point_position);
+
+    unsigned current_range = 0;
+
+    bool taping = false;
+    glm::vec2 on_image;
+
     for (int i = 0; i < sample_count; i++) {
         auto t = static_cast<float>(i) / (sample_count - 1);
-        auto test_cam_pos = camera_left * (1 - t) + camera_right * t;
+        auto test_cam_pos =
+            camera_left * (1 - t) + camera_right * t;
 
-        auto dir = stroke.virtual_point_position - test_cam_pos;
+
+        auto dir = stroke->virtual_point_position - test_cam_pos;
 
         unsigned occluded = 0;
         optixTrace(
@@ -62,40 +71,77 @@ RGS(mesh_glintify)
             1,
             0,
             occluded);
+
+        //occluded = 0;
+         
+        bool start_taping = !taping && !occluded;
+        bool end_taping = taping && occluded;
+        
+        test_cam_pos = stroke->world_to_tangent_point(test_cam_pos);
+
+
+        on_image = (tangent_vpt - test_cam_pos) * (0 - test_cam_pos.z) /
+                       (tangent_vpt.z - test_cam_pos.z) +
+                   test_cam_pos;
+
+        if (start_taping) {
+            taping = true;
+            stroke->range[current_range].first = on_image;
+        }
+
+        if (end_taping) {
+            taping = false;
+            stroke->range[current_range].second = on_image;
+
+            current_range++;
+        }
     }
 
-    //auto tangent_vpt =
-    //    stroke->world_to_tangent_point(stroke->virtual_point_position);
+    if (taping) {
+        stroke->range[current_range].second = on_image;
+        current_range++;
+    }
 
-    //auto tangent_camera_left = stroke->world_to_tangent_point(camera_left);
+    stroke->range_count = current_range;
 
-    //auto tangent_camera_right = stroke->world_to_tangent_point(camera_right);
+    // camera_left = params.camera_position;
+    //         camera_left.x += camera_move_range.x;
+    //         auto tangent_camera_left =
+    //             stroke->world_to_tangent_point(camera_left);
 
-    //glm::vec2 on_image_left = (tangent_vpt - tangent_camera_left) *
-    //                              (0 - tangent_camera_left.z) /
-    //                              (tangent_vpt.z - tangent_camera_left.z) +
-    //                          tangent_camera_left;
+    //        camera_right = params.camera_position;
+    //        camera_right.x += camera_move_range.y;
 
-    //glm::vec2 on_image_right = (tangent_vpt - tangent_camera_right) *
-    //                               (0 - tangent_camera_right.z) /
-    //                               (tangent_vpt.z - tangent_camera_right.z) +
-    //                           tangent_camera_right;
+    //        auto tangent_camera_right =
+    //            stroke->world_to_tangent_point(camera_right);
 
-    //for (int i = 0; i < sample_count; i++) {
-    //    auto t = static_cast<float>(i) / (sample_count - 1);
-    //    auto on_image = on_image_left * (1 - t) + on_image_right * t;
-    //}
+    //        glm::vec2 on_image_left =
+    //            (tangent_vpt - tangent_camera_left) *
+    //                (0 - tangent_camera_left.z) /
+    //                (tangent_vpt.z - tangent_camera_left.z) +
+    //            tangent_camera_left;
 
-    //stroke->range_count = 1;
-    //stroke->range[0] = std::make_pair(on_image_left, on_image_right);
+    //        glm::vec2 on_image_right =
+    //            (tangent_vpt - tangent_camera_right) *
+    //                (0 - tangent_camera_right.z) /
+    //                (tangent_vpt.z - tangent_camera_right.z) +
+    //            tangent_camera_right;
+
+    //        if (on_image_left.x > on_image_right.x) {
+    //            auto temp = on_image_left;
+    //            on_image_left = on_image_right;
+    //            on_image_right = temp;
+    //        }
+
+    //        stroke->range_count = 1;
+    //        stroke->range[0] = cuda::std::make_pair(on_image_left,
+    //        on_image_right);
 }
 
 CHS(mesh_glintify)
 {
     unsigned hit = 1;
     optixSetPayload_0(hit);
-    printf("hit\n");
-
 }
 MISS(mesh_glintify)
 {

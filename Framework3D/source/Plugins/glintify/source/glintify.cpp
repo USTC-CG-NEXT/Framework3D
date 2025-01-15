@@ -1,6 +1,7 @@
 #include <glintify/glintify.hpp>
 
 #include "Logger/Logger.h"
+#include "glintify/glintify_params.h"
 #include "glintify/stroke.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -39,6 +40,32 @@ std::vector<std::vector<glm::vec2>> StrokeSystem::get_all_endpoints()
     return endpoints_cache;
 }
 
+void StrokeSystem::prepare_occlusion_test_pipeline()
+{
+    raygen = cuda::create_optix_raygen(
+        RENDERER_SHADER_DIR + std::string("shaders/glints/glintify.cu"),
+        RGS_STR(mesh_glintify),
+        "params");
+
+    miss = cuda::create_optix_miss(
+        RENDERER_SHADER_DIR + std::string("shaders/glints/glintify.cu"),
+        MISS_STR(mesh_glintify),
+        "params");
+
+    hg_module = cuda::create_optix_module(
+        RENDERER_SHADER_DIR + std::string("shaders/glints/glintify.cu"),
+        "params");
+
+    cuda::OptiXProgramGroupDesc hg_desc;
+    hg_desc.set_program_group_kind(OPTIX_PROGRAM_GROUP_KIND_HITGROUP)
+        .set_entry_name(nullptr, nullptr, CHS_STR(mesh_glintify));
+    hit_group = cuda::create_optix_program_group(
+        hg_desc, { nullptr, nullptr, hg_module });
+
+    pipeline =
+        cuda::create_optix_pipeline({ raygen, hit_group, miss }, "params");
+}
+
 void StrokeSystem::fill_ranges(bool consider_occlusion)
 {
     std::vector<Stroke*> stroke_addrs;
@@ -57,12 +84,44 @@ void StrokeSystem::fill_ranges(bool consider_occlusion)
         }
     }
     else {
-        stroke::calc_planar_ranges_with_occlusion(
-            d_strokes,
-            occlusion_vertices,
-            occlusion_indices,
-            world_camera_position,
-            camera_move_range);
+        std::call_once(optix_init_flag, []() {
+            cuda::optix_init();
+            cuda::add_extra_relative_include_dir_for_optix(
+                "../../source/Plugins/glintify_cuda/include");
+        });
+
+        auto device_vertices =
+            cuda::create_cuda_linear_buffer(occlusion_vertices);
+        auto device_indices =
+            cuda::create_cuda_linear_buffer(occlusion_indices);
+
+        auto triangular_occlusion_optix_accel_handle =
+            cuda::create_mesh_optix_traversable(
+                { device_vertices->get_device_ptr() },
+                occlusion_vertices.size(),
+                sizeof(glm::vec3),
+                device_indices->get_device_ptr(),
+                occlusion_indices.size(),
+                false);
+
+        if (!pipeline)
+            prepare_occlusion_test_pipeline();
+
+        auto glints_params =
+            cuda::create_cuda_linear_buffer<GlintifyParams>(GlintifyParams{
+                triangular_occlusion_optix_accel_handle->getOptiXTraversable(),
+                reinterpret_cast<Stroke**>(d_strokes->get_device_ptr()),
+                world_camera_position,
+                camera_move_range });
+
+        auto stroke_count = d_strokes->getDesc().element_count;
+        cuda::optix_trace_ray<GlintifyParams>(
+            triangular_occlusion_optix_accel_handle,
+            pipeline,
+            glints_params->get_device_ptr(),
+            stroke_count,
+            1,
+            1);
     }
 }
 
@@ -85,7 +144,7 @@ void StrokeSystem::calc_scratches()
 
     auto d_strokes = cuda::create_cuda_linear_buffer(stroke_addrs);
 
-    fill_ranges();
+    // fill_ranges();
 
     stroke::calc_scratches(
         d_strokes, world_camera_position, world_light_position);

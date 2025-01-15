@@ -5,6 +5,8 @@
 #include "glintify/glintify.hpp"
 #include "glintify/mesh.hpp"
 
+#define TEST_VIRTUAL_POINT 0
+
 class StrokeEditWidget : public USTC_CG::IWidget {
    public:
     StrokeEditWidget(std::shared_ptr<USTC_CG::StrokeSystem> stroke_system)
@@ -33,14 +35,22 @@ class StrokeEditWidget : public USTC_CG::IWidget {
             stroke_system->set_camera_move_range(camera_move_range);
         }
 
-        //if (ImGui::SliderFloat3(
-        //        "Virtual Point Position",
-        //        &virtual_point_position.x,
-        //        -1.0f,
-        //        1.0f)) {
-        //    stroke_system->clear();
-        //    stroke_system->add_virtual_point(virtual_point_position);
-        //}
+#if TEST_VIRTUAL_POINT
+        if (ImGui::SliderFloat3(
+                "Virtual Point Position",
+                &virtual_point_position.x,
+                -1.0f,
+                1.0f)) {
+            stroke_system->clear();
+            stroke_system->add_virtual_point(virtual_point_position);
+        }
+#endif
+
+        if (ImGui::Checkbox(
+                "Consider Occlusion", &fill_ranges_with_occlusion)) {
+            stroke_system->is_dirty = true;
+        }
+        stroke_system->fill_ranges(fill_ranges_with_occlusion);
 
         if (ImGui::Button("Save")) {
             auto end_points = stroke_system->get_all_endpoints();
@@ -66,6 +76,8 @@ class StrokeEditWidget : public USTC_CG::IWidget {
     }
 
    private:
+    bool fill_ranges_with_occlusion = true;
+
     glm::vec3 camera_position = glm::vec3(0, 0.8, -3);
     glm::vec3 light_position = glm::vec3(0, 3, -3);
     glm::vec2 camera_move_range = glm::vec2(-0.7, 0.7);
@@ -122,12 +134,16 @@ int main()
     using namespace USTC_CG;
 
     auto stroke_system = std::make_shared<StrokeSystem>();
-    auto mesh = USTC_CG::Mesh::load_from_obj("cube.obj");
+    auto mesh = USTC_CG::Mesh::load_from_obj("bunny.obj");
+
+    auto triangulated = mesh.get_triangulated_mesh();
     auto edge_samples = mesh.sample_on_edges(0.099f);
 
     for (auto& sample : edge_samples) {
         stroke_system->add_virtual_point(sample);
     }
+
+    stroke_system->set_occlusion(triangulated.vertices, triangulated.indices);
 
     // stroke_system->add_virtual_point({ 0, 0, -1 });
 

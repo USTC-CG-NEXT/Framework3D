@@ -968,7 +968,7 @@ OptiXTraversableHandle create_mesh_optix_traversable(
     triangleArray.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
     triangleArray.indexBuffer = indexBuffer;
     triangleArray.indexStrideInBytes = sizeof(unsigned int) * 3;
-    triangleArray.numIndexTriplets = numPrimitives;
+    triangleArray.numIndexTriplets = numPrimitives/3;
     triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
     triangleArray.numSbtRecords = 1;
 

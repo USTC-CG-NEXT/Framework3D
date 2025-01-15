@@ -12,43 +12,8 @@ USTC_CG::Mesh USTC_CG::Mesh::load_from_obj(const std::string& filename)
         throw std::runtime_error("Failed to load obj file");
     }
 
-    // write to vertices
+    mesh.refresh();
 
-    for (auto v_it = mesh.omesh.vertices_begin();
-         v_it != mesh.omesh.vertices_end();
-         ++v_it) {
-        auto v = mesh.omesh.point(*v_it);
-        mesh.vertices.push_back({ v[0], v[1], v[2] });
-    }
-
-    // write to normals
-    for (auto v_it = mesh.omesh.vertices_begin();
-         v_it != mesh.omesh.vertices_end();
-         ++v_it) {
-        if (mesh.omesh.has_vertex_normals()) {
-            auto n = mesh.omesh.normal(*v_it);
-            mesh.normals.push_back({ n[0], n[1], n[2] });
-        }
-    }
-
-    // write to texcoords
-    for (auto v_it = mesh.omesh.vertices_begin();
-         v_it != mesh.omesh.vertices_end();
-         ++v_it) {
-        if (mesh.omesh.has_vertex_texcoords2D()) {
-            auto t = mesh.omesh.texcoord2D(*v_it);
-            mesh.texcoords.push_back({ t[0], t[1] });
-        }
-    }
-
-    // write to indices
-    for (auto f_it = mesh.omesh.faces_begin(); f_it != mesh.omesh.faces_end();
-         ++f_it) {
-        for (auto fv_it = mesh.omesh.fv_iter(*f_it); fv_it.is_valid();
-             ++fv_it) {
-            mesh.indices.push_back(fv_it->idx());
-        }
-    }
     return mesh;
 }
 
@@ -71,10 +36,60 @@ std::vector<glm::vec3> USTC_CG::Mesh::sample_on_edges(float distance)
 
         for (int i = 0; i <= num_samples; ++i) {
             float t = static_cast<float>(i) / num_samples;
+            if (num_samples == 0) {
+                t = 0.5f;
+            }
             glm::vec3 sample_point = glm::mix(from_vec, to_vec, t);
-            edge_samples.push_back(sample_point);
+            edge_samples.push_back(sample_point * 1.05f);
         }
     }
 
     return edge_samples;
+}
+
+void USTC_CG::Mesh::refresh()
+{
+    vertices.clear();
+    normals.clear();
+    texcoords.clear();
+    indices.clear();
+
+    for (auto v_it = omesh.vertices_begin(); v_it != omesh.vertices_end();
+         ++v_it) {
+        auto v = omesh.point(*v_it);
+        vertices.push_back({ v[0], v[1], v[2] });
+    }
+
+    // write to normals
+    for (auto v_it = omesh.vertices_begin(); v_it != omesh.vertices_end();
+         ++v_it) {
+        if (omesh.has_vertex_normals()) {
+            auto n = omesh.normal(*v_it);
+            normals.push_back({ n[0], n[1], n[2] });
+        }
+    }
+
+    // write to texcoords
+    for (auto v_it = omesh.vertices_begin(); v_it != omesh.vertices_end();
+         ++v_it) {
+        if (omesh.has_vertex_texcoords2D()) {
+            auto t = omesh.texcoord2D(*v_it);
+            texcoords.push_back({ t[0], t[1] });
+        }
+    }
+
+    // write to indices
+    for (auto f_it = omesh.faces_begin(); f_it != omesh.faces_end(); ++f_it) {
+        for (auto fv_it = omesh.fv_iter(*f_it); fv_it.is_valid(); ++fv_it) {
+            indices.push_back(fv_it->idx());
+        }
+    }
+}
+
+USTC_CG::Mesh USTC_CG::Mesh::get_triangulated_mesh()
+{
+    auto new_mesh = *this;
+    new_mesh.omesh.triangulate();
+    new_mesh.refresh();
+    return new_mesh;
 }

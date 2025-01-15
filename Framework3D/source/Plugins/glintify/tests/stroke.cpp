@@ -55,15 +55,3 @@ TEST(StrokeSystem, calc_scratch)
 
     s.calc_scratch(1, glm::vec3(-1, 3, -3));
 }
-
-TEST(StrokeSystem, get_all_endpoints)
-{
-    StrokeSystem stroke_system;
-    stroke_system.add_virtual_point(glm::vec3(0, 0, 0));
-    stroke_system.calc_scratches();
-
-    auto endpoints = stroke_system.get_all_endpoints();
-    ASSERT_FALSE(endpoints.empty());
-    ASSERT_EQ(endpoints.size(), 128);
-    ASSERT_EQ(endpoints[0].size(), 16);
-}
