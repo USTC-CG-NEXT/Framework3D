@@ -18,7 +18,7 @@ using cuda::std::pair;
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
 
-#define SAMPLE_POINT_COUNT 512
+#define SAMPLE_POINT_COUNT 256
 
 class Scratch {
    public:

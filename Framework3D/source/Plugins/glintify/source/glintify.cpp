@@ -101,7 +101,7 @@ void StrokeSystem::fill_ranges(bool consider_occlusion)
                 occlusion_vertices.size(),
                 sizeof(glm::vec3),
                 device_indices->get_device_ptr(),
-                occlusion_indices.size(),
+                occlusion_indices.size() / 3,
                 false);
 
         if (!pipeline)
