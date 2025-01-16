@@ -2,6 +2,7 @@
 #include <GUI/window.h>
 #include <gtest/gtest.h>
 
+#include "RHI/rhi.hpp"
 #include "glintify/glintify.hpp"
 #include "glintify/mesh.hpp"
 
@@ -78,9 +79,9 @@ class StrokeEditWidget : public USTC_CG::IWidget {
    private:
     bool fill_ranges_with_occlusion = true;
 
-    glm::vec3 camera_position = glm::vec3(0, 0.8, -3);
-    glm::vec3 light_position = glm::vec3(0, 3, -3);
-    glm::vec2 camera_move_range = glm::vec2(-0.7, 0.7);
+    glm::vec3 camera_position = glm::vec3(0, 0.8, -6);
+    glm::vec3 light_position = glm::vec3(0, 4, -4);
+    glm::vec2 camera_move_range = glm::vec2(-3.0, 3.0);
 
     glm::vec3 virtual_point_position = glm::vec3(0, 0, -1);
 

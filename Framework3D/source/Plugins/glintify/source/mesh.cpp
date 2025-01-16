@@ -6,12 +6,21 @@ USTC_CG::Mesh USTC_CG::Mesh::load_from_obj(const std::string& filename)
     Mesh mesh;
     OpenMesh::IO::Options opt;
     opt += OpenMesh::IO::Options::VertexNormal;
+    opt += OpenMesh::IO::Options::FaceNormal;
     opt += OpenMesh::IO::Options::VertexTexCoord;
 
     if (!OpenMesh::IO::read_mesh(mesh.omesh, filename, opt)) {
         throw std::runtime_error("Failed to load obj file");
     }
 
+    if (!mesh.omesh.has_face_normals()) {
+        mesh.omesh.request_face_normals();
+        mesh.omesh.update_face_normals();
+    }
+    if (!mesh.omesh.has_vertex_normals()) {
+        mesh.omesh.request_vertex_normals();
+        mesh.omesh.update_vertex_normals();
+    }
     mesh.refresh();
 
     return mesh;
@@ -40,7 +49,11 @@ std::vector<glm::vec3> USTC_CG::Mesh::sample_on_edges(float distance)
                 t = 0.5f;
             }
             glm::vec3 sample_point = glm::mix(from_vec, to_vec, t);
-            edge_samples.push_back(sample_point * 1.05f);
+
+            auto normal = omesh.normal(omesh.from_vertex_handle(heh));
+            glm::vec3 nor(normal[0], normal[1], normal[2]);
+
+            edge_samples.push_back(sample_point + 0.01f * nor);
         }
     }
 

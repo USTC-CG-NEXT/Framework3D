@@ -18,13 +18,6 @@ TEST(StrokeSystem, fill_ranges)
     stroke_system.add_virtual_point(glm::vec3(-0.0, 0.1, -1));
 
     stroke_system.fill_ranges();
-
-    auto stroke = stroke_system.strokes[0]->get_host_value<stroke::Stroke>();
-
-    std::cout << stroke.range[0].first.x << " " << stroke.range[0].first.y
-              << std::endl;
-    std::cout << stroke.range[0].second.x << " " << stroke.range[0].second.y
-              << std::endl;
 }
 
 TEST(StrokeSystem, fill_ranges_occluded)

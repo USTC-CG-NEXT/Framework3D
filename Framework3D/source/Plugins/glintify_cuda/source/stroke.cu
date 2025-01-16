@@ -78,7 +78,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         scratches[scratch_index].should_begin_new_line_mask[i] = false;
     }
 
-    for (int i = 0; i < SAMPLE_POINT_COUNT; ++i) {
+    for (int i = 0; i < TEST_STEP_COUNT; ++i) {
         auto dir = eval_required_direction(pos, light_pos);
 
         if (i == 0) {
@@ -109,9 +109,9 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
             break;
         }
 
-        auto step = 2.0f / float(SAMPLE_POINT_COUNT);
+        auto step = 2.0f / float(TEST_STEP_COUNT);
         scratches[scratch_index].sample_point[valid_sample_count] = pos;
-        valid_sample_count++;
+
         pos += dir * step;
 
         bool not_in_any_range = true;
@@ -143,6 +143,13 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
             pos.y > center_point.y + half_stroke_width) {
             scratches[scratch_index]
                 .should_begin_new_line_mask[valid_sample_count] = true;
+
+            continue;
+        }
+        valid_sample_count++;
+        if (valid_sample_count >= SAMPLE_POINT_COUNT) {
+            printf("Early stop because of too many samples\n");
+            break;
         }
     }
 

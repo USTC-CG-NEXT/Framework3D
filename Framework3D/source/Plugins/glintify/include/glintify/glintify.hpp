@@ -11,6 +11,8 @@ class StrokeSystem {
    public:
     std::vector<std::vector<glm::vec2>> get_all_endpoints();
 
+    std::tuple<float*, unsigned> get_all_endpoints_in_vram();
+
     void set_camera_move_range(const glm::vec2& range)
     {
         camera_move_range = range;
@@ -45,6 +47,7 @@ class StrokeSystem {
 
     bool is_dirty = true;
 
+   private:
     glm::vec3 virtual_point_position;
     glm::vec3 world_camera_position;
     glm::vec2 camera_move_range;

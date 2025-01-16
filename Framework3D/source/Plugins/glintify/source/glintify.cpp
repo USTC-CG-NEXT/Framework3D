@@ -40,6 +40,11 @@ std::vector<std::vector<glm::vec2>> StrokeSystem::get_all_endpoints()
     return endpoints_cache;
 }
 
+std::tuple<float*, unsigned> StrokeSystem::get_all_endpoints_in_vram()
+{
+    return { nullptr, 0 };
+}
+
 void StrokeSystem::prepare_occlusion_test_pipeline()
 {
     raygen = cuda::create_optix_raygen(
