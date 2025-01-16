@@ -33,7 +33,7 @@
 	url = https://github.com/NVIDIA/nvapi.git
 [submodule "Framework3D/external/glm"]
 	path = Framework3D/external/glm
-	url = https://github.com/g-truc/glm.git
+	url = https://github.com/USTC-CG-NEXT/glm.git
 [submodule "Framework3D/external/nanobind"]
 	path = Framework3D/external/nanobind
 	url = https://github.com/wjakob/nanobind.git
