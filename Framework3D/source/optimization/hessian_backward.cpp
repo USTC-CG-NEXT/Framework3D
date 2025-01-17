@@ -11,7 +11,7 @@ NODE_DECLARATION_FUNCTION(hessian_backward)
 {
     b.add_input<std::function<var(const ArrayXvar&)>>("Function");
     //b.add_input<Eigen::VectorXd>("Target Point");
-    b.add_output<Eigen::MatrixXd>("Gradient");
+    b.add_output<Eigen::MatrixXd>("Hessian");
 }
 
 NODE_EXECUTION_FUNCTION(hessian_backward)

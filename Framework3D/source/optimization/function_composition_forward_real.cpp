@@ -3,19 +3,18 @@
 #include <autodiff/forward/real/eigen.hpp>
 
 #include "nodes/core/def/node_def.hpp"
-
 using namespace autodiff;
 
 NODE_DEF_OPEN_SCOPE
 
-NODE_DECLARATION_FUNCTION(function_composition_forward)
+NODE_DECLARATION_FUNCTION(function_composition_forward_real)
 {
     b.add_input<std::function<real(const ArrayXreal&)>>("Function_1");
     b.add_input<std::function<real(real)>>("Function_2");
     b.add_output<std::function<real(const ArrayXreal&)>>("Function_result");
 }
 
-NODE_EXECUTION_FUNCTION(function_composition_forward)
+NODE_EXECUTION_FUNCTION(function_composition_forward_real)
 {
     auto f1 =
         params.get_input<std::function<real(const ArrayXreal&)>>("Function_1");
@@ -29,5 +28,5 @@ NODE_EXECUTION_FUNCTION(function_composition_forward)
     return true;
 }
 
-NODE_DECLARATION_UI(function_composition_forward);
+NODE_DECLARATION_UI(function_composition_forward_real);
 NODE_DEF_CLOSE_SCOPE

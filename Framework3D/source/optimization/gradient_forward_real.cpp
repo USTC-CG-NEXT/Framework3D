@@ -7,16 +7,17 @@ using namespace autodiff;
 
 NODE_DEF_OPEN_SCOPE
 
-NODE_DECLARATION_FUNCTION(gradient_forward)
+NODE_DECLARATION_FUNCTION(gradient_forward_real)
 {
     b.add_input<std::function<real(const ArrayXreal&)>>("Function");
     //    b.add_input<Eigen::VectorXd>("Target Point");
     b.add_output<Eigen::VectorXd>("Gradient");
 }
 
-NODE_EXECUTION_FUNCTION(gradient_forward)
+NODE_EXECUTION_FUNCTION(gradient_forward_real)
 {
-    auto f = params.get_input<std::function<real(const ArrayXreal&)>>("Function");
+    auto f =
+        params.get_input<std::function<real(const ArrayXreal&)>>("Function");
     Eigen::VectorXd x0(3);
     //    Eigen::VectorXd x0 = params.get_input<Eigen::VectorXd>("Target
     //    Point");
@@ -31,6 +32,6 @@ NODE_EXECUTION_FUNCTION(gradient_forward)
     return true;
 }
 
-NODE_DECLARATION_REQUIRED(gradient_forward);
-NODE_DECLARATION_UI(gradient_forward);
+NODE_DECLARATION_REQUIRED(gradient_forward_real);
+NODE_DECLARATION_UI(gradient_forward_real);
 NODE_DEF_CLOSE_SCOPE
