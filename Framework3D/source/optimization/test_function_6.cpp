@@ -1,6 +1,6 @@
 #include <Eigen/Eigen>
-#include <autodiff/forward/real.hpp>
-#include <autodiff/forward/real/eigen.hpp>
+#include <autodiff/forward/dual.hpp>
+#include <autodiff/forward/dual/eigen.hpp>
 
 #include "nodes/core/def/node_def.hpp"
 using namespace autodiff;
@@ -9,13 +9,13 @@ NODE_DEF_OPEN_SCOPE
 
 NODE_DECLARATION_FUNCTION(test_function_6)
 {
-    b.add_output<std::function<real(real)>>("Function");
+    b.add_output<std::function<dual(dual)>>("Function");
 }
 
 NODE_EXECUTION_FUNCTION(test_function_6)
 {
-    auto f = [](real x) { return 2 * x; };
-    params.set_output<std::function<real(real)>>("Function", std::move(f));
+    auto f = [](dual x) { return 2 * x; };
+    params.set_output<std::function<dual(dual)>>("Function", std::move(f));
     return true;
 }
 
