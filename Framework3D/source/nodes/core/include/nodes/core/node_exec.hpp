@@ -129,7 +129,9 @@ struct NODES_CORE_API NodeTreeExecutor {
     }
 
     virtual ~NodeTreeExecutor() = default;
-    virtual void prepare_tree(NodeTree* tree) = 0;
+    virtual void prepare_tree(
+        NodeTree* tree,
+        Node* required_node = nullptr) = 0;
     virtual void execute_tree(NodeTree* tree) = 0;
     virtual void finalize(NodeTree* tree)
     {
@@ -145,9 +147,9 @@ struct NODES_CORE_API NodeTreeExecutor {
         entt::meta_any& data)
     {
     }
-    void execute(NodeTree* tree)
+    void execute(NodeTree* tree, Node* required_node = nullptr)
     {
-        prepare_tree(tree);
+        prepare_tree(tree, required_node);
         execute_tree(tree);
     }
 

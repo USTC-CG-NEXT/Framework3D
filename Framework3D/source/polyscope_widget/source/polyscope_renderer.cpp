@@ -257,6 +257,7 @@ void PolyscopeRenderer::VisualizePickResult(
         }
         // 得到选中的东西的类型
         auto type = pickResult.first->typeName();
+        auto transform = pickResult.first->getTransform();
         if (type == "Surface Mesh") {
             // 检查选中的是顶点、面、边、半边还是角
             auto mesh = dynamic_cast<polyscope::SurfaceMesh*>(pickResult.first);
@@ -296,6 +297,18 @@ void PolyscopeRenderer::VisualizePickResult(
             else {
                 // TODO
             }
+        }
+        else if (type == "Point Cloud") {
+            // TODO
+        }
+        else if (type == "Curve Network") {
+            // TODO
+        }
+        else {
+            // TODO
+        }
+        if (currPickStructure != nullptr) {
+            currPickStructure->setTransform(transform);
         }
     }
 }

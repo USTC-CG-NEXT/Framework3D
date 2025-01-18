@@ -24,11 +24,12 @@
 #include "Nodes/node.hpp"
 #include "Nodes/node_exec_eager.hpp"
 #include "Nodes/node_socket.hpp"
-#include "utils/json.hpp"
 #include "imgui_impl_opengl3_loader.h"
 #include "node_system_ui.h"
 #include "pxr/usd/usd/attribute.h"
 #include "stb_image.h"
+#include "utils/json.hpp"
+
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 static inline ImRect ImGui_GetItemRect()
@@ -403,10 +404,9 @@ void NodeSystemImpl::OnFrame(float deltaTime)
     auto& io = ImGui::GetIO();
 
     ed::SetCurrentEditor(m_Editor);
-    //Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+    // Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
     ShowLeftPane(leftPaneWidth - 4.0f);
     ImGui::SameLine(0.0f, 12.0f);
-    
 
     ed::Begin(("Node editor" + filename).c_str());
     {

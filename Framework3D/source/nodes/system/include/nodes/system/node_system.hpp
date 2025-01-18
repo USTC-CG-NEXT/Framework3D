@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodes/core/api.hpp"
+#include "nodes/core/node.hpp"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/system/api.h"
 
@@ -20,7 +21,9 @@ class NODES_SYSTEM_API NodeSystem {
     template<typename T>
     void set_global_params(T global_params);
 
-    virtual void execute(bool is_ui_execution = false) const;
+    virtual void execute(
+        bool is_ui_execution = false,
+        Node* required_node = nullptr) const;
 
     [[nodiscard]] NodeTree* get_node_tree() const;
     [[nodiscard]] NodeTreeExecutor* get_node_tree_executor() const;

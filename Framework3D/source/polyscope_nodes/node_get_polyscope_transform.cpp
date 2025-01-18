@@ -1,3 +1,5 @@
+#include <string>
+
 #include "GCore/GOP.h"
 #include "GCore/geom_payload.hpp"
 #include "nodes/core/def/node_def.hpp"
@@ -7,26 +9,27 @@ NODE_DEF_OPEN_SCOPE
 
 NODE_DECLARATION_FUNCTION(get_polyscope_transform)
 {
+    b.add_input<std::string>("Structure Name");
+
     b.add_output<glm::mat4x4>("Transform");
 }
 
 NODE_EXECUTION_FUNCTION(get_polyscope_transform)
 {
-    auto global_payload = params.get_global_payload<GeomPayload>();
-    auto stage = global_payload.stage;
-    auto sdf_path = global_payload.prim_path;
+    auto name = params.get_input<std::string>("Structure Name");
+    // name.size()为255，需要修正
+    name = std::string(name.c_str());
 
     polyscope::Structure* structure = nullptr;
 
-    if (polyscope::hasStructure("Surface Mesh", sdf_path.GetName())) {
-        structure = polyscope::getStructure("Surface Mesh", sdf_path.GetName());
+    if (polyscope::hasStructure("Surface Mesh", name)) {
+        structure = polyscope::getStructure("Surface Mesh", name);
     }
-    else if (polyscope::hasStructure("Point Cloud", sdf_path.GetName())) {
-        structure = polyscope::getStructure("Point Cloud", sdf_path.GetName());
+    else if (polyscope::hasStructure("Point Cloud", name)) {
+        structure = polyscope::getStructure("Point Cloud", name);
     }
-    else if (polyscope::hasStructure("Curve Network", sdf_path.GetName())) {
-        structure =
-            polyscope::getStructure("Curve Network", sdf_path.GetName());
+    else if (polyscope::hasStructure("Curve Network", name)) {
+        structure = polyscope::getStructure("Curve Network", name);
     }
 
     if (!structure) {

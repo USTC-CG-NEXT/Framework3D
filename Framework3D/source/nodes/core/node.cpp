@@ -82,6 +82,9 @@ void Node::serialize(nlohmann::json& value)
         auto& node = value[std::to_string(ID.Get())];
         node["ID"] = ID.Get();
         node["id_name"] = typeinfo->id_name;
+        if (storage_info != nullptr) {
+            node["storage_info"] = storage_info;
+        }
         auto& input_socket_json = node["inputs"];
         auto& output_socket_json = node["outputs"];
 

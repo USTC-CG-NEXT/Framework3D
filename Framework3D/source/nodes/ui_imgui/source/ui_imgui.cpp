@@ -406,6 +406,9 @@ bool NodeWidget::BuildUI()
         else
             ImGui::Text("Unknown node: %p", contextNodeId.AsPointer());
         ImGui::Separator();
+        if (ImGui::MenuItem("Run")) {
+            system_->execute(true, node);
+        }
         if (ImGui::MenuItem("Delete"))
             ed::DeleteNode(contextNodeId);
         ImGui::EndPopup();

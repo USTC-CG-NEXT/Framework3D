@@ -162,7 +162,7 @@ void EagerNodeTreeExecutor::clear()
     output_of_nodes_to_execute.clear();
 }
 
-void EagerNodeTreeExecutor::compile(NodeTree* tree)
+void EagerNodeTreeExecutor::compile(NodeTree* tree, Node* required_node)
 {
     if (tree->has_available_link_cycle) {
         return;
@@ -177,8 +177,15 @@ void EagerNodeTreeExecutor::compile(NodeTree* tree)
     for (int i = nodes_to_execute.size() - 1; i >= 0; i--) {
         auto node = nodes_to_execute[i];
 
-        if (node->typeinfo->ALWAYS_REQUIRED) {
-            node->REQUIRED = true;
+        if (required_node == nullptr) {
+            if (node->typeinfo->ALWAYS_REQUIRED) {
+                node->REQUIRED = true;
+            }
+        }
+        else {
+            if (node == required_node) {
+                node->REQUIRED = true;
+            }
         }
 
         if (node->REQUIRED) {
@@ -364,14 +371,14 @@ EagerNodeTreeExecutor::~EagerNodeTreeExecutor()
 //    this->global_param = param;
 //}
 
-void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree)
+void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree, Node* required_node)
 {
     // auto gilState = PyGILState_Ensure();
 
     tree->ensure_topology_cache();
     clear();
 
-    compile(tree);
+    compile(tree, required_node);
 
     input_states.resize(input_of_nodes_to_execute.size());
     output_states.resize(output_of_nodes_to_execute.size());
