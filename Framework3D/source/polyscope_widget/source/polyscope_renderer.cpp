@@ -124,9 +124,6 @@ bool PolyscopeRenderer::BuildUI()
     if (enable_input_events) {
         ProcessInputEvents();
     }
-    else {
-        Set2dMode();
-    }
     polyscope::view::updateFlight();
     // polyscope::buildUserGuiAndInvokeCallback();
     return true;

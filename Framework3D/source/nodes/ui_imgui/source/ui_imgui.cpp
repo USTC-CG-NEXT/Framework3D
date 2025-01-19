@@ -1,8 +1,8 @@
 
 
+#include "entt/meta/meta.hpp"
+#include "nodes/core/node_exec_eager.hpp"
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "ui_imgui.hpp"
-
 #include <imgui_internal.h>
 
 #include <string>
@@ -13,6 +13,7 @@
 #include "imgui/blueprint-utilities/widgets.h"
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
 #include "nodes/ui/imgui.hpp"
+#include "ui_imgui.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -612,9 +613,86 @@ void NodeWidget::ShowLeftPane(float paneWidth)
     ImGui::TextUnformatted("Selection");
 
     ImGui::Indent();
+    EagerNodeTreeExecutor* executor =
+        dynamic_cast<EagerNodeTreeExecutor*>(system_->get_node_tree_executor());
     for (int i = 0; i < nodeCount; ++i) {
         ImGui::Text("Node (%p)", selectedNodes[i].AsPointer());
         auto node = tree_->find_node(selectedNodes[i]);
+        auto input = node->get_inputs();
+        auto output = node->get_outputs();
+        ImGui::Text("Inputs:");
+        ImGui::Indent();
+        for (auto& in : input) {
+            auto input_value = *executor->FindPtr(in);
+            if (input_value) {
+                if (input_value.allow_cast(entt::resolve<int>())) {
+                    ImGui::Text(
+                        "%s: %d",
+                        in->ui_name,
+                        input_value.allow_cast(entt::resolve<int>()));
+                }
+                else if (input_value.allow_cast(entt::resolve<float>())) {
+                    ImGui::Text(
+                        "%s: %f",
+                        in->ui_name,
+                        input_value.allow_cast(entt::resolve<float>()));
+                }
+                else if (input_value.allow_cast(entt::resolve<std::string>())) {
+                    ImGui::Text(
+                        "%s: %s",
+                        in->ui_name,
+                        input_value.cast<std::string>().c_str());
+                }
+                else {
+                    ImGui::Text(
+                        "%s: %s (%s)",
+                        in->ui_name,
+                        "Unsupported Type",
+                        in->type_info.info().name().data());
+                }
+            }
+            else {
+                ImGui::Text("%s: %s", in->ui_name, "Not Executed");
+            }
+        }
+        ImGui::Unindent();
+        ImGui::Text("Outputs:");
+        ImGui::Indent();
+        for (auto& out : output) {
+            auto output_value = *executor->FindPtr(out);
+            if (output_value) {
+                if (output_value.allow_cast(entt::resolve<int>())) {
+                    ImGui::Text(
+                        "%s: %d",
+                        out->ui_name,
+                        output_value.allow_cast(entt::resolve<int>()));
+                }
+                else if (output_value.allow_cast(entt::resolve<float>())) {
+                    ImGui::Text(
+                        "%s: %f",
+                        out->ui_name,
+                        output_value.allow_cast(entt::resolve<float>()));
+                }
+                else if (output_value.allow_cast(
+                             entt::resolve<std::string>())) {
+                    ImGui::Text(
+                        "%s: %s",
+                        out->ui_name,
+                        output_value.cast<std::string>().c_str());
+                }
+                else {
+                    ImGui::Text(
+                        "%s: %s (%s)",
+                        out->ui_name,
+                        "Unsupported Type",
+                        out->type_info.info().name().data());
+                }
+            }
+            else {
+                ImGui::Text("%s: %s", out->ui_name, "Not Executed");
+            }
+        }
+        ImGui::Unindent();
         if (node->override_left_pane_info)
             node->override_left_pane_info();
     }
