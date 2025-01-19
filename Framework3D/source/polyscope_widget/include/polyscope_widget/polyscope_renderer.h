@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "GUI/widget.h"
+#include "imgui.h"
 #include "polyscope/camera_parameters.h"
 #include "polyscope/polyscope.h"
 #include "polyscope/structure.h"
@@ -25,6 +26,9 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
 
     bool BuildUI() override;
     // void SetCallBack(const std::function<void(Window*, IWidget*)>&) override;
+    // Position, size, is_active, is_hovered
+    std::string GetChildWindowName();
+    void Set2dMode();
 
    protected:
     ImGuiWindowFlags GetWindowFlag() override;
@@ -40,6 +44,8 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
    private:
     std::vector<unsigned char> buffer;
     std::vector<unsigned char> flipped_buffer;
+
+    bool enable_input_events = true;
 
     bool is_active = false;
     bool is_hovered = false;

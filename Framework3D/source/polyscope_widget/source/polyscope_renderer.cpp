@@ -8,6 +8,7 @@
 #include "polyscope/curve_network.h"
 #include "polyscope/surface_mesh.h"
 #include "polyscope/transformation_gizmo.h"
+#include "polyscope/types.h"
 
 #endif
 #include "RHI/rhi.hpp"
@@ -120,10 +121,35 @@ bool PolyscopeRenderer::BuildUI()
     }
 
     DrawFrame();
-    ProcessInputEvents();
+    if (enable_input_events) {
+        ProcessInputEvents();
+    }
+    else {
+        Set2dMode();
+    }
     polyscope::view::updateFlight();
     // polyscope::buildUserGuiAndInvokeCallback();
     return true;
+}
+
+std::string PolyscopeRenderer::GetChildWindowName()
+{
+    return child_window_name;
+}
+
+void PolyscopeRenderer::Set2dMode()
+{
+    // Set the navigation style to 2D
+    polyscope::view::setNavigateStyle(polyscope::NavigateStyle::Planar);
+    // Set the projection mode to orthographic
+    polyscope::view::projectionMode = polyscope::ProjectionMode::Orthographic;
+    // Set the view to the XY plane
+    polyscope::view::setUpDir(polyscope::view::UpDir::YUp);
+    polyscope::view::setFrontDir(polyscope::FrontDir::NegZFront);
+    // Reset the camera view to the home view
+    polyscope::view::resetCameraToHomeView();
+    // Disable the input events
+    enable_input_events = false;
 }
 
 ImGuiWindowFlags PolyscopeRenderer::GetWindowFlag()

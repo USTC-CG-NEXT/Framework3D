@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "GCore/Components/CurveComponent.h"
 #include "GCore/Components/MaterialComponent.h"
 #include "GCore/Components/MeshOperand.h"
@@ -425,6 +427,7 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
                     std::cerr << e.what() << std::endl;
                     return false;
                 }
+                stbi_image_free(data);
             }
             else {
                 // TODO: Throw something
