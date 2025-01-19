@@ -626,16 +626,11 @@ void NodeWidget::ShowLeftPane(float paneWidth)
             auto input_value = *executor->FindPtr(in);
             if (input_value) {
                 if (input_value.allow_cast(entt::resolve<int>())) {
-                    ImGui::Text(
-                        "%s: %d",
-                        in->ui_name,
-                        input_value.allow_cast(entt::resolve<int>()));
+                    ImGui::Text("%s: %d", in->ui_name, input_value.cast<int>());
                 }
                 else if (input_value.allow_cast(entt::resolve<float>())) {
                     ImGui::Text(
-                        "%s: %f",
-                        in->ui_name,
-                        input_value.allow_cast(entt::resolve<float>()));
+                        "%s: %f", in->ui_name, input_value.cast<float>());
                 }
                 else if (input_value.allow_cast(entt::resolve<std::string>())) {
                     ImGui::Text(
@@ -663,15 +658,11 @@ void NodeWidget::ShowLeftPane(float paneWidth)
             if (output_value) {
                 if (output_value.allow_cast(entt::resolve<int>())) {
                     ImGui::Text(
-                        "%s: %d",
-                        out->ui_name,
-                        output_value.allow_cast(entt::resolve<int>()));
+                        "%s: %d", out->ui_name, output_value.cast<int>());
                 }
                 else if (output_value.allow_cast(entt::resolve<float>())) {
                     ImGui::Text(
-                        "%s: %f",
-                        out->ui_name,
-                        output_value.allow_cast(entt::resolve<float>()));
+                        "%s: %f", out->ui_name, output_value.cast<float>());
                 }
                 else if (output_value.allow_cast(
                              entt::resolve<std::string>())) {
