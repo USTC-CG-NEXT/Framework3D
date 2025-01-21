@@ -30,7 +30,7 @@ class Scratch {
     unsigned int valid_sample_count = 0;
 };
 
-#define MAX_SCRATCH_COUNT 64
+#define MAX_SCRATCH_COUNT 256
 
 #define MAX_RANGES 10
 

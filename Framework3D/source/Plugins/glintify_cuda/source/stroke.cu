@@ -28,7 +28,7 @@ HOST_DEVICE glm::vec2 Stroke::eval_required_direction(
         0.5f * (glm::normalize(tangent_space_cam_dir) +
                 glm::normalize(tangent_space_light_dir)));
 
-    return glm::vec2(-half_vec.y, half_vec.x);
+    return glm::normalize(glm::vec2(-half_vec.y, half_vec.x));
 }
 
 HOST_DEVICE glm::vec2 same_direction(glm::vec2 vec, glm::vec2 reference)
@@ -65,7 +65,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
     auto vertical_movement =
         glm::vec2(0, 1) * stroke_width *
         (float(scratch_index / 2 + 0.5f) / float(MAX_SCRATCH_COUNT) - 0.25f) *
-        90.0f;
+        180.0f;
 
     auto pos = center_point + glm::vec2(0.0001, 0) +
                glm::vec2(-1, 0) * float(scratch_index + 0.1f) /
@@ -105,20 +105,7 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         auto step = 2.0f / float(TEST_STEP_COUNT);
         scratches[scratch_index].sample_point[valid_sample_count] = pos;
 
-        auto temp_pos = pos;
-
-        constexpr int substep_count = 10;
-
-        auto sub_step = step / substep_count;
-
-        for (int substep = 0; substep < substep_count; ++substep) {
-            temp_pos += dir * sub_step;
-
-            dir = eval_required_direction(temp_pos, light_pos);
-            dir = same_direction(dir, old_dir);
-        }
-
-        pos = temp_pos;
+        pos += dir * step;
 
         bool not_in_any_range = true;
 

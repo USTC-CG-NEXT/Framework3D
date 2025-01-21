@@ -6,7 +6,7 @@
 #include "glintify/glintify.hpp"
 #include "glintify/mesh.hpp"
 
-#define TEST_VIRTUAL_POINT 1
+#define TEST_VIRTUAL_POINT 0
 
 class StrokeEditWidget : public USTC_CG::IWidget {
    public:
@@ -42,9 +42,9 @@ class StrokeEditWidget : public USTC_CG::IWidget {
                 &virtual_point_position.x,
                 -1.0f,
                 1.0f)) {
-            stroke_system->clear();
-            stroke_system->add_virtual_point(virtual_point_position);
         }
+        stroke_system->clear();
+        stroke_system->add_virtual_point(virtual_point_position);
 #endif
 
         if (ImGui::Checkbox(
@@ -119,7 +119,7 @@ class StrokeVisualizeWidget : public USTC_CG::IWidget {
                         ImVec2(
                             scale * line[i + 1].x,
                             scale * (1.0f - line[i + 1].y)),
-                        1.0f,
+                        0.4f,
                         IM_COL32(255, 255, 255, 255));
                 }
         }
@@ -138,7 +138,7 @@ int main()
     auto mesh = USTC_CG::Mesh::load_from_obj("rings.obj");
 
     auto triangulated = mesh.get_triangulated_mesh();
-    auto edge_samples = mesh.sample_on_edges(0.099f);
+    auto edge_samples = mesh.sample_on_edges(0.99f);
 
     for (auto& sample : edge_samples) {
         stroke_system->add_virtual_point(sample);
