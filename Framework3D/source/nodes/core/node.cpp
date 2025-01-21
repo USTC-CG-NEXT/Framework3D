@@ -280,12 +280,13 @@ void Node::refresh_node()
             }
         }
         // TODO: Panels
-        // else if (
-        //     const PanelDeclaration* panel_decl =
-        //         dynamic_cast<const PanelDeclaration*>(item_decl.get())) {
-        //     refresh_node_panel(*panel_decl, old_panels, *new_panel);
-        //     ++new_panel;
-        // }
+         //else if (
+         //    const PanelDeclaration* panel_decl =
+         //        dynamic_cast<const PanelDeclaration*>(item_decl.get())) {
+         //    refresh_node_panel(*panel_decl, old_panels, *new_panel);
+         //    ++new_panel;
+         //}
+
     }
     inputs = new_inputs;
     outputs = new_outputs;
