@@ -613,33 +613,39 @@ def ShadeLineElement(
         dim=1,
     )
 
-    camera_dir = torch.nn.functional.normalize(camera_pos_uv - p)
-    light_dir = torch.nn.functional.normalize(light_pos_uv - p)
+    camera_dir = torch.nn.functional.normalize(camera_pos_uv - p, dim=1)
+    light_dir = torch.nn.functional.normalize(light_pos_uv - p, dim=1)
 
     cam_dir_2D = camera_dir[:, :2]
     light_dir_2D = light_dir[:, :2]
 
     line_direction = torch.nn.functional.normalize(lines[:, 1, :] - lines[:, 0, :])
 
-    local_cam_dir = torch.stack(
-        (
-            cross_2d(cam_dir_2D, line_direction),
-            torch.sum(cam_dir_2D * line_direction, dim=1),
-            camera_dir[:, 2],
+    local_cam_dir = torch.nn.functional.normalize(
+        torch.stack(
+            (
+                cross_2d(cam_dir_2D, line_direction),
+                torch.sum(cam_dir_2D * line_direction, dim=1),
+                camera_dir[:, 2],
+            ),
+            dim=1,
         ),
         dim=1,
     )
 
-    local_light_dir = torch.stack(
-        (
-            cross_2d(light_dir_2D, line_direction),
-            torch.sum(light_dir_2D * line_direction, dim=1),
-            light_dir[:, 2],
+    local_light_dir = torch.nn.functional.normalize(
+        torch.stack(
+            (
+                cross_2d(light_dir_2D, line_direction),
+                torch.sum(light_dir_2D * line_direction, dim=1),
+                light_dir[:, 2],
+            ),
+            dim=1,
         ),
         dim=1,
     )
 
-    half_vec = torch.nn.functional.normalize(local_cam_dir + local_light_dir)
+    half_vec = torch.nn.functional.normalize(local_cam_dir + local_light_dir, dim=1)
 
     points = torch.stack(
         [
@@ -654,7 +660,7 @@ def ShadeLineElement(
     minimum = torch.min(points[:, :, 0], dim=1).values
     maximum = torch.max(points[:, :, 0], dim=1).values
 
-    cut = 0.4
+    cut = 0.5
     left_cut = -cut * width
     right_cut = cut * width
 

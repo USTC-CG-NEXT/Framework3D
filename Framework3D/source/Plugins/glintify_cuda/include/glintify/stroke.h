@@ -18,8 +18,8 @@ using cuda::std::pair;
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
 
-#define SAMPLE_POINT_COUNT 64
-#define TEST_STEP_COUNT (768*3)
+#define SAMPLE_POINT_COUNT 128
+#define TEST_STEP_COUNT (512)
 
 class Scratch {
    public:
@@ -30,7 +30,7 @@ class Scratch {
     unsigned int valid_sample_count = 0;
 };
 
-#define MAX_SCRATCH_COUNT 128
+#define MAX_SCRATCH_COUNT 64
 
 #define MAX_RANGES 10
 

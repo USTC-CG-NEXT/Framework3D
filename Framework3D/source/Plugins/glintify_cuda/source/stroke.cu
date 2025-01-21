@@ -15,16 +15,16 @@ HOST_DEVICE glm::vec2 Stroke::eval_required_direction(
 {
     auto uv_space_vpt_pos = world_to_tangent_point(virtual_point_position);
 
-    glm::vec2 tangent_space_cam_dir =
+    glm::vec3 tangent_space_cam_dir =
         uv_space_vpt_pos - glm::vec3(uv_space_pos, 0);
     if (uv_space_vpt_pos.z > 0) {
         tangent_space_cam_dir *= -1;
     }
 
-    glm::vec2 tangent_space_light_dir =
+    glm::vec3 tangent_space_light_dir =
         world_to_tangent_point(light_pos) - glm::vec3(uv_space_pos, 0);
 
-    auto half_vec = glm::normalize(
+    glm::vec<3, float> half_vec = glm::normalize(
         0.5f * (glm::normalize(tangent_space_cam_dir) +
                 glm::normalize(tangent_space_light_dir)));
 
@@ -105,7 +105,20 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
         auto step = 2.0f / float(TEST_STEP_COUNT);
         scratches[scratch_index].sample_point[valid_sample_count] = pos;
 
-        pos += dir * step;
+        auto temp_pos = pos;
+
+        constexpr int substep_count = 10;
+
+        auto sub_step = step / substep_count;
+
+        for (int substep = 0; substep < substep_count; ++substep) {
+            temp_pos += dir * sub_step;
+
+            dir = eval_required_direction(temp_pos, light_pos);
+            dir = same_direction(dir, old_dir);
+        }
+
+        pos = temp_pos;
 
         bool not_in_any_range = true;
 

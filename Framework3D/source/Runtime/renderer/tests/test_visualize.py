@@ -40,8 +40,8 @@ def test_render_directed_scratches():
     r = renderer.Renderer()
     r.scratch_context.set_max_pair_buffer_ratio(30.0)
     lines = load_lines()
-    r.set_width(torch.tensor([0.001], device="cuda"))
-    r.set_glints_roughness(torch.tensor([0.000816], device="cuda"))
+    r.set_width(torch.tensor([0.0005], device="cuda"))
+    r.set_glints_roughness(torch.tensor([0.0016/4], device="cuda"))
 
     vertices, indices = renderer.plane_board_scene_vertices_and_indices()
     vertex_buffer_stride = 5 * 4

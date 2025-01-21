@@ -6,7 +6,7 @@
 #include "glintify/glintify.hpp"
 #include "glintify/mesh.hpp"
 
-#define TEST_VIRTUAL_POINT 0
+#define TEST_VIRTUAL_POINT 1
 
 class StrokeEditWidget : public USTC_CG::IWidget {
    public:
@@ -81,7 +81,7 @@ class StrokeEditWidget : public USTC_CG::IWidget {
 
     glm::vec3 camera_position = glm::vec3(0, 1.0, -6);
     glm::vec3 light_position = glm::vec3(0, 6, -4);
-    glm::vec2 camera_move_range = glm::vec2(-3.0, 3.0);
+    glm::vec2 camera_move_range = glm::vec2(-3.f, 3.f);
 
     glm::vec3 virtual_point_position = glm::vec3(0, 0, -1);
 
