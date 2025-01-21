@@ -18,8 +18,8 @@ using cuda::std::pair;
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
 
-#define SAMPLE_POINT_COUNT 32
-#define TEST_STEP_COUNT 768
+#define SAMPLE_POINT_COUNT 64
+#define TEST_STEP_COUNT (768*2)
 
 class Scratch {
    public:
@@ -38,7 +38,7 @@ class Stroke {
    public:
     glm::vec3 virtual_point_position;
 
-    float stroke_width = 0.005f;
+    float stroke_width = 0.01f;
 
     unsigned int scratch_count = 0;
 

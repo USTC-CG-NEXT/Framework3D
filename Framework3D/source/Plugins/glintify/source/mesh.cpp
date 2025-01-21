@@ -60,6 +60,11 @@ std::vector<glm::vec3> USTC_CG::Mesh::sample_on_edges(float distance)
     return edge_samples;
 }
 
+std::vector<glm::vec3> USTC_CG::Mesh::sample_uniform(float density)
+{
+    return {};
+}
+
 void USTC_CG::Mesh::refresh()
 {
     vertices.clear();

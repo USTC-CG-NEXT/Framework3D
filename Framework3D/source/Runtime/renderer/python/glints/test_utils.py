@@ -168,3 +168,7 @@ def rotate_postion(position_np, angle, axis=np.array([0, 0, 1], dtype=np.float32
 
     rotated_position = np.dot(rotation_matrix, position_np)
     return rotated_position
+
+
+def translate_position(position_np, translation):
+    return position_np + translation

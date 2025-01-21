@@ -38,35 +38,47 @@ def test_load_lines():
 
 def test_render_directed_scratches():
     r = renderer.Renderer()
-    r.scratch_context.set_max_pair_buffer_ratio(15.0)
+    r.scratch_context.set_max_pair_buffer_ratio(30.0)
     lines = load_lines()
     r.set_width(torch.tensor([0.001], device="cuda"))
-    r.set_glints_roughness(torch.tensor([0.002], device="cuda"))
+    r.set_glints_roughness(torch.tensor([0.000816], device="cuda"))
 
     vertices, indices = renderer.plane_board_scene_vertices_and_indices()
     vertex_buffer_stride = 5 * 4
-    resolution = [1536 * 2, 1024 * 2]
-    camera_position_np = np.array([2, 2, 3], dtype=np.float32)
-    light_position_np = np.array([2, -2, 3], dtype=np.float32)
+    resolution = [1000, 800]
+    camera_position_np = np.array([0, 1.0, 6], dtype=np.float32)
+    light_position_np = np.array([0, 6, 4], dtype=np.float32)
 
-    r.set_camera_position(camera_position_np)
+    r.set_look_at(camera_position_np, [0, 0, 0], [0, 1, 0])
     r.set_light_position(light_position_np)
-    r.set_perspective(np.pi / 3, resolution[0] / resolution[1], 0.1, 1000.0)
+    r.set_perspective(np.pi / 6, resolution[0] / resolution[1], 0.1, 1000.0)
     r.set_mesh(vertices, indices, vertex_buffer_stride)
 
+    translate_range = [-3, 3]
 
-    for i in range(30):
-        angle = i * (2 * np.pi / 2)
-        rotation_matrix = np.array(
-            [
-                [np.cos(angle), -np.sin(angle), 0],
-                [np.sin(angle), np.cos(angle), 0],
-                [0, 0, 1],
-            ],
-            dtype=np.float32,
+    test_view_count = 30
+    translation_step = (translate_range[1] - translate_range[0]) / test_view_count
+
+    rotation_range = [-np.pi * 0.1475837423, np.pi * 0.1475837423]
+    rotation_step = (rotation_range[1] - rotation_range[0]) / test_view_count
+    for i in range(test_view_count):
+
+        translation = np.array(
+            [translate_range[0] + i * translation_step, 0, 0], dtype=np.float32
         )
-        rotated_camera_position = np.dot(rotation_matrix, camera_position_np)
-        r.set_camera_position(rotated_camera_position)
+        translated_camera_position = test_utils.translate_position(
+            camera_position_np, translation
+        )
+
+        angle = rotation_range[0] + i * rotation_step
+
+        rotated_camera_position = test_utils.rotate_postion(
+            camera_position_np, angle, axis=np.array([0, 1, 0], dtype=np.float32)
+        )
+        r.set_look_at(rotated_camera_position, [0, 0, 0], [0, 1, 0])
         image, _ = r.render(resolution, lines)
         image *= 10
-        save_image(image, resolution, f"raster_test/directed_intersection_{i}.png")
+        test_utils.save_image(
+            image, resolution, f"raster_test/directed_intersection_{i}.exr"
+        )
+        torch.cuda.empty_cache()

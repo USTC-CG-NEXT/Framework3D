@@ -32,7 +32,7 @@ RGS(mesh_glintify)
 
     auto camera_move_range = params.camera_move_range;
 
-    constexpr unsigned sample_count = 256;
+    constexpr unsigned sample_count = 1024;
 
     auto camera_left = params.camera_position;
     camera_left.x += camera_move_range.x;

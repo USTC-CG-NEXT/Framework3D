@@ -20,6 +20,9 @@ class Mesh {
     static Mesh load_from_obj(const std::string& filename);
 
     std::vector<glm::vec3> sample_on_edges(float distance);
+    std::vector<glm::vec3> sample_uniform(float density);
+
+    // std::vector<glm::vec3> sample_based_on_image()
 
     void refresh();
     Mesh get_triangulated_mesh();

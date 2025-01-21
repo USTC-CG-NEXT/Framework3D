@@ -79,8 +79,8 @@ class StrokeEditWidget : public USTC_CG::IWidget {
    private:
     bool fill_ranges_with_occlusion = true;
 
-    glm::vec3 camera_position = glm::vec3(0, 0.8, -6);
-    glm::vec3 light_position = glm::vec3(0, 4, -4);
+    glm::vec3 camera_position = glm::vec3(0, 1.0, -6);
+    glm::vec3 light_position = glm::vec3(0, 8, -4);
     glm::vec2 camera_move_range = glm::vec2(-3.0, 3.0);
 
     glm::vec3 virtual_point_position = glm::vec3(0, 0, -1);
@@ -135,7 +135,7 @@ int main()
     using namespace USTC_CG;
 
     auto stroke_system = std::make_shared<StrokeSystem>();
-    auto mesh = USTC_CG::Mesh::load_from_obj("bunny.obj");
+    auto mesh = USTC_CG::Mesh::load_from_obj("rings.obj");
 
     auto triangulated = mesh.get_triangulated_mesh();
     auto edge_samples = mesh.sample_on_edges(0.099f);
