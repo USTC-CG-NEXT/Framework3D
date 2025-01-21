@@ -19,7 +19,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace stroke {
 
 #define SAMPLE_POINT_COUNT 64
-#define TEST_STEP_COUNT (768*2)
+#define TEST_STEP_COUNT (768*3)
 
 class Scratch {
    public:

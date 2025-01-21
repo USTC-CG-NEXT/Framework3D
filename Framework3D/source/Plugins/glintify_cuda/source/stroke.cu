@@ -24,10 +24,11 @@ HOST_DEVICE glm::vec2 Stroke::eval_required_direction(
     glm::vec2 tangent_space_light_dir =
         world_to_tangent_point(light_pos) - glm::vec3(uv_space_pos, 0);
 
-    auto half_vec = 0.5f * (glm::normalize(tangent_space_cam_dir) +
-                            glm::normalize(tangent_space_light_dir));
+    auto half_vec = glm::normalize(
+        0.5f * (glm::normalize(tangent_space_cam_dir) +
+                glm::normalize(tangent_space_light_dir)));
 
-    return glm::normalize(glm::vec2(-half_vec.y, half_vec.x));
+    return glm::vec2(-half_vec.y, half_vec.x);
 }
 
 HOST_DEVICE glm::vec2 same_direction(glm::vec2 vec, glm::vec2 reference)
@@ -90,14 +91,6 @@ HOST_DEVICE void Stroke::calc_scratch(int scratch_index, glm::vec3 light_pos)
             if (other_way) {
                 dir *= -1;
             }
-
-            // bool scratch_going_upward = dir.y > 0;
-            // if (scratch_going_upward) {
-            //     pos.y -= half_stroke_width;
-            // }
-            // else {
-            //     pos.y += half_stroke_width;
-            // }
         }
         else {
             dir = same_direction(dir, old_dir);
