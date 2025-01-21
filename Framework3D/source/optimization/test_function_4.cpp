@@ -15,6 +15,9 @@ NODE_DECLARATION_FUNCTION(test_function_4)
 NODE_EXECUTION_FUNCTION(test_function_4)
 {
     auto f = [](const ArrayXdual& x) { return (x * x).sum(); };
+    //auto h = [f](const ArrayXdual& x) { return 2 * f(x); };
+    //auto g = [](dual x) { return 2 * x; };
+    //auto h = [f, g](const ArrayXdual& x) { return g(f(x)); };
     params.set_output<std::function<dual(const ArrayXdual&)>>(
         "Function", std::move(f));
     return true;
