@@ -593,6 +593,76 @@ void NodeWidget::ShowInputOrOutput(
     }
 }
 
+void NodeWidget::ShowInputOrOutput(
+    const NodeSocket& socket,
+    const entt::meta_any& value)
+{
+    if (value) {
+        // 若输入为int float string类型，直接显示
+        // 否则检查是否可以转换为int float string
+        switch (value.type().info().hash()) {
+            case entt::type_hash<int>().value():
+                ImGui::Text("%s: %d", socket.ui_name, value.cast<int>());
+                break;
+            case entt::type_hash<long long>().value():
+                ImGui::Text(
+                    "%s: %lld", socket.ui_name, value.cast<long long>());
+                break;
+            case entt::type_hash<unsigned>().value():
+                ImGui::Text("%s: %u", socket.ui_name, value.cast<unsigned>());
+                break;
+            case entt::type_hash<unsigned long long>().value():
+                ImGui::Text(
+                    "%s: %llu",
+                    socket.ui_name,
+                    value.cast<unsigned long long>());
+                break;
+            case entt::type_hash<float>().value():
+                ImGui::Text("%s: %f", socket.ui_name, value.cast<float>());
+                break;
+            case entt::type_hash<double>().value():
+                ImGui::Text("%s: %f", socket.ui_name, value.cast<double>());
+                break;
+            case entt::type_hash<std::string>().value():
+                ImGui::Text(
+                    "%s: %s",
+                    socket.ui_name,
+                    value.cast<std::string>().c_str());
+                break;
+            case entt::type_hash<bool>().value():
+                ImGui::Text(
+                    "%s: %s",
+                    socket.ui_name,
+                    value.cast<bool>() ? "true" : "false");
+                break;
+            case entt::type_hash<char>().value():
+                ImGui::Text("%s: %c", socket.ui_name, value.cast<char>());
+                break;
+            case entt::type_hash<unsigned char>().value():
+                ImGui::Text(
+                    "%s: %u", socket.ui_name, value.cast<unsigned char>());
+                break;
+            case entt::type_hash<short>().value():
+                ImGui::Text("%s: %d", socket.ui_name, value.cast<short>());
+                break;
+            case entt::type_hash<unsigned short>().value():
+                ImGui::Text(
+                    "%s: %u", socket.ui_name, value.cast<unsigned short>());
+                break;
+            default: {
+                ImGui::Text(
+                    "%s: %s (%s)",
+                    socket.ui_name,
+                    "Unknown Type",
+                    value.type().info().name().data());
+            }
+        }
+    }
+    else {
+        ImGui::Text("%s: %s", socket.ui_name, "Not Executed");
+    }
+}
+
 void NodeWidget::ShowLeftPane(float paneWidth)
 {
     auto& io = ImGui::GetIO();
