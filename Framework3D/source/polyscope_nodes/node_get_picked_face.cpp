@@ -30,7 +30,7 @@ NODE_EXECUTION_FUNCTION(get_picked_face)
         if (mesh->nVertices() <= index &&
             index < mesh->nVertices() + mesh->nFaces()) {
             params.set_output("Picked Structure Name", structure->name);
-            params.set_output("Picked Face Index", index);
+            params.set_output("Picked Face Index", index - mesh->nVertices());
 
             auto ind = index - mesh->nVertices();
             auto start = mesh->faceIndsStart[ind];
