@@ -87,6 +87,10 @@ class NodeWidget : public IWidget {
     void DrawPinIcon(const NodeSocket& pin, bool connected, int alpha);
 
     static ImColor GetIconColor(SocketType type);
+
+    void ShowInputOrOutput(
+        const NodeSocket& socket,
+        const entt::meta_any& value);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
