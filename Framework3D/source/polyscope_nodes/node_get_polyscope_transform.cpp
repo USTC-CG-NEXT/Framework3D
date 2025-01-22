@@ -1,9 +1,8 @@
 #include <string>
 
-#include "GCore/GOP.h"
-#include "GCore/geom_payload.hpp"
 #include "nodes/core/def/node_def.hpp"
 #include "polyscope/polyscope.h"
+
 
 NODE_DEF_OPEN_SCOPE
 

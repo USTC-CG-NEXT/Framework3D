@@ -61,6 +61,7 @@ bool EagerNodeTreeExecutor::execute_node(NodeTree* tree, Node* node)
         node->execution_failed = "Execution failed";
         return false;
     }
+    node->execution_failed = {};
     return true;
 }
 
@@ -124,7 +125,7 @@ void EagerNodeTreeExecutor::forward_output_to_input(Node* node)
                         //     input_state.value = value_to_forward;
                         // }
                         // Move is better in efficiency,
-                        // but it bothers the visualization.
+                        // but it bothers the visualization of input and output.
                         input_state.value = value_to_forward;
                         input_state.is_forwarded = true;
                     }

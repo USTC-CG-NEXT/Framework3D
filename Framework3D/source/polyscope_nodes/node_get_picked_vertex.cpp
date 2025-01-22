@@ -1,7 +1,9 @@
 #include <exception>
 
 #include "nodes/core/def/node_def.hpp"
+#include "polyscope/curve_network.h"
 #include "polyscope/pick.h"
+#include "polyscope/point_cloud.h"
 #include "polyscope/polyscope.h"
 #include "polyscope/surface_mesh.h"
 
@@ -43,8 +45,42 @@ NODE_EXECUTION_FUNCTION(get_picked_vertex)
             return false;
         }
     }
+    else if (structure->typeName() == "Point Cloud") {
+        auto point_cloud = dynamic_cast<polyscope::PointCloud*>(structure);
+        if (index < point_cloud->nPoints()) {
+            params.set_output("Picked Structure Name", structure->name);
+            params.set_output("Picked Vertex Index", index);
+
+            auto pos = point_cloud->getPointPosition(index);
+            params.set_output("Picked Vertex Position X", pos.x);
+            params.set_output("Picked Vertex Position Y", pos.y);
+            params.set_output("Picked Vertex Position Z", pos.z);
+        }
+        else {
+            std::cerr << "The picked index is not a vertex index." << std::endl;
+            return false;
+        }
+    }
+    else if (structure->typeName() == "Curve Network") {
+        auto curve_network = dynamic_cast<polyscope::CurveNetwork*>(structure);
+        if (index < curve_network->nNodes()) {
+            params.set_output("Picked Structure Name", structure->name);
+            params.set_output("Picked Vertex Index", index);
+
+            auto pos = curve_network->nodePositions.getValue(index);
+            params.set_output("Picked Vertex Position X", pos.x);
+            params.set_output("Picked Vertex Position Y", pos.y);
+            params.set_output("Picked Vertex Position Z", pos.z);
+        }
+        else {
+            std::cerr << "The picked index is not a vertex index." << std::endl;
+            return false;
+        }
+    }
     else {
-        std::cerr << "The picked structure is not a surface mesh." << std::endl;
+        std::cerr << "The picked structure is not a surface mesh, point cloud, "
+                     "or curve network."
+                  << std::endl;
         return false;
     }
 
