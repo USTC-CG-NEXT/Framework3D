@@ -34,12 +34,15 @@ file(GLOB source
     "${imgui_file_SOURCE_DIR}/*.h"
     "${imgui_file_SOURCE_DIR}/*.cpp"
 )
-add_library(imgui STATIC ${source})
+add_library(imgui SHARED ${source})
 target_include_directories(imgui
     PUBLIC "${imgui_SOURCE_DIR}"
     PUBLIC "${imgui_SOURCE_DIR}/backends"
     PUBLIC "${imgui_file_SOURCE_DIR}"
 )
+target_include_directories(imgui PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}/user_imgui")
+target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="imgui_user_config.h")
+target_compile_definitions(imgui PRIVATE IMGUI_API=__declspec\(dllexport\))
 target_link_libraries(imgui PUBLIC glfw Vulkan::Headers)
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_VULKAN_NO_PROTOTYPES=1)
 set_target_properties(imgui PROPERTIES FOLDER "external" ${OUTPUT_DIR})

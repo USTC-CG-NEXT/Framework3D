@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>
@@ -14,7 +15,7 @@ class DockingImguiRenderer;
 
 // Represents a window in a GUI application, providing basic functionalities
 // such as initialization and rendering.
-class Window {
+class GUI_API Window {
    public:
     // Constructor that sets the window's title.
     explicit Window();
@@ -26,6 +27,10 @@ class Window {
     void register_widget(std::unique_ptr<IWidget> unique);
     void register_function_perframe(
         const std::function<void(Window *)> &callback);
+
+    void register_openable_window(
+        std::unique_ptr<IWidgetFactory> window_factory,
+        const std::filesystem::path &menu_path);
 
    protected:
     std::unique_ptr<DockingImguiRenderer> imguiRenderPass;

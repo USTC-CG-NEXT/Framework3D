@@ -14,7 +14,7 @@
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
 #include "nodes/ui/imgui.hpp"
 
-// #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <fstream>
 

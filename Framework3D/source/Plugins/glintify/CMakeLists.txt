@@ -1,5 +1,6 @@
 USTC_CG_ADD_LIB(
 	glintify
+	SHARED
 	WITH_CUDA
 	PUBLIC_LIBS GUI gf RHI SLANG::slang shaders_interface glm::glm GUI OpenMeshCore glintify_cuda Logger
 	PYTHON_WRAP_DIR python

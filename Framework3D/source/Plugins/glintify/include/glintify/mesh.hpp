@@ -15,7 +15,7 @@ using OpenMeshPolyMesh =
 
 using OpenMeshTriMesh = OpenMesh::TriMesh_ArrayKernelT<OpenMesh::DefaultTraits>;
 
-class Mesh {
+class GLINTIFY_API Mesh {
    public:
     static Mesh load_from_obj(const std::string& filename);
 

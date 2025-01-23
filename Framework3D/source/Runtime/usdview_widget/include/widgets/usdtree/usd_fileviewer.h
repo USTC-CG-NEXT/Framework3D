@@ -9,7 +9,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Stage;
 
-class UsdFileViewer : public IWidget {
+class USDVIEW_WIDGET_API UsdFileViewer : public IWidget {
    public:
     explicit UsdFileViewer(Stage* stage);
 

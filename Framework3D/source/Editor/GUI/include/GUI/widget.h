@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <string>
 
 #include "GUI/api.h"
@@ -9,7 +10,7 @@
 USTC_CG_NAMESPACE_OPEN_SCOPE
 class Window;
 
-class IWidget {
+class GUI_API IWidget {
    public:
     IWidget()
     {
@@ -102,6 +103,12 @@ class IWidget {
 
     void SetStatus();
     bool SizeChanged();
+};
+
+class IWidgetFactory {
+   public:
+    virtual ~IWidgetFactory() = default;
+    virtual std::unique_ptr<IWidget> Create() = 0;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -7,7 +7,7 @@
 #include "glm/glm.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-class StrokeSystem {
+class GLINTIFY_API StrokeSystem {
    public:
     std::vector<std::vector<glm::vec2>> get_all_endpoints();
 
