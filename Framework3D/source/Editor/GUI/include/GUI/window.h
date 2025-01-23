@@ -28,9 +28,9 @@ class GUI_API Window {
     void register_function_perframe(
         const std::function<void(Window *)> &callback);
 
-    void register_openable_window(
+    void register_openable_widget(
         std::unique_ptr<IWidgetFactory> window_factory,
-        const std::filesystem::path &menu_path);
+        const std::vector<std::string>& menu_item);
 
    protected:
     std::unique_ptr<DockingImguiRenderer> imguiRenderPass;

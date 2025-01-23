@@ -36,14 +36,45 @@ class DockingImguiRenderer final : public ImGui_Renderer {
     void Animate(float elapsedTimeSeconds) override;
     void register_function_perframe(
         const std::function<void(Window*)>& callback);
+    void register_openable_widget(
+        std::unique_ptr<IWidgetFactory>& widget_factory,
+        const std::vector<std::string>& menu_item);
 
    private:
     void register_widget(std::unique_ptr<IWidget> widget);
+    void drawMenuBar();
     void buildUI() override;
 
     std::vector<std::unique_ptr<IWidget>> widgets_;
     Window* window_;
     std::vector<std::function<void(Window*)>> callbacks_;
+
+    struct MenuNode {
+        std::unordered_map<std::string, std::unique_ptr<MenuNode>> children;
+        std::unique_ptr<IWidgetFactory> widget_factory;
+
+        void register_node(
+            const std::vector<std::string>& path,
+            std::unique_ptr<IWidgetFactory>& factory)
+        {
+            if (path.empty()) {
+                widget_factory = std::move(factory);
+                return;
+            }
+
+            auto& child = children[path.front()];
+            if (!child) {
+                child = std::make_unique<MenuNode>();
+            }
+
+            child->register_node(
+                std::vector(path.begin() + 1, path.end()), factory);
+        }
+    };
+
+    MenuNode menu_tree;
+
+    void recursive_draw(MenuNode& node);
 };
 
 DockingImguiRenderer::~DockingImguiRenderer()
@@ -146,6 +177,13 @@ void DockingImguiRenderer::register_function_perframe(
     callbacks_.push_back(callback);
 }
 
+void DockingImguiRenderer::register_openable_widget(
+    std::unique_ptr<IWidgetFactory>& widget_factory,
+    const std::vector<std::string>& menu_item)
+{
+    menu_tree.register_node(menu_item, widget_factory);
+}
+
 void DockingImguiRenderer::register_widget(std::unique_ptr<IWidget> widget)
 {
     // If the widget with the "UniqueName" exists, replace it
@@ -158,6 +196,14 @@ void DockingImguiRenderer::register_widget(std::unique_ptr<IWidget> widget)
     }
 
     widgets_.push_back(std::move(widget));
+}
+
+void DockingImguiRenderer::drawMenuBar()
+{
+    if (ImGui::BeginMenuBar()) {
+        recursive_draw(menu_tree);
+        ImGui::EndMenuBar();
+    }
 }
 
 void DockingImguiRenderer::buildUI()
@@ -178,6 +224,8 @@ void DockingImguiRenderer::buildUI()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
     ImGui::Begin(("DockSpace" + std::to_string(0)).c_str(), 0, window_flags);
+    drawMenuBar();
+
     ImGui::PopStyleVar(3);
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
 
@@ -230,6 +278,24 @@ void DockingImguiRenderer::buildUI()
     }
 }
 
+void DockingImguiRenderer::recursive_draw(MenuNode& node)
+{
+    for (auto& [name, child] : node.children) {
+        if (child->children.empty()) {
+            if (ImGui::MenuItem(name.c_str())) {
+                auto widget = child->widget_factory->Create();
+                register_widget(std::move(widget));
+            }
+        }
+        else {
+            if (ImGui::BeginMenu(name.c_str())) {
+                recursive_draw(*child);
+                ImGui::EndMenu();
+            }
+        }
+    }
+}
+
 Window::Window()
 {
     RHI::init(true);
@@ -276,6 +342,13 @@ void Window::register_function_perframe(
     const std::function<void(Window*)>& callback)
 {
     imguiRenderPass->register_function_perframe(callback);
+}
+
+void Window::register_openable_widget(
+    std::unique_ptr<IWidgetFactory> window_factory,
+    const std::vector<std::string>& menu_item)
+{
+    imguiRenderPass->register_openable_widget(window_factory, menu_item);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

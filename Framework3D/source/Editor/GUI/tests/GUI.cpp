@@ -4,6 +4,7 @@
 #include "GUI/window.h"
 #include "imgui.h"
 using namespace USTC_CG;
+
 TEST(CreateRHI, window)
 {
     Window window;
@@ -18,16 +19,30 @@ class Widget : public IWidget {
 
     bool BuildUI() override
     {
-        ImGui::Begin(title.c_str());
         ImGui::Text("Hello, world!");
-        ImGui::End();
-        // ImGui::ShowDemoWindow();
         return true;
     }
 
    private:
     std::string title;
 };
+
+class WidgetFactory : public IWidgetFactory {
+   public:
+    std::unique_ptr<IWidget> Create() override
+    {
+        return std::make_unique<Widget>("widget");
+    }
+};
+
+//TEST(CreateRHI, widget_factory)
+int main()
+{
+    Window window;
+    window.register_openable_widget(
+        std::make_unique<WidgetFactory>(), { "File", "Open", "widget" });
+    window.run();
+}
 
 TEST(CreateRHI, widget)
 {
@@ -72,8 +87,7 @@ class FileWidget : public IWidget {
     std::string title;
 };
 
-// TEST(FileDialog, create_dialog)
-int main()
+TEST(FileDialog, create_dialog)
 {
     Window window;
     window.register_widget(std::make_unique<FileWidget>("file"));
