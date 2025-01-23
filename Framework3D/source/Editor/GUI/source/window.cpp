@@ -283,7 +283,7 @@ void DockingImguiRenderer::recursive_draw(MenuNode& node)
     for (auto& [name, child] : node.children) {
         if (child->children.empty()) {
             if (ImGui::MenuItem(name.c_str())) {
-                auto widget = child->widget_factory->Create();
+                auto widget = child->widget_factory->Create(widgets_);
                 register_widget(std::move(widget));
             }
         }

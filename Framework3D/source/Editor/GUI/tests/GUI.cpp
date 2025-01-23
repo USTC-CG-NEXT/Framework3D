@@ -29,13 +29,14 @@ class Widget : public IWidget {
 
 class WidgetFactory : public IWidgetFactory {
    public:
-    std::unique_ptr<IWidget> Create() override
+    std::unique_ptr<IWidget> Create(
+        const std::vector<std::unique_ptr<IWidget>>& others) override
     {
         return std::make_unique<Widget>("widget");
     }
 };
 
-//TEST(CreateRHI, widget_factory)
+// TEST(CreateRHI, widget_factory)
 int main()
 {
     Window window;

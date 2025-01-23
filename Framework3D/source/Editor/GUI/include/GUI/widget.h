@@ -108,7 +108,11 @@ class GUI_API IWidget {
 class IWidgetFactory {
    public:
     virtual ~IWidgetFactory() = default;
-    virtual std::unique_ptr<IWidget> Create() = 0;
+
+    // When the widget is created, it will be passed a list of other widgets to
+    // interact with.
+    virtual std::unique_ptr<IWidget> Create(
+        const std::vector<std::unique_ptr<IWidget>>& others) = 0;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

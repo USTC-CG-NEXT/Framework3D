@@ -1,6 +1,6 @@
 USTC_CG_ADD_LIB(
 	diff_optics
-	PUBLIC_LIBS GUI gf RHI SLANG::slang shaders_interface
+	PUBLIC_LIBS GUI gf RHI SLANG::slang shaders_interface usdview_widget
 	PYTHON_WRAP_DIR python
 )
 

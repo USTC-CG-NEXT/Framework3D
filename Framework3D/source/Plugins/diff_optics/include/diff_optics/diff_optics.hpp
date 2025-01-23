@@ -7,6 +7,6 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 std::unique_ptr<IWidget> createDiffOpticsGUI(LensSystem*);
-std::unique_ptr<IWidgetFactory> createDiffOpticsGUIFactory(LensSystem*);
+std::unique_ptr<IWidgetFactory> createDiffOpticsGUIFactory();
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

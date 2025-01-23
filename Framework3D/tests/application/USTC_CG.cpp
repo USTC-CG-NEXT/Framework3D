@@ -92,8 +92,8 @@ int main()
         lens_system->set_default();
     }
 
-    auto diff_optics_gui = createDiffOpticsGUI(lens_system.get());
-    window->register_widget(std::move(diff_optics_gui));
+    window->register_openable_widget(
+        createDiffOpticsGUIFactory(), { "Plugins", "Physical Lens System" });
 
     render_bare->set_renderer_setting(
         pxr::TfToken("lens_system_ptr"),

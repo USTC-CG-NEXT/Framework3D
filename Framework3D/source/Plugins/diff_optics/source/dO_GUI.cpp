@@ -7,6 +7,7 @@
 
 #include "diff_optics/lens_system.hpp"
 #include "lens_system_gui.hpp"
+#include "widgets/usdview/usdview_widget.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 DiffOpticsGUI::DiffOpticsGUI(LensSystem* lens_system)
@@ -41,6 +42,31 @@ bool DiffOpticsGUI::BuildUI()
 std::unique_ptr<IWidget> createDiffOpticsGUI(LensSystem* system)
 {
     return std::make_unique<DiffOpticsGUI>(system);
+}
+
+class DiffOpticsGUIFactory : public IWidgetFactory {
+    std::unique_ptr<IWidget> Create(
+        const std::vector<std::unique_ptr<IWidget>>& others) override
+    {
+        for (const auto& widget : others) {
+            if (auto* view_widget =
+                    dynamic_cast<UsdviewEngine*>(widget.get())) {
+                auto lens_system =
+                    view_widget
+                        ->get_renderer_setting(pxr::TfToken("lens_system_ptr"))
+                        .Get<void*>();
+
+                return createDiffOpticsGUI(
+                    static_cast<LensSystem*>(lens_system));
+            }
+        }
+        return nullptr;
+    }
+};
+
+std::unique_ptr<IWidgetFactory> createDiffOpticsGUIFactory()
+{
+    return std::make_unique<DiffOpticsGUIFactory>();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
