@@ -28,35 +28,16 @@
 */
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(arap)
+NODE_DECLARATION_FUNCTION(asap)
 {
-    // Input-1: Original 3D mesh with boundary
-    // Maybe you need to add another input for initialization?
     b.add_input<Geometry>("Input");
     b.add_input<Geometry>("Initialization");
 
-    /*
-    ** NOTE: You can add more inputs or outputs if necessary. For example, in
-    ** some cases, additional information (e.g. other mesh geometry, other
-    ** parameters) is required to perform the computation.
-    **
-    ** Be sure that the input/outputs do not share the same name. You can add
-    ** one geometry as
-    **
-    **                b.add_input<Geometry>("Input");
-    **
-    ** Or maybe you need a value buffer like:
-    **
-    **                b.add_input<float1Buffer>("Weights");
-    */
-
-    // Output-1: The UV coordinate of the mesh, provided by ARAP algorithm
-    b.add_output<pxr::GfVec2f>("OutputUV");
     b.add_output<Geometry>("Output");
     b.add_output<float>("Runtime");
 }
 
-NODE_EXECUTION_FUNCTION(arap)
+NODE_EXECUTION_FUNCTION(asap)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -215,13 +196,15 @@ NODE_EXECUTION_FUNCTION(arap)
             Eigen::MatrixXd svd_u = svd.matrixU();
             Eigen::MatrixXd svd_v = svd.matrixV();
             Eigen::MatrixXd S = Eigen::MatrixXd::Identity(2, 2);
+            S(0, 0) = svd.singularValues()[0];
+            S(1, 1) = svd.singularValues()[1];
             if (Jacobi[face_idx].determinant() < 0) {
                 // If there is a flip, set the fliped sigular values 1 instead
                 // of -1
                 if (svd.singularValues()[0] < svd.singularValues()[1])
-                    S(0, 0) = -1;
+                    S(0, 0) = -S(0, 0);
                 else
-                    S(1, 1) = -1;
+                    S(1, 1) = -S(1, 1);
             }
             Jacobi[face_idx] = svd_u * S * svd_v.transpose();
 
@@ -284,33 +267,7 @@ NODE_EXECUTION_FUNCTION(arap)
     params.set_output("Output", std::move(*geometry));
     params.set_output("Runtime", float(end_time - start_time));
     return true;
-
-    /* ------------- [HW5_TODO] ARAP Parameterization Implementation -----------
-    ** Implement ARAP mesh parameterization to minimize local distortion.
-    **
-    ** Steps:
-    ** 1. Initial Setup: Use a HW4 parameterization result as initial setup.
-    **
-    ** 2. Local Phase: For each triangle, compute local orthogonal approximation
-    **    (Lt) by computing SVD of Jacobian(Jt) with fixed u.
-    **
-    ** 3. Global Phase: With Lt fixed, update parameter coordinates(u) by
-    *solving
-    **    a pre-factored global sparse linear system.
-    **
-    ** 4. Iteration: Repeat Steps 2 and 3 to refine parameterization.
-    **
-    ** Note:
-    **  - Fixed points' selection is crucial for ARAP and ASAP.
-    **  - Encapsulate algorithms into classes for modularity.
-    */
-
-    // The result UV coordinates
-    pxr::VtArray<pxr::GfVec2f> uv_result;
-
-    // Set the output of the node
-    params.set_output("OutputUV", uv_result);
 }
 
-NODE_DECLARATION_UI(arap);
+NODE_DECLARATION_UI(asap);
 NODE_DEF_CLOSE_SCOPE

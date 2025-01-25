@@ -36,5 +36,7 @@ NODE_EXECUTION_FUNCTION(dirichlet_energy)
     return true;
 }
 
+NODE_DECLARATION_REQUIRED(dirichlet_energy);
+
 NODE_DECLARATION_UI(dirichlet_energy);
 NODE_DEF_CLOSE_SCOPE
