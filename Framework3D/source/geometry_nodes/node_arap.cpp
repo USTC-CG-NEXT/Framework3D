@@ -214,19 +214,16 @@ NODE_EXECUTION_FUNCTION(arap)
                     Eigen::DecompositionOptions::ComputeThinV);
             Eigen::MatrixXd svd_u = svd.matrixU();
             Eigen::MatrixXd svd_v = svd.matrixV();
+            Eigen::MatrixXd S = Eigen::MatrixXd::Identity(2, 2);
             if (Jacobi[face_idx].determinant() < 0) {
                 // If there is a flip, set the fliped sigular values 1 instead
                 // of -1
-                if (svd.singularValues()[0] < svd.singularValues()[1]) {
-                    svd_u(0, 0) *= -1;
-                    svd_u(1, 0) *= -1;
-                }
-                else {
-                    svd_u(0, 1) *= -1;
-                    svd_u(1, 1) *= -1;
-                }
+                if (svd.singularValues()[0] < svd.singularValues()[1])
+                    S(0, 0) = -1;
+                else
+                    S(1, 1) = -1;
             }
-            Jacobi[face_idx] = svd_u * svd_v.transpose();
+            Jacobi[face_idx] = svd_u * S * svd_v.transpose();
 
             // Calculate bx and by by matrix multilplication
             Eigen::MatrixXd b = Jacobi[face_idx] * b_pre[face_idx];
@@ -276,7 +273,7 @@ NODE_EXECUTION_FUNCTION(arap)
             }
         }
         now_iter++;
-        std::cout << now_iter << "\t" << err << std::endl;
+        //std::cout << now_iter << "\t" << err << std::endl;
     } while (now_iter < max_iter && abs(err - err_pre) > 1e-7);
 
     clock_t end_time = clock();
