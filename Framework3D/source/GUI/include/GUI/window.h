@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "GUI/api.h"
 #include "widget.h"
@@ -26,6 +27,11 @@ class Window {
     void register_widget(std::unique_ptr<IWidget> unique);
     void register_function_perframe(
         const std::function<void(Window *)> &callback);
+
+    IWidget *get_widget(const std::string &unique_name) const;
+    std::vector<IWidget *> get_widgets() const;
+
+    void set_all_node_system_dirty();
 
    protected:
     std::unique_ptr<DockingImguiRenderer> imguiRenderPass;

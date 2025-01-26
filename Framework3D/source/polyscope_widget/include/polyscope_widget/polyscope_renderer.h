@@ -30,6 +30,11 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
     std::string GetChildWindowName();
     void Set2dMode();
 
+    bool GetInputTransformTriggered() const
+    {
+        return input_transform_triggered;
+    }
+
    protected:
     ImGuiWindowFlags GetWindowFlag() override;
     const char* GetWindowName() override;
@@ -46,6 +51,7 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
     std::vector<unsigned char> flipped_buffer;
 
     bool enable_input_events = true;
+    bool input_transform_triggered = false;
 
     bool is_active = false;
     bool is_hovered = false;
