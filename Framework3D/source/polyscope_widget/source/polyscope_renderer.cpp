@@ -339,6 +339,8 @@ void PolyscopeRenderer::VisualizePickResult(
 // Rewritten from processInputEvents() in polyscope.cpp
 void PolyscopeRenderer::ProcessInputEvents()
 {
+    input_transform_triggered = false;
+
     ImGuiIO& io = ImGui::GetIO();
 
     // If any mouse button is pressed, trigger a redraw
@@ -366,6 +368,7 @@ void PolyscopeRenderer::ProcessInputEvents()
                 if (tg) {
                     widgetCapturedMouse = tg->interactCustom(windowPos);
                     if (widgetCapturedMouse) {
+                        input_transform_triggered = true;
                         break;
                     }
                 }

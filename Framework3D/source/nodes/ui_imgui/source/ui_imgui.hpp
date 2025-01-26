@@ -41,6 +41,8 @@ class NodeWidget : public IWidget {
 
     const char* GetWindowName() override;
 
+    void SetNodeSystemDirty(bool dirty) override;
+
    private:
     void ShowLeftPane(float paneWidth);
 

@@ -518,6 +518,11 @@ const char* NodeWidget::GetWindowName()
     return "Node editor";
 }
 
+void NodeWidget::SetNodeSystemDirty(bool dirty)
+{
+    tree_->SetDirty(dirty);
+}
+
 void NodeWidget::ShowInputOrOutput(
     const NodeSocket& socket,
     const entt::meta_any& value)

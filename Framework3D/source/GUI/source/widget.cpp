@@ -199,4 +199,8 @@ bool IWidget::SizeChanged()
     return size_changed;
 }
 
+void IWidget::SetNodeSystemDirty(bool dirty)
+{
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

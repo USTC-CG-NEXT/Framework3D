@@ -56,6 +56,19 @@ int main()
     if (use_polyscope) {
         window->register_widget(std::move(polyscope_render));
         window->register_widget(std::move(polyscope_info_viewer));
+        // When the input transform is triggered,
+        // set all the node systems dirty.
+        window->register_function_perframe([](Window* window) {
+            auto polyscope_render = static_cast<PolyscopeRenderer*>(
+                window->get_widget("Polyscope Renderer"));
+            if (polyscope_render) {
+                bool input_transform_triggered =
+                    polyscope_render->GetInputTransformTriggered();
+                if (input_transform_triggered) {
+                    window->set_all_node_system_dirty();
+                }
+            }
+        });
     }
     else {
         auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());

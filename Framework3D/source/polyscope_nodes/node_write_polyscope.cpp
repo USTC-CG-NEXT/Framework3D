@@ -12,6 +12,7 @@
 #include "polyscope/curve_network.h"
 #include "polyscope/image_quantity.h"
 #include "polyscope/point_cloud.h"
+#include "polyscope/polyscope.h"
 #include "polyscope/structure.h"
 #include "polyscope/surface_mesh.h"
 #include "polyscope_widget/polyscope_renderer.h"
@@ -86,8 +87,16 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
             start += faceVertexCounts[i];
         }
 
-        auto surface_mesh = polyscope::registerSurfaceMesh(
-            sdf_path.GetName(), vertices, faceVertexIndicesNested);
+        polyscope::SurfaceMesh* surface_mesh = nullptr;
+
+        if (!polyscope::hasStructure("Surface Mesh", sdf_path.GetName())) {
+            surface_mesh = polyscope::registerSurfaceMesh(
+                sdf_path.GetName(), vertices, faceVertexIndicesNested);
+        }
+        else {
+            surface_mesh = dynamic_cast<polyscope::SurfaceMesh*>(
+                polyscope::getStructure("Surface Mesh", sdf_path.GetName()));
+        }
 
         if (display_color.size() > 0) {
             try {
@@ -229,8 +238,16 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
         auto display_color = points->get_display_color();
         auto width = points->get_width();
 
-        auto point_cloud =
-            polyscope::registerPointCloud(sdf_path.GetName(), vertices);
+        polyscope::PointCloud* point_cloud = nullptr;
+
+        if (!polyscope::hasStructure("Point Cloud", sdf_path.GetName())) {
+            point_cloud =
+                polyscope::registerPointCloud(sdf_path.GetName(), vertices);
+        }
+        else {
+            point_cloud = dynamic_cast<polyscope::PointCloud*>(
+                polyscope::getStructure("Point Cloud", sdf_path.GetName()));
+        }
 
         if (width.size() > 0) {
             try {
@@ -272,8 +289,16 @@ NODE_EXECUTION_FUNCTION(write_polyscope)
             start += vert_count[i];
         }
 
-        auto curve_network = polyscope::registerCurveNetwork(
-            sdf_path.GetName(), vertices, edges);
+        polyscope::CurveNetwork* curve_network = nullptr;
+
+        if (!polyscope::hasStructure("Curve Network", sdf_path.GetName())) {
+            curve_network = polyscope::registerCurveNetwork(
+                sdf_path.GetName(), vertices, edges);
+        }
+        else {
+            curve_network = dynamic_cast<polyscope::CurveNetwork*>(
+                polyscope::getStructure("Curve Network", sdf_path.GetName()));
+        }
 
         structure = curve_network;
     }
