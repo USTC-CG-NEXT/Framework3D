@@ -7,6 +7,7 @@
 #include "nodes/core/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+struct SocketGroup;
 struct Node;
 struct NodeLink;
 
@@ -24,6 +25,7 @@ struct NODES_CORE_API NodeSocket {
 
     SocketID ID;
     Node* node;
+    SocketGroup* group = nullptr;
 
     SocketType type_info;
     PinKind in_out;
