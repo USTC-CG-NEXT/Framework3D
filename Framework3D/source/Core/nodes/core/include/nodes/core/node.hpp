@@ -53,8 +53,6 @@ struct NODES_CORE_API Node {
 
     std::function<void()> override_left_pane_info = nullptr;
 
-    std::unique_ptr<NodeTree> subtree = nullptr;
-
     bool has_available_linked_inputs = false;
     bool has_available_linked_outputs = false;
 
@@ -83,7 +81,7 @@ struct NODES_CORE_API Node {
 
     bool valid();
 
-    void generate_socket_group_based_on_declaration(
+    void generate_sockets_based_on_declaration(
         const SocketDeclaration& socket_declaration,
         const std::vector<NodeSocket*>& old_sockets,
         std::vector<NodeSocket*>& new_sockets);

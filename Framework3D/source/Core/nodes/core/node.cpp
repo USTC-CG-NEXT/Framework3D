@@ -168,7 +168,7 @@ bool Node::valid()
     return valid_;
 }
 
-void Node::generate_socket_group_based_on_declaration(
+void Node::generate_sockets_based_on_declaration(
     const SocketDeclaration& socket_declaration,
     const std::vector<NodeSocket*>& old_sockets,
     std::vector<NodeSocket*>& new_sockets)
@@ -268,11 +268,11 @@ void Node::refresh_node()
         if (auto socket_decl =
                 dynamic_cast<const SocketDeclaration*>(item_decl.get())) {
             if (socket_decl->in_out == PinKind::Input) {
-                generate_socket_group_based_on_declaration(
+                generate_sockets_based_on_declaration(
                     *socket_decl, old_inputs, new_inputs);
             }
             else {
-                generate_socket_group_based_on_declaration(
+                generate_sockets_based_on_declaration(
                     *socket_decl, old_outputs, new_outputs);
             }
         }

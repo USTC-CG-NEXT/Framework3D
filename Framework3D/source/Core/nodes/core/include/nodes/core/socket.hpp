@@ -2,9 +2,9 @@
 
 #include <unordered_set>
 
-#include "nodes/core/api.h"
 #include "id.hpp"
 #include "io/json.hpp"
+#include "nodes/core/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct Node;
@@ -82,7 +82,7 @@ const T& NodeSocket::default_value_typed() const
     return dataField.value.cast<const T&>();
 }
 
-struct SocketGroup {
+struct SocketGroup : public NodeSocket {
     std::vector<NodeSocket*> sockets;
     bool runtime_dynamic = false;
 };
