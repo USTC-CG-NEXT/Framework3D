@@ -11,14 +11,16 @@ NODE_DECLARATION_UI(add)
 NODE_DECLARATION_FUNCTION(add)
 {
     b.add_input<int>("value").min(0).max(10).default_val(1);
+    b.add_input<int>("value2").min(0).max(10).default_val(1);
     b.add_output<int>("value");
 }
 
 NODE_EXECUTION_FUNCTION(add)
 {
     auto val = params.get_input<int>("value");
-
-    params.set_output("value", val);
+    auto val2 = params.get_input<int>("value2");
+    auto sum = val + val2;
+    params.set_output("value", sum);
     return true;
 }
 
