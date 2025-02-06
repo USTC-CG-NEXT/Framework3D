@@ -198,16 +198,22 @@ void Node::generate_sockets_based_on_declaration(
     new_sockets.push_back(new_socket);
 }
 
-void Node::generate_socket_groups_based_on_declaration(
-    const SocketGroupDeclaration& socket_group_declaration,
+void Node::generate_socket_groups_socket(
+    const SocketGroup* socket_group,
     const std::vector<NodeSocket*>& old_sockets,
     std::vector<NodeSocket*>& new_sockets)
 {
-    for (auto&& old_socket : old_sockets) {
-        if (old_socket->socket_group_identifier ==
-                socket_group_declaration.identifier &&
-            old_socket->in_out == socket_group_declaration.in_out) {
-            new_sockets.push_back(old_socket);
+    for (auto&& socket_in_group : socket_group->sockets) {
+        auto old_socket = std::find_if(
+            old_sockets.begin(),
+            old_sockets.end(),
+            [&socket_in_group](NodeSocket* socket) {
+                return std::string(socket->identifier) ==
+                       socket_in_group->identifier;
+            });
+        if (old_socket != old_sockets.end()) {
+            (*old_socket)->node = this;
+            new_sockets.push_back(*old_socket);
         }
     }
 }
@@ -282,12 +288,8 @@ void Node::remove_outdated_socket(NodeSocket* socket, PinKind kind)
 {
     switch (kind) {
         case PinKind::Output:
-            if (std::find_if(
-                    outputs.begin(),
-                    outputs.end(),
-                    [socket](NodeSocket* new_socket) {
-                        return socket == new_socket || socket->socket_group;
-                    }) == outputs.end()) {
+            if (std::find(outputs.begin(), outputs.end(), socket) ==
+                outputs.end()) {
                 // If the sockets is not in the refreshed sockets
                 auto out_dated_socket = std::find_if(
                     tree_->sockets.begin(),
@@ -297,12 +299,8 @@ void Node::remove_outdated_socket(NodeSocket* socket, PinKind kind)
             }
             break;
         case PinKind::Input:
-            if (std::find_if(
-                    inputs.begin(),
-                    inputs.end(),
-                    [socket](NodeSocket* new_socket) {
-                        return socket == new_socket || socket->socket_group;
-                    }) == inputs.end()) {
+            if (std::find(inputs.begin(), inputs.end(), socket) ==
+                inputs.end()) {
                 // If the sockets is not in the refreshed sockets
                 auto out_dated_socket = std::find_if(
                     tree_->sockets.begin(),
@@ -324,8 +322,8 @@ void Node::out_date_sockets(
     }
 }
 
-// This function really syncronize the node to the node tree. After doing local
-// operation like add socket, remove socket, deserizaliation, call this.
+// This function really synchronize the node to the node tree. After doing local
+// operation like add socket, remove socket, deserialization, call this.
 
 void Node::refresh_node()
 {
@@ -348,12 +346,9 @@ void Node::refresh_node()
             *socket_decl, old_outputs, new_outputs);
     }
 
-    for (const SocketGroupDeclaration* socket_group_decl :
-         node_decl.socket_group_decls) {
-        generate_socket_groups_based_on_declaration(
-            *socket_group_decl, old_inputs, new_inputs);
-        generate_socket_groups_based_on_declaration(
-            *socket_group_decl, old_outputs, new_outputs);
+    for (auto&& group : socket_groups) {
+        generate_socket_groups_socket(group.get(), old_inputs, new_inputs);
+        generate_socket_groups_socket(group.get(), old_outputs, new_outputs);
     }
 
     inputs = new_inputs;

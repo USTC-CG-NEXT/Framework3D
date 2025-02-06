@@ -97,6 +97,7 @@ struct SocketGroup {
     add_socket(const char* type_name, const char* identifier, const char* name);
 
     void remove_socket(const char* identifier);
+    void remove_socket(NodeSocket* socket);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

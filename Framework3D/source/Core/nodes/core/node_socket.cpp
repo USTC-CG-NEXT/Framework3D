@@ -87,23 +87,33 @@ NodeSocket* SocketGroup::add_socket(
     socket->socket_group = this;
     socket->socket_group_identifier = identifier;
 
-    sockets.insert(sockets.begin(), socket);
+    sockets.insert(--sockets.end(), socket);
 
     return socket;
 }
 
-void SocketGroup::remove_socket(const char* identifier)
+void SocketGroup::remove_socket(const char* socket_identifier)
 {
     auto it = std::find_if(
-        sockets.begin(), sockets.end(), [identifier](NodeSocket* socket) {
-            return strcmp(socket->identifier, identifier) == 0;
+        sockets.begin(),
+        sockets.end(),
+        [socket_identifier](NodeSocket* socket) {
+            return strcmp(socket->identifier, socket_identifier) == 0;
         });
 
     if (it != sockets.end()) {
         sockets.erase(it);
     }
+    node->refresh_node();
+}
 
-    node->remove_outdated_socket(*it, kind);
+void SocketGroup::remove_socket(NodeSocket* socket)
+{
+    auto it = std::find(sockets.begin(), sockets.end(), socket);
+    if (it != sockets.end()) {
+        sockets.erase(it);
+    }
+    node->refresh_node();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

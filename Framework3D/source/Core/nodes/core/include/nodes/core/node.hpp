@@ -88,8 +88,8 @@ struct NODES_CORE_API Node {
         const std::vector<NodeSocket*>& old_sockets,
         std::vector<NodeSocket*>& new_sockets);
 
-    void generate_socket_groups_based_on_declaration(
-        const SocketGroupDeclaration& socket_group_declaration,
+    void generate_socket_groups_socket(
+        const SocketGroup* socket_group,
         const std::vector<NodeSocket*>& old_sockets,
         std::vector<NodeSocket*>& new_sockets);
 

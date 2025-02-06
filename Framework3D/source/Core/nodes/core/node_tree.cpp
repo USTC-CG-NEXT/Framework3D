@@ -203,6 +203,25 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
     auto fromnode = fromsock->node;
     auto tonode = tosock->node;
 
+    if (fromsock->socket_group && fromsock->ui_name == std::string("")) {
+        fromsock = fromnode->group_add_socket(
+            fromsock->socket_group_identifier,
+            get_type_name(tosock->type_info).c_str(),
+            (tosock->identifier + std::to_string(long long(tosock))).c_str(),
+            tosock->ui_name,
+            fromsock->in_out);
+    }
+
+    if (tosock->socket_group && tosock->ui_name == std::string("")) {
+        tosock = tonode->group_add_socket(
+            tosock->socket_group_identifier,
+            get_type_name(fromsock->type_info).c_str(),
+            (fromsock->identifier + std::to_string(long long(fromsock)))
+                .c_str(),
+            fromsock->ui_name,
+            tosock->in_out);
+    }
+
     if (fromsock->in_out == PinKind::Input) {
         std::swap(fromnode, tonode);
         std::swap(fromsock, tosock);
@@ -273,6 +292,13 @@ void NodeTree::delete_link(LinkId linkId, bool refresh_topology)
         return link->ID == linkId;
     });
     if (link != links.end()) {
+        if (auto group = (*link)->from_sock->socket_group) {
+            group->remove_socket((*link)->from_sock);
+        }
+        if (auto group = (*link)->to_sock->socket_group) {
+            group->remove_socket((*link)->to_sock);
+        }
+
         if ((*link)->nextLink) {
             auto nextLink = (*link)->nextLink;
 
