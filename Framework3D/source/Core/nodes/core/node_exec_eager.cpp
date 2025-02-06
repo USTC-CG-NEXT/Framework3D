@@ -15,6 +15,10 @@ ExeParams EagerNodeTreeExecutor::prepare_params(NodeTree* tree, Node* node)
 
     ExeParams params{ *node, global_payload };
     for (auto&& input : node->get_inputs()) {
+        if (input->is_placeholder()) {
+            continue;
+        }
+
         entt::meta_any* input_ptr;
 
         if (input_states[index_cache[input]].is_forwarded) {

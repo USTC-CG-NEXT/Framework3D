@@ -204,7 +204,8 @@ std::vector<size_t> Node::find_socket_group_ids(
     }
 
     for (size_t i = 0; i < socket_group->size(); ++i) {
-        if ((*socket_group)[i]->socket_group_identifier == group_identifier) {
+        if ((*socket_group)[i]->socket_group_identifier == group_identifier &&
+            !(*socket_group)[i]->is_placeholder()) {
             ids.push_back(i);
         }
     }
