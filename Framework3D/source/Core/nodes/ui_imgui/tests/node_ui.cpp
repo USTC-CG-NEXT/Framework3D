@@ -52,7 +52,7 @@ class CreateWindowTest : public ::testing::Test {
 
 TEST_F(CreateWindowTest, create_window)
 {
-    USTC_CG::Window window;
+    Window window;
 
     FileBasedNodeWidgetSettings widget_desc;
     widget_desc.system = system_;
