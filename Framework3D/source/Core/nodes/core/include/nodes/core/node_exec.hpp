@@ -40,7 +40,26 @@ struct NODES_CORE_API ExeParams {
         }
     }
 
+    /**
+     * Get the output value for the output socket with the given identifier.
+     */
 
+    template<typename T>
+    std::vector<T> get_input_group(const char* group_identifier) const
+    {
+        static_assert(!std::is_same_v<T, entt::meta_any>);
+
+        std::vector<size_t> indices =
+            this->get_input_group_indices(group_identifier);
+
+        std::vector<T> values;
+
+        for (int index : indices) {
+            values.push_back(inputs_[index]->cast<T>());
+        }
+
+        return values;
+    }
 
     /**
      * Store the output value for the given socket identifier.
@@ -93,6 +112,8 @@ struct NODES_CORE_API ExeParams {
 
    private:
     int get_input_index(const char* identifier) const;
+    std::vector<size_t> get_input_group_indices(
+        const char* group_identifier) const;
     int get_output_index(const char* identifier);
 
     friend class EagerNodeTreeExecutor;

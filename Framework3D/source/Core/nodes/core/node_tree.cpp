@@ -203,7 +203,7 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
     auto fromnode = fromsock->node;
     auto tonode = tosock->node;
 
-    if (fromsock->socket_group && fromsock->ui_name == std::string("")) {
+    if (fromsock->is_placeholder()) {
         fromsock = fromnode->group_add_socket(
             fromsock->socket_group_identifier,
             get_type_name(tosock->type_info).c_str(),
@@ -212,7 +212,7 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
             fromsock->in_out);
     }
 
-    if (tosock->socket_group && tosock->ui_name == std::string("")) {
+    if (tosock->is_placeholder()) {
         tosock = tonode->group_add_socket(
             tosock->socket_group_identifier,
             get_type_name(fromsock->type_info).c_str(),
@@ -361,6 +361,10 @@ bool NodeTree::can_create_link(NodeSocket* a, NodeSocket* b)
 {
     if (!a || !b || a == b || a->in_out == b->in_out || a->node == b->node)
         return false;
+
+    if (a->is_placeholder() && b->is_placeholder()) {
+        return false;
+    }
 
     auto in = a->in_out == PinKind::Input ? a : b;
     auto out = a->in_out == PinKind::Output ? a : b;

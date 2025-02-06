@@ -651,6 +651,9 @@ float NodeWidget::GetTouchProgress(NodeId id)
 
 bool NodeWidget::draw_socket_controllers(NodeSocket* input)
 {
+    if (input->socket_group) {
+        return false;
+    }
     bool changed = false;
     switch (input->type_info.id()) {
         default:

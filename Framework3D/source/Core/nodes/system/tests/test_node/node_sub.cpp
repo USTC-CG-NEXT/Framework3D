@@ -6,6 +6,7 @@ NODE_DECLARATION_FUNCTION(sub)
 {
     b.add_input<int>("value").min(0).max(10).default_val(1);
     b.add_input<float>("float").min(0).max(10).default_val(1);
+
     b.add_output<int>("value");
 }
 

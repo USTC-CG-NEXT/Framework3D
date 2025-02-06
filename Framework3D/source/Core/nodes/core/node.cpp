@@ -189,6 +189,29 @@ size_t Node::find_socket_id(const char* identifier, PinKind in_out) const
     return -1;
 }
 
+std::vector<size_t> Node::find_socket_group_ids(
+    const std::string& group_identifier,
+    PinKind in_out) const
+{
+    std::vector<size_t> ids;
+    const std::vector<NodeSocket*>* socket_group;
+
+    if (in_out == PinKind::Input) {
+        socket_group = &inputs;
+    }
+    else {
+        socket_group = &outputs;
+    }
+
+    for (size_t i = 0; i < socket_group->size(); ++i) {
+        if ((*socket_group)[i]->socket_group_identifier == group_identifier) {
+            ids.push_back(i);
+        }
+    }
+
+    return ids;
+}
+
 const std::vector<NodeSocket*>& Node::get_inputs() const
 {
     return inputs;

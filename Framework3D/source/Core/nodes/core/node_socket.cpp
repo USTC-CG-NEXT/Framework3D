@@ -10,6 +10,12 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 
 extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 
+bool NodeSocket::is_placeholder() const
+{
+    return !socket_group_identifier.empty() && socket_group->runtime_dynamic &&
+           std::string(ui_name).empty();
+}
+
 void NodeSocket::Serialize(nlohmann::json& value)
 {
     auto& socket = value[std::to_string(ID.Get())];

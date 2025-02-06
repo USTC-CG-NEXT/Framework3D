@@ -47,6 +47,8 @@ struct NODES_CORE_API NodeSocket {
     {
     }
 
+    bool is_placeholder() const;
+
     void Serialize(nlohmann::json& value);
     void DeserializeInfo(nlohmann::json& value);
     void DeserializeValue(const nlohmann::json& value);

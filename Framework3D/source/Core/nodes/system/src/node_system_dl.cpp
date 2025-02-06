@@ -31,7 +31,7 @@ DynamicLibraryLoader::~DynamicLibraryLoader()
 {
 #ifdef _WIN32
     if (handle) {
-        FreeLibrary(handle);
+        //FreeLibrary(handle);
     }
 #else
     if (handle) {

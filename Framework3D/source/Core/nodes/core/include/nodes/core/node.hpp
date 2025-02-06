@@ -76,6 +76,9 @@ struct NODES_CORE_API Node {
 
     NodeSocket* find_socket(const char* identifier, PinKind in_out) const;
     size_t find_socket_id(const char* identifier, PinKind in_out) const;
+    std::vector<size_t> find_socket_group_ids(
+        const std::string& group_identifier,
+        PinKind in_out) const;
 
     [[nodiscard]] const std::vector<NodeSocket*>& get_inputs() const;
 
