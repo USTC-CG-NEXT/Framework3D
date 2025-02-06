@@ -97,7 +97,7 @@ NodeSocket* SocketGroup::add_socket(
     socket->socket_group = this;
     socket->socket_group_identifier = identifier;
 
-    if (!std::string(type_name).empty())
+    if (!std::string(name).empty())
         sockets.insert(sockets.end() - 1, socket);
     else
         sockets.push_back(socket);

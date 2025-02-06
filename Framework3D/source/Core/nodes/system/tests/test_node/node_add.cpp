@@ -14,7 +14,7 @@ NODE_DECLARATION_FUNCTION(add)
     b.add_input<int>("value2").min(0).max(10).default_val(1);
     b.add_output<int>("value");
 
-    b.add_input_group("input_group").set_runtime_dynamic(true);
+    b.add_input_group<int>("input_group").set_runtime_dynamic(true);
     b.add_output_group("output_group").set_runtime_dynamic(true);
 }
 

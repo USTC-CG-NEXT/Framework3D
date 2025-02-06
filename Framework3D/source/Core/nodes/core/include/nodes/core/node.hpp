@@ -173,6 +173,8 @@ class SocketGroupDeclaration : public ItemDeclaration {
     std::string identifier;
     bool runtime_dynamic = false;
 
+    SocketType type;
+
     SocketGroup* build(NodeTree* ntree, Node* node) const
     {
         SocketGroup* group = new SocketGroup();
@@ -180,9 +182,11 @@ class SocketGroupDeclaration : public ItemDeclaration {
         group->kind = in_out;
         group->identifier = identifier;
         group->runtime_dynamic = runtime_dynamic;
+        group->type_info = type;
 
         if (runtime_dynamic) {
-            group->add_socket("", identifier.c_str(), "");
+            group->add_socket(
+                get_type_name(type).c_str(), identifier.c_str(), "");
         }
 
         return group;
@@ -342,17 +346,19 @@ class NodeDeclarationBuilder {
         const char* name,
         const char* identifier = "");
 
+    template<typename T = entt::meta_any>
     SocketGroupBuilder& add_input_group(const char* identifier)
     {
-        return add_group(identifier, PinKind::Input);
+        return add_group<T>(identifier, PinKind::Input);
     }
 
     SocketGroupBuilder& add_output_group(const char* identifier)
     {
-        return add_group(identifier, PinKind::Output);
+        return add_group<entt::meta_any>(identifier, PinKind::Output);
     }
 
    private:
+    template<typename T>
     SocketGroupBuilder& add_group(const char* identifier, PinKind in_out)
     {
         std::unique_ptr<SocketGroupDeclaration> group_decl =
@@ -362,6 +368,7 @@ class NodeDeclarationBuilder {
 
         group_decl->identifier = identifier;
         group_decl->in_out = in_out;
+        group_decl->type = get_socket_type<T>();
 
         auto& group_builder_ref = *group_builder;
 

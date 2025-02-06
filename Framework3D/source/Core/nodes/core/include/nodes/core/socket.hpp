@@ -92,6 +92,7 @@ struct SocketGroup {
     std::vector<NodeSocket*> sockets;
     bool runtime_dynamic = false;
     PinKind kind;
+    SocketType type_info;
     std::string identifier;
     NodeSocket*
     add_socket(const char* type_name, const char* identifier, const char* name);

@@ -292,10 +292,13 @@ void NodeTree::delete_link(LinkId linkId, bool refresh_topology)
         return link->ID == linkId;
     });
     if (link != links.end()) {
-        if (auto group = (*link)->from_sock->socket_group) {
+        auto group = (*link)->from_sock->socket_group;
+        if (group && ((*link)->from_sock->directly_linked_links.size() == 1)) {
             group->remove_socket((*link)->from_sock);
         }
-        if (auto group = (*link)->to_sock->socket_group) {
+
+        group = (*link)->to_sock->socket_group;
+        if (group && ((*link)->to_sock->directly_linked_links.size() == 1)) {
             group->remove_socket((*link)->to_sock);
         }
 
