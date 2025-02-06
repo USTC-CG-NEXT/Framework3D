@@ -14,6 +14,15 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
 
     ~MeshComponent() override;
 
+    void apply_transform(const pxr::GfMatrix4d& transform) override
+    {
+        auto vertices = get_vertices();
+        for (auto& vertex : vertices) {
+            vertex = pxr::GfVec3f(transform.Transform(vertex));
+        }
+        set_vertices(vertices);
+    }
+
     std::string to_string() const override;
 
     GeometryComponentHandle copy(Geometry* operand) const override;
@@ -113,6 +122,7 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
 
     void set_mesh_geom(const pxr::UsdGeomMesh& usdgeom);
     pxr::UsdGeomMesh get_usd_mesh() const;
+    void append_mesh(const std::shared_ptr<MeshComponent>& mesh);
 
    private:
     pxr::UsdGeomMesh mesh;

@@ -20,6 +20,7 @@ class GEOMETRY_API Geometry {
     Geometry();
 
     virtual ~Geometry();
+    void apply_transform();
 
     Geometry(const Geometry& operand);
     Geometry(Geometry&& operand) noexcept;

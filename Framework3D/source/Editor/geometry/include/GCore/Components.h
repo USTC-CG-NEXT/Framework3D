@@ -14,7 +14,9 @@ struct GEOMETRY_API GeometryComponent {
 
     [[nodiscard]] Geometry* get_attached_operand() const;
 
-protected:
+    virtual void apply_transform(const pxr::GfMatrix4d& transform) = 0;
+
+   protected:
     Geometry* attached_operand;
     pxr::SdfPath scratch_buffer_path;
 };

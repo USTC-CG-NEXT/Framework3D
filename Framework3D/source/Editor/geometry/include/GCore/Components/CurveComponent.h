@@ -13,6 +13,15 @@ struct GEOMETRY_API CurveComponent : public GeometryComponent {
 
     std::string to_string() const override;
 
+    void apply_transform(const pxr::GfMatrix4d& transform) override
+    {
+        auto vertices = get_vertices();
+        for (auto& vertex : vertices) {
+            vertex = pxr::GfVec3f(transform.Transform(vertex));
+        }
+        set_vertices(vertices);
+    }
+
     [[nodiscard]] pxr::VtArray<pxr::GfVec3f> get_vertices() const
     {
         pxr::VtArray<pxr::GfVec3f> vertices;

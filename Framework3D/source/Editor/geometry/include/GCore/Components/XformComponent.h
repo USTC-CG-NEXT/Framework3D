@@ -12,9 +12,16 @@ class GEOMETRY_API XformComponent : public GeometryComponent {
     GeometryComponentHandle copy(Geometry* operand) const override;
     std::string to_string() const override;
 
-    explicit XformComponent(Geometry* attached_operand) : GeometryComponent(attached_operand)
+    explicit XformComponent(Geometry* attached_operand)
+        : GeometryComponent(attached_operand)
     {
     }
+
+    void apply_transform(const pxr::GfMatrix4d& transform) override
+    {
+    }
+
+    pxr::GfMatrix4d get_transform() const;
 
     std::vector<pxr::GfVec3f> translation;
     std::vector<pxr::GfVec3f> scale;

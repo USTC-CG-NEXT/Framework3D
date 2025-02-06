@@ -1,8 +1,9 @@
 #include "GCore/GOP.h"
 
-#include "Logger/Logger.h"
 #include "GCore/Components.h"
 #include "GCore/Components/MeshOperand.h"
+#include "GCore/Components/XformComponent.h"
+#include "Logger/Logger.h"
 #include "global_stage.hpp"
 #include "pxr/usd/usdGeom/xform.h"
 
@@ -13,6 +14,22 @@ Geometry::Geometry()
 
 Geometry::~Geometry()
 {
+}
+
+void Geometry::apply_transform()
+{
+    auto xform_component = get_component<XformComponent>();
+    if (!xform_component) {
+        return;
+    }
+
+    auto transform = xform_component->get_transform();
+
+    for (auto&& component : components_) {
+        if (component) {
+            component->apply_transform(transform);
+        }
+    }
 }
 
 Geometry::Geometry(const Geometry& operand)

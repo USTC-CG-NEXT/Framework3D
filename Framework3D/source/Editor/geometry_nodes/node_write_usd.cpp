@@ -188,28 +188,7 @@ NODE_EXECUTION_FUNCTION(write_usd)
             xform_component->translation.size() ==
             xform_component->rotation.size());
 
-        pxr::GfMatrix4d final_transform;
-        final_transform.SetIdentity();
-
-        for (int i = 0; i < xform_component->translation.size(); ++i) {
-            pxr::GfMatrix4d t;
-            t.SetTranslate(xform_component->translation[i]);
-            pxr::GfMatrix4d s;
-            s.SetScale(xform_component->scale[i]);
-
-            pxr::GfMatrix4d r_x;
-            r_x.SetRotate(pxr::GfRotation{ { 1, 0, 0 },
-                                           xform_component->rotation[i][0] });
-            pxr::GfMatrix4d r_y;
-            r_y.SetRotate(pxr::GfRotation{ { 0, 1, 0 },
-                                           xform_component->rotation[i][1] });
-            pxr::GfMatrix4d r_z;
-            r_z.SetRotate(pxr::GfRotation{ { 0, 0, 1 },
-                                           xform_component->rotation[i][2] });
-
-            auto transform = r_x * r_y * r_z * s * t;
-            final_transform = final_transform * transform;
-        }
+        pxr::GfMatrix4d final_transform = xform_component->get_transform();
 
         auto xform_op = usdgeom.GetTransformOp();
         if (!xform_op) {

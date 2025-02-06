@@ -7,7 +7,12 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 struct GEOMETRY_API MaterialComponent : public GeometryComponent {
-    explicit MaterialComponent(Geometry* attached_operand) : GeometryComponent(attached_operand)
+    explicit MaterialComponent(Geometry* attached_operand)
+        : GeometryComponent(attached_operand)
+    {
+    }
+
+    void apply_transform(const pxr::GfMatrix4d& transform) override
     {
     }
 

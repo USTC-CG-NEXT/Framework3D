@@ -92,4 +92,45 @@ pxr::UsdGeomMesh MeshComponent::get_usd_mesh() const
     return mesh;
 }
 
+void MeshComponent::append_mesh(const std::shared_ptr<MeshComponent>& mesh)
+
+{
+    auto this_vertices = get_vertices();
+    auto this_face_vertex_indices = get_face_vertex_indices();
+
+    auto that_vertices = mesh->get_vertices();
+
+    auto that_face_vertex_indices = mesh->get_face_vertex_indices();
+
+    int this_index_offset = this_vertices.size();
+
+    this_vertices.resize(this_vertices.size() + that_vertices.size());
+    memcpy(
+        this_vertices.data() + this_index_offset,
+        that_vertices.data(),
+        that_vertices.size() * sizeof(pxr::GfVec3f));
+
+    // Append face vertex indices
+    for (auto& index : that_face_vertex_indices) {
+        this_face_vertex_indices.push_back(index + this_index_offset);
+    }
+
+    set_vertices(this_vertices);
+    set_face_vertex_indices(this_face_vertex_indices);
+
+    auto this_vertex_counts = get_face_vertex_counts();
+    auto this_vertex_counts_size = this_vertex_counts.size();
+    auto that_vertex_counts = mesh->get_face_vertex_counts();
+
+    this_vertex_counts.resize(
+        this_vertex_counts.size() + that_vertex_counts.size());
+
+    memcpy(
+        this_vertex_counts.data() + this_vertex_counts_size,
+        that_vertex_counts.data(),
+        that_vertex_counts.size() * sizeof(int));
+
+    set_face_vertex_counts(this_vertex_counts);
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE
