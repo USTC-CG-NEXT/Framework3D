@@ -14,12 +14,12 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 Stage::Stage()
 {
     // if stage.usda exists, load it
-    stage = pxr::UsdStage::Open("../../Assets/stage.usda");
+    stage = pxr::UsdStage::Open("../../Assets/stage.usdc");
     if (stage) {
         return;
     }
 
-    stage = pxr::UsdStage::CreateNew("../../Assets/stage.usda");
+    stage = pxr::UsdStage::CreateNew("../../Assets/stage.usdc");
     stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, 1.0);
     stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::TfToken("Z"));
 }

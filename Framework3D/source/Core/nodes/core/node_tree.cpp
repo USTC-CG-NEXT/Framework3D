@@ -207,7 +207,7 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         fromsock = fromnode->group_add_socket(
             fromsock->socket_group_identifier,
             get_type_name(tosock->type_info).c_str(),
-            (tosock->identifier + std::to_string(long long(tosock))).c_str(),
+            (tosock->identifier + std::to_string(UniqueID())).c_str(),
             tosock->ui_name,
             fromsock->in_out);
     }
@@ -216,8 +216,7 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         tosock = tonode->group_add_socket(
             tosock->socket_group_identifier,
             get_type_name(fromsock->type_info).c_str(),
-            (fromsock->identifier + std::to_string(long long(fromsock)))
-                .c_str(),
+            (fromsock->identifier + std::to_string(UniqueID())).c_str(),
             fromsock->ui_name,
             tosock->in_out);
     }
