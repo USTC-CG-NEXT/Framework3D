@@ -69,7 +69,6 @@ Node::Node(NodeTree* node_tree, const char* idname)
 {
     ID = tree_->UniqueID();
     valid_ = pre_init_node(idname);
-    refresh_node();
 }
 
 Node::~Node()
@@ -178,11 +177,14 @@ void Node::generate_sockets_based_on_declaration(
     auto old_socket = std::find_if(
         old_sockets.begin(),
         old_sockets.end(),
-        [&socket_declaration](NodeSocket* socket) {
-            return std::string(socket->identifier) ==
-                       socket_declaration.identifier &&
-                   socket->in_out == socket_declaration.in_out &&
-                   socket->type_info == socket_declaration.type;
+        [&socket_declaration, this](NodeSocket* socket) {
+            bool still_contained_in_current_declaration =
+                std::string(socket->identifier) ==
+                    socket_declaration.identifier &&
+                socket->in_out == socket_declaration.in_out &&
+                socket->type_info == socket_declaration.type;
+
+            return still_contained_in_current_declaration;
         });
     if (old_socket != old_sockets.end()) {
         (*old_socket)->node = this;
@@ -192,9 +194,22 @@ void Node::generate_sockets_based_on_declaration(
     }
     else {
         new_socket = socket_declaration.build(tree_, this);
-        tree_->sockets.emplace_back(new_socket);
     }
     new_sockets.push_back(new_socket);
+}
+
+void Node::generate_socket_groups_based_on_declaration(
+    const SocketGroupDeclaration& socket_group_declaration,
+    const std::vector<NodeSocket*>& old_sockets,
+    std::vector<NodeSocket*>& new_sockets)
+{
+    for (auto&& old_socket : old_sockets) {
+        if (old_socket->socket_group_identifier ==
+                socket_group_declaration.identifier &&
+            old_socket->in_out == socket_group_declaration.in_out) {
+            new_sockets.push_back(old_socket);
+        }
+    }
 }
 
 NodeSocket* Node::add_socket(
@@ -212,16 +227,22 @@ NodeSocket* Node::add_socket(
     socket->node = this;
 
     register_socket_to_node(socket, in_out);
+
+    tree_->sockets.emplace_back(socket);
     return socket;
 }
 
-void Node::remove_socket(NodeSocket* socket, PinKind kind)
+void Node::remove_outdated_socket(NodeSocket* socket, PinKind kind)
 {
     switch (kind) {
         case PinKind::Output:
-            if (std::find(outputs.begin(), outputs.end(), socket) ==
-                outputs.end()) {
-                // If the sockets is not
+            if (std::find_if(
+                    outputs.begin(),
+                    outputs.end(),
+                    [socket](NodeSocket* new_socket) {
+                        return socket == new_socket || socket->socket_group;
+                    }) == outputs.end()) {
+                // If the sockets is not in the refreshed sockets
                 auto out_dated_socket = std::find_if(
                     tree_->sockets.begin(),
                     tree_->sockets.end(),
@@ -230,9 +251,13 @@ void Node::remove_socket(NodeSocket* socket, PinKind kind)
             }
             break;
         case PinKind::Input:
-            if (std::find(inputs.begin(), inputs.end(), socket) ==
-                inputs.end()) {
-                // If the sockets is not
+            if (std::find_if(
+                    inputs.begin(),
+                    inputs.end(),
+                    [socket](NodeSocket* new_socket) {
+                        return socket == new_socket || socket->socket_group;
+                    }) == inputs.end()) {
+                // If the sockets is not in the refreshed sockets
                 auto out_dated_socket = std::find_if(
                     tree_->sockets.begin(),
                     tree_->sockets.end(),
@@ -249,7 +274,7 @@ void Node::out_date_sockets(
     PinKind pin_kind)
 {
     for (auto old : olds) {
-        remove_socket(old, pin_kind);
+        remove_outdated_socket(old, pin_kind);
     }
 }
 
@@ -264,26 +289,24 @@ void Node::refresh_node()
     std::vector<NodeSocket*> new_inputs;
     std::vector<NodeSocket*> new_outputs;
 
-    for (const ItemDeclarationPtr& item_decl : node_decl.items) {
-        if (auto socket_decl =
-                dynamic_cast<const SocketDeclaration*>(item_decl.get())) {
-            if (socket_decl->in_out == PinKind::Input) {
-                generate_sockets_based_on_declaration(
-                    *socket_decl, old_inputs, new_inputs);
-            }
-            else {
-                generate_sockets_based_on_declaration(
-                    *socket_decl, old_outputs, new_outputs);
-            }
-        }
-        // TODO: Panels
-        // else if (
-        //     const PanelDeclaration* panel_decl =
-        //         dynamic_cast<const PanelDeclaration*>(item_decl.get())) {
-        //     refresh_node_panel(*panel_decl, old_panels, *new_panel);
-        //     ++new_panel;
-        // }
+    for (const SocketDeclaration* socket_decl : node_decl.inputs) {
+        generate_sockets_based_on_declaration(
+            *socket_decl, old_inputs, new_inputs);
     }
+
+    for (const SocketDeclaration* socket_decl : node_decl.outputs) {
+        generate_sockets_based_on_declaration(
+            *socket_decl, old_outputs, new_outputs);
+    }
+
+    for (const SocketGroupDeclaration* socket_group_decl :
+         node_decl.socket_group_decls) {
+        generate_socket_groups_based_on_declaration(
+            *socket_group_decl, old_inputs, new_inputs);
+        generate_socket_groups_based_on_declaration(
+            *socket_group_decl, old_outputs, new_outputs);
+    }
+
     inputs = new_inputs;
     outputs = new_outputs;
 
@@ -317,6 +340,13 @@ bool Node::pre_init_node(const char* idname)
     }
     ui_name = typeinfo->ui_name;
     memcpy(Color, typeinfo->color, sizeof(float) * 4);
+
+    auto& node_decl = typeinfo->static_declaration;
+
+    for (auto socket_group_declaration : node_decl.socket_group_decls) {
+        socket_groups.emplace_back(
+            socket_group_declaration->build(tree_, this));
+    }
 
     return true;
 }

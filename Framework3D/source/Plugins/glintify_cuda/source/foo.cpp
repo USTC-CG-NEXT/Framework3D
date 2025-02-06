@@ -1,0 +1,1 @@
+// Allow vscode's cmake to run

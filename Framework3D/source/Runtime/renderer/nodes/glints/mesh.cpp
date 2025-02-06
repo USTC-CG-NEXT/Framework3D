@@ -1,3 +1,5 @@
+#if USTC_CG_WITH_CUDA
+
 #include "mesh.hpp"
 
 #include <complex.h>
@@ -152,3 +154,5 @@ void MeshIntersectionContext::ensure_pipeline()
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
+
+#endif // USTC_CG_WITH_CUDA

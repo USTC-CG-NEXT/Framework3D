@@ -76,4 +76,20 @@ void NodeSocket::DeserializeValue(const nlohmann::json& value)
     }
 }
 
+NodeSocket* SocketGroup::add_socket(
+    const char* type_name,
+    const char* identifier,
+    const char* name)
+{
+    assert(!std::string(identifier).empty());
+
+    auto socket = node->add_socket(type_name, identifier, name, kind);
+    socket->socket_group = this;
+    socket->socket_group_identifier = identifier;
+
+    sockets.insert(sockets.begin(), socket);
+
+    return socket;
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

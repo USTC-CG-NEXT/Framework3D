@@ -1,3 +1,5 @@
+#if USTC_CG_WITH_CUDA
+
 #include "glints.hpp"
 
 #include <complex.h>
@@ -216,3 +218,5 @@ void ScratchIntersectionContext::set_max_pair_buffer_ratio(float ratio)
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
+
+#endif // USTC_CG_WITH_CUDA

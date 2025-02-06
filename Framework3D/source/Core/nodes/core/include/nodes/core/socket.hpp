@@ -25,7 +25,8 @@ struct NODES_CORE_API NodeSocket {
 
     SocketID ID;
     Node* node;
-    SocketGroup* group = nullptr;
+    SocketGroup* socket_group = nullptr;
+    std::string socket_group_identifier;
 
     SocketType type_info;
     PinKind in_out;
@@ -84,9 +85,17 @@ const T& NodeSocket::default_value_typed() const
     return dataField.value.cast<const T&>();
 }
 
-struct SocketGroup : public NodeSocket {
+
+// Socket group is not a core component, rather a UI layer, giving the ability
+// to dynamic modifying the node sockets.
+struct SocketGroup {
+    Node* node;
     std::vector<NodeSocket*> sockets;
     bool runtime_dynamic = false;
+    PinKind kind;
+    std::string identifier;
+    NodeSocket*
+    add_socket(const char* type_name, const char* identifier, const char* name);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

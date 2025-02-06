@@ -14,6 +14,7 @@
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class SocketGroupDeclaration;
 struct NodeTypeInfo;
 class NodeDeclaration;
 class SocketDeclaration;
@@ -25,8 +26,6 @@ enum class NodeType;
 struct ExeParams;
 class Operator;
 class NodeDeclarationBuilder;
-
-extern entt::meta_ctx g_entt_ctx;
 
 using ExecFunction = std::function<bool(ExeParams params)>;
 using NodeDeclareFunction =
@@ -61,6 +60,9 @@ struct NODES_CORE_API Node {
 
     explicit Node(NodeTree* node_tree, int id, const char* idname);
 
+    Node(const Node&) = delete;
+    Node& operator=(const Node&) = delete;
+
     Node(NodeTree* node_tree, const char* idname);
     ~Node();
 
@@ -86,32 +88,45 @@ struct NODES_CORE_API Node {
         const std::vector<NodeSocket*>& old_sockets,
         std::vector<NodeSocket*>& new_sockets);
 
+    void generate_socket_groups_based_on_declaration(
+        const SocketGroupDeclaration& socket_group_declaration,
+        const std::vector<NodeSocket*>& old_sockets,
+        std::vector<NodeSocket*>& new_sockets);
+
+    // For this deserialization, we assume there are some sockets already
+    // present in the node tree.
+    void deserialize(const nlohmann::json& node_json);
+
+    // Note that after this add_socket, the socket is still a dangling pointer.
+    // Use the tree to adopt it.
     NodeSocket* add_socket(
         const char* type_name,
         const char* identifier,
         const char* name,
         PinKind in_out);
 
-    // For this deserialization, we assume there are some sockets already
-    // present in the node tree.
-    void deserialize(const nlohmann::json& node_json);
-
-   private:
-    void remove_socket(NodeSocket* socket, PinKind kind);
-
-    void out_date_sockets(
-        const std::vector<NodeSocket*>& olds,
-        PinKind pin_kind);
     // refresh_node serves for this purpose - The node always complies with the
     // type description, while preserves the connection & id from the loaded
     // result. So we only outdate a limited set of the sockets.
     void refresh_node();
+
+   private:
+    void remove_outdated_socket(NodeSocket* socket, PinKind kind);
+
+    void out_date_sockets(
+        const std::vector<NodeSocket*>& olds,
+        PinKind pin_kind);
+
     bool pre_init_node(const char* idname);
 
     const NodeTypeInfo* nodeTypeFind(const char* idname);
 
+    // TODO: make inputs and outputs also managed by the nodes.
     std::vector<NodeSocket*> inputs;
     std::vector<NodeSocket*> outputs;
+
+    // Each Node manages its own socket groups.
+    std::vector<std::unique_ptr<SocketGroup>> socket_groups;
 
     NodeTree* tree_;
     bool valid_ = false;
@@ -120,7 +135,7 @@ struct NODES_CORE_API Node {
 NodeTypeInfo* nodeTypeFind(const char* idname);
 // SocketType socketTypeFind(const char* idname);
 
-/* Socket or panel declaration. */
+/* Socket declaration. */
 class ItemDeclaration {
    public:
     virtual ~ItemDeclaration() = default;
@@ -142,15 +157,48 @@ class SocketDeclaration : public ItemDeclaration {
     }
 };
 
-/**
- * Describes a panel containing sockets or other panels.
- */
-class PanelDeclaration : public ItemDeclaration { };
+class SocketGroupDeclaration : public ItemDeclaration {
+   public:
+    PinKind in_out;
+    std::string identifier;
+    bool runtime_dynamic = false;
+
+    SocketGroup* build(NodeTree* ntree, Node* node) const
+    {
+        SocketGroup* group = new SocketGroup();
+        group->node = node;
+        group->kind = in_out;
+        group->identifier = identifier;
+        group->runtime_dynamic = runtime_dynamic;
+
+        if (runtime_dynamic) {
+            group->add_socket("", identifier.c_str(), "");
+        }
+
+        return group;
+    }
+};
+
+class SocketGroupBuilder {
+   public:
+    SocketGroupBuilder(SocketGroupDeclaration* socket_group_declaration)
+        : socket_group_declaration(socket_group_declaration)
+    {
+    }
+    SocketGroupDeclaration* socket_group_declaration;
+    SocketGroupBuilder& set_runtime_dynamic(bool runtime_dynamic = true)
+    {
+        socket_group_declaration->runtime_dynamic = runtime_dynamic;
+        return *this;
+    }
+
+   private:
+    friend class NodeDeclarationBuilder;
+};
 
 class BaseSocketDeclarationBuilder {
     int index_ = -1;
 
-    NodeDeclarationBuilder* node_decl_builder_ = nullptr;
     friend class NodeDeclarationBuilder;
 };
 
@@ -257,18 +305,19 @@ struct SocketTrait {
 
 class NodeDeclaration {
    public:
-    /* Combined list of socket and panel declarations.
-     * This determines order of sockets in the UI and panel content. */
     std::vector<ItemDeclarationPtr> items;
-    /* Note: inputs and outputs pointers are owned by the items list. */
+
     std::vector<SocketDeclaration*> inputs;
     std::vector<SocketDeclaration*> outputs;
+    std::vector<SocketGroupDeclaration*> socket_group_decls;
 };
 
 class NodeDeclarationBuilder {
    private:
     NodeDeclaration& declaration_;
     std::vector<std::unique_ptr<BaseSocketDeclarationBuilder>> socket_builders_;
+
+    std::vector<std::unique_ptr<SocketGroupBuilder>> group_builders_;
 
    public:
     NodeDeclarationBuilder(NodeDeclaration& declaration);
@@ -283,7 +332,36 @@ class NodeDeclarationBuilder {
         const char* name,
         const char* identifier = "");
 
+    SocketGroupBuilder& add_input_group(const char* identifier)
+    {
+        return add_group(identifier, PinKind::Input);
+    }
+
+    SocketGroupBuilder& add_output_group(const char* identifier)
+    {
+        return add_group(identifier, PinKind::Output);
+    }
+
    private:
+    SocketGroupBuilder& add_group(const char* identifier, PinKind in_out)
+    {
+        std::unique_ptr<SocketGroupDeclaration> group_decl =
+            std::make_unique<SocketGroupDeclaration>();
+        std::unique_ptr<SocketGroupBuilder> group_builder =
+            std::make_unique<SocketGroupBuilder>(group_decl.get());
+
+        group_decl->identifier = identifier;
+        group_decl->in_out = in_out;
+
+        auto& group_builder_ref = *group_builder;
+
+        declaration_.socket_group_decls.push_back(group_decl.get());
+        group_builders_.push_back(std::move(group_builder));
+        declaration_.items.push_back(std::move(group_decl));
+
+        return group_builder_ref;
+    }
+
     /* Note: in_out can be a combination of SOCK_IN and SOCK_OUT.
      * The generated socket declarations only have a single flag set. */
     template<typename T>
@@ -322,7 +400,6 @@ typename SocketTrait<T>::Builder& NodeDeclarationBuilder::add_socket(
 
     std::unique_ptr<Builder> socket_decl_builder = std::make_unique<Builder>();
 
-    socket_decl_builder->node_decl_builder_ = this;
     std::unique_ptr<Decl> socket_decl = std::make_unique<Decl>();
     socket_decl_builder->decl_ = socket_decl.get();
     socket_decl->name = name;
