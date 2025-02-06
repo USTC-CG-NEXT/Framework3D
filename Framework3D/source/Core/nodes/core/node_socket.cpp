@@ -92,4 +92,18 @@ NodeSocket* SocketGroup::add_socket(
     return socket;
 }
 
+void SocketGroup::remove_socket(const char* identifier)
+{
+    auto it = std::find_if(
+        sockets.begin(), sockets.end(), [identifier](NodeSocket* socket) {
+            return strcmp(socket->identifier, identifier) == 0;
+        });
+
+    if (it != sockets.end()) {
+        sockets.erase(it);
+    }
+
+    node->remove_outdated_socket(*it, kind);
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

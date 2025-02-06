@@ -97,12 +97,22 @@ struct NODES_CORE_API Node {
     // present in the node tree.
     void deserialize(const nlohmann::json& node_json);
 
-    // Note that after this add_socket, the socket is still a dangling pointer.
-    // Use the tree to adopt it.
     NodeSocket* add_socket(
         const char* type_name,
         const char* identifier,
         const char* name,
+        PinKind in_out);
+
+    NodeSocket* group_add_socket(
+        const std::string& group_identifier,
+        const char* type_name,
+        const char* identifier,
+        const char* name,
+        PinKind in_out);
+
+    void group_remove_socket(
+        const std::string& group_identifier,
+        const char* identifier,
         PinKind in_out);
 
     // refresh_node serves for this purpose - The node always complies with the

@@ -85,7 +85,6 @@ const T& NodeSocket::default_value_typed() const
     return dataField.value.cast<const T&>();
 }
 
-
 // Socket group is not a core component, rather a UI layer, giving the ability
 // to dynamic modifying the node sockets.
 struct SocketGroup {
@@ -96,6 +95,8 @@ struct SocketGroup {
     std::string identifier;
     NodeSocket*
     add_socket(const char* type_name, const char* identifier, const char* name);
+
+    void remove_socket(const char* identifier);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -232,6 +232,52 @@ NodeSocket* Node::add_socket(
     return socket;
 }
 
+NodeSocket* Node::group_add_socket(
+    const std::string& group_identifier,
+    const char* type_name,
+    const char* identifier,
+    const char* name,
+    PinKind in_out)
+{
+    auto group = std::find_if(
+        socket_groups.begin(),
+        socket_groups.end(),
+        [&group_identifier, in_out](const auto& group) {
+            return group->identifier == group_identifier &&
+                   group->kind == in_out;
+        });
+
+    if (group == socket_groups.end()) {
+        throw std::runtime_error("Socket group not found.");
+    }
+
+    auto socket = (*group)->add_socket(
+        type_name, (group_identifier + "_" + identifier).c_str(), name);
+
+    refresh_node();
+
+    return socket;
+}
+
+void Node::group_remove_socket(
+    const std::string& group_identifier,
+    const char* identifier,
+    PinKind in_out)
+{
+    auto group = std::find_if(
+        socket_groups.begin(),
+        socket_groups.end(),
+        [&group_identifier, in_out](const auto& group) {
+            return group->identifier == group_identifier &&
+                   group->kind == in_out;
+        });
+
+    if (group == socket_groups.end()) {
+        throw std::runtime_error("Socket group not found.");
+    }
+    (*group)->remove_socket((group_identifier + "_" + identifier).c_str());
+}
+
 void Node::remove_outdated_socket(NodeSocket* socket, PinKind kind)
 {
     switch (kind) {
@@ -277,6 +323,9 @@ void Node::out_date_sockets(
         remove_outdated_socket(old, pin_kind);
     }
 }
+
+// This function really syncronize the node to the node tree. After doing local
+// operation like add socket, remove socket, deserizaliation, call this.
 
 void Node::refresh_node()
 {

@@ -183,6 +183,7 @@ Node* NodeTree::add_node(const char* idname)
     auto node = std::make_unique<Node>(this, idname);
     auto bare = node.get();
     nodes.push_back(std::move(node));
+    bare->refresh_node();
     return bare;
 }
 
