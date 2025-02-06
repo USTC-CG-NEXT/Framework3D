@@ -98,8 +98,45 @@ void Node::register_socket_to_node(NodeSocket* socket, PinKind in_out)
 {
     if (in_out == PinKind::Input) {
         inputs.push_back(socket);
+
+        if (!socket->socket_group_identifier.empty()) {
+            auto group = std::find_if(
+                socket_groups.begin(),
+                socket_groups.end(),
+                [&socket](const auto& group) {
+                    return group->identifier == socket->socket_group_identifier;
+                });
+
+            if (group == socket_groups.end()) {
+                throw std::runtime_error("Socket group not found.");
+            }
+
+            auto location = (*group)->runtime_dynamic
+                                ? (*group)->sockets.end() - 1
+                                : (*group)->sockets.end();
+            socket->socket_group = (*group).get();
+            (*group)->sockets.insert(location, socket);
+        }
     }
     else {
+        if (!socket->socket_group_identifier.empty()) {
+            auto group = std::find_if(
+                socket_groups.begin(),
+                socket_groups.end(),
+                [&socket](const auto& group) {
+                    return group->identifier == socket->socket_group_identifier;
+                });
+            if (group == socket_groups.end()) {
+                throw std::runtime_error("Socket group not found.");
+            }
+
+            auto location = (*group)->runtime_dynamic
+                                ? (*group)->sockets.end() - 1
+                                : (*group)->sockets.end();
+            socket->socket_group = (*group).get();
+            (*group)->sockets.insert(location, socket);
+        }
+
         outputs.push_back(socket);
     }
 }

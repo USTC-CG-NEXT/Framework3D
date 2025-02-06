@@ -42,6 +42,10 @@ class NodeWidget : public IWidget {
     const char* GetWindowName() override;
 
    private:
+
+    bool show_node_widget = true;
+    bool show_tree_info = true;
+
     void ShowLeftPane(float paneWidth);
 
     float GetTouchProgress(NodeId id);

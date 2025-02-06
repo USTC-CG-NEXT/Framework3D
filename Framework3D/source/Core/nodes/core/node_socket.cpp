@@ -13,6 +13,11 @@ extern std::map<std::string, NodeTypeInfo*> conversion_node_registry;
 void NodeSocket::Serialize(nlohmann::json& value)
 {
     auto& socket = value[std::to_string(ID.Get())];
+
+    // Socket group treatment
+    if (!socket_group_identifier.empty() && !std::string(ui_name).empty())
+        socket["socket_group_identifier"] = socket_group_identifier;
+
     // Repeated storage. Simpler code for iteration.
     socket["ID"] = ID.Get();
     socket["id_name"] = get_type_name(type_info);
@@ -50,6 +55,11 @@ void NodeSocket::DeserializeInfo(nlohmann::json& socket_json)
     in_out = socket_json["in_out"].get<PinKind>();
     strcpy(ui_name, socket_json["ui_name"].get<std::string>().c_str());
     strcpy(identifier, socket_json["identifier"].get<std::string>().c_str());
+
+    if (socket_json.find("socket_group_identifier") != socket_json.end()) {
+        socket_group_identifier =
+            socket_json["socket_group_identifier"].get<std::string>();
+    }
 }
 
 void NodeSocket::DeserializeValue(const nlohmann::json& value)
@@ -78,16 +88,19 @@ void NodeSocket::DeserializeValue(const nlohmann::json& value)
 
 NodeSocket* SocketGroup::add_socket(
     const char* type_name,
-    const char* identifier,
+    const char* socket_identifier,
     const char* name)
 {
     assert(!std::string(identifier).empty());
 
-    auto socket = node->add_socket(type_name, identifier, name, kind);
+    auto socket = node->add_socket(type_name, socket_identifier, name, kind);
     socket->socket_group = this;
     socket->socket_group_identifier = identifier;
 
-    sockets.insert(--sockets.end(), socket);
+    if (!std::string(type_name).empty())
+        sockets.insert(sockets.end() - 1, socket);
+    else
+        sockets.push_back(socket);
 
     return socket;
 }
