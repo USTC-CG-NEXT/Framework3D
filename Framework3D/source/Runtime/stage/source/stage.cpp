@@ -11,6 +11,8 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
+#define SAVE_ALL_THE_TIME 0
+
 Stage::Stage()
 {
     // if stage.usda exists, load it
@@ -42,7 +44,9 @@ T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName)
     auto a = T::Define(
         stage,
         path.AppendPath(pxr::SdfPath(baseName + "_" + std::to_string(id))));
-    // stage->Save();
+#if SAVE_ALL_THE_TIME
+    stage->Save();
+#endif
     return a;
 }
 
@@ -79,7 +83,9 @@ pxr::UsdGeomMesh Stage::create_mesh(const pxr::SdfPath& path) const
 void Stage::remove_prim(const pxr::SdfPath& path)
 {
     stage->RemovePrim(path);
-    // stage->Save();
+#if SAVE_ALL_THE_TIME
+    stage->Save();
+#endif
 }
 
 std::string Stage::stage_content() const
@@ -124,7 +130,9 @@ void Stage::save_string_to_usd(
     auto attr = prim.CreateAttribute(
         pxr::TfToken("node_json"), pxr::SdfValueTypeNames->String);
     attr.Set(data);
-    // stage->Save();
+#if SAVE_ALL_THE_TIME
+    stage->Save();
+#endif
 }
 
 std::string Stage::load_string_from_usd(const pxr::SdfPath& path)
@@ -157,8 +165,9 @@ void Stage::import_usd(
 
     auto paylaods = prim.GetPayloads();
     paylaods.AddPayload(pxr::SdfPayload(path_string));
-
-    // stage->Save();
+#if SAVE_ALL_THE_TIME
+    stage->Save();
+#endif
 }
 
 std::unique_ptr<Stage> create_global_stage()
