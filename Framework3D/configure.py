@@ -69,7 +69,7 @@ def download_and_extract(url, extract_path, folder, targets, dry_run=False):
         print(f"Error extracting {zip_path}: {e}")
 
 
-openusd_version = "25.02"
+openusd_version = "25.02a"
 
 
 def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=False):
@@ -147,11 +147,13 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             }
             build_variant = build_variant_map.get(target, target.lower())
             if build_variant == "relwithdebuginfo":
-                openvdb_args = 'OpenVDB,-DUSE_EXPLICIT_INSTANTIATION=OFF -DCMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO="RelWithDebInfo;Release;" '
+                openvdb_args = 'OpenVDB,"-DUSE_EXPLICIT_INSTANTIATION=OFF -DCMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO="RelWithDebInfo;Release;"" '
             else:
                 openvdb_args = "OpenVDB,-DUSE_EXPLICIT_INSTANTIATION=OFF "
 
-            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
+            no_tbb_linkage = "-DCMAKE_CXX_FLAGS=-D__TBB_NO_IMPLICIT_LINKAGE=1"
+            openimageio_args = f"OpenImageIO,{no_tbb_linkage} "
+            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}{openimageio_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --generator Ninja --build-variant {build_variant} ./SDK/OpenUSD/{target}'
 
             if dry_run:
                 print(f"[DRY RUN] Would run: {build_command}")
