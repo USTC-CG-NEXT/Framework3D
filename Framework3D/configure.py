@@ -69,10 +69,15 @@ def download_and_extract(url, extract_path, folder, targets, dry_run=False):
         print(f"Error extracting {zip_path}: {e}")
 
 
+openusd_version = "25.02"
+
+
 def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=False):
     if not copy_only:
         # First download and extract the source files
-        url = "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v24.11.zip"
+        url = "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v{}.zip".format(
+            openusd_version
+        )
 
         zip_path = os.path.join(
             os.path.dirname(__file__), "SDK", "cache", url.split("/")[-1]
@@ -104,11 +109,15 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
 
         # Call the build script with the specified options
         build_script = os.path.join(
-            extract_path, "OpenUSD-24.11", "build_scripts", "build_usd.py"
+            extract_path,
+            "OpenUSD-{}".format(openusd_version),
+            "build_scripts",
+            "build_usd.py",
         )
 
         # Check if the user has a debug python installed
         import subprocess
+
         try:
             subprocess.check_output(["python_d", "--version"], stderr=subprocess.STDOUT)
             has_python_d = True
@@ -138,21 +147,16 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             }
             build_variant = build_variant_map.get(target, target.lower())
             if build_variant == "relwithdebuginfo":
-                openvdb_args = 'OpenVDB,-DCMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO="RelWithDebInfo;Release;" '
+                openvdb_args = 'OpenVDB,-DUSE_EXPLICIT_INSTANTIATION=OFF -DCMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO="RelWithDebInfo;Release;" '
             else:
-                openvdb_args = " "
+                openvdb_args = "OpenVDB,-DUSE_EXPLICIT_INSTANTIATION=OFF "
 
-            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --generator=Ninja --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
+            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
 
             if dry_run:
                 print(f"[DRY RUN] Would run: {build_command}")
             else:
                 os.system(build_command)
-                # A work around: usd currently has a bug with pch when building with ninja, so call it's doomed to fail. Call it again withouth specifying generator=ninja to build it with visual studio.
-                if os.name == 'nt':  # Only do this on Windows
-                    shutil.rmtree(os.path.join("SDK", "OpenUSD", target, "build", "OpenUSD-24.11"))
-                    build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --build-variant {build_variant} ./SDK/OpenUSD/{target}'
-                    os.system(build_command)
 
     # Copy the built binaries to the Binaries folder
     for target in targets:
@@ -180,7 +184,9 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             dry_run=dry_run,
         )
 
+
 import concurrent.futures
+
 
 def pack_sdk(dry_run=False):
     src_dir = os.path.join(os.getcwd(), "SDK")
@@ -196,7 +202,10 @@ def pack_sdk(dry_run=False):
         futures = []
         for root, dirs, files in os.walk(src_dir):
             # Skip build, cache directories and anything under */src/
-            if any(skip_dir in root for skip_dir in ["\\build", "\\cache", "\\src", "\\source"]):
+            if any(
+                skip_dir in root
+                for skip_dir in ["\\build", "\\cache", "\\src", "\\source"]
+            ):
                 continue
 
             # Create corresponding directory in destination
@@ -289,7 +298,7 @@ def main():
     if dry_run:
         print(f"[DRY RUN] Selected build variants: {targets}")
 
-    if os.name == 'nt':
+    if os.name == "nt":
         urls = {
             "slang": "https://github.com/shader-slang/slang/releases/download/v2024.15.2/slang-2024.15.2-windows-x86_64.zip",
         }

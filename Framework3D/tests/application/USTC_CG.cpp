@@ -105,6 +105,6 @@ int main()
 
     unregister_cpp_type();
 
-    stage.reset();
     window.reset();
+    stage.reset();
 }
