@@ -119,6 +119,16 @@ class NODES_CORE_API NodeTree {
 
     Node* add_node(const char* str);
 
+    Node* group_up(const std::vector<Node*>& nodes)
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
+    void ungroup(Node* node)
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
     unsigned UniqueID();
 
     void update_socket_vectors_and_owner_node();
