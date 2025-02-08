@@ -1,38 +1,28 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include <array>
-#include <vector>
+#include <cstddef>
 
-#include "glm/fwd.hpp"
 #include "imgui_internal.h"
-#include "polyscope/curve_network.h"
-#include "polyscope/surface_mesh.h"
-#include "polyscope/transformation_gizmo.h"
-#include "polyscope/types.h"
 
 #endif
+
+#include <thread>
+#include <vector>
+
 #include "RHI/rhi.hpp"
 #include "imgui.h"
 #include "nvrhi/nvrhi.h"
+#include "polyscope/curve_network.h"
 #include "polyscope/options.h"
 #include "polyscope/pick.h"
 #include "polyscope/point_cloud.h"
 #include "polyscope/polyscope.h"
-#include "polyscope/render/engine.h"
 #include "polyscope/screenshot.h"
-#include "polyscope/view.h"
-#include "polyscope_widget/api.h"
+#include "polyscope/surface_mesh.h"
+#include "polyscope/transformation_gizmo.h"
 #include "polyscope_widget/polyscope_renderer.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-
-struct PolyscopeRenderPrivateData {
-    nvrhi::TextureDesc nvrhi_desc = {};
-    nvrhi::TextureHandle nvrhi_texture = nullptr;
-    nvrhi::TextureHandle nvrhi_staging = nullptr;
-    nvrhi::Format present_format = nvrhi::Format::RGBA8_UNORM;
-    nvrhi::StagingTextureHandle staging_texture;
-};
 
 // int nPts = 2000;
 // float anotherParam = 0.0;
@@ -78,7 +68,6 @@ struct PolyscopeRenderPrivateData {
 
 PolyscopeRenderer::PolyscopeRenderer()
 {
-    data_ = std::make_unique<PolyscopeRenderPrivateData>();
     // polyscope::options::buildGui = false;
     polyscope::options::enableRenderErrorChecks = true;
     polyscope::init();
@@ -125,6 +114,22 @@ bool PolyscopeRenderer::BuildUI()
     }
     polyscope::view::updateFlight();
     // polyscope::buildUserGuiAndInvokeCallback();
+
+    if (polyscope::options::maxFPS != -1) {
+        auto currTime = std::chrono::steady_clock::now();
+        long microsecPerLoop = 1000000 / polyscope::options::maxFPS;
+        microsecPerLoop =
+            (95 * microsecPerLoop) /
+            100;  // give a little slack so we actually hit target fps
+        while (std::chrono::duration_cast<std::chrono::microseconds>(
+                   currTime - lastMainLoopIterTime)
+                   .count() < microsecPerLoop) {
+            std::this_thread::yield();
+            currTime = std::chrono::steady_clock::now();
+        }
+    }
+    lastMainLoopIterTime = std::chrono::steady_clock::now();
+
     return true;
 }
 
@@ -170,28 +175,11 @@ void PolyscopeRenderer::BackBufferResized(
     unsigned sampleCount)
 {
     IWidget::BackBufferResized(width, height, sampleCount);
-    data_->nvrhi_texture = nullptr;
-    data_->staging_texture = nullptr;
 }
 
 void PolyscopeRenderer::GetFrameBuffer()
 {
     buffer = polyscope::screenshotToBufferCustom(false);
-    data_->present_format = nvrhi::Format::RGBA8_UNORM;
-
-    data_->nvrhi_desc.width = polyscope::view::windowWidth;
-    data_->nvrhi_desc.height = polyscope::view::windowHeight;
-    data_->nvrhi_desc.format = data_->present_format;
-    data_->nvrhi_desc.isRenderTarget = true;
-
-    if (!data_->nvrhi_texture) {
-        std::tie(data_->nvrhi_texture, data_->staging_texture) =
-            RHI::load_texture(data_->nvrhi_desc, buffer.data());
-    }
-    else {
-        RHI::write_texture(
-            data_->nvrhi_texture, data_->staging_texture, buffer.data());
-    }
 }
 
 void PolyscopeRenderer::DrawMenuBar()
@@ -221,7 +209,6 @@ void PolyscopeRenderer::DrawFrame()
     //     "io.WantCaptureKeyboard: %d", ImGui::GetIO().WantCaptureKeyboard);
     // ImGui::Text("num widgets: %d", polyscope::state::widgets.size());
 
-    auto previous = data_->nvrhi_texture.Get();
     GetFrameBuffer();
 
     ImVec2 imgui_frame_size =
@@ -230,11 +217,16 @@ void PolyscopeRenderer::DrawFrame()
         "PolyscopeViewPort", imgui_frame_size, 0, ImGuiWindowFlags_NoMove);
     child_window_name = ImGui::GetCurrentWindow()->Name;
     ImGui::GetIO().WantCaptureMouse = false;
-    ImGui::Image(
-        static_cast<ImTextureID>(data_->nvrhi_texture.Get()),
-        imgui_frame_size,
-        ImVec2(0, 1),
-        ImVec2(1, 0));
+
+    RHI::rhi_imgui_image(
+        "PolyscopeViewPort",
+        buffer,
+        polyscope::view::windowWidth,
+        polyscope::view::windowHeight,
+        polyscope::view::windowWidth,
+        polyscope::view::windowHeight,
+        nvrhi::Format::RGBA8_UNORM);
+
     is_active = ImGui::IsWindowFocused();
     is_hovered = ImGui::IsItemHovered();
     ImGui::GetIO().WantCaptureMouse = true;

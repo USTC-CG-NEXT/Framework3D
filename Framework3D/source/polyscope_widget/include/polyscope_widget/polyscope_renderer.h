@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
 
 #include "GUI/widget.h"
@@ -16,8 +17,6 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 class BaseCamera;
 class FreeCamera;
 class NodeTree;
-
-struct PolyscopeRenderPrivateData;
 
 class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
    public:
@@ -56,6 +55,8 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
     bool is_active = false;
     bool is_hovered = false;
 
+    std::chrono::time_point<std::chrono::steady_clock> lastMainLoopIterTime;
+
     void GetFrameBuffer();
     void DrawMenuBar();
     void DrawFrame();
@@ -75,7 +76,6 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
     // bool MouseScrollUpdate(double xoffset, double yoffset) override; bool
     // MouseButtonUpdate(int button, int action, int mods) override; void
     // Animate(float elapsed_time_seconds) override;
-    std::unique_ptr<PolyscopeRenderPrivateData> data_;
     std::string child_window_name = "";
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE
