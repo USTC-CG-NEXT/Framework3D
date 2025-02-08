@@ -78,7 +78,7 @@ else()
 endif()
 
 # The following packages optional
-find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
+# find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
 message("Python3_EXECUTABLE is ${Python3_EXECUTABLE}")
 
 find_package(Vulkan)
