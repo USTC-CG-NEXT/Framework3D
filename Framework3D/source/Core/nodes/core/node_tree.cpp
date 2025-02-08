@@ -316,10 +316,25 @@ Node* NodeTree::group_up(const std::vector<Node*>& nodes)
     group_node->sub_tree->ensure_topology_cache();
 
     // find the group upstream, i.e. any links that is connected to the
-    // sockets_to_group
-    std::set<NodeSocket*> group_upstream_sockets;
+    // sockets_to_group, but not in the links_to_group
 
-    std::set<NodeSocket*> group_downstream_sockets;
+    auto upstream_links = std::set<NodeLink*>();
+    auto downstream_links = std::set<NodeLink*>();
+
+    for (auto& socket : sockets_to_group) {
+        for (auto& link : socket->directly_linked_links) {
+            if (links_to_group.find(link) == links_to_group.end()) {
+                if (socket->in_out == PinKind::Input) {
+                    upstream_links.insert(link);
+                }
+                else {
+                    downstream_links.insert(link);
+                }
+            }
+        }
+    }
+
+    throw std::runtime_error("Not implemented");
 }
 
 unsigned NodeTree::UniqueID()
@@ -692,18 +707,19 @@ static void update_toposort(
     Vector<Node*>& r_sorted_nodes,
     bool& r_cycle_detected)
 {
+    const NodeTree& tree_runtime = ntree;
     r_sorted_nodes.clear();
-    r_sorted_nodes.reserve(ntree.nodes.size());
+    r_sorted_nodes.reserve(tree_runtime.nodes.size());
     r_cycle_detected = false;
 
     std::unordered_map<Node*, ToposortNodeState> node_states(
-        ntree.nodes.size());
-    for (auto&& node : ntree.nodes) {
+        tree_runtime.nodes.size());
+    for (auto&& node : tree_runtime.nodes) {
         if (!node_states.contains(node.get())) {
             node_states[node.get()] = ToposortNodeState{};
         }
     }
-    for (auto&& node : ntree.nodes) {
+    for (auto&& node : tree_runtime.nodes) {
         if (node_states[node.get()].is_done) {
             /* Ignore nodes that are done already. */
             continue;
@@ -723,9 +739,9 @@ static void update_toposort(
             r_cycle_detected);
     }
 
-    if (r_sorted_nodes.size() < ntree.nodes.size()) {
+    if (r_sorted_nodes.size() < tree_runtime.nodes.size()) {
         r_cycle_detected = true;
-        for (auto&& node : ntree.nodes) {
+        for (auto&& node : tree_runtime.nodes) {
             if (node_states[node.get()].is_done) {
                 /* Ignore nodes that are done already. */
                 continue;
@@ -743,7 +759,7 @@ static void update_toposort(
         }
     }
 
-    assert(ntree.nodes.size() == r_sorted_nodes.size());
+    assert(tree_runtime.nodes.size() == r_sorted_nodes.size());
 }
 
 void NodeTree::ensure_topology_cache()
