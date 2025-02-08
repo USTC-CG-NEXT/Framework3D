@@ -31,16 +31,25 @@ NodeTypeInfo::NodeTypeInfo(const char* id_name)
 {
 }
 
-void NodeTypeInfo::set_declare_function(
+NodeTypeInfo& NodeTypeInfo::set_ui_name(const std::string& ui_name)
+{
+    this->ui_name = ui_name;
+    return *this;
+}
+
+NodeTypeInfo& NodeTypeInfo::set_declare_function(
     const NodeDeclareFunction& decl_function)
 {
     this->declare = decl_function;
     build_node_declaration();
+    return *this;
 }
 
-void NodeTypeInfo::set_execution_function(const ExecFunction& exec_function)
+NodeTypeInfo& NodeTypeInfo::set_execution_function(
+    const ExecFunction& exec_function)
 {
     this->node_execute = exec_function;
+    return *this;
 }
 
 void NodeTypeInfo::reset_declaration()
@@ -467,6 +476,22 @@ const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
             return nt;
     }
     throw std::runtime_error("Id name not found.");
+}
+
+NodeGroup::NodeGroup(NodeTree* node_tree, const char* idname)
+    : Node(node_tree, idname)
+{
+    is_group_node = true;
+    ui_name = "Group";
+    sub_tree = std::make_shared<NodeTree>(tree_->get_descriptor());
+}
+
+NodeGroup::NodeGroup(NodeTree* node_tree, int id, const char* idname)
+    : Node(node_tree, id, idname)
+{
+    is_group_node = true;
+    ui_name = "Group";
+    sub_tree = std::make_shared<NodeTree>(tree_->get_descriptor());
 }
 
 void NodeGroup::serialize(nlohmann::json& value)

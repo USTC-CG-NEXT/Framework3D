@@ -118,7 +118,7 @@ NodeWidget::NodeWidget(const NodeWidgetSettings& desc)
 
         std::string data = storage->load();
         if (!data.empty()) {
-            ptr->tree_->Deserialize(data);
+            ptr->tree_->deserialize(data);
         }
 
         return data;

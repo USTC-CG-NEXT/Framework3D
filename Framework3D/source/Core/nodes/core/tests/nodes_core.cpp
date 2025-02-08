@@ -317,7 +317,7 @@ TEST_F(NodeCoreTest, SerializeDeserialize)
     auto tree_serialize = tree->serialize(4);
 
     auto tree2 = create_node_tree(descriptor);
-    tree2->Deserialize(tree_serialize);
+    tree2->deserialize(tree_serialize);
 
     auto serialize_2 = tree2->serialize(4);
 
@@ -331,4 +331,29 @@ TEST_F(NodeCoreTest, SerializeDeserialize)
         node2->get_input_socket("test_socket2"));
 
     // Deserialize with a newly defined tree, with one socket removed
+}
+
+TEST_F(NodeCoreTest, NodeGroup)
+{
+    NodeTreeDescriptor descriptor;
+    NodeTypeInfo node_type_info("test_node");
+    register_cpp_type<float>();
+    register_cpp_type<std::string>();
+    node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
+        b.add_input<float>("test_socket").min(0).max(1).default_val(0);
+        b.add_input<int>("test_socket2").min(-15).max(3).default_val(1);
+        b.add_input<std::string>("string_socket").default_val("aaa");
+        b.add_output<int>("output");
+    });
+    descriptor.register_node(std::move(node_type_info));
+    auto tree = create_node_tree(descriptor);
+    auto node = tree->add_node("test_node");
+    ASSERT_NE(node, nullptr);
+    auto node2 = tree->add_node("test_node");
+    auto node3 = tree->add_node("test_node");
+    auto group = tree->group_up({ node, node2, node3 });
+    ASSERT_NE(group, nullptr);
+    ASSERT_EQ(tree->nodes.size(), 1);
+    tree->ungroup(group);
+    ASSERT_EQ(tree->nodes.size(), 3);
 }

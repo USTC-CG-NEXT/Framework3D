@@ -123,14 +123,14 @@ struct NODES_CORE_API Node {
     // result. So we only outdate a limited set of the sockets.
     void refresh_node();
 
+    bool pre_init_node(const char* idname);
+
    private:
     void remove_outdated_socket(NodeSocket* socket, PinKind kind);
 
     void out_date_sockets(
         const std::vector<NodeSocket*>& olds,
         PinKind pin_kind);
-
-    bool pre_init_node(const char* idname);
 
     const NodeTypeInfo* nodeTypeFind(const char* idname);
 
@@ -141,10 +141,10 @@ struct NODES_CORE_API Node {
     // Each Node manages its own socket groups.
     std::vector<std::unique_ptr<SocketGroup>> socket_groups;
 
-    NodeTree* tree_;
     bool valid_ = false;
 
    protected:
+    NodeTree* tree_;
     bool is_group_node;
 };
 
@@ -154,20 +154,14 @@ struct NODES_CORE_API Node {
  * It can act as a single node.
  */
 struct NodeGroup : public Node {
-    NodeGroup(NodeTree* node_tree, const char* idname) : Node(node_tree, idname)
-    {
-        is_group_node = true;
-        ui_name = "Group";
-    }
-    NodeGroup(NodeTree* node_tree, int id, const char* idname)
-        : Node(node_tree, id, idname)
-    {
-        is_group_node = true;
-        ui_name = "Group";
-    }
+    NodeGroup(NodeTree* node_tree, const char* idname);
+
+    NodeGroup(NodeTree* node_tree, int id, const char* idname);
 
     std::shared_ptr<NodeTree> sub_tree;
     void serialize(nlohmann::json& value) override;
+
+    friend class NodeTree;
 };
 
 NodeTypeInfo* nodeTypeFind(const char* idname);
@@ -509,9 +503,12 @@ struct NODES_CORE_API NodeTypeInfo {
     std::string id_name;
     std::string ui_name;
 
-    void set_declare_function(const NodeDeclareFunction& decl_function);
+    NodeTypeInfo& set_ui_name(const std::string& ui_name);
 
-    void set_execution_function(const ExecFunction& exec_function);
+    NodeTypeInfo& set_declare_function(
+        const NodeDeclareFunction& decl_function);
+
+    NodeTypeInfo& set_execution_function(const ExecFunction& exec_function);
 
     float color[4] = { 0.3, 0.5, 0.7, 1.0 };
     ExecFunction node_execute;

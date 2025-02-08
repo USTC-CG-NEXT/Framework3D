@@ -16,6 +16,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 // Multiple definitions of trees
 class NODES_CORE_API NodeTreeDescriptor {
    public:
+    NodeTreeDescriptor();
     ~NodeTreeDescriptor();
 
     NodeTreeDescriptor& register_node(const NodeTypeInfo& node_type);
@@ -71,21 +72,9 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
 class NODES_CORE_API NodeTree {
    public:
     NodeTree(const NodeTreeDescriptor& descriptor);
-    NodeTree(const NodeTree& other)
-    {
-        // A deep copy by reconstructing the tree
-        Deserialize(other.serialize());
-    }
+    NodeTree(const NodeTree& other);
 
-    NodeTree& operator=(const NodeTree& other)
-    {
-        if (this == &other) {
-            return *this;
-        }
-        clear();
-        Deserialize(other.serialize());
-        return *this;
-    }
+    NodeTree& operator=(const NodeTree& other);
 
     ~NodeTree();
 
@@ -119,10 +108,7 @@ class NODES_CORE_API NodeTree {
 
     Node* add_node(const char* str);
 
-    Node* group_up(const std::vector<Node*>& nodes)
-    {
-        throw std::runtime_error("Not implemented");
-    }
+    Node* group_up(const std::vector<Node*>& nodes);
 
     void ungroup(Node* node)
     {
@@ -173,7 +159,8 @@ class NODES_CORE_API NodeTree {
 
    public:
     std::string serialize(int indentation = -1) const;
-    void Deserialize(const std::string& str);
+
+    void deserialize(const std::string& str);
 
     void SetDirty(bool dirty = true);
 

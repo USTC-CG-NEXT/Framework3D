@@ -1,7 +1,9 @@
 #include "nodes/core/node_tree.hpp"
 
 #include <iostream>
+#include <set>
 #include <stack>
+#include <unordered_set>
 
 #include "nodes/core/io/json.hpp"
 #include "nodes/core/node.hpp"
@@ -16,6 +18,33 @@
     } while (0)
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+NodeTreeDescriptor::NodeTreeDescriptor()
+{
+    register_node(
+        NodeTypeInfo("node_group")
+            .set_ui_name("Group")
+            .set_declare_function([](NodeDeclarationBuilder& b) {
+                b.add_input_group("Inputs");
+                b.add_output_group("Outputs");
+            })
+            .set_execution_function([](ExeParams params) { return true; }));
+
+    register_node(
+        NodeTypeInfo("node_group_in")
+            .set_ui_name("Group In")
+            .set_declare_function([](NodeDeclarationBuilder& b) {
+                b.add_output_group("Outputs");
+            })
+            .set_execution_function([](ExeParams params) { return true; }));
+
+    register_node(
+        NodeTypeInfo("node_group_out")
+            .set_ui_name("Group Out")
+            .set_declare_function(
+                [](NodeDeclarationBuilder& b) { b.add_input_group("Inputs"); })
+            .set_execution_function([](ExeParams params) { return true; }));
+}
+
 NodeTreeDescriptor::~NodeTreeDescriptor()
 {
 }
@@ -73,6 +102,22 @@ NodeTree::NodeTree(const NodeTreeDescriptor& descriptor)
     output_sockets.reserve(32);
     toposort_right_to_left.reserve(32);
     toposort_left_to_right.reserve(32);
+}
+
+NodeTree::NodeTree(const NodeTree& other)
+{
+    // A deep copy by reconstructing the tree
+    deserialize(other.serialize());
+}
+
+NodeTree& NodeTree::operator=(const NodeTree& other)
+{
+    if (this == &other) {
+        return *this;
+    }
+    clear();
+    deserialize(other.serialize());
+    return *this;
 }
 
 NodeTree::~NodeTree()
@@ -185,6 +230,96 @@ Node* NodeTree::add_node(const char* idname)
     nodes.push_back(std::move(node));
     bare->refresh_node();
     return bare;
+}
+
+template<typename NodePtr, typename NodeLinkPtr, typename NodeSocketPtr>
+std::string tree_serialize(
+    const std::vector<NodePtr>& nodes,
+    const std::vector<NodeLinkPtr>& links,
+    const std::vector<NodeSocketPtr>& sockets,
+    int indentation = -1)
+{
+    nlohmann::json value;
+
+    auto& node_info = value["nodes_info"];
+    for (auto&& node : nodes) {
+        node->serialize(node_info);
+    }
+
+    auto& links_info = value["links_info"];
+    for (auto&& link : links) {
+        link->Serialize(links_info);
+    }
+
+    auto& sockets_info = value["sockets_info"];
+    for (auto&& socket : sockets) {
+        socket->Serialize(sockets_info);
+    }
+
+    std::ostringstream s;
+    s << value.dump(indentation);
+    return s.str();
+}
+
+// remembder to adopt the node!
+static NodeGroup* create_group_node()
+{
+    NodeGroup* node = new NodeGroup(nullptr, "Group");
+
+    node->pre_init_node("node_group");
+    return node;
+}
+
+static Node* create_group_node_in()
+{
+    Node* node = new NodeGroup(nullptr, "Group In");
+    node->pre_init_node("node_group_in");
+    return node;
+}
+
+static Node* create_group_node_out()
+{
+    Node* node = new NodeGroup(nullptr, "Group Out");
+    node->pre_init_node("node_group_out");
+    return node;
+}
+
+Node* NodeTree::group_up(const std::vector<Node*>& nodes)
+{
+    auto sockets_to_group = std::set<NodeSocket*>();
+
+    for (auto& node : nodes) {
+        for (auto& socket : node->get_inputs()) {
+            sockets_to_group.insert(socket);
+        }
+
+        for (auto& socket : node->get_outputs()) {
+            sockets_to_group.insert(socket);
+        }
+    }
+
+    auto links_to_group = std::set<NodeLink*>();
+
+    // find the links between the sockets to group
+
+    for (auto& link : links) {
+        if (sockets_to_group.find(link->from_sock) != sockets_to_group.end() &&
+            sockets_to_group.find(link->to_sock) != sockets_to_group.end()) {
+            links_to_group.insert(link.get());
+        }
+    }
+
+    // create a new group node
+    auto group_node = create_group_node();
+    auto serialized = tree_serialize(nodes, links, sockets, 2);
+    group_node->sub_tree->deserialize(serialized);
+    group_node->sub_tree->ensure_topology_cache();
+
+    // find the group upstream, i.e. any links that is connected to the
+    // sockets_to_group
+    std::set<NodeSocket*> group_upstream_sockets;
+
+    std::set<NodeSocket*> group_downstream_sockets;
 }
 
 unsigned NodeTree::UniqueID()
@@ -557,19 +692,18 @@ static void update_toposort(
     Vector<Node*>& r_sorted_nodes,
     bool& r_cycle_detected)
 {
-    const NodeTree& tree_runtime = ntree;
     r_sorted_nodes.clear();
-    r_sorted_nodes.reserve(tree_runtime.nodes.size());
+    r_sorted_nodes.reserve(ntree.nodes.size());
     r_cycle_detected = false;
 
     std::unordered_map<Node*, ToposortNodeState> node_states(
-        tree_runtime.nodes.size());
-    for (auto&& node : tree_runtime.nodes) {
+        ntree.nodes.size());
+    for (auto&& node : ntree.nodes) {
         if (!node_states.contains(node.get())) {
             node_states[node.get()] = ToposortNodeState{};
         }
     }
-    for (auto&& node : tree_runtime.nodes) {
+    for (auto&& node : ntree.nodes) {
         if (node_states[node.get()].is_done) {
             /* Ignore nodes that are done already. */
             continue;
@@ -589,9 +723,9 @@ static void update_toposort(
             r_cycle_detected);
     }
 
-    if (r_sorted_nodes.size() < tree_runtime.nodes.size()) {
+    if (r_sorted_nodes.size() < ntree.nodes.size()) {
         r_cycle_detected = true;
-        for (auto&& node : tree_runtime.nodes) {
+        for (auto&& node : ntree.nodes) {
             if (node_states[node.get()].is_done) {
                 /* Ignore nodes that are done already. */
                 continue;
@@ -609,7 +743,7 @@ static void update_toposort(
         }
     }
 
-    assert(tree_runtime.nodes.size() == r_sorted_nodes.size());
+    assert(ntree.nodes.size() == r_sorted_nodes.size());
 }
 
 void NodeTree::ensure_topology_cache()
@@ -632,29 +766,10 @@ void NodeTree::ensure_topology_cache()
 
 std::string NodeTree::serialize(int indentation) const
 {
-    nlohmann::json value;
-
-    auto& node_info = value["nodes_info"];
-    for (auto&& node : nodes) {
-        node->serialize(node_info);
-    }
-
-    auto& links_info = value["links_info"];
-    for (auto&& link : links) {
-        link->Serialize(links_info);
-    }
-
-    auto& sockets_info = value["sockets_info"];
-    for (auto&& socket : sockets) {
-        socket->Serialize(sockets_info);
-    }
-
-    std::ostringstream s;
-    s << value.dump(indentation);
-    return s.str();
+    return tree_serialize(nodes, links, sockets, indentation);
 }
 
-void NodeTree::Deserialize(const std::string& str)
+void NodeTree::deserialize(const std::string& str)
 {
     nlohmann::json value;
     std::istringstream in(str);
