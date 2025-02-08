@@ -58,14 +58,16 @@ void NodeTypeInfo::build_node_declaration()
 Node::Node(NodeTree* node_tree, int id, const char* idname)
     : ID(id),
       ui_name("Unknown"),
-      tree_(node_tree)
+      tree_(node_tree),
+      is_group_node(false)
 {
     valid_ = pre_init_node(idname);
 }
 
 Node::Node(NodeTree* node_tree, const char* idname)
     : ui_name("Unknown"),
-      tree_(node_tree)
+      tree_(node_tree),
+      is_group_node(false)
 {
     ID = tree_->UniqueID();
     valid_ = pre_init_node(idname);
@@ -465,6 +467,11 @@ const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
             return nt;
     }
     throw std::runtime_error("Id name not found.");
+}
+
+void NodeGroup::serialize(nlohmann::json& value)
+{
+    throw std::runtime_error("Not implemented.");
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

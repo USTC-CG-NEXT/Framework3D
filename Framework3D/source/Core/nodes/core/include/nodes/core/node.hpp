@@ -66,7 +66,7 @@ struct NODES_CORE_API Node {
     Node(NodeTree* node_tree, const char* idname);
     ~Node();
 
-    void serialize(nlohmann::json& value);
+    virtual void serialize(nlohmann::json& value);
     // During deserialization, we first deserialize all the sockets, then
     // according the info of the node, we record the information.
     void register_socket_to_node(NodeSocket* socket, PinKind in_out);
@@ -143,6 +143,9 @@ struct NODES_CORE_API Node {
 
     NodeTree* tree_;
     bool valid_ = false;
+
+   protected:
+    bool is_group_node;
 };
 
 /**
@@ -151,6 +154,20 @@ struct NODES_CORE_API Node {
  * It can act as a single node.
  */
 struct NodeGroup : public Node {
+    NodeGroup(NodeTree* node_tree, const char* idname) : Node(node_tree, idname)
+    {
+        is_group_node = true;
+        ui_name = "Group";
+    }
+    NodeGroup(NodeTree* node_tree, int id, const char* idname)
+        : Node(node_tree, id, idname)
+    {
+        is_group_node = true;
+        ui_name = "Group";
+    }
+
+    std::shared_ptr<NodeTree> sub_tree;
+    void serialize(nlohmann::json& value) override;
 };
 
 NodeTypeInfo* nodeTypeFind(const char* idname);
