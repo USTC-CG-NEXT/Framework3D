@@ -11,7 +11,7 @@ struct SocketGroup;
 struct Node;
 struct NodeLink;
 
-enum class PinKind { Output, Input, Storage };
+enum class PinKind { Output, Input };
 
 using SocketType = entt::meta_type;
 

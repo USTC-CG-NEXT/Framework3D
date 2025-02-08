@@ -499,4 +499,25 @@ void NodeGroup::serialize(nlohmann::json& value)
     throw std::runtime_error("Not implemented.");
 }
 
+void NodeGroup::node_group_add_input_socket(
+    const char* type_name,
+    const char* identifier,
+    const char* name)
+{
+    group_add_socket("node_group", type_name, identifier, name, PinKind::Input);
+    group_in->group_add_socket(
+        "node_group_in", type_name, identifier, name, PinKind::Output);
+}
+
+void NodeGroup::node_group_add_output_socket(
+    const char* type_name,
+    const char* identifier,
+    const char* name)
+{
+    group_add_socket(
+        "node_group", type_name, identifier, name, PinKind::Output);
+    group_out->group_add_socket(
+        "node_group_out", type_name, identifier, name, PinKind::Input);
+}
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

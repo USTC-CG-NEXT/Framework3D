@@ -64,7 +64,7 @@ struct NODES_CORE_API Node {
     Node& operator=(const Node&) = delete;
 
     Node(NodeTree* node_tree, const char* idname);
-    ~Node();
+    virtual ~Node();
 
     virtual void serialize(nlohmann::json& value);
     // During deserialization, we first deserialize all the sockets, then
@@ -159,9 +159,24 @@ struct NodeGroup : public Node {
     NodeGroup(NodeTree* node_tree, int id, const char* idname);
 
     std::shared_ptr<NodeTree> sub_tree;
+
     void serialize(nlohmann::json& value) override;
 
     friend class NodeTree;
+
+    void node_group_add_input_socket(
+        const char* type_name,
+        const char* identifier,
+        const char* name);
+
+    void node_group_add_output_socket(
+        const char* type_name,
+        const char* identifier,
+        const char* name);
+
+   private:
+    Node* group_in;
+    Node* group_out;
 };
 
 NodeTypeInfo* nodeTypeFind(const char* idname);
