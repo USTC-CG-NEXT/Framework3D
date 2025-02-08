@@ -65,6 +65,8 @@ set_target_properties(glm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set_target_properties(glm PROPERTIES ${OUTPUT_DIR})
 target_compile_definitions(glm INTERFACE GLM_ENABLE_EXPERIMENTAL)
 set_target_properties(glm PROPERTIES LINKER_LANGUAGE CXX)
+
+# polyscope
 add_subdirectory(polyscope)
 set_target_properties(polyscope PROPERTIES ${OUTPUT_DIR})
 
