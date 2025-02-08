@@ -145,6 +145,14 @@ struct NODES_CORE_API Node {
     bool valid_ = false;
 };
 
+/**
+ * struct NodeGroup
+ * It is a Nodetree.
+ * It can act as a single node.
+ */
+struct NodeGroup : public Node {
+};
+
 NodeTypeInfo* nodeTypeFind(const char* idname);
 // SocketType socketTypeFind(const char* idname);
 

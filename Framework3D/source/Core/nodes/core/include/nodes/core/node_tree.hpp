@@ -5,10 +5,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "nodes/core/api.h"
 #include "api.hpp"
 #include "node.hpp"
 #include "node_exec.hpp"
+#include "nodes/core/api.h"
 #include "socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -23,7 +23,7 @@ class NODES_CORE_API NodeTreeDescriptor {
     NodeTreeDescriptor& register_conversion(
         const std::function<bool(const FROM&, TO&)>& conversion);
     NodeTreeDescriptor& register_conversion_name(
-        const std::string & conversion_name);
+        const std::string& conversion_name);
 
     const NodeTypeInfo* get_node_type(const std::string& name) const;
 
@@ -71,7 +71,22 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
 class NODES_CORE_API NodeTree {
    public:
     NodeTree(const NodeTreeDescriptor& descriptor);
-    NodeTree(const NodeTree&) = delete;
+    NodeTree(const NodeTree& other)
+    {
+        // A deep copy by reconstructing the tree
+        Deserialize(other.serialize());
+    }
+
+    NodeTree& operator=(const NodeTree& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+        clear();
+        Deserialize(other.serialize());
+        return *this;
+    }
+
     ~NodeTree();
 
     std::vector<std::unique_ptr<NodeLink>> links;
@@ -147,7 +162,7 @@ class NODES_CORE_API NodeTree {
     unsigned current_id = 1;
 
    public:
-    std::string serialize(int indentation = -1);
+    std::string serialize(int indentation = -1) const;
     void Deserialize(const std::string& str);
 
     void SetDirty(bool dirty = true);

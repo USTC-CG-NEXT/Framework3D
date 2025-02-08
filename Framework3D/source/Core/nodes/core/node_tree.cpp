@@ -630,7 +630,7 @@ void NodeTree::ensure_topology_cache()
         has_available_link_cycle);
 }
 
-std::string NodeTree::serialize(int indentation)
+std::string NodeTree::serialize(int indentation) const
 {
     nlohmann::json value;
 
