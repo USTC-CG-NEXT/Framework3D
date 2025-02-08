@@ -2,7 +2,7 @@
 #include "nodes/core/def/node_def.hpp"
 #include <Eigen/Eigen>
 
-NODE_DEF_OPEN_SCOPE
+NODE_DEF_OPEN_SCOPE       
 NODE_DECLARATION_FUNCTION(input)
 {
     // Function content omitted
