@@ -113,7 +113,6 @@ bool PolyscopeRenderer::BuildUI()
         auto size = ImGui::GetContentRegionAvail();
         polyscope::view::setWindowSize(size.x, size.y);
         buffer.resize(size.x * size.y * 4);
-        flipped_buffer.resize(size.x * size.y * 4);
     }
 
     if (buffer.size() == 0) {
@@ -178,15 +177,6 @@ void PolyscopeRenderer::BackBufferResized(
 void PolyscopeRenderer::GetFrameBuffer()
 {
     buffer = polyscope::screenshotToBufferCustom(false);
-    // 上下翻转。每4个数为一个像素，分别为RGBA；每polyscope::view::windowWidth个像素为一行，行内像素顺序不变
-    for (int i = 0; i < polyscope::view::windowHeight; i++) {
-        memcpy(
-            flipped_buffer.data() + i * polyscope::view::windowWidth * 4,
-            buffer.data() + (polyscope::view::windowHeight - i - 1) *
-                                polyscope::view::windowWidth * 4,
-            polyscope::view::windowWidth * 4);
-    }
-
     data_->present_format = nvrhi::Format::RGBA8_UNORM;
 
     data_->nvrhi_desc.width = polyscope::view::windowWidth;
@@ -196,13 +186,11 @@ void PolyscopeRenderer::GetFrameBuffer()
 
     if (!data_->nvrhi_texture) {
         std::tie(data_->nvrhi_texture, data_->staging_texture) =
-            RHI::load_texture(data_->nvrhi_desc, flipped_buffer.data());
+            RHI::load_texture(data_->nvrhi_desc, buffer.data());
     }
     else {
         RHI::write_texture(
-            data_->nvrhi_texture,
-            data_->staging_texture,
-            flipped_buffer.data());
+            data_->nvrhi_texture, data_->staging_texture, buffer.data());
     }
 }
 
@@ -245,8 +233,8 @@ void PolyscopeRenderer::DrawFrame()
     ImGui::Image(
         static_cast<ImTextureID>(data_->nvrhi_texture.Get()),
         imgui_frame_size,
-        ImVec2(0.0f, 0.0f),
-        ImVec2(1.0f, 1.0f));
+        ImVec2(0, 1),
+        ImVec2(1, 0));
     is_active = ImGui::IsWindowFocused();
     is_hovered = ImGui::IsItemHovered();
     ImGui::GetIO().WantCaptureMouse = true;
