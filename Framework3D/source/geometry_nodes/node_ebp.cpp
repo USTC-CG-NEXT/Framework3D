@@ -7,7 +7,7 @@
 #include <Eigen/Sparse>
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(node_ebp)
+NODE_DECLARATION_FUNCTION(ebp)
 {
     b.add_input<Geometry>("Input");
     b.add_input<Geometry>("Initialization");
@@ -19,7 +19,7 @@ NODE_DECLARATION_FUNCTION(node_ebp)
     b.add_output<float>("Runtime");
 }
 
-NODE_EXECUTION_FUNCTION(node_ebp)
+NODE_EXECUTION_FUNCTION(ebp)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
@@ -173,5 +173,5 @@ NODE_EXECUTION_FUNCTION(node_ebp)
     return true;
 }
 
-NODE_DECLARATION_UI(node_ebp);
+NODE_DECLARATION_UI(ebp);
 NODE_DEF_CLOSE_SCOPE
