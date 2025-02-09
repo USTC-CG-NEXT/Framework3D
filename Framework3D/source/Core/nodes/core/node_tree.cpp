@@ -433,7 +433,10 @@ NodeLink* NodeTree::add_link(SocketID startPinId, SocketID endPinId)
         return add_link(socket1, socket2);
 }
 
-void NodeTree::delete_link(LinkId linkId, bool refresh_topology)
+void NodeTree::delete_link(
+    LinkId linkId,
+    bool refresh_topology,
+    bool remove_from_group)
 {
     SetDirty(true);
 
@@ -441,14 +444,17 @@ void NodeTree::delete_link(LinkId linkId, bool refresh_topology)
         return link->ID == linkId;
     });
     if (link != links.end()) {
-        auto group = (*link)->from_sock->socket_group;
-        if (group && ((*link)->from_sock->directly_linked_links.size() == 1)) {
-            group->remove_socket((*link)->from_sock);
-        }
-
-        group = (*link)->to_sock->socket_group;
-        if (group && ((*link)->to_sock->directly_linked_links.size() == 1)) {
-            group->remove_socket((*link)->to_sock);
+        if (remove_from_group) {
+            auto group = (*link)->from_sock->socket_group;
+            if (group &&
+                ((*link)->from_sock->directly_linked_links.size() == 1)) {
+                group->remove_socket((*link)->from_sock);
+            }
+            group = (*link)->to_sock->socket_group;
+            if (group &&
+                ((*link)->to_sock->directly_linked_links.size() == 1)) {
+                group->remove_socket((*link)->to_sock);
+            }
         }
 
         if ((*link)->nextLink) {
@@ -477,9 +483,12 @@ void NodeTree::delete_link(LinkId linkId, bool refresh_topology)
     }
 }
 
-void NodeTree::delete_link(NodeLink* link, bool refresh_topology)
+void NodeTree::delete_link(
+    NodeLink* link,
+    bool refresh_topology,
+    bool remove_from_group)
 {
-    delete_link(link->ID, refresh_topology);
+    delete_link(link->ID, refresh_topology, remove_from_group);
 }
 
 void NodeTree::delete_node(Node* nodeId)
@@ -549,16 +558,19 @@ void NodeTree::delete_socket(SocketID socketId)
             return socket->ID == socketId;
         });
 
+    bool socket_in_group = (*id)->socket_group != nullptr;
+
     // Remove the links connected to the socket
 
     auto& directly_connect_links = (*id)->directly_linked_links;
     for (auto& link : directly_connect_links) {
-        delete_link(link->ID, false);
+        delete_link(link->ID, false, false);
     }
 
-    if (id != sockets.end()) {
-        sockets.erase(id);
-    }
+    if (!socket_in_group)
+        if (id != sockets.end()) {
+            sockets.erase(id);
+        }
 }
 
 void NodeTree::update_directly_linked_links_and_sockets()

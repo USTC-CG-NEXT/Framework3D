@@ -124,8 +124,14 @@ class NODES_CORE_API NodeTree {
 
     NodeLink* add_link(SocketID startPinId, SocketID endPinId);
 
-    void delete_link(LinkId linkId, bool refresh_topology = true);
-    void delete_link(NodeLink* link, bool refresh_topology = true);
+    void delete_link(
+        LinkId linkId,
+        bool refresh_topology = true,
+        bool remove_from_group = true);
+    void delete_link(
+        NodeLink* link,
+        bool refresh_topology = true,
+        bool remove_from_group = true);
 
     void delete_node(Node* nodeId);
     void delete_node(NodeId nodeId);
