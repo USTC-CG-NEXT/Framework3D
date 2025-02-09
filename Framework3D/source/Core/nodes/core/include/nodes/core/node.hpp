@@ -107,7 +107,7 @@ struct NODES_CORE_API Node {
         PinKind in_out);
 
     NodeSocket* group_add_socket(
-        const std::string& group_identifier,
+        const std::string& socket_group_identifier,
         const char* type_name,
         const char* identifier,
         const char* name,
@@ -164,12 +164,12 @@ struct NodeGroup : public Node {
 
     friend class NodeTree;
 
-    void node_group_add_input_socket(
+    std::pair<NodeSocket*, NodeSocket*> node_group_add_input_socket(
         const char* type_name,
         const char* identifier,
         const char* name);
 
-    void node_group_add_output_socket(
+    std::pair<NodeSocket*, NodeSocket*> node_group_add_output_socket(
         const char* type_name,
         const char* identifier,
         const char* name);

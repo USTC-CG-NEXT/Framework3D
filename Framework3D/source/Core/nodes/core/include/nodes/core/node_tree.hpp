@@ -108,7 +108,7 @@ class NODES_CORE_API NodeTree {
 
     Node* add_node(const char* str);
 
-    Node* group_up(const std::vector<Node*>& nodes);
+    Node* group_up(const std::vector<Node*>& nodes_to_group);
 
     void ungroup(Node* node)
     {

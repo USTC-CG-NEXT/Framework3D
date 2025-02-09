@@ -232,11 +232,14 @@ Node* NodeTree::add_node(const char* idname)
     return bare;
 }
 
-template<typename NodePtr, typename NodeLinkPtr, typename NodeSocketPtr>
+template<
+    typename NodePtrContainer,
+    typename NodeLinkPtrContainer,
+    typename NodeSocketPtrContainer>
 std::string tree_serialize(
-    const std::vector<NodePtr>& nodes,
-    const std::vector<NodeLinkPtr>& links,
-    const std::vector<NodeSocketPtr>& sockets,
+    const NodePtrContainer& nodes,
+    const NodeLinkPtrContainer& links,
+    const NodeSocketPtrContainer& sockets,
     int indentation = -1)
 {
     nlohmann::json value;
@@ -262,33 +265,32 @@ std::string tree_serialize(
 }
 
 // remembder to adopt the node!
-static NodeGroup* create_group_node()
+static NodeGroup* create_group_node(NodeTree* tree)
 {
-    NodeGroup* node = new NodeGroup(nullptr, "Group");
+    NodeGroup* node = new NodeGroup(tree, "node_group");
 
-    node->pre_init_node("node_group");
     return node;
 }
 
-static Node* create_group_node_in()
+static Node* create_group_node_in(NodeTree* tree)
 {
-    Node* node = new NodeGroup(nullptr, "Group In");
+    Node* node = new NodeGroup(tree, "node_group_in");
     node->pre_init_node("node_group_in");
     return node;
 }
 
-static Node* create_group_node_out()
+static Node* create_group_node_out(NodeTree* tree)
 {
-    Node* node = new NodeGroup(nullptr, "Group Out");
+    Node* node = new NodeGroup(tree, "node_group_out");
     node->pre_init_node("node_group_out");
     return node;
 }
 
-Node* NodeTree::group_up(const std::vector<Node*>& nodes)
+Node* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
 {
     auto sockets_to_group = std::set<NodeSocket*>();
 
-    for (auto& node : nodes) {
+    for (auto& node : nodes_to_group) {
         for (auto& socket : node->get_inputs()) {
             sockets_to_group.insert(socket);
         }
@@ -310,9 +312,15 @@ Node* NodeTree::group_up(const std::vector<Node*>& nodes)
     }
 
     // create a new group node
-    auto group_node = create_group_node();
-    auto serialized = tree_serialize(nodes, links, sockets, 2);
+    auto group_node = create_group_node(this);
+    this->nodes.push_back(std::unique_ptr<Node>(group_node));
+    auto serialized =
+        tree_serialize(nodes_to_group, links_to_group, sockets_to_group, 2);
     group_node->sub_tree->deserialize(serialized);
+
+    group_node->group_in = create_group_node_in(group_node->sub_tree.get());
+    group_node->group_out = create_group_node_out(group_node->sub_tree.get());
+
     group_node->sub_tree->ensure_topology_cache();
 
     // find the group upstream, i.e. any links that is connected to the
@@ -334,7 +342,44 @@ Node* NodeTree::group_up(const std::vector<Node*>& nodes)
         }
     }
 
-    throw std::runtime_error("Not implemented");
+    for (auto& link : upstream_links) {
+        auto from_socket = link->from_sock;
+        auto to_socket = link->to_sock;
+
+        auto [added_outside_socket, added_internal_socket] =
+            group_node->node_group_add_input_socket(
+                get_type_name(to_socket->type_info).c_str(),
+                to_socket->identifier,
+                to_socket->ui_name);
+
+        add_link(from_socket, added_outside_socket);
+        group_node->sub_tree->add_link(
+            added_internal_socket,
+            group_node->sub_tree->find_pin(link->EndPinID));
+    }
+
+    for (auto& link : downstream_links) {
+        auto from_socket = link->from_sock;
+        auto to_socket = link->to_sock;
+
+        auto [added_outside_socket, added_internal_socket] =
+            group_node->node_group_add_output_socket(
+                get_type_name(from_socket->type_info).c_str(),
+                from_socket->identifier,
+                from_socket->ui_name);
+
+        add_link(added_outside_socket, to_socket);
+        group_node->sub_tree->add_link(
+            group_node->sub_tree->find_pin(link->StartPinID),
+            added_internal_socket);
+    }
+
+    // remove nodes_to_group
+    for (auto& node : nodes_to_group) {
+        delete_node(node);
+    }
+
+    return group_node;
 }
 
 unsigned NodeTree::UniqueID()

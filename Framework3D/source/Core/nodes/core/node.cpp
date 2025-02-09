@@ -311,7 +311,7 @@ NodeSocket* Node::add_socket(
 }
 
 NodeSocket* Node::group_add_socket(
-    const std::string& group_identifier,
+    const std::string& socket_group_identifier,
     const char* type_name,
     const char* identifier,
     const char* name,
@@ -320,8 +320,8 @@ NodeSocket* Node::group_add_socket(
     auto group = std::find_if(
         socket_groups.begin(),
         socket_groups.end(),
-        [&group_identifier, in_out](const auto& group) {
-            return group->identifier == group_identifier &&
+        [&socket_group_identifier, in_out](const auto& group) {
+            return group->identifier == socket_group_identifier &&
                    group->kind == in_out;
         });
 
@@ -330,7 +330,7 @@ NodeSocket* Node::group_add_socket(
     }
 
     auto socket = (*group)->add_socket(
-        type_name, (group_identifier + "_" + identifier).c_str(), name);
+        type_name, (socket_group_identifier + "_" + identifier).c_str(), name);
 
     refresh_node();
 
@@ -499,25 +499,30 @@ void NodeGroup::serialize(nlohmann::json& value)
     throw std::runtime_error("Not implemented.");
 }
 
-void NodeGroup::node_group_add_input_socket(
+std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_input_socket(
     const char* type_name,
     const char* identifier,
     const char* name)
 {
-    group_add_socket("node_group", type_name, identifier, name, PinKind::Input);
-    group_in->group_add_socket(
-        "node_group_in", type_name, identifier, name, PinKind::Output);
+    auto added_outside_socket =
+        group_add_socket("Inputs", type_name, identifier, name, PinKind::Input);
+    auto added_internal_socket = group_in->group_add_socket(
+        "Outputs", type_name, identifier, name, PinKind::Output);
+
+    return std::pair(added_outside_socket, added_internal_socket);
 }
 
-void NodeGroup::node_group_add_output_socket(
+std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_output_socket(
     const char* type_name,
     const char* identifier,
     const char* name)
 {
-    group_add_socket(
-        "node_group", type_name, identifier, name, PinKind::Output);
-    group_out->group_add_socket(
-        "node_group_out", type_name, identifier, name, PinKind::Input);
+    auto added_outside_socket = group_add_socket(
+        "Outputs", type_name, identifier, name, PinKind::Output);
+    auto added_internal_socket = group_out->group_add_socket(
+        "Inputs", type_name, identifier, name, PinKind::Input);
+
+    return std::pair(added_outside_socket, added_internal_socket);
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

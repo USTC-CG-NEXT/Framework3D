@@ -351,9 +351,25 @@ TEST_F(NodeCoreTest, NodeGroup)
     ASSERT_NE(node, nullptr);
     auto node2 = tree->add_node("test_node");
     auto node3 = tree->add_node("test_node");
-    auto group = tree->group_up({ node, node2, node3 });
+    auto node4 = tree->add_node("test_node");
+
+    // Make some links
+    auto link1 = tree->add_link(
+        node->get_output_socket("output"),
+        node2->get_input_socket("test_socket2"));
+
+    auto link2 = tree->add_link(
+        node2->get_output_socket("output"),
+        node3->get_input_socket("test_socket2"));
+    auto link3 = tree->add_link(
+        node3->get_output_socket("output"),
+        node4->get_input_socket("test_socket2"));
+
+    auto group = tree->group_up({ node2, node3 });
     ASSERT_NE(group, nullptr);
-    ASSERT_EQ(tree->nodes.size(), 1);
+    ASSERT_EQ(tree->nodes.size(), 3);
+    ASSERT_EQ(tree->links.size(), 2);
+
     tree->ungroup(group);
     ASSERT_EQ(tree->nodes.size(), 3);
 }
