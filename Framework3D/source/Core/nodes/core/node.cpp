@@ -497,7 +497,18 @@ NodeGroup::NodeGroup(NodeTree* node_tree, int id, const char* idname)
 void NodeGroup::serialize(nlohmann::json& value)
 {
     Node::serialize(value);
-    value["sub_tree"] = sub_tree->serialize();
+    std::string sub_tree_key =
+        "sub_tree_" +
+        std::to_string(reinterpret_cast<uintptr_t>(sub_tree.get())) + "_ptr";
+
+    auto& node = value[std::to_string(ID.Get())];
+    node["subtree"] = sub_tree_key;
+
+    auto& sub_tree_json_location = value["sub_trees"][sub_tree_key];
+
+    if (!value.contains(sub_tree_json_location)) {
+        sub_tree_json_location = sub_tree->serialize();
+    }
 }
 
 std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_input_socket(
