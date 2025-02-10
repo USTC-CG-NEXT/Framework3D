@@ -15,7 +15,7 @@
 using Vec = Eigen::Vector3d;
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(meshmesh_dist))
+NODE_DECLARATION_FUNCTION(meshmesh_dist)
 {
     b.add_input<Geometry>("Geometry1");
     b.add_input<Geometry>("Geometry2");
@@ -144,7 +144,7 @@ NODE_EXECUTION_FUNCTION(meshmesh_dist)
             Vec vec1 = v1 - v0;
             Vec vec2 = v2 - v0;
             Vec normal = vec1.cross(vec2);
-            double temp = std::abs(normal.dot(v0 - vertex) / normal.norm());
+            double temp = std::abs(normal.dot(v0 - vertex.transpose()) / normal.norm());
             temp_distance = std::min(temp_distance, temp);
         }
         distance = std::min(distance, temp_distance);
