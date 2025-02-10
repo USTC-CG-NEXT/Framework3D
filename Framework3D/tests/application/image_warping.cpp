@@ -54,6 +54,7 @@ int main()
             loaded = system->load_configuration("basic_nodes.json");
             loaded = system->load_configuration("polyscope_nodes.json");
             loaded = system->load_configuration("image_warping_nodes.json");
+            loaded = system->load_configuration("convert_nodes.json");
             system->init();
             system->set_node_tree_executor(create_node_tree_executor({}));
 
