@@ -268,25 +268,25 @@ std::string tree_serialize(
 static NodeGroup* create_group_node(NodeTree* tree)
 {
     NodeGroup* node = new NodeGroup(tree, "node_group");
-
+    tree->nodes.push_back(std::unique_ptr<Node>(node));
     return node;
 }
 
 static Node* create_group_node_in(NodeTree* tree)
 {
-    Node* node = new NodeGroup(tree, "node_group_in");
-    node->pre_init_node("node_group_in");
+    Node* node = new Node(tree, "node_group_in");
+    tree->nodes.push_back(std::unique_ptr<Node>(node));
     return node;
 }
 
 static Node* create_group_node_out(NodeTree* tree)
 {
-    Node* node = new NodeGroup(tree, "node_group_out");
-    node->pre_init_node("node_group_out");
+    Node* node = new Node(tree, "node_group_out");
+    tree->nodes.push_back(std::unique_ptr<Node>(node));
     return node;
 }
 
-Node* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
+NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
 {
     auto sockets_to_group = std::set<NodeSocket*>();
 
@@ -313,7 +313,6 @@ Node* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
 
     // create a new group node
     auto group_node = create_group_node(this);
-    this->nodes.push_back(std::unique_ptr<Node>(group_node));
     auto serialized =
         tree_serialize(nodes_to_group, links_to_group, sockets_to_group, 2);
     group_node->sub_tree->deserialize(serialized);
@@ -368,7 +367,7 @@ Node* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
                 from_socket->identifier,
                 from_socket->ui_name);
 
-        add_link(added_outside_socket, to_socket);
+        add_link(added_outside_socket, to_socket, true);
         group_node->sub_tree->add_link(
             group_node->sub_tree->find_pin(link->StartPinID),
             added_internal_socket);
@@ -391,7 +390,10 @@ unsigned NodeTree::UniqueID()
     return current_id++;
 }
 
-NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
+NodeLink* NodeTree::add_link(
+    NodeSocket* fromsock,
+    NodeSocket* tosock,
+    bool allow_relink_to_output)
 {
     SetDirty(true);
 
@@ -421,9 +423,10 @@ NodeLink* NodeTree::add_link(NodeSocket* fromsock, NodeSocket* tosock)
         std::swap(fromsock, tosock);
     }
 
-    if (!tosock->directly_linked_sockets.empty()) {
-        throw std::runtime_error("Socket already linked.");
-    }
+    if (!allow_relink_to_output)
+        if (!tosock->directly_linked_sockets.empty()) {
+            throw std::runtime_error("Socket already linked.");
+        }
 
     NodeLink* bare_ptr;
 
@@ -816,7 +819,8 @@ static void update_toposort(
         }
     }
 
-    assert(tree_runtime.nodes.size() == r_sorted_nodes.size());
+    if (tree_runtime.nodes.size() != r_sorted_nodes.size())
+        throw std::runtime_error("Toposort failed");
 }
 
 void NodeTree::ensure_topology_cache()

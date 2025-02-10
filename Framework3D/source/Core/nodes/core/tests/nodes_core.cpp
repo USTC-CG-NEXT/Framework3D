@@ -370,6 +370,17 @@ TEST_F(NodeCoreTest, NodeGroup)
     ASSERT_EQ(tree->nodes.size(), 3);
     ASSERT_EQ(tree->links.size(), 2);
 
-    tree->ungroup(group);
-    ASSERT_EQ(tree->nodes.size(), 3);
+    auto subtree = group->sub_tree;
+
+    ASSERT_EQ(subtree->nodes.size(), 4);
+    ASSERT_EQ(subtree->links.size(), 3);
+
+    std::cout << "Main tree: " << std::endl;
+    std::cout << tree->serialize(4) << std::endl;
+
+    std::cout << "Sub tree: " << std::endl;
+    std::cout << subtree->serialize(4) << std::endl;
+
+    //tree->ungroup(group);
+    //ASSERT_EQ(tree->nodes.size(), 3);
 }

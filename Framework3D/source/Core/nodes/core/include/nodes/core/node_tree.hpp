@@ -108,7 +108,7 @@ class NODES_CORE_API NodeTree {
 
     Node* add_node(const char* str);
 
-    Node* group_up(const std::vector<Node*>& nodes_to_group);
+    NodeGroup* group_up(const std::vector<Node*>& nodes_to_group);
 
     void ungroup(Node* node)
     {
@@ -120,7 +120,10 @@ class NODES_CORE_API NodeTree {
     void update_socket_vectors_and_owner_node();
     void ensure_topology_cache();
 
-    NodeLink* add_link(NodeSocket* fromsock, NodeSocket* tosock);
+    NodeLink* add_link(
+        NodeSocket* fromsock,
+        NodeSocket* tosock,
+        bool allow_relink_to_output = false);
 
     NodeLink* add_link(SocketID startPinId, SocketID endPinId);
 

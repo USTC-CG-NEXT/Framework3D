@@ -208,26 +208,11 @@ class SocketGroupDeclaration : public ItemDeclaration {
    public:
     PinKind in_out;
     std::string identifier;
-    bool runtime_dynamic = false;
+    bool runtime_dynamic = true;
 
     SocketType type;
 
-    SocketGroup* build(NodeTree* ntree, Node* node) const
-    {
-        SocketGroup* group = new SocketGroup();
-        group->node = node;
-        group->kind = in_out;
-        group->identifier = identifier;
-        group->runtime_dynamic = runtime_dynamic;
-        group->type_info = type;
-
-        if (runtime_dynamic) {
-            group->add_socket(
-                get_type_name(type).c_str(), identifier.c_str(), "");
-        }
-
-        return group;
-    }
+    SocketGroup* build(NodeTree* ntree, Node* node) const;
 };
 
 class SocketGroupBuilder {

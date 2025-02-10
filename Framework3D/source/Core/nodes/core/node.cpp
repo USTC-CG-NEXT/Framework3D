@@ -496,7 +496,8 @@ NodeGroup::NodeGroup(NodeTree* node_tree, int id, const char* idname)
 
 void NodeGroup::serialize(nlohmann::json& value)
 {
-    throw std::runtime_error("Not implemented.");
+    Node::serialize(value);
+    value["sub_tree"] = sub_tree->serialize();
 }
 
 std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_input_socket(
@@ -523,6 +524,22 @@ std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_output_socket(
         "Inputs", type_name, identifier, name, PinKind::Input);
 
     return std::pair(added_outside_socket, added_internal_socket);
+}
+
+SocketGroup* SocketGroupDeclaration::build(NodeTree* ntree, Node* node) const
+{
+    SocketGroup* group = new SocketGroup();
+    group->node = node;
+    group->kind = in_out;
+    group->identifier = identifier;
+    group->runtime_dynamic = runtime_dynamic;
+    group->type_info = type;
+
+    if (runtime_dynamic) {
+        group->add_socket(get_type_name(type).c_str(), identifier.c_str(), "");
+    }
+
+    return group;
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
