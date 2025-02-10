@@ -43,7 +43,24 @@ TF_DEFINE_PRIVATE_TOKENS(
     // For supporting Usd texturing nodes
     (ND_UsdUVTexture)(ND_dot_vector2)(ND_UsdPrimvarReader_vector2)(UsdPrimvarReader_float2)(UsdUVTexture)(UsdVerticalFlip));
 
-static void _FixNodeNames(HdMaterialNetworkInterface* netInterface)
+static TfToken _FixSingleType(TfToken const& nodeType)
+{
+    if (nodeType == UsdImagingTokens->UsdPreviewSurface) {
+        return _tokens->ND_UsdPreviewSurface_surfaceshader;
+    }
+    else if (nodeType == UsdImagingTokens->UsdUVTexture) {
+        return _tokens->ND_UsdUVTexture;
+    }
+    else if (nodeType == UsdImagingTokens->UsdPrimvarReader_float2) {
+        return _tokens->ND_UsdPrimvarReader_vector2;
+    }
+
+    else {
+        return TfToken("ND_" + nodeType.GetString());
+    }
+}
+
+static void _FixNodeTypes(HdMaterialNetworkInterface* netInterface)
 {
     const TfTokenVector nodeNames = netInterface->GetNodeNames();
     for (TfToken const& nodeName : nodeNames) {
@@ -59,7 +76,7 @@ static void _FixNodeNames(HdMaterialNetworkInterface* netInterface)
                 nodeType = _tokens->ND_dot_vector2;  // pass through node
             }
             else {
-                nodeType = TfToken("ND_" + nodeType.GetString());
+                nodeType = _FixSingleType(nodeType);
             }
             netInterface->SetNodeType(nodeName, nodeType);
         }
@@ -71,9 +88,6 @@ void Hd_USTC_CG_Material::Sync(
     HdRenderParam* renderParam,
     HdDirtyBits* dirtyBits)
 {
-    *dirtyBits = HdChangeTracker::Clean;
-
-    return;
     VtValue material = sceneDelegate->GetMaterialResource(GetId());
     HdMaterialNetworkMap networkMap = material.Get<HdMaterialNetworkMap>();
 
@@ -84,7 +98,7 @@ void Hd_USTC_CG_Material::Sync(
     auto materialPath = GetId();
 
     HdMaterialNetwork2Interface netInterface(materialPath, &hdNetwork);
-    _FixNodeNames(&netInterface);
+    _FixNodeTypes(&netInterface);
 
     const TfToken& terminalNodeName = HdMaterialTerminalTokens->surface;
     SdfPath surfTerminalPath;
@@ -94,21 +108,36 @@ void Hd_USTC_CG_Material::Sync(
         _GetTerminalNode(hdNetwork, terminalNodeName, &surfTerminalPath);
 
     std::cout << surfTerminal->nodeTypeId.GetString() << std::endl;
+    std::cout << surfTerminalPath.GetString() << std::endl;
+
+    for (const auto& node : hdNetwork.nodes) {
+        std::cout << node.first.GetString() << std::endl;
+        std::cout << node.second.nodeTypeId.GetString() << std::endl;
+    }
 
     if (surfTerminal) {
         HdMtlxTexturePrimvarData hdMtlxData;
         MaterialX::DocumentPtr mtlx_document =
-            HdMtlxCreateMtlxDocumentFromHdMaterialNetworkInterface(
-                &netInterface,
-                terminalNodeName,
-                netInterface.GetNodeInputConnectionNames(terminalNodeName),
+            HdMtlxCreateMtlxDocumentFromHdNetwork(
+                hdNetwork,
+                *surfTerminal,
+                surfTerminalPath,
+                materialPath,
                 libraries,
                 &hdMtlxData);
 
         assert(mtlx_document);
 
-        std::cout << "MaterialX Document: " << mtlx_document->asString()
+        using namespace mx;
+        auto materials = mtlx_document->getMaterialNodes();
+
+        auto shaders =
+            mtlx_document->getNodesOfType(SURFACE_SHADER_TYPE_STRING);
+
+        std::cout << "Material Document: " << materials[0]->asString()
                   << std::endl;
+
+        std::cout << "Shader: " << shaders[0]->asString() << std::endl;
     }
 
     *dirtyBits = HdChangeTracker::Clean;
