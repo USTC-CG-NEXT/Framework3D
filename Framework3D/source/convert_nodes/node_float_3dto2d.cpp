@@ -5,13 +5,25 @@ NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(float_3dto2d)
 {
     b.add_input<std::vector<std::vector<float>>>("Input 3D vector");
-    b.add_input<float>("Y").min(-10).max(10).default_val(0);
+    b.add_output<std::vector<std::vector<float>>>("Output 2D vector");
     // Function content omitted
 }
 
 NODE_EXECUTION_FUNCTION(float_3dto2d)
 {
     // Function content omitted
+    auto input =
+        params.get_input<std::vector<std::vector<float>>>("Input 3D vector");
+
+    std::vector<std::vector<float>> output;
+    output.clear();
+
+    for (const auto& vec : input) {
+        if (vec.size() >= 2) {
+            output.push_back({ vec[0], vec[1] });
+        }
+    }
+    params.set_output("Output 2D vector", output);
     return true;
 }
 

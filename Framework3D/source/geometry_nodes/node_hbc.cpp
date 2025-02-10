@@ -89,14 +89,14 @@ std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> generate_weight_function(
 }
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(node_hbc)
+NODE_DECLARATION_FUNCTION(gbc_hbc)
 {
     // Function content omitted
     b.add_input<Eigen::MatrixXd>("Control Points");
     b.add_output<std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>>("HBC");
 }
 
-NODE_EXECUTION_FUNCTION(node_hbc)
+NODE_EXECUTION_FUNCTION(gbc_hbc)
 {
     // Function content omitted
     // Function content omitted
@@ -122,5 +122,5 @@ NODE_EXECUTION_FUNCTION(node_hbc)
     return true;
 }
 
-NODE_DECLARATION_UI(node_hbc);
+NODE_DECLARATION_UI(gbc_hbc);
 NODE_DEF_CLOSE_SCOPE

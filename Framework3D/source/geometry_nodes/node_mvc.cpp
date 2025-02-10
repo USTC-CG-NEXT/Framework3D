@@ -16,14 +16,14 @@ std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> generate_weight_function(
 }
 
 NODE_DEF_OPEN_SCOPE
-NODE_DECLARATION_FUNCTION(node_mvc)
+NODE_DECLARATION_FUNCTION(gbc_mvc)
 {
     // Function content omitted
     b.add_input<Eigen::MatrixXd>("Control Points");
     b.add_output<std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>>("MVC");
 }
 
-NODE_EXECUTION_FUNCTION(node_mvc)
+NODE_EXECUTION_FUNCTION(gbc_mvc)
 {
     // Function content omitted
     auto C = params.get_input<Eigen::MatrixXd>("Control Points");
@@ -40,5 +40,5 @@ NODE_EXECUTION_FUNCTION(node_mvc)
     return true;
 }
 
-NODE_DECLARATION_UI(node_mvc);
+NODE_DECLARATION_UI(gbc_mvc);
 NODE_DEF_CLOSE_SCOPE
