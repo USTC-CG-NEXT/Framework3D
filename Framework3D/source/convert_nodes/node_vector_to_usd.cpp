@@ -10,6 +10,7 @@ NODE_DECLARATION_FUNCTION(vector_to_usd)
 NODE_EXECUTION_FUNCTION(vector_to_usd)
 {
     // Function content omitted
+    return true;
 }
 
 NODE_DECLARATION_REQUIRED(vector_to_usd)
