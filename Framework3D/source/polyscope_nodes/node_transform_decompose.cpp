@@ -1,5 +1,6 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/matrix_decompose.hpp"
 #include "nodes/core/def/node_def.hpp"
 
 NODE_DEF_OPEN_SCOPE
@@ -25,26 +26,31 @@ NODE_EXECUTION_FUNCTION(transform_decompose)
 {
     auto transform = params.get_input<glm::mat4x4>("Transform");
 
+    glm::vec3 scale, translation, skew;
+    glm::vec4 perspective;
+    glm::quat rotation;
+
+    bool success = glm::decompose(
+        transform, scale, rotation, translation, skew, perspective);
+    if (!success) {
+        return false;
+    }
+
     // Extract translation
-    auto translation = transform[3];
-    params.set_output("Translate X", translation[0]);
-    params.set_output("Translate Y", translation[1]);
-    params.set_output("Translate Z", translation[2]);
+    params.set_output("Translate X", translation.x);
+    params.set_output("Translate Y", translation.y);
+    params.set_output("Translate Z", translation.z);
 
     // Extract rotation
-    auto rotation = glm::eulerAngles(glm::quat_cast(transform));
-    params.set_output("Rotate X", glm::degrees(rotation[0]));
-    params.set_output("Rotate Y", glm::degrees(rotation[1]));
-    params.set_output("Rotate Z", glm::degrees(rotation[2]));
+    auto eulerAngles = glm::eulerAngles(rotation);
+    params.set_output("Rotate X", glm::degrees(eulerAngles.x));
+    params.set_output("Rotate Y", glm::degrees(eulerAngles.y));
+    params.set_output("Rotate Z", glm::degrees(eulerAngles.z));
 
     // Extract scale
-    auto scale = glm::vec3(
-        glm::length(glm::vec3(transform[0])),
-        glm::length(glm::vec3(transform[1])),
-        glm::length(glm::vec3(transform[2])));
-    params.set_output("Scale X", scale[0]);
-    params.set_output("Scale Y", scale[1]);
-    params.set_output("Scale Z", scale[2]);
+    params.set_output("Scale X", scale.x);
+    params.set_output("Scale Y", scale.y);
+    params.set_output("Scale Z", scale.z);
 
     return true;
 }

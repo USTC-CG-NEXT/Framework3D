@@ -36,11 +36,11 @@ NODE_EXECUTION_FUNCTION(transform_compose)
     auto s_z = params.get_input<float>("Scale Z");
 
     glm::mat4x4 transform = glm::mat4x4(1.0);
-    transform = glm::translate(transform, glm::vec3(t_x, t_y, t_z));
+    transform = glm::scale(transform, glm::vec3(s_x, s_y, s_z));
     transform = glm::rotate(transform, glm::radians(r_x), glm::vec3(1, 0, 0));
     transform = glm::rotate(transform, glm::radians(r_y), glm::vec3(0, 1, 0));
     transform = glm::rotate(transform, glm::radians(r_z), glm::vec3(0, 0, 1));
-    transform = glm::scale(transform, glm::vec3(s_x, s_y, s_z));
+    transform = glm::translate(transform, glm::vec3(t_x, t_y, t_z));
 
     params.set_output("Transform", transform);
     return true;

@@ -69,7 +69,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 PolyscopeRenderer::PolyscopeRenderer()
 {
     // polyscope::options::buildGui = false;
-    polyscope::options::enableRenderErrorChecks = true;
+    polyscope::options::automaticallyComputeSceneExtents = false;
     polyscope::init();
     // Test register a structure
     // std::vector<glm::vec3> points;
