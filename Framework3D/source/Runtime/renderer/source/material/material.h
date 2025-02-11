@@ -1,5 +1,6 @@
 #pragma once
 #include "Logger/Logger.h"
+#include "MaterialX/SlangShaderGenerator.h"
 #include "api.h"
 #include "map.h"
 #include "pxr/imaging/garch/glApi.h"
@@ -31,6 +32,11 @@ class HD_USTC_CG_API Hd_USTC_CG_Material : public HdMaterial {
 
    private:
     HdMaterialNetwork2 surfaceNetwork;
+
+    static MaterialX::GenContextPtr shader_gen_context_;
+    static MaterialX::DocumentPtr libraries;
+
+    static std::once_flag shader_gen_initialized_;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

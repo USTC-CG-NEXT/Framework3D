@@ -5,14 +5,33 @@
 #include <pxr/imaging/hdMtlx/hdMtlx.h>
 #include <pxr/usdImaging/usdImaging/tokens.h>
 
+#include "MaterialX/SlangShaderGenerator.h"
 #include "MaterialXCore/Document.h"
+#include "MaterialXFormat/Util.h"
+#include "MaterialXGenShader/Shader.h"
 #include "api.h"
 #include "pxr/imaging/hd/changeTracker.h"
 #include "pxr/imaging/hd/sceneDelegate.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+namespace mx = MaterialX;
+
+MaterialX::GenContextPtr Hd_USTC_CG_Material::shader_gen_context_ =
+    std::make_shared<mx::GenContext>(mx::SlangShaderGenerator::create());
+MaterialX::DocumentPtr Hd_USTC_CG_Material::libraries = mx::createDocument();
+
+std::once_flag Hd_USTC_CG_Material::shader_gen_initialized_;
+
 Hd_USTC_CG_Material::Hd_USTC_CG_Material(SdfPath const& id) : HdMaterial(id)
 {
+    std::call_once(shader_gen_initialized_, []() {
+        mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
+        loadLibraries({ "libraries" }, searchPath, libraries);
+        mx::loadLibraries(
+            { "usd/hd_USTC_CG/resources/libraries" }, searchPath, libraries);
+        searchPath.append(mx::FileSearchPath("usd/hd_USTC_CG/resources"));
+        shader_gen_context_->registerSourceCodeSearchPath(searchPath);
+    });
 }
 
 static HdMaterialNode2 const* _GetTerminalNode(
@@ -32,8 +51,6 @@ static HdMaterialNode2 const* _GetTerminalNode(
     return &terminalIt->second;
 }
 
-namespace mx = MaterialX;
-
 TF_DEFINE_PRIVATE_TOKENS(
     _tokens,
     (mtlx)
@@ -41,7 +58,7 @@ TF_DEFINE_PRIVATE_TOKENS(
     // Hydra MaterialX Node Types
     (ND_standard_surface_surfaceshader)(ND_UsdPreviewSurface_surfaceshader)(ND_displacement_float)(ND_displacement_vector3)(ND_image_vector2)(ND_image_vector3)(ND_image_vector4)
     // For supporting Usd texturing nodes
-    (ND_UsdUVTexture)(ND_dot_vector2)(ND_UsdPrimvarReader_vector2)(UsdPrimvarReader_float2)(UsdUVTexture)(UsdVerticalFlip));
+    (wrapS)(wrapT)(repeat)(periodic)(ND_UsdUVTexture)(ND_dot_vector2)(ND_UsdPrimvarReader_vector2)(UsdPrimvarReader_float2)(UsdUVTexture)(UsdVerticalFlip)(varname)(st));
 
 static TfToken _FixSingleType(TfToken const& nodeType)
 {
@@ -60,7 +77,7 @@ static TfToken _FixSingleType(TfToken const& nodeType)
     }
 }
 
-static void _FixNodeTypes(HdMaterialNetworkInterface* netInterface)
+static void _FixNodeTypes(HdMaterialNetwork2Interface* netInterface)
 {
     const TfTokenVector nodeNames = netInterface->GetNodeNames();
     for (TfToken const& nodeName : nodeNames) {
@@ -83,6 +100,38 @@ static void _FixNodeTypes(HdMaterialNetworkInterface* netInterface)
     }
 }
 
+static void _FixNodeValues(HdMaterialNetwork2Interface* netInterface)
+{
+    // Fix textures wrap mode from repeat to periodic, because MaterialX does
+    // not support repeat mode.
+    const TfTokenVector nodeNames = netInterface->GetNodeNames();
+
+    for (TfToken const& nodeName : nodeNames) {
+        TfToken nodeType = netInterface->GetNodeType(nodeName);
+        if (nodeType == _tokens->ND_UsdUVTexture) {
+            VtValue wrapS =
+                netInterface->GetNodeParameterValue(nodeName, _tokens->wrapS);
+            VtValue wrapT =
+                netInterface->GetNodeParameterValue(nodeName, _tokens->wrapT);
+            if (wrapS.IsHolding<TfToken>() && wrapT.IsHolding<TfToken>()) {
+                TfToken wrapSValue = wrapS.Get<TfToken>();
+                TfToken wrapTValue = wrapT.Get<TfToken>();
+                if (wrapSValue == _tokens->repeat) {
+                    netInterface->SetNodeParameterValue(
+                        nodeName, _tokens->wrapS, VtValue(_tokens->periodic));
+                }
+                if (wrapTValue == _tokens->repeat) {
+                    netInterface->SetNodeParameterValue(
+                        nodeName, _tokens->wrapT, VtValue(_tokens->periodic));
+                }
+            }
+        }
+
+        std::cout << "node name: " << nodeName.GetString()
+                  << " node type: " << nodeType.GetString() << std::endl;
+    }
+}
+
 void Hd_USTC_CG_Material::Sync(
     HdSceneDelegate* sceneDelegate,
     HdRenderParam* renderParam,
@@ -99,11 +148,11 @@ void Hd_USTC_CG_Material::Sync(
 
     HdMaterialNetwork2Interface netInterface(materialPath, &hdNetwork);
     _FixNodeTypes(&netInterface);
+    _FixNodeValues(&netInterface);
 
     const TfToken& terminalNodeName = HdMaterialTerminalTokens->surface;
     SdfPath surfTerminalPath;
 
-    const mx::DocumentPtr& libraries = HdMtlxStdLibraries();
     HdMaterialNode2 const* surfTerminal =
         _GetTerminalNode(hdNetwork, terminalNodeName, &surfTerminalPath);
 
@@ -138,6 +187,15 @@ void Hd_USTC_CG_Material::Sync(
                   << std::endl;
 
         std::cout << "Shader: " << shaders[0]->asString() << std::endl;
+
+        ShaderGenerator& shader_generator_ =
+            shader_gen_context_->getShaderGenerator();
+        auto shader = shader_generator_.generate(
+            "Surface", materials[0], *shader_gen_context_);
+
+        auto source_code = shader->getSourceCode();
+
+        std::cout << "Generated Shader: " << source_code << std::endl;
     }
 
     *dirtyBits = HdChangeTracker::Clean;

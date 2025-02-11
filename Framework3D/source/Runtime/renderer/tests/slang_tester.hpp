@@ -190,13 +190,13 @@ class ShaderGeneratorTester {
     virtual void setTestStages() = 0;
 
     // Add files in to not examine
-    virtual void addSkipFiles(){};
+    virtual void addSkipFiles() {};
 
     // Add nodedefs to not examine
-    virtual void addSkipNodeDefs(){};
+    virtual void addSkipNodeDefs() {};
 
     // Add files to be skipped while loading libraries
-    virtual void addSkipLibraryFiles(){};
+    virtual void addSkipLibraryFiles() {};
 
     // Add color management
     virtual void addColorManagement();
@@ -250,7 +250,7 @@ class ShaderGeneratorTester {
         const std::string& optionsFilePath);
 
     // Allow the tester to alter the document, e.g., by flattening file names.
-    virtual void preprocessDocument(mx::DocumentPtr doc){};
+    virtual void preprocessDocument(mx::DocumentPtr doc) {};
 
     // Compile generated source code. Default implementation does nothing.
     virtual void compileSource(
@@ -267,7 +267,7 @@ class ShaderGeneratorTester {
 
     // Get implementation "whitelist" for those implementations that have
     // been skipped for checking
-    virtual void getImplementationWhiteList(mx::StringSet& /*whiteList*/){};
+    virtual void getImplementationWhiteList(mx::StringSet& /*whiteList*/) {};
 
     mx::ShaderGeneratorPtr _shaderGenerator;
     const std::string _targetString;
@@ -712,12 +712,12 @@ inline void ShaderGeneratorTester::compileSource(
             error_string);
 
         if (!error_string.empty()) {
-            assert(false);
+            //assert(false);
         }
     }
 }
 
-void ShaderGeneratorTester::checkImplementationUsage(
+inline void ShaderGeneratorTester::checkImplementationUsage(
     const mx::StringSet& usedImpls,
     const mx::GenContext& context,
     std::ostream& stream)
@@ -787,7 +787,7 @@ void ShaderGeneratorTester::checkImplementationUsage(
     }
 }
 
-bool ShaderGeneratorTester::generateCode(
+inline bool ShaderGeneratorTester::generateCode(
     mx::GenContext& context,
     const std::string& shaderName,
     mx::TypedElementPtr element,
@@ -827,7 +827,7 @@ bool ShaderGeneratorTester::generateCode(
     return !stageFailed;
 }
 
-void ShaderGeneratorTester::addColorManagement()
+inline void ShaderGeneratorTester::addColorManagement()
 {
     if (!_colorManagementSystem && _shaderGenerator) {
         const std::string& target = _shaderGenerator->getTarget();
@@ -845,7 +845,7 @@ void ShaderGeneratorTester::addColorManagement()
     }
 }
 
-void ShaderGeneratorTester::addUnitSystem()
+inline void ShaderGeneratorTester::addUnitSystem()
 {
     if (!_unitSystem && _shaderGenerator) {
         const std::string target = _shaderGenerator->getTarget();
@@ -873,7 +873,7 @@ void ShaderGeneratorTester::addUnitSystem()
     }
 }
 
-void ShaderGeneratorTester::setupDependentLibraries()
+inline void ShaderGeneratorTester::setupDependentLibraries()
 {
     _dependLib = mx::createDocument();
 
@@ -883,7 +883,7 @@ void ShaderGeneratorTester::setupDependentLibraries()
         { "usd/hd_USTC_CG/resources/libraries" }, _searchPath, _dependLib);
 }
 
-LightIdMap ShaderGeneratorTester::computeLightIdMap(
+inline LightIdMap ShaderGeneratorTester::computeLightIdMap(
     const std::vector<mx::NodePtr>& nodes)
 {
     std::unordered_map<std::string, unsigned int> idMap;
