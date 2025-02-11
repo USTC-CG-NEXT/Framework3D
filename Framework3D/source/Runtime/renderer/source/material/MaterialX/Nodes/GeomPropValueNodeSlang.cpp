@@ -7,9 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-#include <iostream>
-
 MATERIALX_NAMESPACE_BEGIN
+
 ShaderNodeImplPtr GeomPropValueNodeSlang::create()
 {
     return std::make_shared<GeomPropValueNodeSlang>();
@@ -21,14 +20,6 @@ void GeomPropValueNodeSlang::createVariables(
     Shader& shader) const
 {
     const ShaderInput* geomPropInput = node.getInput(GEOMPROP);
-    std::cout << "Node name: " << node.getName() << std::endl;
-    // print inputs
-
-    for (const auto& input : node.getInputs()) {
-        std::cout << "Input name: " << input->getName() << std::endl;
-    }
-
-    std::cout << "GEOMPROP: " << GEOMPROP << std::endl;
     if (!geomPropInput || !geomPropInput->getValue()) {
         throw ExceptionShaderGenError(
             "No 'geomprop' parameter found on geompropvalue node '" +
