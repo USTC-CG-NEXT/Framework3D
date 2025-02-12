@@ -6,7 +6,6 @@
 #include <string>
 
 #include "RHI/api.h"
-#include "imgui.h"
 
 namespace vk {
 class Image;
@@ -44,7 +43,7 @@ struct nvrhi_image {
 extern RHI_API std::map<std::string, nvrhi_image> rhi_images;
 
 template<typename T>
-inline void rhi_imgui_image(
+auto rhi_imgui_image(
     std::string name,
     const std::vector<T>& buffer,
     int texture_width,
@@ -91,11 +90,7 @@ inline void rhi_imgui_image(
         }
     }
 
-    ImGui::Image(
-        static_cast<ImTextureID>(rhi_images[name].nvrhi_texture.Get()),
-        ImVec2(width, height),
-        ImVec2(0, 1),
-        ImVec2(1, 0));
+    return rhi_images[name].nvrhi_texture.Get();
 }
 
 /**

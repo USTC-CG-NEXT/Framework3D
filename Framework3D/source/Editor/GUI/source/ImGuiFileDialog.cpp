@@ -117,18 +117,8 @@ SOFTWARE.
 ///////////////////////////////
 
 #ifdef USE_THUMBNAILS
-#ifndef DONT_DEFINE_AGAIN__STB_IMAGE_IMPLEMENTATION
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#endif  // STB_IMAGE_IMPLEMENTATION
-#endif  // DONT_DEFINE_AGAIN__STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
-#ifndef DONT_DEFINE_AGAIN__STB_IMAGE_RESIZE_IMPLEMENTATION
-#ifndef STB_IMAGE_RESIZE_IMPLEMENTATION
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#endif  // STB_IMAGE_RESIZE_IMPLEMENTATION
-#endif  // DONT_DEFINE_AGAIN__STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb/stb_image_resize2.h"
+#include "stb_image.h"
+#include "stb_image_resize2.h"
 #endif  // USE_THUMBNAILS
 
 ///////////////////////////////

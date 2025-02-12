@@ -57,9 +57,7 @@ set_target_properties(OpenMeshTools PROPERTIES FOLDER "external")
 
 target_compile_definitions(OpenMeshCore PUBLIC -D_USE_MATH_DEFINES=1)
 
-# add_subdirectory(stb_image)
 add_subdirectory(entt)
-
 add_subdirectory(glm)
 
 set_target_properties(glm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -69,9 +67,13 @@ add_subdirectory(nanobind)
 target_compile_definitions(glm INTERFACE GLM_ENABLE_EXPERIMENTAL)
 set_target_properties(glm PROPERTIES LINKER_LANGUAGE CXX)
 
+add_subdirectory(stb_image)
+
 # polyscope
 add_subdirectory(polyscope)
 set_target_properties(polyscope PROPERTIES ${OUTPUT_DIR})
+set_target_properties(glad PROPERTIES ${OUTPUT_DIR})
+
 
 # libigl
 set(LIBIGL_RESTRICTED_TRIANGLE ON CACHE BOOL "" FORCE)

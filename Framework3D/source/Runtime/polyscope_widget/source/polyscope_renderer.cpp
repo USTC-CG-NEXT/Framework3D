@@ -218,7 +218,7 @@ void PolyscopeRenderer::DrawFrame()
     child_window_name = ImGui::GetCurrentWindow()->Name;
     ImGui::GetIO().WantCaptureMouse = false;
 
-    RHI::rhi_imgui_image(
+    auto nvrhi_texture = RHI::rhi_imgui_image(
         "PolyscopeViewPort",
         buffer,
         polyscope::view::windowWidth,
@@ -226,6 +226,12 @@ void PolyscopeRenderer::DrawFrame()
         polyscope::view::windowWidth,
         polyscope::view::windowHeight,
         nvrhi::Format::RGBA8_UNORM);
+
+    ImGui::Image(
+        static_cast<ImTextureID>(nvrhi_texture),
+        ImVec2(width, height),
+        ImVec2(0, 1),
+        ImVec2(1, 0));
 
     is_active = ImGui::IsWindowFocused();
     is_hovered = ImGui::IsItemHovered();

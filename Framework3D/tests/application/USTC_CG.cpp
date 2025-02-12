@@ -102,7 +102,6 @@ int main()
             loaded = system->load_configuration("basic_nodes.json");
             loaded = system->load_configuration("polyscope_nodes.json");
             loaded = system->load_configuration("optimization.json");
-            loaded = system->load_configuration("convert_nodes.json");
             system->init();
             system->set_node_tree_executor(create_node_tree_executor({}));
 
@@ -125,25 +124,6 @@ int main()
         }
     });
 
-    std::unique_ptr<LensSystem> lens_system = std::make_unique<LensSystem>();
-
-    // Check existence of lens.json
-    if (std::filesystem::exists("lens.json")) {
-        lens_system->deserialize(std::filesystem::path("lens.json"));
-    }
-    else {
-        lens_system->set_default();
-    }
-
-    window->register_openable_widget(
-        createDiffOpticsGUIFactory(), { "Plugins", "Physical Lens System" });
-
-    render_bare->set_renderer_setting(
-        pxr::TfToken("lens_system_ptr"),
-        pxr::VtValue(static_cast<void*>(lens_system.get())));
-
-    window->register_function_perframe(
-        [render_bare](Window* window) { render_bare->finish_render(); });
     window->run();
 
     unregister_cpp_type();

@@ -127,15 +127,3 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/Runtime)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/Plugins)
 
 add_subdirectory(tests)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/basic_nodes)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry_nodes)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/convert_nodes)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/optimization)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/polyscope_widget)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/polyscope_nodes)
-
-# target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/renderer)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)

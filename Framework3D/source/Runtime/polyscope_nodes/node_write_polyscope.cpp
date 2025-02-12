@@ -18,7 +18,6 @@
 #include "polyscope_widget/polyscope_renderer.h"
 #include "pxr/base/gf/rotation.h"
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 NODE_DEF_OPEN_SCOPE

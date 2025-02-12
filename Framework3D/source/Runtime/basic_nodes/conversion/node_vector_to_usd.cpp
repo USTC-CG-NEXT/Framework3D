@@ -6,7 +6,6 @@ NODE_DECLARATION_FUNCTION(vector_to_usd)
 {
     // Function content omitted
     b.add_input<std::vector<std::vector<float>>>("Input vector");
-    b.add_input<std::vector<std::vector<float>>>("Input vector");
 }
 
 NODE_EXECUTION_FUNCTION(vector_to_usd)
