@@ -62,6 +62,11 @@ struct GEOMETRY_API PointsComponent : public GeometryComponent {
         points.CreateWidthsAttr().Set(width);
     }
 
+    pxr::UsdGeomPoints get_usd_points() const
+    {
+        return points;
+    }
+
    private:
     pxr::UsdGeomPoints points;
 };

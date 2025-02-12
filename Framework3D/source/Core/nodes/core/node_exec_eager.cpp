@@ -65,6 +65,7 @@ bool EagerNodeTreeExecutor::execute_node(NodeTree* tree, Node* node)
         node->execution_failed = "Execution failed";
         return false;
     }
+    node->execution_failed = {};
     return true;
 }
 
@@ -121,12 +122,15 @@ void EagerNodeTreeExecutor::forward_output_to_input(Node* node)
                         directly_linked_input_socket->node
                             ->execution_failed = {};
 
-                        if (is_last_target) {
-                            input_state.value = std::move(value_to_forward);
-                        }
-                        else {
-                            input_state.value = value_to_forward;
-                        }
+                        // if (is_last_target) {
+                        //     input_state.value = std::move(value_to_forward);
+                        // }
+                        // else {
+                        //     input_state.value = value_to_forward;
+                        // }
+                        // Move is better in efficiency,
+                        // but it bothers the visualization of input and output.
+                        input_state.value = value_to_forward;
                         input_state.is_forwarded = true;
                     }
                 }
@@ -166,7 +170,7 @@ void EagerNodeTreeExecutor::clear()
     output_of_nodes_to_execute.clear();
 }
 
-void EagerNodeTreeExecutor::compile(NodeTree* tree)
+void EagerNodeTreeExecutor::compile(NodeTree* tree, Node* required_node)
 {
     if (tree->has_available_link_cycle) {
         return;
@@ -181,8 +185,15 @@ void EagerNodeTreeExecutor::compile(NodeTree* tree)
     for (int i = nodes_to_execute.size() - 1; i >= 0; i--) {
         auto node = nodes_to_execute[i];
 
-        if (node->typeinfo->ALWAYS_REQUIRED) {
-            node->REQUIRED = true;
+        if (required_node == nullptr) {
+            if (node->typeinfo->ALWAYS_REQUIRED) {
+                node->REQUIRED = true;
+            }
+        }
+        else {
+            if (node == required_node) {
+                node->REQUIRED = true;
+            }
         }
 
         if (node->REQUIRED) {
@@ -368,14 +379,14 @@ EagerNodeTreeExecutor::~EagerNodeTreeExecutor()
 //    this->global_param = param;
 //}
 
-void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree)
+void EagerNodeTreeExecutor::prepare_tree(NodeTree* tree, Node* required_node)
 {
     // auto gilState = PyGILState_Ensure();
 
     tree->ensure_topology_cache();
     clear();
 
-    compile(tree);
+    compile(tree, required_node);
 
     input_states.resize(input_of_nodes_to_execute.size());
     output_states.resize(output_of_nodes_to_execute.size());
@@ -406,9 +417,17 @@ entt::meta_any* EagerNodeTreeExecutor::FindPtr(NodeSocket* socket)
 {
     entt::meta_any* ptr;
     if (socket->in_out == PinKind::Input) {
+        if (index_cache.find(socket) == index_cache.end()) {
+            static entt::meta_any default_any;
+            return &default_any;
+        }
         ptr = &input_states[index_cache[socket]].value;
     }
     else {
+        if (index_cache.find(socket) == index_cache.end()) {
+            static entt::meta_any default_any;
+            return &default_any;
+        }
         ptr = &output_states[index_cache[socket]].value;
     }
     return ptr;

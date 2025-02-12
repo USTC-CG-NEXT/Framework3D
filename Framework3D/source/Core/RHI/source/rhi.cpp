@@ -15,6 +15,7 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace RHI {
 
 std::unique_ptr<DeviceManager> device_manager = nullptr;
+std::map<std::string, nvrhi_image> rhi_images{};
 
 int init(bool with_window, bool use_dx12)
 {
@@ -262,6 +263,7 @@ DeviceManager* internal::get_device_manager()
 
 int shutdown()
 {
+    std::map<std::string, nvrhi_image>().swap(rhi_images);
     device_manager->Shutdown();
     device_manager.reset();
     return device_manager == nullptr;

@@ -1,8 +1,9 @@
 
 
+#include "entt/core/type_info.hpp"
+#include "entt/meta/meta.hpp"
+#include "nodes/core/node_exec_eager.hpp"
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "ui_imgui.hpp"
-
 #include <imgui_internal.h>
 
 #include <string>
@@ -13,6 +14,7 @@
 #include "imgui/blueprint-utilities/widgets.h"
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
 #include "nodes/ui/imgui.hpp"
+#include "ui_imgui.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -406,6 +408,9 @@ bool NodeWidget::BuildUI()
         else
             ImGui::Text("Unknown node: %p", contextNodeId.AsPointer());
         ImGui::Separator();
+        if (ImGui::MenuItem("Run")) {
+            system_->execute(true, node);
+        }
         if (ImGui::MenuItem("Delete"))
             ed::DeleteNode(contextNodeId);
         ImGui::EndPopup();
@@ -513,6 +518,81 @@ const char* NodeWidget::GetWindowName()
     return "Node editor";
 }
 
+void NodeWidget::SetNodeSystemDirty(bool dirty)
+{
+    tree_->SetDirty(dirty);
+}
+
+void NodeWidget::ShowInputOrOutput(
+    const NodeSocket& socket,
+    const entt::meta_any& value)
+{
+    if (value) {
+        // 若输入为int float string类型，直接显示
+        // 否则检查是否可以转换为int float string
+        switch (value.type().info().hash()) {
+            case entt::type_hash<int>().value():
+                ImGui::Text("%s: %d", socket.ui_name, value.cast<int>());
+                break;
+            case entt::type_hash<long long>().value():
+                ImGui::Text(
+                    "%s: %lld", socket.ui_name, value.cast<long long>());
+                break;
+            case entt::type_hash<unsigned>().value():
+                ImGui::Text("%s: %u", socket.ui_name, value.cast<unsigned>());
+                break;
+            case entt::type_hash<unsigned long long>().value():
+                ImGui::Text(
+                    "%s: %llu",
+                    socket.ui_name,
+                    value.cast<unsigned long long>());
+                break;
+            case entt::type_hash<float>().value():
+                ImGui::Text("%s: %f", socket.ui_name, value.cast<float>());
+                break;
+            case entt::type_hash<double>().value():
+                ImGui::Text("%s: %f", socket.ui_name, value.cast<double>());
+                break;
+            case entt::type_hash<std::string>().value():
+                ImGui::Text(
+                    "%s: %s",
+                    socket.ui_name,
+                    value.cast<std::string>().c_str());
+                break;
+            case entt::type_hash<bool>().value():
+                ImGui::Text(
+                    "%s: %s",
+                    socket.ui_name,
+                    value.cast<bool>() ? "true" : "false");
+                break;
+            case entt::type_hash<char>().value():
+                ImGui::Text("%s: %c", socket.ui_name, value.cast<char>());
+                break;
+            case entt::type_hash<unsigned char>().value():
+                ImGui::Text(
+                    "%s: %u", socket.ui_name, value.cast<unsigned char>());
+                break;
+            case entt::type_hash<short>().value():
+                ImGui::Text("%s: %d", socket.ui_name, value.cast<short>());
+                break;
+            case entt::type_hash<unsigned short>().value():
+                ImGui::Text(
+                    "%s: %u", socket.ui_name, value.cast<unsigned short>());
+                break;
+            default: {
+                ImGui::Text(
+                    "%s: %s (%s)",
+                    socket.ui_name,
+                    "Unknown Type",
+                    value.type().info().name().data());
+            }
+        }
+    }
+    else {
+        ImGui::Text("%s: %s", socket.ui_name, "Not Executed");
+    }
+}
+
 void NodeWidget::ShowLeftPane(float paneWidth)
 {
     auto& io = ImGui::GetIO();
@@ -609,9 +689,27 @@ void NodeWidget::ShowLeftPane(float paneWidth)
     ImGui::TextUnformatted("Selection");
 
     ImGui::Indent();
+    EagerNodeTreeExecutor* executor =
+        dynamic_cast<EagerNodeTreeExecutor*>(system_->get_node_tree_executor());
     for (int i = 0; i < nodeCount; ++i) {
         ImGui::Text("Node (%p)", selectedNodes[i].AsPointer());
         auto node = tree_->find_node(selectedNodes[i]);
+        auto input = node->get_inputs();
+        auto output = node->get_outputs();
+        ImGui::Text("Inputs:");
+        ImGui::Indent();
+        for (auto& in : input) {
+            auto input_value = *executor->FindPtr(in);
+            ShowInputOrOutput(*in, input_value);
+        }
+        ImGui::Unindent();
+        ImGui::Text("Outputs:");
+        ImGui::Indent();
+        for (auto& out : output) {
+            auto output_value = *executor->FindPtr(out);
+            ShowInputOrOutput(*out, output_value);
+        }
+        ImGui::Unindent();
         if (node->override_left_pane_info)
             node->override_left_pane_info();
     }
@@ -679,6 +777,7 @@ bool NodeWidget::draw_socket_controllers(NodeSocket* input)
             break;
 
         case entt::type_hash<std::string>().value():
+            input->dataField.value.cast<std::string&>().resize(255);
             changed |= ImGui::InputText(
                 (input->ui_name + ("##" + std::to_string(input->ID.Get())))
                     .c_str(),

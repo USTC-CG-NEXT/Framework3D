@@ -28,9 +28,9 @@ struct RuntimeOutputState {
 
 class NODES_CORE_API EagerNodeTreeExecutor : public NodeTreeExecutor {
    public:
-    void compile(NodeTree* tree);
+    void compile(NodeTree* tree, Node* required_node = nullptr);
     void prepare_memory();
-    void prepare_tree(NodeTree* tree) override;
+    void prepare_tree(NodeTree* tree, Node* required_node = nullptr) override;
     void execute_tree(NodeTree* tree) override;
 
     entt::meta_any* FindPtr(NodeSocket* socket);

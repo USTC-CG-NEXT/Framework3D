@@ -350,5 +350,31 @@ void Window::register_openable_widget(
 {
     imguiRenderPass->register_openable_widget(window_factory, menu_item);
 }
+IWidget* Window::get_widget(const std::string& unique_name) const
+{
+    for (auto& widget : imguiRenderPass->widgets_) {
+        if (widget->GetWindowUniqueName() == unique_name) {
+            return widget.get();
+        }
+    }
+}
+
+std::vector<IWidget*> Window::get_widgets() const
+{
+    std::vector<IWidget*> widgets;
+    for (auto& widget : imguiRenderPass->widgets_) {
+        widgets.push_back(widget.get());
+    }
+    return widgets;
+}
+
+void Window::set_all_node_system_dirty()
+{
+    for (auto& widget : imguiRenderPass->widgets_) {
+        if (std::strcmp(widget->GetWindowName(), "Node editor") == 0) {
+            widget->SetNodeSystemDirty(true);
+        }
+    }
+}
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

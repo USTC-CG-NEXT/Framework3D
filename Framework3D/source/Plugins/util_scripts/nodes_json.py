@@ -30,6 +30,7 @@ def scan_cpp_files(directories, files, pattern):
 
     return nodes
 
+
 def main():
     parser = argparse.ArgumentParser(description='Scan cpp files for NODE_EXECUTION_FUNCTION and CONVERSION_EXECUTION_FUNCTION and generate JSON.')
     parser.add_argument('--nodes-dir', nargs='+', type=str, help='Paths to the directories containing node cpp files', default=[])
@@ -45,17 +46,18 @@ def main():
         node_pattern = r'NODE_EXECUTION_FUNCTION\((\w+)\)'
         result['nodes'] = scan_cpp_files(args.nodes_dir, args.nodes_files, node_pattern)
     else:
-        result['nodes'] = {}
+        result["nodes"] = {}
 
     if args.conversions_dir or args.conversions_files:
         conversion_pattern = r'CONVERSION_EXECUTION_FUNCTION\((\w+),\s*(\w+)\)'
         conversions = scan_cpp_files(args.conversions_dir, args.conversions_files, conversion_pattern)
         result['conversions'] = {k: [f"{match[0]}_to_{match[1]}" for match in v] for k, v in conversions.items()}
     else:
-        result['conversions'] = {}
+        result["conversions"] = {}
 
-    with open(args.output, 'w') as json_file:
+    with open(args.output, "w", encoding="utf-8") as json_file:
         json.dump(result, json_file, indent=4)
+
 
 if __name__ == "__main__":
     main()

@@ -94,6 +94,8 @@ class GUI_API IWidget {
     bool size_changed = true;
     virtual bool Begin();
 
+    virtual void SetNodeSystemDirty(bool dirty = true);
+
    private:
     bool is_open = true;
 

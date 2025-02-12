@@ -1,6 +1,7 @@
 #include "GCore/Components/MeshOperand.h"
 #include "geom_node_base.h"
 #include "GCore/util_openmesh_bind.h"
+#include <Eigen/Sparse>
 
 /*
 ** @brief HW4_TutteParameterization
@@ -37,6 +38,8 @@ NODE_DECLARATION_FUNCTION(circle_boundary_mapping)
 {
     // Input-1: Original 3D mesh with boundary
     b.add_input<Geometry>("Input");
+    b.add_input<Eigen::VectorXi>("Boundary");
+    b.add_input<Eigen::VectorXd>("Areas");
 
     // Output-1: Processed 3D mesh whose boundary is mapped to a square and the
     // interior vertices remains the same
@@ -47,12 +50,14 @@ NODE_EXECUTION_FUNCTION(circle_boundary_mapping)
 {
     // Get the input from params
     auto input = params.get_input<Geometry>("Input");
+    Eigen::VectorXi boundary = params.get_input<Eigen::VectorXi>("Boundary");
+    Eigen::VectorXd areas = params.get_input<Eigen::VectorXd>("Areas");
 
     // (TO BE UPDATED) Avoid processing the node when there is no input
     if (!input.get_component<MeshComponent>()) {
         throw std::runtime_error("Boundary Mapping: Need Geometry Input.");
     }
-    throw std::runtime_error("Not implemented");
+    // throw std::runtime_error("Not implemented");
 
     /* ----------------------------- Preprocess -------------------------------
     ** Create a halfedge structure (using OpenMesh) for the input mesh. The
@@ -61,6 +66,30 @@ NODE_EXECUTION_FUNCTION(circle_boundary_mapping)
     ** mesh elements.
     */
     auto halfedge_mesh = operand_to_openmesh(&input);
+
+    double length = 0;
+    for (int i = 0; i < boundary.size() - 1; i++) {
+        const auto& p0 = halfedge_mesh->point(halfedge_mesh->vertex_handle(boundary(i)));
+        const auto& p1 = halfedge_mesh->point(halfedge_mesh->vertex_handle(boundary(i + 1)));
+        length += (p0 - p1).norm();
+    }
+
+    #define PI 3.1415926
+
+    // Keep the area of the mesh the same
+    double radius = sqrt(areas.sum() / PI);
+    double length_tmp = 0;
+    for (int i = 0; i < boundary.size() - 1; i++) {
+        double angle = length_tmp / length * 2 * PI;
+        const auto& vertex = halfedge_mesh->vertex_handle(boundary(i));
+        halfedge_mesh->point(vertex)[0] = radius * cos(angle);
+        halfedge_mesh->point(vertex)[1] = radius * sin(angle);
+        halfedge_mesh->point(vertex)[2] = 0;
+
+        const auto& p0 = halfedge_mesh->point(halfedge_mesh->vertex_handle(boundary(i)));
+        const auto& p1 = halfedge_mesh->point(halfedge_mesh->vertex_handle(boundary(i + 1)));
+        length_tmp += (p0 - p1).norm();
+    }
 
     /* ----------- [HW4_TODO] TASK 2.1: Boundary Mapping (to circle)
     *------------

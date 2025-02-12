@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.19)
+﻿cmake_minimum_required(VERSION 3.19)
 
 #
 # Project details
 #
-
 project(
   "USTC_CG_2024"
   VERSION 1.0
@@ -35,7 +34,6 @@ include(cmake/AddNodes.cmake)
 option(USTC_CG_WITH_CUDA OFF)
 option(USTC_CG_WITH_TORCH OFF)
 
-
 if(USTC_CG_WITH_CUDA)
   # Set the cuda compiler to be nvcc 12.6
   set(CMAKE_CUDA_ARCHITECTURES 86)
@@ -52,12 +50,14 @@ add_compile_definitions(BOOST_PYTHON_NO_LIB=1)
 
 message(STATUS "Started CMake for ${PROJECT_NAME} v${PROJECT_VERSION}...\n")
 set(BUILD_SHARED_LIBS ON)
+
 # On mac, the cpp standard should >= 20
 set(CMAKE_CXX_STANDARD 20)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug")
 endif()
+
 set(CMAKE_CUDA_STANDARD 20)
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -82,17 +82,21 @@ endif()
 find_package(Python COMPONENTS Development Interpreter REQUIRED)
 
 find_package(Vulkan)
+
 if(Vulkan_FOUND)
   message("Found Vulkan version ${Vulkan_VERSION}")
 else()
   message("Vulkan not found")
 endif()
+
 set(pxr_DIR SDK/OpenUSD/${SDK_FOLDER})
 find_package(pxr)
+
 if(pxr_FOUND)
   message("Found OpenUSD version ${pxr_VERSION}")
   find_package(OpenGL REQUIRED)
   set(USTC_CG_WITH_OPENUSD ON)
+
   if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 
     if(Python3_LIBRARY MATCHES "_d.lib$")
@@ -123,3 +127,15 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/Runtime)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/Plugins)
 
 add_subdirectory(tests)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/basic_nodes)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/geometry_nodes)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/convert_nodes)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/optimization)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/polyscope_widget)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/polyscope_nodes)
+
+# target_link_libraries(geometry PUBLIC "${TORCH_LIBRARIES}")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/renderer)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)

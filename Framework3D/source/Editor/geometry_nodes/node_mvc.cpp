@@ -1,12 +1,21 @@
+<<<<<<< HEAD:Framework3D/source/Editor/geometry_nodes/node_mvc.cpp
+=======
+#include <igl/mvc.h>
+>>>>>>> origin/geom_dev:Framework3D/source/geometry_nodes/node_mvc.cpp
 
 #include <Eigen/Eigen>
 #include <functional>
 
 #include "nodes/core/def/node_def.hpp"
+<<<<<<< HEAD:Framework3D/source/Editor/geometry_nodes/node_mvc.cpp
+=======
+
+>>>>>>> origin/geom_dev:Framework3D/source/geometry_nodes/node_mvc.cpp
 std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> generate_weight_function(
     const Eigen::MatrixXd& C)
 {
     return [C](const Eigen::MatrixXd& V) -> Eigen::MatrixXd {
+<<<<<<< HEAD:Framework3D/source/Editor/geometry_nodes/node_mvc.cpp
         // number of polygon points
         int num = C.rows();
         Eigen::MatrixXd V1, C1;
@@ -170,10 +179,16 @@ std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> generate_weight_function(
         for (int i = 0; i < V.rows(); ++i)
             WW.col(i) /= WW.col(i).sum();
         return WW.transpose();
+=======
+        Eigen::MatrixXd W;
+        igl::mvc(V, C, W);
+        return W;
+>>>>>>> origin/geom_dev:Framework3D/source/geometry_nodes/node_mvc.cpp
     };
 }
 
 NODE_DEF_OPEN_SCOPE
+<<<<<<< HEAD:Framework3D/source/Editor/geometry_nodes/node_mvc.cpp
 
 NODE_DECLARATION_FUNCTION(node_mvc)
 {
@@ -187,6 +202,18 @@ NODE_EXECUTION_FUNCTION(node_mvc)
 {
     // Function content omitted
     auto V = params.get_input<Eigen::MatrixXd>("Vertices");
+=======
+NODE_DECLARATION_FUNCTION(gbc_mvc)
+{
+    // Function content omitted
+    b.add_input<Eigen::MatrixXd>("Control Points");
+    b.add_output<std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>>("MVC");
+}
+
+NODE_EXECUTION_FUNCTION(gbc_mvc)
+{
+    // Function content omitted
+>>>>>>> origin/geom_dev:Framework3D/source/geometry_nodes/node_mvc.cpp
     auto C = params.get_input<Eigen::MatrixXd>("Control Points");
 
     // at least three control points
@@ -194,6 +221,7 @@ NODE_EXECUTION_FUNCTION(node_mvc)
 
     // dimension of points
     assert(C.cols() == 3 || C.cols() == 2);
+<<<<<<< HEAD:Framework3D/source/Editor/geometry_nodes/node_mvc.cpp
     assert(V.cols() == 3 || V.cols() == 2);
 
     std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> W =
@@ -206,3 +234,14 @@ NODE_EXECUTION_FUNCTION(node_mvc)
 
 NODE_DECLARATION_UI(node_mvc);
 NODE_DEF_CLOSE_SCOPE
+=======
+
+    auto W = generate_weight_function(C);
+    // we've made W transpose
+    params.set_output("MVC", W);
+    return true;
+}
+
+NODE_DECLARATION_UI(gbc_mvc);
+NODE_DEF_CLOSE_SCOPE
+>>>>>>> origin/geom_dev:Framework3D/source/geometry_nodes/node_mvc.cpp
