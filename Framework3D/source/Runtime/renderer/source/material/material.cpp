@@ -191,7 +191,7 @@ void Hd_USTC_CG_Material::Sync(
         ShaderGenerator& shader_generator_ =
             shader_gen_context_->getShaderGenerator();
         auto shader = shader_generator_.generate(
-            "Surface", shaders[0], *shader_gen_context_);
+            "Surface", materials[0], *shader_gen_context_);
 
         auto source_code = shader->getSourceCode();
 

@@ -26,7 +26,7 @@ int main()
 #endif
     log::EnableOutputToConsole(true);
 
-    constexpr bool use_polyscope = true;
+    constexpr bool use_polyscope = false;
     // Polyscope need to be initialized before window, or it cannot load opengl
     // backend correctly.
     std::unique_ptr<PolyscopeRenderer> polyscope_render;
