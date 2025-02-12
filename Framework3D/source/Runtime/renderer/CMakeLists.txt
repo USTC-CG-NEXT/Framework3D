@@ -12,24 +12,18 @@ USTC_CG_ADD_LIB(
 	USD_RESOURCE_DIRS resources nodes/shaders
 	SKIP_DIRS nodes
 	RESOURCE_COPY_TARGET ${OUT_BINARY_DIR}/usd/hd_USTC_CG/resources
-	PYTHON_WRAP_DIR python
 )
 
 target_compile_definitions(hd_USTC_CG PRIVATE HOST_CODE=1)
 target_include_directories(hd_USTC_CG PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/nodes/shaders/shaders)
 target_include_directories(hd_USTC_CG PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
-add_subdirectory(nodes/glints)
-
-target_link_libraries(hd_USTC_CG PUBLIC glints)
-
 add_nodes(
 	TARGET_NAME render_nodes 
 	SRC_DIRS nodes
-	DEP_LIBS usd RHI hd_USTC_CG usdImaging
+	DEP_LIBS usd RHI hd_USTC_CG usdImaging shaders_interface
 	COMPILE_DEFS NOMINMAX 
 	EXTRA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/source
 )
 
-target_link_libraries(physical_lens_raygen PUBLIC diff_optics)
 
