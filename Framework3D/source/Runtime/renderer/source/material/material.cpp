@@ -9,6 +9,7 @@
 #include "MaterialXCore/Document.h"
 #include "MaterialXFormat/Util.h"
 #include "MaterialXGenShader/Shader.h"
+#include "MaterialXGenShader/Util.h"
 #include "api.h"
 #include "pxr/imaging/hd/changeTracker.h"
 #include "pxr/imaging/hd/sceneDelegate.h"
@@ -188,10 +189,14 @@ void Hd_USTC_CG_Material::Sync(
 
         std::cout << "Shader: " << shaders[0]->asString() << std::endl;
 
+        auto renderable = mx::findRenderableElements(mtlx_document);
+        auto element = renderable[0];
+        const std::string elementName(element->getNamePath());
+
         ShaderGenerator& shader_generator_ =
             shader_gen_context_->getShaderGenerator();
         auto shader = shader_generator_.generate(
-            "Surface", materials[0], *shader_gen_context_);
+            elementName, element, *shader_gen_context_);
 
         auto source_code = shader->getSourceCode();
 

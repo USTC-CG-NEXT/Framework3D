@@ -14,11 +14,21 @@ ShaderNodeImplPtr GeomPropValueNodeSlang::create()
     return std::make_shared<GeomPropValueNodeSlang>();
 }
 
+void GeomPropValueNodeSlang::setValues(
+    const Node& node,
+    ShaderNode& shaderNode,
+    GenContext& context) const
+{
+    SlangImplementation::setValues(node, shaderNode, context);
+}
+
 void GeomPropValueNodeSlang::createVariables(
     const ShaderNode& node,
     GenContext&,
     Shader& shader) const
 {
+    auto parent = node.getParent()->getNodes();
+
     const ShaderInput* geomPropInput = node.getInput(GEOMPROP);
     if (!geomPropInput || !geomPropInput->getValue()) {
         throw ExceptionShaderGenError(
