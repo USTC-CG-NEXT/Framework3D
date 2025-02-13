@@ -29,6 +29,7 @@
 #include "Logger/Logger.h"
 #include "Nodes/BitangentNodeSlang.h"
 #include "Nodes/BlurNodeSlang.h"
+#include "Nodes/CompoundNodeSlang.h"
 #include "Nodes/GeomColorNodeSlang.h"
 #include "Nodes/GeomPropValueNodeSlang.h"
 #include "Nodes/HeightToNormalNodeSlang.h"
@@ -1068,7 +1069,7 @@ ShaderNodeImplPtr SlangShaderGenerator::getImplementation(
             impl = ClosureCompoundNode::create();
         }
         else {
-            impl = CompoundNode::create();
+            impl = CompoundNodeSlang::create();
         }
     }
     else if (implElement->isA<Implementation>()) {
