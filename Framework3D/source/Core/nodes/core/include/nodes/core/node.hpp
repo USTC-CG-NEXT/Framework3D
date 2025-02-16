@@ -175,6 +175,11 @@ struct NodeGroup : public Node {
         const char* name);
 
    private:
+    std::map<NodeSocket*, NodeSocket*> input_mapping_from_interface_to_internal;
+    std::map<NodeSocket*, NodeSocket*>
+        output_mapping_from_interface_to_internal;
+
+    // Internal Node, Holding the input and output sockets.
     Node* group_in;
     Node* group_out;
 };

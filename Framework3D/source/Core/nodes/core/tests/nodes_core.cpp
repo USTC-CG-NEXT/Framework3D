@@ -340,9 +340,7 @@ TEST_F(NodeCoreTest, NodeGroup)
     register_cpp_type<float>();
     register_cpp_type<std::string>();
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
-        b.add_input<float>("test_socket").min(0).max(1).default_val(0);
         b.add_input<int>("test_socket2").min(-15).max(3).default_val(1);
-        b.add_input<std::string>("string_socket").default_val("aaa");
         b.add_output<int>("output");
     });
     descriptor.register_node(std::move(node_type_info));
@@ -375,12 +373,15 @@ TEST_F(NodeCoreTest, NodeGroup)
     ASSERT_EQ(subtree->nodes.size(), 4);
     ASSERT_EQ(subtree->links.size(), 3);
 
-    std::cout << "Main tree: " << std::endl;
-    std::cout << tree->serialize(4) << std::endl;
+    //std::cout << "Main tree: " << std::endl;
+    //std::cout << tree->serialize(4) << std::endl;
 
-    std::cout << "Sub tree: " << std::endl;
-    std::cout << subtree->serialize(4) << std::endl;
+    //std::cout << "Sub tree: " << std::endl;
+    //std::cout << subtree->serialize(4) << std::endl;
 
-    //tree->ungroup(group);
-    //ASSERT_EQ(tree->nodes.size(), 3);
+    tree->ungroup(group);
+    ASSERT_EQ(tree->nodes.size(), 4);
+    ASSERT_EQ(tree->links.size(), 3);
+    
+
 }

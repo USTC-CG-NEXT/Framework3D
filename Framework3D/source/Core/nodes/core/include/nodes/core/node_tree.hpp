@@ -124,9 +124,13 @@ class NODES_CORE_API NodeTree {
     NodeLink* add_link(
         NodeSocket* fromsock,
         NodeSocket* tosock,
-        bool allow_relink_to_output = false);
+        bool allow_relink_to_output = false,
+        bool refresh_topology = true);
 
-    NodeLink* add_link(SocketID startPinId, SocketID endPinId);
+    NodeLink* add_link(
+        SocketID startPinId,
+        SocketID endPinId,
+        bool refresh_topology = true);
 
     void delete_link(
         LinkId linkId,
@@ -158,7 +162,7 @@ class NODES_CORE_API NodeTree {
     std::vector<std::unique_ptr<NodeSocket>> sockets;
     const NodeTreeDescriptor descriptor_;
 
-    void delete_socket(SocketID socketId);
+    void delete_socket(SocketID socketId, bool force_group_delete = true);
 
     void update_directly_linked_links_and_sockets();
 

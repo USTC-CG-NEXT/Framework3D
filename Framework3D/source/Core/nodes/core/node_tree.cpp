@@ -24,8 +24,8 @@ NodeTreeDescriptor::NodeTreeDescriptor()
         NodeTypeInfo("node_group")
             .set_ui_name("Group")
             .set_declare_function([](NodeDeclarationBuilder& b) {
-                b.add_input_group("Inputs");
-                b.add_output_group("Outputs");
+                b.add_input_group("Outside_Inputs_PH");
+                b.add_output_group("Outside_Outputs_PH");
             })
             .set_execution_function([](ExeParams params) { return true; }));
 
@@ -33,15 +33,16 @@ NodeTreeDescriptor::NodeTreeDescriptor()
         NodeTypeInfo("node_group_in")
             .set_ui_name("Group In")
             .set_declare_function([](NodeDeclarationBuilder& b) {
-                b.add_output_group("Outputs");
+                b.add_output_group("Inside_Outputs_PH");
             })
             .set_execution_function([](ExeParams params) { return true; }));
 
     register_node(
         NodeTypeInfo("node_group_out")
             .set_ui_name("Group Out")
-            .set_declare_function(
-                [](NodeDeclarationBuilder& b) { b.add_input_group("Inputs"); })
+            .set_declare_function([](NodeDeclarationBuilder& b) {
+                b.add_input_group("Inside_Inputs_PH");
+            })
             .set_execution_function([](ExeParams params) { return true; }));
 }
 
@@ -104,7 +105,7 @@ NodeTree::NodeTree(const NodeTreeDescriptor& descriptor)
     toposort_left_to_right.reserve(32);
 }
 
-NodeTree::NodeTree(const NodeTree& other)
+NodeTree::NodeTree(const NodeTree& other) : descriptor_(other.descriptor_)
 {
     // A deep copy by reconstructing the tree
     deserialize(other.serialize());
@@ -271,6 +272,7 @@ NodeTree& NodeTree::merge(NodeTree&& other)
         sockets.end(),
         std::make_move_iterator(other.sockets.begin()),
         std::make_move_iterator(other.sockets.end()));
+    ensure_topology_cache();
     return *this;
 }
 
@@ -427,9 +429,42 @@ void NodeTree::ungroup(Node* node)
 {
     assert(node->typeinfo->id_name == "node_group");
 
-    auto serialized = static_cast<NodeGroup*>(node)->sub_tree->serialize();
-    auto deserialized = std::make_unique<NodeTree>(descriptor_);
-    deserialized->deserialize(serialized);
+    NodeGroup* group = static_cast<NodeGroup*>(node);
+
+    auto input_mapping = group->input_mapping_from_interface_to_internal;
+    auto ouput_mapping = group->output_mapping_from_interface_to_internal;
+
+    merge(std::move(*group->sub_tree.get()));
+    // Make the rest of the links
+    for (auto* input_socket : group->get_inputs()) {
+        if (!input_socket->directly_linked_links.empty()) {
+            auto internal_socket = input_mapping[input_socket];
+
+            auto linked_outside_socket =
+                input_socket->directly_linked_links[0]->from_sock;
+
+            for (auto& new_tos : internal_socket->directly_linked_sockets) {
+                add_link(linked_outside_socket, new_tos, true, false);
+            }
+        }
+    }
+
+    for (auto* output_socket : group->get_outputs()) {
+        if (!output_socket->directly_linked_links.empty()) {
+            auto internal_socket = ouput_mapping[output_socket];
+            auto linked_outside_socket =
+                output_socket->directly_linked_links[0]->to_sock;
+
+            for (auto& new_froms : internal_socket->directly_linked_sockets) {
+                add_link(new_froms, linked_outside_socket, true, false);
+            }
+        }
+    }
+
+    delete_node(group->group_in);
+    delete_node(group->group_out);
+
+    delete_node(group);
 }
 
 unsigned NodeTree::UniqueID()
@@ -444,7 +479,8 @@ unsigned NodeTree::UniqueID()
 NodeLink* NodeTree::add_link(
     NodeSocket* fromsock,
     NodeSocket* tosock,
-    bool allow_relink_to_output)
+    bool allow_relink_to_output,
+    bool refresh_topology)
 {
     SetDirty(true);
 
@@ -518,18 +554,23 @@ NodeLink* NodeTree::add_link(
     else {
         throw std::runtime_error("Cannot convert between types.");
     }
-    ensure_topology_cache();
+    if (refresh_topology) {
+        ensure_topology_cache();
+    }
     return bare_ptr;
 }
 
-NodeLink* NodeTree::add_link(SocketID startPinId, SocketID endPinId)
+NodeLink* NodeTree::add_link(
+    SocketID startPinId,
+    SocketID endPinId,
+    bool refresh_topology)
 {
     SetDirty(true);
     auto socket1 = find_pin(startPinId);
     auto socket2 = find_pin(endPinId);
 
     if (socket1 && socket2)
-        return add_link(socket1, socket2);
+        return add_link(socket1, socket2, false, refresh_topology);
 }
 
 void NodeTree::delete_link(
@@ -602,15 +643,17 @@ void NodeTree::delete_node(NodeId nodeId)
     });
     if (id != nodes.end()) {
         for (auto& socket : (*id)->get_inputs()) {
-            delete_socket(socket->ID);
+            delete_socket(socket->ID, true);
         }
 
         for (auto& socket : (*id)->get_outputs()) {
-            delete_socket(socket->ID);
+            delete_socket(socket->ID, true);
         }
 
         nodes.erase(id);
     }
+    else
+        throw std::runtime_error("Node not found when deleting.");
     ensure_topology_cache();
 }
 
@@ -650,12 +693,16 @@ bool NodeTree::can_create_convert_link(NodeSocket* out, NodeSocket* in)
     return descriptor_.can_convert(out->type_info, in->type_info);
 }
 
-void NodeTree::delete_socket(SocketID socketId)
+void NodeTree::delete_socket(SocketID socketId, bool force_group_delete)
 {
     auto id =
         std::find_if(sockets.begin(), sockets.end(), [socketId](auto&& socket) {
             return socket->ID == socketId;
         });
+
+    if (id == sockets.end()) {
+        throw std::runtime_error("Socket not found when deleting.");
+    }
 
     bool socket_in_group = (*id)->socket_group != nullptr;
 
@@ -666,7 +713,7 @@ void NodeTree::delete_socket(SocketID socketId)
         delete_link(link->ID, false, false);
     }
 
-    if (!socket_in_group)
+    if (force_group_delete || !socket_in_group)
         if (id != sockets.end()) {
             sockets.erase(id);
         }
