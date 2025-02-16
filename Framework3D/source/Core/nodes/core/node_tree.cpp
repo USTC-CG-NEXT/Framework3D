@@ -232,6 +232,48 @@ Node* NodeTree::add_node(const char* idname)
     return bare;
 }
 
+void NodeTree::add_base_id(unsigned max_used_id)
+{
+    for (auto& node : nodes) {
+        node->ID += max_used_id;
+    }
+
+    for (auto& socket : sockets) {
+        socket->ID += max_used_id;
+    }
+    for (auto& link : links) {
+        link->ID += max_used_id;
+        link->StartPinID += max_used_id;
+        link->EndPinID += max_used_id;
+    }
+}
+
+NodeTree& NodeTree::merge(const NodeTree& other)
+{
+    auto copy_other = other;
+    merge(std::move(copy_other));
+    return *this;
+}
+
+NodeTree& NodeTree::merge(NodeTree&& other)
+{
+    auto max_used_id = current_id;
+    other.add_base_id(max_used_id);
+    nodes.insert(
+        nodes.end(),
+        std::make_move_iterator(other.nodes.begin()),
+        std::make_move_iterator(other.nodes.end()));
+    links.insert(
+        links.end(),
+        std::make_move_iterator(other.links.begin()),
+        std::make_move_iterator(other.links.end()));
+    sockets.insert(
+        sockets.end(),
+        std::make_move_iterator(other.sockets.begin()),
+        std::make_move_iterator(other.sockets.end()));
+    return *this;
+}
+
 template<
     typename NodePtrContainer,
     typename NodeLinkPtrContainer,
@@ -379,6 +421,15 @@ NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
     }
 
     return group_node;
+}
+
+void NodeTree::ungroup(Node* node)
+{
+    assert(node->typeinfo->id_name == "node_group");
+
+    auto serialized = static_cast<NodeGroup*>(node)->sub_tree->serialize();
+    auto deserialized = std::make_unique<NodeTree>(descriptor_);
+    deserialized->deserialize(serialized);
 }
 
 unsigned NodeTree::UniqueID()

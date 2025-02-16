@@ -34,6 +34,11 @@ struct SafeType {
         return m_Value;
     }
 
+    void operator+=(T t)
+    {
+        m_Value += t;
+    }
+
    private:
     T m_Value;
 };
