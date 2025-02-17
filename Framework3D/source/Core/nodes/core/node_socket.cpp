@@ -124,9 +124,6 @@ void SocketGroup::remove_socket(const char* socket_identifier)
         });
 
     if (it != sockets.end()) {
-        if (treat_node_group_related(*it)) {
-            return;
-        }
         sockets.erase(it);
     }
     node->refresh_node();
@@ -136,32 +133,9 @@ void SocketGroup::remove_socket(NodeSocket* socket)
 {
     auto it = std::find(sockets.begin(), sockets.end(), socket);
     if (it != sockets.end()) {
-        if (treat_node_group_related(*it)) {
-            return;
-        }
-
         sockets.erase(it);
     }
     node->refresh_node();
-}
-
-bool SocketGroup::treat_node_group_related(NodeSocket* socket)
-{
-    if (node->is_node_group()) {
-        NodeGroup* node_group = static_cast<NodeGroup*>(node);
-        if (kind == PinKind::Input) {
-            node_group->group_remove_socket(
-                identifier, socket->identifier, PinKind::Input);
-        }
-        else {
-            node_group->group_remove_socket(
-                identifier, socket->identifier, PinKind::Output);
-        }
-        return true;
-    }
-
-    if (node->typeinfo->id_name == NODE_GROUP_IN_IDENTIFIER) {
-    }
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -363,7 +363,7 @@ TEST_F(NodeCoreTest, NodeGroup)
         node3->get_output_socket("output"),
         node4->get_input_socket("test_socket2"));
 
-    auto group = tree->group_up({ node2, node3 });
+    auto group = tree->group_up(std::vector<Node*>{ node2, node3 });
     ASSERT_NE(group, nullptr);
     ASSERT_EQ(tree->nodes.size(), 3);
     ASSERT_EQ(tree->links.size(), 2);
@@ -425,7 +425,7 @@ TEST_F(NodeCoreTest, NodeGroupCase2)
     ASSERT_EQ(tree->nodes.size(), 7);
     ASSERT_EQ(tree->links.size(), 6);
 
-    auto group = tree->group_up({ node2, node3 });
+    auto group = tree->group_up(std::vector<Node*>{ node2, node3 });
     ASSERT_NE(group, nullptr);
     ASSERT_EQ(tree->nodes.size(), 5);
     ASSERT_EQ(tree->links.size(), 4);

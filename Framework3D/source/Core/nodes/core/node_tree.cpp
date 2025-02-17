@@ -688,14 +688,16 @@ void NodeTree::delete_link(
     if (link != links.end()) {
         if (remove_from_group) {
             auto group = (*link)->from_sock->socket_group;
-            if (group &&
-                ((*link)->from_sock->directly_linked_links.size() == 1)) {
-                group->remove_socket((*link)->from_sock);
+            if (group && ((*link)
+                              ->get_logical_from_socket()
+                              ->directly_linked_links.size() == 1)) {
+                group->remove_socket((*link)->get_logical_from_socket());
             }
-            group = (*link)->to_sock->socket_group;
-            if (group &&
-                ((*link)->to_sock->directly_linked_links.size() == 1)) {
-                group->remove_socket((*link)->to_sock);
+            group = (*link)->get_logical_to_socket()->socket_group;
+            if (group && ((*link)
+                              ->get_logical_to_socket()
+                              ->directly_linked_links.size() == 1)) {
+                group->remove_socket((*link)->get_logical_to_socket());
             }
         }
 

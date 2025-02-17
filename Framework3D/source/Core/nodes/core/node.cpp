@@ -377,7 +377,6 @@ void Node::group_remove_socket(
         }
     }
     else
-
         (*group)->remove_socket((group_identifier + "_" + identifier).c_str());
 }
 
