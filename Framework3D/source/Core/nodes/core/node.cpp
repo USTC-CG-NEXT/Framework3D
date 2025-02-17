@@ -349,7 +349,8 @@ NodeSocket* Node::group_add_socket(
 void Node::group_remove_socket(
     const std::string& group_identifier,
     const char* identifier,
-    PinKind in_out)
+    PinKind in_out,
+    bool is_recursive_call)
 {
     auto group = std::find_if(
         socket_groups.begin(),
@@ -363,21 +364,25 @@ void Node::group_remove_socket(
         throw std::runtime_error("Socket group not found.");
     }
 
-    if ((*group)->node->typeinfo->id_name == NODE_GROUP_IN_IDENTIFIER ||
+    if (!is_recursive_call &&
+            (*group)->node->typeinfo->id_name == NODE_GROUP_IN_IDENTIFIER ||
         (*group)->node->typeinfo->id_name == NODE_GROUP_OUT_IDENTIFIER) {
+        auto parent_node = (*group)->node->tree_->parent_node;
+
         if (in_out == PinKind::Input) {
-            assert(identifier == InsideInputsPH);
-            tree_->parent_node->group_remove_socket(
-                OutsideOutputsPH, identifier, in_out);
+            assert(group_identifier == InsideInputsPH);
+
+            parent_node->group_remove_socket(
+                OutsideOutputsPH, identifier, in_out, true);
         }
         else {
-            assert(identifier == InsideOutputsPH);
-            tree_->parent_node->group_remove_socket(
-                OutsideInputsPH, identifier, in_out);
+            assert(group_identifier == InsideOutputsPH);
+            parent_node->group_remove_socket(
+                OutsideInputsPH, identifier, in_out, true);
         }
     }
     else
-        (*group)->remove_socket((group_identifier + "_" + identifier).c_str());
+        (*group)->remove_socket(identifier);
 }
 
 void Node::remove_outdated_socket(NodeSocket* socket, PinKind kind)
@@ -546,8 +551,8 @@ NodeSocket* NodeGroup::group_add_socket(
     PinKind in_out)
 {
     assert(
-        socket_group_identifier == "Outside_Inputs_PH" ||
-        socket_group_identifier == "Outside_Outputs_PH");
+        socket_group_identifier == OutsideInputsPH ||
+        socket_group_identifier == OutsideOutputsPH);
     if (in_out == PinKind::Input) {
         return node_group_add_input_socket(type_name, identifier, name).first;
     }
@@ -559,13 +564,18 @@ NodeSocket* NodeGroup::group_add_socket(
 void NodeGroup::group_remove_socket(
     const std::string& group_identifier,
     const char* identifier,
-    PinKind in_out)
+    PinKind in_out,
+    bool is_recursive_call)
 {
     assert(
-        group_identifier == "Outside_Inputs_PH" ||
-        group_identifier == "Outside_Outputs_PH");
+        group_identifier == OutsideInputsPH ||
+        group_identifier == OutsideOutputsPH);
 
     auto socket = find_socket(identifier, in_out);
+
+    if (is_recursive_call)
+        if (!socket->directly_linked_links.empty())
+            return;
 
     std::map<NodeSocket*, NodeSocket*>* mapping = nullptr;
     if (in_out == PinKind::Input) {
@@ -574,6 +584,9 @@ void NodeGroup::group_remove_socket(
     else {
         mapping = &output_mapping_from_interface_to_internal;
     }
+    if (!mapping->contains(socket))
+        return;
+
     NodeSocket* internal_socket = mapping->at(socket);
 
     if (!internal_socket->directly_linked_links.empty())
@@ -591,7 +604,22 @@ void NodeGroup::group_remove_socket(
     if (group == socket_groups.end()) {
         throw std::runtime_error("Socket group not found.");
     }
-    (*group)->remove_socket((group_identifier + "_" + identifier).c_str());
+    (*group)->remove_socket(identifier);
+
+    if (!is_recursive_call) {
+        if (in_out == PinKind::Input)
+            group_in->group_remove_socket(
+                InsideOutputsPH,
+                internal_socket->identifier,
+                PinKind::Output,
+                true);
+        else
+            group_out->group_remove_socket(
+                InsideInputsPH,
+                internal_socket->identifier,
+                PinKind::Input,
+                true);
+    }
 }
 
 std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_input_socket(
@@ -600,13 +628,13 @@ std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_input_socket(
     const char* name)
 {
     auto added_outside_socket = Node::group_add_socket(
-        "Outside_Inputs_PH",
+        OutsideInputsPH,
         type_name,
         (identifier + std::to_string(tree_->UniqueID())).c_str(),
         name,
         PinKind::Input);
     auto added_internal_socket = group_in->group_add_socket(
-        "Inside_Outputs_PH",
+        InsideOutputsPH,
         type_name,
         (identifier + std::to_string(tree_->UniqueID())).c_str(),
         name,
@@ -624,13 +652,13 @@ std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_output_socket(
     const char* name)
 {
     auto added_outside_socket = Node::group_add_socket(
-        "Outside_Outputs_PH",
+        OutsideOutputsPH,
         type_name,
         (identifier + std::to_string(tree_->UniqueID())).c_str(),
         name,
         PinKind::Output);
     auto added_internal_socket = group_out->group_add_socket(
-        "Inside_Inputs_PH",
+        InsideInputsPH,
         type_name,
         (identifier + std::to_string(tree_->UniqueID())).c_str(),
         name,

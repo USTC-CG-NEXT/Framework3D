@@ -118,7 +118,8 @@ struct NODES_CORE_API Node {
     virtual void group_remove_socket(
         const std::string& group_identifier,
         const char* identifier,
-        PinKind in_out);
+        PinKind in_out,
+        bool is_recursive_call = false);
 
     // refresh_node serves for this purpose - The node always complies with the
     // type description, while preserves the connection & id from the loaded
@@ -172,7 +173,8 @@ struct NodeGroup : public Node {
     void group_remove_socket(
         const std::string& group_identifier,
         const char* identifier,
-        PinKind in_out) override;
+        PinKind in_out,
+        bool is_recursive_call = false) override;
 
     friend class NodeTree;
 

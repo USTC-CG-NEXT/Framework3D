@@ -687,17 +687,29 @@ void NodeTree::delete_link(
     });
     if (link != links.end()) {
         if (remove_from_group) {
-            auto group = (*link)->from_sock->socket_group;
-            if (group && ((*link)
-                              ->get_logical_from_socket()
-                              ->directly_linked_links.size() == 1)) {
-                group->remove_socket((*link)->get_logical_from_socket());
+            auto socket_to_remove = (*link)->get_logical_from_socket();
+            auto group = socket_to_remove->socket_group;
+
+            if (group) {
+                auto other_node = group->node;
+
+                if (socket_to_remove->directly_linked_links.size() == 1) {
+                    other_node->group_remove_socket(
+                        group->identifier,
+                        socket_to_remove->identifier,
+                        PinKind::Output);
+                }
             }
-            group = (*link)->get_logical_to_socket()->socket_group;
-            if (group && ((*link)
-                              ->get_logical_to_socket()
-                              ->directly_linked_links.size() == 1)) {
-                group->remove_socket((*link)->get_logical_to_socket());
+            socket_to_remove = (*link)->get_logical_to_socket();
+            group = socket_to_remove->socket_group;
+            if (group) {
+                auto other_node = group->node;
+                if (socket_to_remove->directly_linked_links.size() == 1) {
+                    other_node->group_remove_socket(
+                        group->identifier,
+                        socket_to_remove->identifier,
+                        PinKind::Input);
+                }
             }
         }
 
@@ -1095,7 +1107,18 @@ void NodeTree::deserialize(const std::string& str)
             auto id_name = node_json["id_name"].get<std::string>();
             auto storage_info = node_json["storage_info"];
 
-            auto node = std::make_unique<Node>(this, id, id_name.c_str());
+            std::unique_ptr<Node> node;
+
+            if (node_json.contains("subtree")) {
+                node = std::make_unique<NodeGroup>(this, id, id_name.c_str());
+                NodeGroup* group = static_cast<NodeGroup*>(node.get());
+
+                group->sub_tree->deserialize(
+                    value["nodes_info"]["sub_trees"][node_json["subtree"]]);
+            }
+            else {
+                node = std::make_unique<Node>(this, id, id_name.c_str());
+            }
             node->storage_info = storage_info;
 
             if (!node->valid())
