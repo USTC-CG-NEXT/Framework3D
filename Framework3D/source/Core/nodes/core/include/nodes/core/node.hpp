@@ -66,6 +66,8 @@ struct NODES_CORE_API Node {
     Node(NodeTree* node_tree, const char* idname);
     virtual ~Node();
 
+    virtual bool is_node_group();
+
     virtual void serialize(nlohmann::json& value);
     // During deserialization, we first deserialize all the sockets, then
     // according the info of the node, we record the information.
@@ -145,7 +147,6 @@ struct NODES_CORE_API Node {
 
    protected:
     NodeTree* tree_;
-    bool is_group_node;
 };
 
 /**
@@ -157,7 +158,7 @@ struct NodeGroup : public Node {
     NodeGroup(NodeTree* node_tree, const char* idname);
 
     NodeGroup(NodeTree* node_tree, int id, const char* idname);
-
+    bool is_node_group() override;
     std::shared_ptr<NodeTree> sub_tree;
 
     void serialize(nlohmann::json& value) override;
@@ -514,6 +515,8 @@ struct NODES_CORE_API NodeTypeInfo {
         const NodeDeclareFunction& decl_function);
 
     NodeTypeInfo& set_execution_function(const ExecFunction& exec_function);
+
+    NodeTypeInfo& set_always_required(bool always_required);
 
     float color[4] = { 0.3, 0.5, 0.7, 1.0 };
     ExecFunction node_execute;

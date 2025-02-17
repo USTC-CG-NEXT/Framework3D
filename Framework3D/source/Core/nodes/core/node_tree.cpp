@@ -18,6 +18,11 @@
     } while (0)
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+struct NodeGroupStorage {
+    std::shared_ptr<NodeTreeExecutor> executor = nullptr;
+    static constexpr bool has_storage = false;
+};
+
 NodeTreeDescriptor::NodeTreeDescriptor()
 {
     register_node(
@@ -27,7 +32,69 @@ NodeTreeDescriptor::NodeTreeDescriptor()
                 b.add_input_group("Outside_Inputs_PH");
                 b.add_output_group("Outside_Outputs_PH");
             })
-            .set_execution_function([](ExeParams params) { return true; }));
+            .set_execution_function([](ExeParams params) {
+                auto group_storage = params.get_storage<NodeGroupStorage&>();
+                if (group_storage.executor == nullptr) {
+                    group_storage.executor =
+                        params.get_executor()->clone_empty();
+                }
+
+                auto subtree = params.get_subtree();
+
+                auto input_group = params.get_input_group("Outside_Inputs_PH");
+
+                group_storage.executor->prepare_tree(subtree);
+
+                auto [input_node, output_node] = [subtree]() {
+                    Node* input_node;
+                    Node* output_node;
+                    for (auto& node : subtree->nodes) {
+                        {
+                            if (node->typeinfo->id_name == "node_group_in") {
+                                input_node = node.get();
+                            }
+                            else if (
+                                node->typeinfo->id_name == "node_group_out") {
+                                output_node = node.get();
+                            }
+                        }
+                    }
+                    return std::make_pair(input_node, output_node);
+                }();
+                auto output_sockets = input_node->get_outputs();
+
+                assert(input_group.size() == output_sockets.size() - 1);
+
+                for (int i = 0; i < input_group.size(); i++) {
+                    if (input_group[i]) {
+                        group_storage.executor->sync_node_from_external_storage(
+                            output_sockets[i], *input_group[i]);
+                    }
+                }
+                group_storage.executor->execute_tree(subtree);
+
+                auto input_sockets = output_node->get_inputs();
+
+                std::vector<entt::meta_any> output_group;
+
+                for (int i = 0; i < input_sockets.size(); i++) {
+                    entt::meta_any data;
+                    group_storage.executor->sync_node_to_external_storage(
+                        input_sockets[i], data);
+
+                    if (data) {
+                        output_group.push_back(data);
+                    }
+                }
+
+                if (output_group.size() == input_sockets.size() - 1) {
+                    params.set_output_group("Outside_Outputs_PH", output_group);
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }));
 
     register_node(
         NodeTypeInfo("node_group_in")
@@ -43,7 +110,8 @@ NodeTreeDescriptor::NodeTreeDescriptor()
             .set_declare_function([](NodeDeclarationBuilder& b) {
                 b.add_input_group("Inside_Inputs_PH");
             })
-            .set_execution_function([](ExeParams params) { return true; }));
+            .set_execution_function([](ExeParams params) { return true; })
+            .set_always_required(true));
 }
 
 NodeTreeDescriptor::~NodeTreeDescriptor()
@@ -862,7 +930,8 @@ static void toposort_from_start_node(
             NodeSocket& socket = *sockets[item.socket_index];
             const auto& linked_links = socket.directly_linked_links;
             if (item.link_index == linked_links.size()) {
-                /* All links connected to this socket have already been visited.
+                /* All links connected to this socket have already been
+                 * visited.
                  */
                 item.socket_index++;
                 item.link_index = 0;

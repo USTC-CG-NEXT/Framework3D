@@ -40,6 +40,8 @@ class NODES_CORE_API EagerNodeTreeExecutor : public NodeTreeExecutor {
     void sync_node_to_external_storage(NodeSocket* socket, entt::meta_any& data)
         override;
 
+    std::shared_ptr<NodeTreeExecutor> clone_empty() const override;
+
    protected:
     virtual ExeParams prepare_params(NodeTree* tree, Node* node);
     virtual bool execute_node(NodeTree* tree, Node* node);

@@ -52,6 +52,12 @@ NodeTypeInfo& NodeTypeInfo::set_execution_function(
     return *this;
 }
 
+NodeTypeInfo& NodeTypeInfo::set_always_required(bool always_required)
+{
+    this->ALWAYS_REQUIRED = always_required;
+    return *this;
+}
+
 void NodeTypeInfo::reset_declaration()
 {
     static_declaration = NodeDeclaration();
@@ -67,16 +73,14 @@ void NodeTypeInfo::build_node_declaration()
 Node::Node(NodeTree* node_tree, int id, const char* idname)
     : ID(id),
       ui_name("Unknown"),
-      tree_(node_tree),
-      is_group_node(false)
+      tree_(node_tree)
 {
     valid_ = pre_init_node(idname);
 }
 
 Node::Node(NodeTree* node_tree, const char* idname)
     : ui_name("Unknown"),
-      tree_(node_tree),
-      is_group_node(false)
+      tree_(node_tree)
 {
     ID = tree_->UniqueID();
     valid_ = pre_init_node(idname);
@@ -84,6 +88,11 @@ Node::Node(NodeTree* node_tree, const char* idname)
 
 Node::~Node()
 {
+}
+
+bool Node::is_node_group()
+{
+    return false;
 }
 
 void Node::serialize(nlohmann::json& value)
@@ -481,7 +490,6 @@ const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
 NodeGroup::NodeGroup(NodeTree* node_tree, const char* idname)
     : Node(node_tree, idname)
 {
-    is_group_node = true;
     ui_name = "Group";
     sub_tree = std::make_shared<NodeTree>(tree_->get_descriptor());
 }
@@ -489,9 +497,13 @@ NodeGroup::NodeGroup(NodeTree* node_tree, const char* idname)
 NodeGroup::NodeGroup(NodeTree* node_tree, int id, const char* idname)
     : Node(node_tree, id, idname)
 {
-    is_group_node = true;
     ui_name = "Group";
     sub_tree = std::make_shared<NodeTree>(tree_->get_descriptor());
+}
+
+bool NodeGroup::is_node_group()
+{
+    return true;
 }
 
 void NodeGroup::serialize(nlohmann::json& value)

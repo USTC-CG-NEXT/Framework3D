@@ -61,6 +61,18 @@ struct NODES_CORE_API ExeParams {
         return values;
     }
 
+    std::vector<entt::meta_any*> get_input_group(
+        const char* group_identifier) const
+    {
+        std::vector<size_t> indices =
+            this->get_input_group_indices(group_identifier);
+        std::vector<entt::meta_any*> values;
+        for (int index : indices) {
+            values.push_back(inputs_[index]);
+        }
+        return values;
+    }
+
     /**
      * Store the output value for the given socket identifier.
      */
@@ -110,11 +122,28 @@ struct NODES_CORE_API ExeParams {
         return global_param.cast<T>();
     }
 
+    NodeTreeExecutor* get_executor() const
+    {
+        return executor;
+    }
+
+    NodeTree* get_subtree() const
+    {
+        return subtree;
+    }
+
+    void set_output_group(
+        const char* identifier,
+        const std::vector<entt::meta_any>& outputs);
+
    private:
     int get_input_index(const char* identifier) const;
     std::vector<size_t> get_input_group_indices(
         const char* group_identifier) const;
+
     int get_output_index(const char* identifier);
+    std::vector<size_t> get_output_group_indices(
+        const char* group_identifier) const;
 
     friend class EagerNodeTreeExecutor;
     friend class EagerNodeTreeExecutorGeom;
@@ -129,6 +158,10 @@ struct NODES_CORE_API ExeParams {
     entt::meta_any& global_param;
     std::vector<entt::meta_any*> inputs_;
     std::vector<entt::meta_any*> outputs_;
+
+    // Subtree execution
+    NodeTreeExecutor* executor;  // For node group execution
+    NodeTree* subtree;
 };
 
 template<typename T>
@@ -164,6 +197,8 @@ struct NODES_CORE_API NodeTreeExecutor {
         const entt::meta_any& data)
     {
     }
+
+    virtual std::shared_ptr<NodeTreeExecutor> clone_empty() const = 0;
 
     virtual void sync_node_to_external_storage(
         NodeSocket* socket,

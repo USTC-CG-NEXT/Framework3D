@@ -47,6 +47,9 @@ ExeParams EagerNodeTreeExecutor::prepare_params(NodeTree* tree, Node* node)
         entt::meta_any* output_ptr = &output_states[index_cache[output]].value;
         params.outputs_.push_back(output_ptr);
     }
+    params.executor = this;
+    if (node->is_node_group())
+        params.subtree = static_cast<NodeGroup*>(node)->sub_tree.get();
     return params;
 }
 
@@ -459,6 +462,11 @@ void EagerNodeTreeExecutor::sync_node_to_external_storage(
         const entt::meta_any* ptr = FindPtr(socket);
         data = *ptr;
     }
+}
+
+std::shared_ptr<NodeTreeExecutor> EagerNodeTreeExecutor::clone_empty() const
+{
+    return std::make_shared<EagerNodeTreeExecutor>();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
