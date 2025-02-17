@@ -499,7 +499,7 @@ bool Node::pre_init_node(const char* idname)
 const NodeTypeInfo* Node::nodeTypeFind(const char* idname)
 {
     if (idname[0]) {
-        const NodeTypeInfo* nt = tree_->descriptor_.get_node_type(idname);
+        const NodeTypeInfo* nt = tree_->descriptor_->get_node_type(idname);
 
         if (nt)
             return nt;
@@ -619,6 +619,32 @@ void NodeGroup::group_remove_socket(
                 internal_socket->identifier,
                 PinKind::Input,
                 true);
+    }
+}
+
+void NodeGroup::deserialize(const nlohmann::json& node_json)
+{
+    Node::deserialize(node_json);
+    group_in = sub_tree->find_node(NODE_GROUP_IN_IDENTIFIER);
+    group_out = sub_tree->find_node(NODE_GROUP_OUT_IDENTIFIER);
+
+    sub_tree->parent_node = this;
+
+    for (int i = 0; i < inputs.size(); ++i) {
+        auto input = inputs[i];
+        if (input->is_placeholder())
+            continue;
+
+        input_mapping_from_interface_to_internal[input] =
+            group_in->get_outputs()[i];
+    }
+
+    for (int i = 0; i < outputs.size(); ++i) {
+        auto output = outputs[i];
+        if (output->is_placeholder())
+            continue;
+        output_mapping_from_interface_to_internal[output] =
+            group_out->get_inputs()[i];
     }
 }
 

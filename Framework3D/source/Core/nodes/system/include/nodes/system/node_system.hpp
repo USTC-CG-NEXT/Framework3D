@@ -31,7 +31,7 @@ class NODES_SYSTEM_API NodeSystem {
     bool allow_ui_execution = true;
 
    protected:
-    virtual NodeTreeDescriptor node_tree_descriptor() = 0;
+    virtual std::shared_ptr<NodeTreeDescriptor> node_tree_descriptor() = 0;
     std::unique_ptr<NodeTree> node_tree;
     std::unique_ptr<NodeTreeExecutor> node_tree_executor;
 };

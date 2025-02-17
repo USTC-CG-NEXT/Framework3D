@@ -135,7 +135,7 @@ NodeWidget::~NodeWidget()
 
 Node* NodeWidget::create_node_menu()
 {
-    auto& node_registry = tree_->get_descriptor().node_registry;
+    auto& node_registry = tree_->get_descriptor()->node_registry;
 
     Node* node = nullptr;
 
@@ -416,6 +416,15 @@ bool NodeWidget::BuildUI()
 
             tree_->group_up(selectedNodes);
         }
+
+
+        if (ImGui::MenuItem("UnGroup")) {
+            auto node = tree_->find_node(contextNodeId);
+            if (node) {
+                tree_->ungroup(node);
+            }
+        }
+
         if (ImGui::MenuItem("Delete"))
             ed::DeleteNode(contextNodeId);
         ImGui::EndPopup();
@@ -455,6 +464,9 @@ bool NodeWidget::BuildUI()
         if (ImGui::MenuItem("Delete"))
             ed::DeleteLink(contextLinkId);
         ImGui::EndPopup();
+    }
+
+    if (ed::GetDoubleClickedNode()) {
     }
 
     if (ImGui::BeginPopup("Create New Node")) {

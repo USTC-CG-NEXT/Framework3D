@@ -100,7 +100,7 @@ struct NODES_CORE_API Node {
 
     // For this deserialization, we assume there are some sockets already
     // present in the node tree.
-    void deserialize(const nlohmann::json& node_json);
+    virtual void deserialize(const nlohmann::json& node_json);
 
     NodeSocket* add_socket(
         const char* type_name,
@@ -137,15 +137,14 @@ struct NODES_CORE_API Node {
 
     const NodeTypeInfo* nodeTypeFind(const char* idname);
 
+    bool valid_ = false;
+
+   protected:
     // TODO: make inputs and outputs also managed by the nodes.
     std::vector<NodeSocket*> inputs;
     std::vector<NodeSocket*> outputs;
 
-    bool valid_ = false;
-
-   protected:
     // Each Node manages its own socket groups.
-
     std::vector<std::unique_ptr<SocketGroup>> socket_groups;
     NodeTree* tree_;
 };
@@ -175,6 +174,8 @@ struct NodeGroup : public Node {
         const char* identifier,
         PinKind in_out,
         bool is_recursive_call = false) override;
+
+    void deserialize(const nlohmann::json& node_json) override;
 
     friend class NodeTree;
 

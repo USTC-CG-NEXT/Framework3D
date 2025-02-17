@@ -96,7 +96,8 @@ NodeTreeDescriptor::NodeTreeDescriptor()
                 else {
                     return false;
                 }
-            }));
+            })
+            .set_always_required(true));
 
     register_node(
         NodeTypeInfo(NODE_GROUP_IN_IDENTIFIER)
@@ -162,7 +163,7 @@ bool NodeTreeDescriptor::can_convert(SocketType from, SocketType to) const
            conversion_node_registry.end();
 }
 
-NodeTree::NodeTree(const NodeTreeDescriptor& descriptor)
+NodeTree::NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor)
     : has_available_link_cycle(false),
       descriptor_(descriptor)
 {
@@ -223,7 +224,7 @@ size_t NodeTree::socket_count() const
     return sockets.size();
 }
 
-const NodeTreeDescriptor& NodeTree::get_descriptor() const
+std::shared_ptr<NodeTreeDescriptor> NodeTree::get_descriptor() const
 {
     return descriptor_;
 }
@@ -261,6 +262,16 @@ Node* NodeTree::find_node(NodeId id) const
 
     for (auto& node : nodes) {
         if (node->ID == id) {
+            return node.get();
+        }
+    }
+    return nullptr;
+}
+
+Node* NodeTree::find_node(const char* identifier) const
+{
+    for (auto& node : nodes) {
+        if (node->typeinfo->id_name == identifier) {
             return node.get();
         }
     }
@@ -642,10 +653,10 @@ NodeLink* NodeTree::add_link(
         bare_ptr = link.get();
         links.push_back(std::move(link));
     }
-    else if (descriptor_.can_convert(fromsock->type_info, tosock->type_info)) {
+    else if (descriptor_->can_convert(fromsock->type_info, tosock->type_info)) {
         std::string conversion_node_name;
 
-        conversion_node_name = descriptor_.conversion_node_name(
+        conversion_node_name = descriptor_->conversion_node_name(
             fromsock->type_info, tosock->type_info);
 
         auto middle_node = add_node(conversion_node_name.c_str());
@@ -832,7 +843,7 @@ bool NodeTree::can_create_direct_link(NodeSocket* socket1, NodeSocket* socket2)
 
 bool NodeTree::can_create_convert_link(NodeSocket* out, NodeSocket* in)
 {
-    return descriptor_.can_convert(out->type_info, in->type_info);
+    return descriptor_->can_convert(out->type_info, in->type_info);
 }
 
 void NodeTree::delete_socket(SocketID socketId, bool force_group_delete)
@@ -843,7 +854,8 @@ void NodeTree::delete_socket(SocketID socketId, bool force_group_delete)
         });
 
     if (id == sockets.end()) {
-        throw std::runtime_error("Socket not found when deleting.");
+        return;
+        //throw std::runtime_error("Socket not found when deleting.");
     }
 
     bool socket_in_group = (*id)->socket_group != nullptr;

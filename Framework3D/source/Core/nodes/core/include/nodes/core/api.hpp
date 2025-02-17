@@ -74,7 +74,7 @@ NODES_CORE_API SocketType get_socket_type<entt::meta_any>();
 NODES_CORE_API void unregister_cpp_type();
 
 NODES_CORE_API std::unique_ptr<NodeTree> create_node_tree(
-    const NodeTreeDescriptor& descriptor);
+    std::shared_ptr<NodeTreeDescriptor> descriptor);
 
 NODES_CORE_API std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(
     const NodeTreeExecutorDesc& desc);

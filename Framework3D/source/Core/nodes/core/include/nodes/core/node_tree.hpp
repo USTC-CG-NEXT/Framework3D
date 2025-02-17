@@ -40,6 +40,10 @@ class NODES_CORE_API NodeTreeDescriptor {
     static std::string conversion_node_name(SocketType from, SocketType to);
     bool can_convert(SocketType from, SocketType to) const;
 
+    NodeTreeDescriptor(const NodeTreeDescriptor&) = delete;
+
+    NodeTreeDescriptor& operator=(const NodeTreeDescriptor&) = delete;
+
    private:
     friend class NodeWidget;
     std::map<std::string, NodeTypeInfo> node_registry;
@@ -80,7 +84,7 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion(
 
 class NODES_CORE_API NodeTree {
    public:
-    NodeTree(const NodeTreeDescriptor& descriptor);
+    NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor);
     NodeTree(const NodeTree& other);
 
     NodeTree& operator=(const NodeTree& other);
@@ -108,6 +112,7 @@ class NODES_CORE_API NodeTree {
     void clear();
 
     Node* find_node(NodeId id) const;
+    Node* find_node(const char* identifier) const;
 
     NodeSocket* find_pin(SocketID id) const;
 
@@ -168,7 +173,7 @@ class NODES_CORE_API NodeTree {
 
     size_t socket_count() const;
 
-    [[nodiscard]] const NodeTreeDescriptor& get_descriptor() const;
+    [[nodiscard]] std::shared_ptr<NodeTreeDescriptor> get_descriptor() const;
 
     Node* parent_node = nullptr;
 
@@ -177,7 +182,7 @@ class NODES_CORE_API NodeTree {
    private:
     // No one directly edits these sockets.
     std::vector<std::unique_ptr<NodeSocket>> sockets;
-    const NodeTreeDescriptor descriptor_;
+    const std::shared_ptr<NodeTreeDescriptor> descriptor_;
 
     void delete_socket(SocketID socketId, bool force_group_delete = true);
 

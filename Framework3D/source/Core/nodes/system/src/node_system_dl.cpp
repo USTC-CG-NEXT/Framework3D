@@ -31,7 +31,7 @@ DynamicLibraryLoader::~DynamicLibraryLoader()
 {
 #ifdef _WIN32
     if (handle) {
-        //FreeLibrary(handle);
+        // FreeLibrary(handle);
     }
 #else
     if (handle) {
@@ -40,9 +40,15 @@ DynamicLibraryLoader::~DynamicLibraryLoader()
 #endif
 }
 
-NodeTreeDescriptor NodeDynamicLoadingSystem::node_tree_descriptor()
+std::shared_ptr<NodeTreeDescriptor>
+NodeDynamicLoadingSystem::node_tree_descriptor()
 {
     return descriptor;
+}
+
+NodeDynamicLoadingSystem::NodeDynamicLoadingSystem()
+{
+    descriptor = std::make_shared<NodeTreeDescriptor>();
 }
 
 NodeDynamicLoadingSystem::~NodeDynamicLoadingSystem()
@@ -109,7 +115,7 @@ bool NodeDynamicLoadingSystem::load_configuration(
                                          // exist.
                     new_node.ui_name = "invisible";
                     new_node.INVISIBLE = true;
-                    descriptor.register_conversion_name(node_id_name());
+                    descriptor->register_conversion_name(node_id_name());
                 }
                 else {
                     new_node.id_name =
@@ -126,7 +132,7 @@ bool NodeDynamicLoadingSystem::load_configuration(
                 new_node.set_declare_function(node_declare);
                 new_node.set_execution_function(node_execution);
 
-                descriptor.register_node(new_node);
+                descriptor->register_node(new_node);
             }
         }
     };

@@ -42,7 +42,8 @@ void unregister_cpp_type()
     entt::meta_reset(g_entt_ctx);
 }
 
-std::unique_ptr<NodeTree> create_node_tree(const NodeTreeDescriptor& descriptor)
+std::unique_ptr<NodeTree> create_node_tree(
+    std::shared_ptr<NodeTreeDescriptor> descriptor)
 {
     return std::make_unique<NodeTree>(descriptor);
 }

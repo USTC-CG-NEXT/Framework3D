@@ -53,9 +53,14 @@ std::function<Func> DynamicLibraryLoader::getFunction(
 
 class NODES_SYSTEM_API NodeDynamicLoadingSystem : public NodeSystem {
    protected:
-    NodeTreeDescriptor node_tree_descriptor() override;
+
+
+
+    std::shared_ptr<NodeTreeDescriptor> node_tree_descriptor() override;
 
    public:
+
+    NodeDynamicLoadingSystem();
     ~NodeDynamicLoadingSystem() override;
     bool load_configuration(const std::filesystem::path& config) override;
 
@@ -64,7 +69,7 @@ class NODES_SYSTEM_API NodeDynamicLoadingSystem : public NodeSystem {
         node_libraries;
     std::unordered_map<std::string, std::unique_ptr<DynamicLibraryLoader>>
         conversion_libraries;
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
