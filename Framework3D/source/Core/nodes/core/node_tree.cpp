@@ -349,6 +349,7 @@ NodeTree& NodeTree::merge(NodeTree&& other)
     other.add_base_id(max_used_id);
 
     for (auto& node : other.nodes) {
+        node->tree_ = this;
         used_ids.insert(node->ID.Get());
     }
     for (auto& link : other.links) {

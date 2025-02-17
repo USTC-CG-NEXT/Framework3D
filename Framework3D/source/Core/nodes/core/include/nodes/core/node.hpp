@@ -147,6 +147,8 @@ struct NODES_CORE_API Node {
     // Each Node manages its own socket groups.
     std::vector<std::unique_ptr<SocketGroup>> socket_groups;
     NodeTree* tree_;
+
+    friend class NodeTree;
 };
 
 /**
