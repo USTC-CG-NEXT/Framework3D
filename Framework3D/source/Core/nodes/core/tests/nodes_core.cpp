@@ -373,15 +373,66 @@ TEST_F(NodeCoreTest, NodeGroup)
     ASSERT_EQ(subtree->nodes.size(), 4);
     ASSERT_EQ(subtree->links.size(), 3);
 
-    //std::cout << "Main tree: " << std::endl;
-    //std::cout << tree->serialize(4) << std::endl;
+    tree->ungroup(group);
+    ASSERT_EQ(tree->nodes.size(), 4);
+    ASSERT_EQ(tree->links.size(), 3);
+}
 
-    //std::cout << "Sub tree: " << std::endl;
-    //std::cout << subtree->serialize(4) << std::endl;
+TEST_F(NodeCoreTest, NodeGroupCase2)
+{
+    NodeTreeDescriptor descriptor;
+
+    descriptor.register_conversion<float, int>([](const float& from, int& to) {
+        to = from;
+        return true;
+    });
+
+    // Register one kind of Node
+    NodeTypeInfo node_type_info("test_node");
+    register_cpp_type<float>();
+    register_cpp_type<std::string>();
+    node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
+        b.add_input<int>("test_socket2").min(-15).max(3).default_val(1);
+        b.add_output<float>("output");
+    });
+    descriptor.register_node(std::move(node_type_info));
+
+    auto tree = create_node_tree(descriptor);
+
+    auto node = tree->add_node("test_node");
+    ASSERT_NE(node, nullptr);
+    auto node2 = tree->add_node("test_node");
+    auto node3 = tree->add_node("test_node");
+    auto node4 = tree->add_node("test_node");
+
+    // Make some links
+    auto link1 = tree->add_link(
+        node->get_output_socket("output"),
+        node2->get_input_socket("test_socket2"));
+
+    ASSERT_NE(link1, nullptr);
+
+    auto link2 = tree->add_link(
+        node2->get_output_socket("output"),
+        node3->get_input_socket("test_socket2"));
+    ASSERT_NE(link2, nullptr);
+
+    auto link3 = tree->add_link(
+        node3->get_output_socket("output"),
+        node4->get_input_socket("test_socket2"));
+    ASSERT_NE(link3, nullptr);
+
+    auto group = tree->group_up({ node2, node3 });
+    ASSERT_NE(group, nullptr);
+    ASSERT_EQ(tree->nodes.size(), 3);
+    ASSERT_EQ(tree->links.size(), 2);
+
+    auto subtree = group->sub_tree;
+
+    ASSERT_EQ(subtree->nodes.size(), 4);
+    ASSERT_EQ(subtree->links.size(), 3);
 
     tree->ungroup(group);
     ASSERT_EQ(tree->nodes.size(), 4);
     ASSERT_EQ(tree->links.size(), 3);
-    
-
 }
