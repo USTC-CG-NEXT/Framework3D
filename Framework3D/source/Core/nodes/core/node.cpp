@@ -516,10 +516,18 @@ std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_input_socket(
     const char* identifier,
     const char* name)
 {
-    auto added_outside_socket =
-        group_add_socket("Outside_Inputs_PH", type_name, identifier, name, PinKind::Input);
+    auto added_outside_socket = group_add_socket(
+        "Outside_Inputs_PH",
+        type_name,
+        (identifier + std::to_string(tree_->UniqueID())).c_str(),
+        name,
+        PinKind::Input);
     auto added_internal_socket = group_in->group_add_socket(
-        "Inside_Outputs_PH", type_name, identifier, name, PinKind::Output);
+        "Inside_Outputs_PH",
+        type_name,
+        (identifier + std::to_string(tree_->UniqueID())).c_str(),
+        name,
+        PinKind::Output);
 
     input_mapping_from_interface_to_internal[added_outside_socket] =
         added_internal_socket;
@@ -533,9 +541,17 @@ std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_output_socket(
     const char* name)
 {
     auto added_outside_socket = group_add_socket(
-        "Outside_Outputs_PH", type_name, identifier, name, PinKind::Output);
+        "Outside_Outputs_PH",
+        type_name,
+        (identifier + std::to_string(tree_->UniqueID())).c_str(),
+        name,
+        PinKind::Output);
     auto added_internal_socket = group_out->group_add_socket(
-        "Inside_Inputs_PH", type_name, identifier, name, PinKind::Input);
+        "Inside_Inputs_PH",
+        type_name,
+        (identifier + std::to_string(tree_->UniqueID())).c_str(),
+        name,
+        PinKind::Input);
 
     output_mapping_from_interface_to_internal[added_outside_socket] =
         added_internal_socket;

@@ -330,8 +330,9 @@ static Node* create_group_node_out(NodeTree* tree)
     return node;
 }
 
-NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
+NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group_in)
 {
+    auto nodes_to_group = nodes_to_group_in;
     auto sockets_to_group = std::set<NodeSocket*>();
 
     for (auto& node : nodes_to_group) {
@@ -349,9 +350,18 @@ NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
     // find the links between the sockets to group
 
     for (auto& link : links) {
-        if (sockets_to_group.find(link->from_sock) != sockets_to_group.end() &&
-            sockets_to_group.find(link->to_sock) != sockets_to_group.end()) {
+        if (sockets_to_group.find(link->get_logical_from_socket()) !=
+                sockets_to_group.end() &&
+            sockets_to_group.find(link->get_logical_to_socket()) !=
+                sockets_to_group.end()) {
             links_to_group.insert(link.get());
+
+            if (auto conversion_node = link->get_conversion_node()) {
+                nodes_to_group.push_back(conversion_node);
+                sockets_to_group.insert(conversion_node->get_inputs()[0]);
+                sockets_to_group.insert(conversion_node->get_outputs()[0]);
+                links_to_group.insert(link->nextLink);
+            }
         }
     }
 
@@ -386,8 +396,12 @@ NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
     }
 
     for (auto& link : upstream_links) {
-        auto from_socket = link->from_sock;
-        auto to_socket = link->to_sock;
+        auto from_socket = link->get_logical_from_socket();
+        auto to_socket = link->get_logical_to_socket();
+
+        std::cout << "from: " << get_type_name(from_socket->type_info)
+                  << " to: " << get_type_name(to_socket->type_info)
+                  << std::endl;
 
         auto [added_outside_socket, added_internal_socket] =
             group_node->node_group_add_input_socket(
@@ -402,8 +416,8 @@ NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
     }
 
     for (auto& link : downstream_links) {
-        auto from_socket = link->from_sock;
-        auto to_socket = link->to_sock;
+        auto from_socket = link->get_logical_from_socket();
+        auto to_socket = link->get_logical_to_socket();
 
         auto [added_outside_socket, added_internal_socket] =
             group_node->node_group_add_output_socket(
@@ -417,10 +431,14 @@ NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group)
             added_internal_socket);
     }
 
+    ensure_topology_cache();
+
     // remove nodes_to_group
     for (auto& node : nodes_to_group) {
-        delete_node(node);
+        delete_node(node, true);
     }
+
+    ensure_topology_cache();
 
     return group_node;
 }
@@ -542,9 +560,11 @@ NodeLink* NodeTree::add_link(
         auto middle_tosock = middle_node->get_inputs()[0];
         auto middle_fromsock = middle_node->get_outputs()[0];
 
-        auto firstLink = add_link(fromsock, middle_tosock);
+        auto firstLink = add_link(
+            fromsock, middle_tosock, allow_relink_to_output, refresh_topology);
 
-        auto nextLink = add_link(middle_fromsock, tosock);
+        auto nextLink = add_link(
+            middle_fromsock, tosock, allow_relink_to_output, refresh_topology);
         assert(firstLink);
         assert(nextLink);
         firstLink->nextLink = nextLink;
@@ -581,6 +601,10 @@ void NodeTree::delete_link(
     SetDirty(true);
 
     auto link = std::find_if(links.begin(), links.end(), [linkId](auto& link) {
+        if (link->fromLink)
+            return false;
+        if (link->nextLink)
+            return link->nextLink->ID == linkId;
         return link->ID == linkId;
     });
     if (link != links.end()) {
@@ -612,7 +636,7 @@ void NodeTree::delete_link(
 
             links.erase(nextLinkIter);
 
-            delete_node(conversion_node);
+            delete_node(conversion_node, false);
         }
         else {
             links.erase(link);
@@ -631,12 +655,12 @@ void NodeTree::delete_link(
     delete_link(link->ID, refresh_topology, remove_from_group);
 }
 
-void NodeTree::delete_node(Node* nodeId)
+void NodeTree::delete_node(Node* nodeId, bool allow_repeat_delete)
 {
-    delete_node(nodeId->ID);
+    delete_node(nodeId->ID, allow_repeat_delete);
 }
 
-void NodeTree::delete_node(NodeId nodeId)
+void NodeTree::delete_node(NodeId nodeId, bool allow_repeat_delete)
 {
     auto id = std::find_if(nodes.begin(), nodes.end(), [nodeId](auto&& node) {
         return node->ID == nodeId;
@@ -652,8 +676,9 @@ void NodeTree::delete_node(NodeId nodeId)
 
         nodes.erase(id);
     }
-    else
+    else if (!allow_repeat_delete)
         throw std::runtime_error("Node not found when deleting.");
+
     ensure_topology_cache();
 }
 
@@ -767,11 +792,6 @@ void NodeTree::update_socket_vectors_and_owner_node()
     }
 }
 
-enum class ToposortDirection {
-    LeftToRight,
-    RightToLeft,
-};
-
 struct ToposortNodeState {
     bool is_done = false;
     bool is_in_stack = false;
@@ -779,7 +799,10 @@ struct ToposortNodeState {
 
 template<typename T>
 using Vector = std::vector<T>;
-
+enum class ToposortDirection {
+    LeftToRight,
+    RightToLeft,
+};
 static void toposort_from_start_node(
     const NodeTree& ntree,
     const ToposortDirection direction,
@@ -859,7 +882,7 @@ static void toposort_from_start_node(
     }
 }
 
-static void update_toposort(
+static void update_toposort_(
     const NodeTree& ntree,
     const ToposortDirection direction,
     Vector<Node*>& r_sorted_nodes,
@@ -924,15 +947,18 @@ static void update_toposort(
 void NodeTree::ensure_topology_cache()
 {
     update_socket_vectors_and_owner_node();
-
     update_directly_linked_links_and_sockets();
+    update_toposort();
+}
 
-    update_toposort(
+void NodeTree::update_toposort()
+{
+    update_toposort_(
         *this,
         ToposortDirection::LeftToRight,
         toposort_left_to_right,
         has_available_link_cycle);
-    update_toposort(
+    update_toposort_(
         *this,
         ToposortDirection::RightToLeft,
         toposort_right_to_left,

@@ -12,6 +12,31 @@ struct NODES_CORE_API NodeLink {
 
     Node* from_node = nullptr;
     Node* to_node = nullptr;
+
+    NodeSocket* get_logical_from_socket()
+    {
+        if (fromLink) {
+            return fromLink->get_logical_from_socket();
+        }
+        return from_sock;
+    }
+
+    NodeSocket* get_logical_to_socket()
+    {
+        if (nextLink) {
+            return nextLink->get_logical_to_socket();
+        }
+        return to_sock;
+    }
+
+    Node* get_conversion_node()
+    {
+        if (nextLink) {
+            return nextLink->from_node;
+        }
+        return nullptr;
+    }
+
     NodeSocket* from_sock = nullptr;
     NodeSocket* to_sock = nullptr;
 

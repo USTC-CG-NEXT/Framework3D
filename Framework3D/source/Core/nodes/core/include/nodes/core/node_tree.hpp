@@ -119,6 +119,9 @@ class NODES_CORE_API NodeTree {
     unsigned UniqueID();
 
     void update_socket_vectors_and_owner_node();
+
+    void update_toposort();
+
     void ensure_topology_cache();
 
     NodeLink* add_link(
@@ -141,8 +144,8 @@ class NODES_CORE_API NodeTree {
         bool refresh_topology = true,
         bool remove_from_group = true);
 
-    void delete_node(Node* nodeId);
-    void delete_node(NodeId nodeId);
+    void delete_node(Node* nodeId, bool allow_repeat_delete = false);
+    void delete_node(NodeId nodeId, bool allow_repeat_delete = false);
 
     bool can_create_link(NodeSocket* node_socket, NodeSocket* node_socket1);
     static bool can_create_direct_link(
