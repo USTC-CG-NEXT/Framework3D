@@ -344,16 +344,30 @@ NodeTree& NodeTree::merge(const NodeTree& other)
 
 NodeTree& NodeTree::merge(NodeTree&& other)
 {
-    auto max_used_id = current_id;
+    auto max_used_id = get_max_used_id();
+
     other.add_base_id(max_used_id);
+
+    for (auto& node : other.nodes) {
+        used_ids.insert(node->ID.Get());
+    }
+    for (auto& link : other.links) {
+        used_ids.insert(link->ID.Get());
+    }
+    for (auto& socket : other.sockets) {
+        used_ids.insert(socket->ID.Get());
+    }
+
     nodes.insert(
         nodes.end(),
         std::make_move_iterator(other.nodes.begin()),
         std::make_move_iterator(other.nodes.end()));
+
     links.insert(
         links.end(),
         std::make_move_iterator(other.links.begin()),
         std::make_move_iterator(other.links.end()));
+
     sockets.insert(
         sockets.end(),
         std::make_move_iterator(other.sockets.begin()),
@@ -855,7 +869,7 @@ void NodeTree::delete_socket(SocketID socketId, bool force_group_delete)
 
     if (id == sockets.end()) {
         return;
-        //throw std::runtime_error("Socket not found when deleting.");
+        // throw std::runtime_error("Socket not found when deleting.");
     }
 
     bool socket_in_group = (*id)->socket_group != nullptr;
@@ -905,6 +919,16 @@ void NodeTree::update_directly_linked_links_and_sockets()
             }
         }
     }
+}
+
+unsigned NodeTree::get_max_used_id()
+{
+    auto max_used_id = std::reduce(
+        used_ids.begin(), used_ids.end(), 0u, [](unsigned a, unsigned b) {
+            return std::max(a, b);
+        });
+
+    return std::max(max_used_id, current_id);
 }
 
 void NodeTree::update_socket_vectors_and_owner_node()

@@ -188,6 +188,8 @@ class NODES_CORE_API NodeTree {
 
     void update_directly_linked_links_and_sockets();
 
+    unsigned get_max_used_id();
+
     // There is definitely better solution. However this is the most
     std::unordered_set<unsigned> used_ids;
 
