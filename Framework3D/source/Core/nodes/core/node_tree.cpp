@@ -458,8 +458,8 @@ void NodeTree::ungroup(Node* node)
         if (!input_socket->directly_linked_links.empty()) {
             auto internal_socket = input_mapping[input_socket];
 
-            auto linked_outside_socket =
-                input_socket->directly_linked_links[0]->from_sock;
+            auto linked_outside_socket = input_socket->directly_linked_links[0]
+                                             ->get_logical_from_socket();
 
             for (auto& new_tos : internal_socket->directly_linked_sockets) {
                 add_link(linked_outside_socket, new_tos, true, false);
@@ -470,8 +470,8 @@ void NodeTree::ungroup(Node* node)
     for (auto* output_socket : group->get_outputs()) {
         if (!output_socket->directly_linked_links.empty()) {
             auto internal_socket = ouput_mapping[output_socket];
-            auto linked_outside_socket =
-                output_socket->directly_linked_links[0]->to_sock;
+            auto linked_outside_socket = output_socket->directly_linked_links[0]
+                                             ->get_logical_to_socket();
 
             for (auto& new_froms : internal_socket->directly_linked_sockets) {
                 add_link(new_froms, linked_outside_socket, true, false);
@@ -604,7 +604,7 @@ void NodeTree::delete_link(
         if (link->fromLink)
             return false;
         if (link->nextLink)
-            return link->nextLink->ID == linkId;
+            return link->nextLink->ID == linkId || link->ID == linkId;
         return link->ID == linkId;
     });
     if (link != links.end()) {
@@ -665,16 +665,24 @@ void NodeTree::delete_node(NodeId nodeId, bool allow_repeat_delete)
     auto id = std::find_if(nodes.begin(), nodes.end(), [nodeId](auto&& node) {
         return node->ID == nodeId;
     });
+
     if (id != nodes.end()) {
-        for (auto& socket : (*id)->get_inputs()) {
+        auto node = id->get();
+
+        for (auto& socket : node->get_inputs()) {
+            delete_socket(socket->ID, true);  // iterator may be invalidated
+        }
+
+        for (auto& socket : node->get_outputs()) {
             delete_socket(socket->ID, true);
         }
 
-        for (auto& socket : (*id)->get_outputs()) {
-            delete_socket(socket->ID, true);
-        }
+        auto new_iter =
+            std::find_if(nodes.begin(), nodes.end(), [nodeId](auto&& node) {
+                return node->ID == nodeId;
+            });
 
-        nodes.erase(id);
+        nodes.erase(new_iter);
     }
     else if (!allow_repeat_delete)
         throw std::runtime_error("Node not found when deleting.");
