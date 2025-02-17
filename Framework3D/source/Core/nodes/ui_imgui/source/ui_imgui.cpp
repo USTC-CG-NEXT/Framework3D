@@ -99,12 +99,11 @@ NodeWidget::NodeWidget(const NodeWidgetSettings& desc)
         auto ptr = static_cast<NodeWidget*>(userPointer);
         auto storage = ptr->storage_.get();
 
-        std::string node_serialize = ptr->tree_->serialize();
-        node_serialize.erase(node_serialize.end() - 1);
-
         auto ui_json = std::string(data + 1, size - 2);
 
-        node_serialize += "," + ui_json + '}';
+        ptr->tree_->set_ui_settings(ui_json);
+
+        std::string node_serialize = ptr->tree_->serialize();
 
         storage->save(node_serialize);
         return true;
@@ -159,11 +158,11 @@ bool NodeWidget::BuildUI()
 
     ed::SetCurrentEditor(m_Editor);
 
-    //if (ed::GetSelectedObjectCount() > 0) {
-    //    Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
-    //    ShowLeftPane(leftPaneWidth - 4.0f);
-    //    ImGui::SameLine(0.0f, 12.0f);
-    //}
+    // if (ed::GetSelectedObjectCount() > 0) {
+    //     Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+    //     ShowLeftPane(leftPaneWidth - 4.0f);
+    //     ImGui::SameLine(0.0f, 12.0f);
+    // }
 
     ed::Begin(GetWindowUniqueName().c_str(), ImGui::GetContentRegionAvail());
     {
@@ -351,7 +350,7 @@ bool NodeWidget::BuildUI()
                     if (ed::AcceptDeletedItem()) {
                         auto id = std::find_if(
                             tree_->nodes.begin(),
-                            tree_-> nodes.end(),
+                            tree_->nodes.end(),
                             [nodeId](auto& node) {
                                 return node->ID == nodeId;
                             });

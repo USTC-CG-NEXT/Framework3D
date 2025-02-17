@@ -172,6 +172,8 @@ class NODES_CORE_API NodeTree {
 
     Node* parent_node = nullptr;
 
+    void set_ui_settings(const std::string& settings);
+
    private:
     // No one directly edits these sockets.
     std::vector<std::unique_ptr<NodeSocket>> sockets;
@@ -186,8 +188,10 @@ class NODES_CORE_API NodeTree {
 
     unsigned current_id = 1;
 
+    std::string ui_settings;
+
    public:
-    std::string serialize(int indentation = -1) const;
+    std::string serialize() const;
 
     void deserialize(const std::string& str);
 

@@ -42,6 +42,31 @@ struct NODES_UI_IMGUI_API FileBasedNodeWidgetSettings
     std::string WidgetName() const override;
 };
 
+struct NullStorage : public NodeSystemStorage {
+    void save(const std::string& data) override
+    {
+    }
+    std::string load() override
+    {
+        return {};
+    }
+};
+
+struct NODES_UI_IMGUI_API NullBasedNodeWidgetSettings
+    : public NodeWidgetSettings {
+    std::string widget_name;
+
+    std::unique_ptr<NodeSystemStorage> create_storage() const override
+    {
+        return std::make_unique<NullStorage>();
+    }
+
+    std::string WidgetName() const override
+    {
+        return widget_name;
+    }
+};
+
 NODES_UI_IMGUI_API std::unique_ptr<IWidget> create_node_imgui_widget(
     const NodeWidgetSettings& desc);
 

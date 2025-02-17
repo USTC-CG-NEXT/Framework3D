@@ -228,6 +228,11 @@ const NodeTreeDescriptor& NodeTree::get_descriptor() const
     return descriptor_;
 }
 
+void NodeTree::set_ui_settings(const std::string& settings)
+{
+    ui_settings = settings;
+}
+
 void NodeTree::SetDirty(bool dirty)
 {
     this->dirty_ = dirty;
@@ -354,7 +359,7 @@ std::string tree_serialize(
     const NodePtrContainer& nodes,
     const NodeLinkPtrContainer& links,
     const NodeSocketPtrContainer& sockets,
-    int indentation = -1)
+    const std::string& ui_settings = "{}")
 {
     nlohmann::json value;
 
@@ -374,8 +379,18 @@ std::string tree_serialize(
     }
 
     std::ostringstream s;
-    s << value.dump(indentation);
-    return s.str();
+    s << value.dump();
+
+    auto node_serialize = s.str();
+    node_serialize.erase(node_serialize.end() - 1);
+
+    if (!ui_settings.empty()) {
+        node_serialize += "," + ui_settings + '}';
+    }
+    else {
+        node_serialize += '}';
+    }
+    return node_serialize;
 }
 
 // remembder to adopt the node!
@@ -436,8 +451,10 @@ NodeGroup* NodeTree::group_up(std::vector<Node*> nodes_to_group)
 
     // create a new group node
     auto group_node = create_group_node(this);
+
+    // TODO: keep the outside UI subsettings
     auto serialized =
-        tree_serialize(nodes_to_group, links_to_group, sockets_to_group, 2);
+        tree_serialize(nodes_to_group, links_to_group, sockets_to_group, "");
     group_node->sub_tree->deserialize(serialized);
 
     group_node->group_in = create_group_node_in(group_node->sub_tree.get());
@@ -1066,9 +1083,9 @@ void NodeTree::update_toposort()
         has_available_link_cycle);
 }
 
-std::string NodeTree::serialize(int indentation) const
+std::string NodeTree::serialize() const
 {
-    return tree_serialize(nodes, links, sockets, indentation);
+    return tree_serialize(nodes, links, sockets, ui_settings);
 }
 
 void NodeTree::deserialize(const std::string& str)
