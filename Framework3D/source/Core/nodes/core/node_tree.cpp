@@ -26,11 +26,11 @@ struct NodeGroupStorage {
 NodeTreeDescriptor::NodeTreeDescriptor()
 {
     register_node(
-        NodeTypeInfo("node_group")
+        NodeTypeInfo(NODE_GROUP_IDENTIFIER)
             .set_ui_name("Group")
             .set_declare_function([](NodeDeclarationBuilder& b) {
-                b.add_input_group("Outside_Inputs_PH");
-                b.add_output_group("Outside_Outputs_PH");
+                b.add_input_group(OutsideInputsPH);
+                b.add_output_group(OutsideOutputsPH);
             })
             .set_execution_function([](ExeParams params) {
                 auto group_storage = params.get_storage<NodeGroupStorage&>();
@@ -41,7 +41,7 @@ NodeTreeDescriptor::NodeTreeDescriptor()
 
                 auto subtree = params.get_subtree();
 
-                auto input_group = params.get_input_group("Outside_Inputs_PH");
+                auto input_group = params.get_input_group(OutsideInputsPH);
 
                 group_storage.executor->prepare_tree(subtree);
 
@@ -50,11 +50,13 @@ NodeTreeDescriptor::NodeTreeDescriptor()
                     Node* output_node;
                     for (auto& node : subtree->nodes) {
                         {
-                            if (node->typeinfo->id_name == "node_group_in") {
+                            if (node->typeinfo->id_name ==
+                                NODE_GROUP_IN_IDENTIFIER) {
                                 input_node = node.get();
                             }
                             else if (
-                                node->typeinfo->id_name == "node_group_out") {
+                                node->typeinfo->id_name ==
+                                NODE_GROUP_OUT_IDENTIFIER) {
                                 output_node = node.get();
                             }
                         }
@@ -88,7 +90,7 @@ NodeTreeDescriptor::NodeTreeDescriptor()
                 }
 
                 if (output_group.size() == input_sockets.size() - 1) {
-                    params.set_output_group("Outside_Outputs_PH", output_group);
+                    params.set_output_group(OutsideOutputsPH, output_group);
                     return true;
                 }
                 else {
@@ -97,18 +99,18 @@ NodeTreeDescriptor::NodeTreeDescriptor()
             }));
 
     register_node(
-        NodeTypeInfo("node_group_in")
+        NodeTypeInfo(NODE_GROUP_IN_IDENTIFIER)
             .set_ui_name("Group In")
             .set_declare_function([](NodeDeclarationBuilder& b) {
-                b.add_output_group("Inside_Outputs_PH");
+                b.add_output_group(InsideOutputsPH);
             })
             .set_execution_function([](ExeParams params) { return true; }));
 
     register_node(
-        NodeTypeInfo("node_group_out")
+        NodeTypeInfo(NODE_GROUP_OUT_IDENTIFIER)
             .set_ui_name("Group Out")
             .set_declare_function([](NodeDeclarationBuilder& b) {
-                b.add_input_group("Inside_Inputs_PH");
+                b.add_input_group(InsideInputsPH);
             })
             .set_execution_function([](ExeParams params) { return true; })
             .set_always_required(true));
@@ -379,21 +381,21 @@ std::string tree_serialize(
 // remembder to adopt the node!
 static NodeGroup* create_group_node(NodeTree* tree)
 {
-    NodeGroup* node = new NodeGroup(tree, "node_group");
+    NodeGroup* node = new NodeGroup(tree, NODE_GROUP_IDENTIFIER);
     tree->nodes.push_back(std::unique_ptr<Node>(node));
     return node;
 }
 
 static Node* create_group_node_in(NodeTree* tree)
 {
-    Node* node = new Node(tree, "node_group_in");
+    Node* node = new Node(tree, NODE_GROUP_IN_IDENTIFIER);
     tree->nodes.push_back(std::unique_ptr<Node>(node));
     return node;
 }
 
 static Node* create_group_node_out(NodeTree* tree)
 {
-    Node* node = new Node(tree, "node_group_out");
+    Node* node = new Node(tree, NODE_GROUP_OUT_IDENTIFIER);
     tree->nodes.push_back(std::unique_ptr<Node>(node));
     return node;
 }
@@ -506,7 +508,7 @@ NodeGroup* NodeTree::group_up(std::vector<Node*> nodes_to_group)
     }
 
     ensure_topology_cache();
-
+    group_node->sub_tree->parent_node = group_node;
     return group_node;
 }
 
@@ -521,7 +523,7 @@ NodeGroup* NodeTree::group_up(std::vector<NodeId> nodes_to_group)
 
 void NodeTree::ungroup(Node* node)
 {
-    assert(node->typeinfo->id_name == "node_group");
+    assert(node->typeinfo->id_name == NODE_GROUP_IDENTIFIER);
 
     NodeGroup* group = static_cast<NodeGroup*>(node);
 

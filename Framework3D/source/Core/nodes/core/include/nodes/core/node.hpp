@@ -108,14 +108,14 @@ struct NODES_CORE_API Node {
         const char* name,
         PinKind in_out);
 
-    NodeSocket* group_add_socket(
+    virtual NodeSocket* group_add_socket(
         const std::string& socket_group_identifier,
         const char* type_name,
         const char* identifier,
         const char* name,
         PinKind in_out);
 
-    void group_remove_socket(
+    virtual void group_remove_socket(
         const std::string& group_identifier,
         const char* identifier,
         PinKind in_out);
@@ -140,12 +140,12 @@ struct NODES_CORE_API Node {
     std::vector<NodeSocket*> inputs;
     std::vector<NodeSocket*> outputs;
 
-    // Each Node manages its own socket groups.
-    std::vector<std::unique_ptr<SocketGroup>> socket_groups;
-
     bool valid_ = false;
 
    protected:
+    // Each Node manages its own socket groups.
+
+    std::vector<std::unique_ptr<SocketGroup>> socket_groups;
     NodeTree* tree_;
 };
 
@@ -162,6 +162,17 @@ struct NodeGroup : public Node {
     std::shared_ptr<NodeTree> sub_tree;
 
     void serialize(nlohmann::json& value) override;
+
+    NodeSocket* group_add_socket(
+        const std::string& socket_group_identifier,
+        const char* type_name,
+        const char* identifier,
+        const char* name,
+        PinKind in_out) override;
+    void group_remove_socket(
+        const std::string& group_identifier,
+        const char* identifier,
+        PinKind in_out) override;
 
     friend class NodeTree;
 

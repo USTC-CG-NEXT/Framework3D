@@ -362,7 +362,23 @@ void Node::group_remove_socket(
     if (group == socket_groups.end()) {
         throw std::runtime_error("Socket group not found.");
     }
-    (*group)->remove_socket((group_identifier + "_" + identifier).c_str());
+
+    if ((*group)->node->typeinfo->id_name == NODE_GROUP_IN_IDENTIFIER ||
+        (*group)->node->typeinfo->id_name == NODE_GROUP_OUT_IDENTIFIER) {
+        if (in_out == PinKind::Input) {
+            assert(identifier == InsideInputsPH);
+            tree_->parent_node->group_remove_socket(
+                OutsideOutputsPH, identifier, in_out);
+        }
+        else {
+            assert(identifier == InsideOutputsPH);
+            tree_->parent_node->group_remove_socket(
+                OutsideInputsPH, identifier, in_out);
+        }
+    }
+    else
+
+        (*group)->remove_socket((group_identifier + "_" + identifier).c_str());
 }
 
 void Node::remove_outdated_socket(NodeSocket* socket, PinKind kind)
@@ -523,12 +539,68 @@ void NodeGroup::serialize(nlohmann::json& value)
     }
 }
 
+NodeSocket* NodeGroup::group_add_socket(
+    const std::string& socket_group_identifier,
+    const char* type_name,
+    const char* identifier,
+    const char* name,
+    PinKind in_out)
+{
+    assert(
+        socket_group_identifier == "Outside_Inputs_PH" ||
+        socket_group_identifier == "Outside_Outputs_PH");
+    if (in_out == PinKind::Input) {
+        return node_group_add_input_socket(type_name, identifier, name).first;
+    }
+    else {
+        return node_group_add_output_socket(type_name, identifier, name).first;
+    }
+}
+
+void NodeGroup::group_remove_socket(
+    const std::string& group_identifier,
+    const char* identifier,
+    PinKind in_out)
+{
+    assert(
+        group_identifier == "Outside_Inputs_PH" ||
+        group_identifier == "Outside_Outputs_PH");
+
+    auto socket = find_socket(identifier, in_out);
+
+    std::map<NodeSocket*, NodeSocket*>* mapping = nullptr;
+    if (in_out == PinKind::Input) {
+        mapping = &input_mapping_from_interface_to_internal;
+    }
+    else {
+        mapping = &output_mapping_from_interface_to_internal;
+    }
+    NodeSocket* internal_socket = mapping->at(socket);
+
+    if (!internal_socket->directly_linked_links.empty())
+        return;
+    mapping->erase(socket);
+
+    auto group = std::find_if(
+        socket_groups.begin(),
+        socket_groups.end(),
+        [&group_identifier, in_out](const auto& group) {
+            return group->identifier == group_identifier &&
+                   group->kind == in_out;
+        });
+
+    if (group == socket_groups.end()) {
+        throw std::runtime_error("Socket group not found.");
+    }
+    (*group)->remove_socket((group_identifier + "_" + identifier).c_str());
+}
+
 std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_input_socket(
     const char* type_name,
     const char* identifier,
     const char* name)
 {
-    auto added_outside_socket = group_add_socket(
+    auto added_outside_socket = Node::group_add_socket(
         "Outside_Inputs_PH",
         type_name,
         (identifier + std::to_string(tree_->UniqueID())).c_str(),
@@ -552,7 +624,7 @@ std::pair<NodeSocket*, NodeSocket*> NodeGroup::node_group_add_output_socket(
     const char* identifier,
     const char* name)
 {
-    auto added_outside_socket = group_add_socket(
+    auto added_outside_socket = Node::group_add_socket(
         "Outside_Outputs_PH",
         type_name,
         (identifier + std::to_string(tree_->UniqueID())).c_str(),

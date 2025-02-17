@@ -101,6 +101,8 @@ struct SocketGroup {
 
     void remove_socket(const char* identifier);
     void remove_socket(NodeSocket* socket);
+
+    bool treat_node_group_related(NodeSocket* socket);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

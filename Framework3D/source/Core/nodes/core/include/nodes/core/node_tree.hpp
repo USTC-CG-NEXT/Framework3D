@@ -13,6 +13,15 @@
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
+#define NODE_GROUP_IDENTIFIER     "node_group"
+#define NODE_GROUP_IN_IDENTIFIER  "node_group_in"
+#define NODE_GROUP_OUT_IDENTIFIER "node_group_out"
+
+#define OutsideInputsPH  "Outside_Inputs_PH"
+#define OutsideOutputsPH "Outside_Outputs_PH"
+#define InsideInputsPH   "Inside_Inputs_PH"
+#define InsideOutputsPH  "Inside_Outputs_PH"
+
 // Multiple definitions of trees
 class NODES_CORE_API NodeTreeDescriptor {
    public:
@@ -160,6 +169,8 @@ class NODES_CORE_API NodeTree {
     size_t socket_count() const;
 
     [[nodiscard]] const NodeTreeDescriptor& get_descriptor() const;
+
+    Node* parent_node = nullptr;
 
    private:
     // No one directly edits these sockets.
