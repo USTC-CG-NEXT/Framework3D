@@ -112,7 +112,8 @@ class NODES_CORE_API NodeTree {
     NodeTree& merge(const NodeTree& other);
     NodeTree& merge(NodeTree&& other);
 
-    NodeGroup* group_up(const std::vector<Node*>& nodes_to_group);
+    NodeGroup* group_up(std::vector<Node*> nodes_to_group);
+    NodeGroup* group_up(std::vector<NodeId> nodes_to_group);
 
     void ungroup(Node* node);
 

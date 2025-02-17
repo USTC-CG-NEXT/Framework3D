@@ -6,24 +6,22 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#include <fstream>
 #include <string>
 
+#include "RHI/rhi.hpp"
 #include "imgui.h"
 #include "imgui/blueprint-utilities/builders.h"
 #include "imgui/blueprint-utilities/images.inl"
 #include "imgui/blueprint-utilities/widgets.h"
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
-#include "nodes/ui/imgui.hpp"
-#include "ui_imgui.hpp"
-
-#include <fstream>
-
-#include "RHI/rhi.hpp"
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/core/socket.hpp"
 #include "nodes/system/node_system.hpp"
+#include "nodes/ui/imgui.hpp"
 #include "stb_image.h"
+#include "ui_imgui.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace ed = ax::NodeEditor;
@@ -161,11 +159,11 @@ bool NodeWidget::BuildUI()
 
     ed::SetCurrentEditor(m_Editor);
 
-    if (ed::GetSelectedObjectCount() > 0) {
-        Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
-        ShowLeftPane(leftPaneWidth - 4.0f);
-        ImGui::SameLine(0.0f, 12.0f);
-    }
+    //if (ed::GetSelectedObjectCount() > 0) {
+    //    Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+    //    ShowLeftPane(leftPaneWidth - 4.0f);
+    //    ImGui::SameLine(0.0f, 12.0f);
+    //}
 
     ed::Begin(GetWindowUniqueName().c_str(), ImGui::GetContentRegionAvail());
     {
@@ -353,7 +351,7 @@ bool NodeWidget::BuildUI()
                     if (ed::AcceptDeletedItem()) {
                         auto id = std::find_if(
                             tree_->nodes.begin(),
-                            tree_->nodes.end(),
+                            tree_-> nodes.end(),
                             [nodeId](auto& node) {
                                 return node->ID == nodeId;
                             });
@@ -408,6 +406,16 @@ bool NodeWidget::BuildUI()
         ImGui::Separator();
         if (ImGui::MenuItem("Run")) {
             system_->execute(true, node);
+        }
+        if (ImGui::MenuItem("Group")) {
+            std::vector<NodeId> selectedNodes;
+            selectedNodes.resize(ed::GetSelectedObjectCount());
+
+            int nodeCount = ed::GetSelectedNodes(
+                selectedNodes.data(), static_cast<int>(selectedNodes.size()));
+            selectedNodes.resize(nodeCount);
+
+            tree_->group_up(selectedNodes);
         }
         if (ImGui::MenuItem("Delete"))
             ed::DeleteNode(contextNodeId);

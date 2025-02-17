@@ -398,9 +398,8 @@ static Node* create_group_node_out(NodeTree* tree)
     return node;
 }
 
-NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group_in)
+NodeGroup* NodeTree::group_up(std::vector<Node*> nodes_to_group)
 {
-    auto nodes_to_group = nodes_to_group_in;
     auto sockets_to_group = std::set<NodeSocket*>();
 
     for (auto& node : nodes_to_group) {
@@ -509,6 +508,15 @@ NodeGroup* NodeTree::group_up(const std::vector<Node*>& nodes_to_group_in)
     ensure_topology_cache();
 
     return group_node;
+}
+
+NodeGroup* NodeTree::group_up(std::vector<NodeId> nodes_to_group)
+{
+    std::vector<Node*> nodes;
+    for (auto& id : nodes_to_group) {
+        nodes.push_back(find_node(id));
+    }
+    return group_up(nodes);
 }
 
 void NodeTree::ungroup(Node* node)
@@ -1061,7 +1069,10 @@ void NodeTree::deserialize(const std::string& str)
     }
 
     for (auto&& node_json : value["nodes_info"]) {
-        used_ids.emplace(node_json["ID"]);
+        // only add if it has "ID" domain
+        if (node_json.contains("ID")) {
+            used_ids.emplace(node_json["ID"]);
+        }
     }
 
     for (auto&& link_json : value["links_info"]) {
@@ -1075,18 +1086,20 @@ void NodeTree::deserialize(const std::string& str)
     }
 
     for (auto&& node_json : value["nodes_info"]) {
-        auto id = node_json["ID"].get<unsigned>();
-        auto id_name = node_json["id_name"].get<std::string>();
-        auto storage_info = node_json["storage_info"];
+        if (node_json.contains("ID")) {
+            auto id = node_json["ID"].get<unsigned>();
+            auto id_name = node_json["id_name"].get<std::string>();
+            auto storage_info = node_json["storage_info"];
 
-        auto node = std::make_unique<Node>(this, id, id_name.c_str());
-        node->storage_info = storage_info;
+            auto node = std::make_unique<Node>(this, id, id_name.c_str());
+            node->storage_info = storage_info;
 
-        if (!node->valid())
-            continue;
+            if (!node->valid())
+                continue;
 
-        node->deserialize(node_json);
-        nodes.push_back(std::move(node));
+            node->deserialize(node_json);
+            nodes.push_back(std::move(node));
+        }
     }
 
     // Get the saved value in the sockets

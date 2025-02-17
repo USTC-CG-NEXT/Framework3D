@@ -81,6 +81,7 @@ int main()
 
     FileBasedNodeWidgetSettings widget_desc;
     widget_desc.system = system_;
+    system_->set_node_tree_executor(create_node_tree_executor({}));
     widget_desc.json_path = "testtest.json";
     std::unique_ptr<IWidget> node_widget =
         std::move(create_node_imgui_widget(widget_desc));
