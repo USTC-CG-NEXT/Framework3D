@@ -16,7 +16,8 @@ class NodeExecTest : public ::testing::Test {
         register_cpp_type<float>();
         register_cpp_type<std::string>();
 
-        NodeTreeDescriptor descriptor;
+        std::shared_ptr<NodeTreeDescriptor> descriptor =
+            std::make_shared<NodeTreeDescriptor>();
 
         // register adding node
 
@@ -37,7 +38,7 @@ class NodeExecTest : public ::testing::Test {
             return true;
         });
 
-        descriptor.register_node(add_node);
+        descriptor->register_node(add_node);
 
         tree = create_node_tree(descriptor);
     }

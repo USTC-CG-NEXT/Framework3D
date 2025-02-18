@@ -61,24 +61,27 @@ TEST_F(NodeCoreTest, RegisterCppType)
 
 TEST_F(NodeCoreTest, CreateNodeTree)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     auto tree = create_node_tree(descriptor);
     ASSERT_NE(tree, nullptr);
 }
 
 TEST_F(NodeCoreTest, RegisterNode)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
-    descriptor.register_node(node_type_info);
+    descriptor->register_node(node_type_info);
 }
 
 TEST_F(NodeCoreTest, CreateNode)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
 
-    descriptor.register_node(node_type_info);
+    descriptor->register_node(node_type_info);
 
     auto tree = create_node_tree(descriptor);
     auto node = tree->add_node("test_node");
@@ -90,7 +93,8 @@ TEST_F(NodeCoreTest, CreateNode)
 
 TEST_F(NodeCoreTest, NodeSocket)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
 
     NodeTypeInfo node_type_info("test_node");
 
@@ -101,7 +105,7 @@ TEST_F(NodeCoreTest, NodeSocket)
     node_type_info.set_declare_function(
         [](NodeDeclarationBuilder& b) { b.add_input<float>("test_socket2"); });
 
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
 
     auto tree = create_node_tree(descriptor);
     auto node = tree->add_node("test_node");
@@ -110,7 +114,8 @@ TEST_F(NodeCoreTest, NodeSocket)
 
 TEST_F(NodeCoreTest, NodeSocketWithSameName)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
 
     NodeTypeInfo node_type_info("test_node");
 
@@ -121,14 +126,15 @@ TEST_F(NodeCoreTest, NodeSocketWithSameName)
         });
         , std::runtime_error);
 
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
 
     auto tree = create_node_tree(descriptor);
 }
 
 TEST_F(NodeCoreTest, NodeLink)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
@@ -136,7 +142,7 @@ TEST_F(NodeCoreTest, NodeLink)
         b.add_output<int>("test_output");
     });
 
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
 
     auto tree = create_node_tree(descriptor);
 
@@ -170,7 +176,8 @@ TEST_F(NodeCoreTest, NodeLink)
 
 TEST_F(NodeCoreTest, NodeLinkConversion)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
 
     register_cpp_type<float>();
@@ -180,9 +187,9 @@ TEST_F(NodeCoreTest, NodeLinkConversion)
         b.add_output<float>("test_output");
     });
 
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
 
-    descriptor.register_conversion<float, int>([](const float& from, int& to) {
+    descriptor->register_conversion<float, int>([](const float& from, int& to) {
         to = from;
         return true;
     });
@@ -213,7 +220,8 @@ TEST_F(NodeCoreTest, NodeLinkConversion)
 
 TEST_F(NodeCoreTest, NodeRemove)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
 
     node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
@@ -221,7 +229,7 @@ TEST_F(NodeCoreTest, NodeRemove)
         b.add_output<int>("test_output");
     });
 
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
 
     auto tree = create_node_tree(descriptor);
 
@@ -240,7 +248,8 @@ TEST_F(NodeCoreTest, NodeRemove)
 
 TEST_F(NodeCoreTest, PressureTestAddRemove)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
 
     register_cpp_type<float>();
@@ -250,8 +259,8 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
         b.add_output<int>("test_output");
     });
 
-    descriptor.register_node(std::move(node_type_info));
-    descriptor.register_conversion<float, int>([](const float& from, int& to) {
+    descriptor->register_node(std::move(node_type_info));
+    descriptor->register_conversion<float, int>([](const float& from, int& to) {
         to = from;
         return true;
     });
@@ -295,7 +304,8 @@ TEST_F(NodeCoreTest, PressureTestAddRemove)
 
 TEST_F(NodeCoreTest, SerializeDeserialize)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
 
     register_cpp_type<float>();
@@ -308,18 +318,18 @@ TEST_F(NodeCoreTest, SerializeDeserialize)
         b.add_output<int>("output");
     });
 
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
 
     auto tree = create_node_tree(descriptor);
     auto node = tree->add_node("test_node");
     ASSERT_NE(node, nullptr);
 
-    auto tree_serialize = tree->serialize(4);
+    auto tree_serialize = tree->serialize();
 
     auto tree2 = create_node_tree(descriptor);
     tree2->deserialize(tree_serialize);
 
-    auto serialize_2 = tree2->serialize(4);
+    auto serialize_2 = tree2->serialize();
 
     ASSERT_EQ(tree_serialize, serialize_2);
 
@@ -335,7 +345,8 @@ TEST_F(NodeCoreTest, SerializeDeserialize)
 
 TEST_F(NodeCoreTest, NodeGroup)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
     NodeTypeInfo node_type_info("test_node");
     register_cpp_type<float>();
     register_cpp_type<std::string>();
@@ -343,7 +354,7 @@ TEST_F(NodeCoreTest, NodeGroup)
         b.add_input<int>("test_socket2").min(-15).max(3).default_val(1);
         b.add_output<int>("output");
     });
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
     auto tree = create_node_tree(descriptor);
     auto node = tree->add_node("test_node");
     ASSERT_NE(node, nullptr);
@@ -380,9 +391,10 @@ TEST_F(NodeCoreTest, NodeGroup)
 
 TEST_F(NodeCoreTest, NodeGroupCase2)
 {
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
 
-    descriptor.register_conversion<float, int>([](const float& from, int& to) {
+    descriptor->register_conversion<float, int>([](const float& from, int& to) {
         to = from;
         return true;
     });
@@ -395,7 +407,7 @@ TEST_F(NodeCoreTest, NodeGroupCase2)
         b.add_input<int>("test_socket2").min(-15).max(3).default_val(1);
         b.add_output<float>("output");
     });
-    descriptor.register_node(std::move(node_type_info));
+    descriptor->register_node(std::move(node_type_info));
 
     auto tree = create_node_tree(descriptor);
 

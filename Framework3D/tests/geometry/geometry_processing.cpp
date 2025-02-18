@@ -1,5 +1,5 @@
-#include <iostream>
 #include <Eigen/Eigen>
+#include <iostream>
 
 #include "nodes/core/api.hpp"
 #include "nodes/core/node_exec.hpp"
@@ -14,7 +14,8 @@ int main()
 
     register_cpp_type<Eigen::VectorXd>();
 
-    NodeTreeDescriptor descriptor;
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
 
     // register adding node
 
@@ -35,7 +36,7 @@ int main()
         return true;
     });
 
-    descriptor.register_node(add_node);
+    descriptor->register_node(add_node);
 
     auto tree = create_node_tree(descriptor);
 

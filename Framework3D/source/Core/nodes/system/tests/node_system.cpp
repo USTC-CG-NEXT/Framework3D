@@ -14,9 +14,9 @@ class MyNodeSystem : public NodeSystem {
     }
 
    private:
-    NodeTreeDescriptor node_tree_descriptor() override
+    std::shared_ptr<NodeTreeDescriptor> node_tree_descriptor() override
     {
-        return NodeTreeDescriptor();
+        return std::make_shared<NodeTreeDescriptor>();
     }
 };
 
@@ -84,6 +84,3 @@ TEST(NodeSystem, DynamicSockets)
 
     print_tree_info(tree);
 }
-
-
-
