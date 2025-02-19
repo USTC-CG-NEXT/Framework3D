@@ -79,9 +79,7 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             openusd_version
         )
 
-        zip_path = os.path.join(
-            os.path.dirname(__file__), "SDK", "cache", url.split("/")[-1]
-        )
+        zip_path = os.path.join(os.path.dirname(__file__), "SDK", "cache", url.split("/")[-1])
         if os.path.exists(zip_path):
             print(f"Using cached file {zip_path}")
         else:
@@ -90,9 +88,7 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
             download_with_progress(url, zip_path, dry_run)
 
         # Extract the downloaded zip file
-        extract_path = os.path.join(
-            os.path.dirname(__file__), "SDK", "OpenUSD", "source"
-        )
+        extract_path = os.path.join(os.path.dirname(__file__), "SDK", "OpenUSD", "source")
         if keep_original_files and os.path.exists(extract_path):
             print(f"Keeping original files in {extract_path}")
         else:
@@ -153,7 +149,7 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
 
             no_tbb_linkage = "-DCMAKE_CXX_FLAGS=-D__TBB_NO_IMPLICIT_LINKAGE=1"
             openimageio_args = f"OpenImageIO,{no_tbb_linkage} "
-            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}{openimageio_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --generator Ninja --build-variant {build_variant} ./SDK/OpenUSD/{target}'
+            build_command = f'python {build_script} --build-args USD,"-DPXR_ENABLE_GL_SUPPORT=ON {vulkan_support}" {openvdb_args}{openimageio_args}--openvdb {use_debug_python}--ptex --openimageio --opencolorio --no-examples --no-tutorials --generator Ninja --build-variant {build_variant} ./SDK/OpenUSD/{target} -v'
 
             if dry_run:
                 print(f"[DRY RUN] Would run: {build_command}")
@@ -162,15 +158,9 @@ def process_usd(targets, dry_run=False, keep_original_files=True, copy_only=Fals
 
     # Copy the built binaries to the Binaries folder
     for target in targets:
-        copytree_common_to_binaries(
-            os.path.join("OpenUSD", target, "bin"), target=target, dry_run=dry_run
-        )
-        copytree_common_to_binaries(
-            os.path.join("OpenUSD", target, "lib"), target=target, dry_run=dry_run
-        )
-        copytree_common_to_binaries(
-            os.path.join("OpenUSD", target, "plugin"), target=target, dry_run=dry_run
-        )
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "bin"), target=target, dry_run=dry_run)
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "lib"), target=target, dry_run=dry_run)
+        copytree_common_to_binaries(os.path.join("OpenUSD", target, "plugin"), target=target, dry_run=dry_run)
 
         # Copy libraries and resources wholly
         copytree_common_to_binaries(
@@ -204,10 +194,7 @@ def pack_sdk(dry_run=False):
         futures = []
         for root, dirs, files in os.walk(src_dir):
             # Skip build, cache directories and anything under */src/
-            if any(
-                skip_dir in root
-                for skip_dir in ["\\build", "\\cache", "\\src", "\\source"]
-            ):
+            if any(skip_dir in root for skip_dir in ["\\build", "\\cache", "\\src", "\\source"]):
                 continue
 
             # Create corresponding directory in destination
@@ -245,9 +232,7 @@ def pack_sdk(dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(description="Download and configure libraries.")
-    parser.add_argument(
-        "--build_variant", nargs="*", default=["Debug"], help="Specify build variants."
-    )
+    parser.add_argument("--build_variant", nargs="*", default=["Debug"], help="Specify build variants.")
     parser.add_argument(
         "--library",
         choices=["slang", "openusd"],
@@ -290,9 +275,7 @@ def main():
     if args.all:
         args.library = ["openusd", "slang"]
     elif not args.library:
-        print(
-            "No library specified and --all not set. No libraries will be configured."
-        )
+        print("No library specified and --all not set. No libraries will be configured.")
         return
     else:
         args.library = [args.library]
@@ -315,14 +298,10 @@ def main():
             process_usd(targets, dry_run, keep_original_files, copy_only)
         else:
             if not copy_only:
-                download_and_extract(
-                    urls[lib], f"./SDK/{lib}", folders[lib], targets, dry_run
-                )
+                download_and_extract(urls[lib], f"./SDK/{lib}", folders[lib], targets, dry_run)
             else:
                 for target in targets:
-                    copytree_common_to_binaries(
-                        folders[lib], target=target, dry_run=dry_run
-                    )
+                    copytree_common_to_binaries(folders[lib], target=target, dry_run=dry_run)
 
 
 if __name__ == "__main__":

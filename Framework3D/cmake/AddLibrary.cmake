@@ -35,6 +35,7 @@ function(UCG_ADD_TEST)
     set_target_properties(${test_name}_test PROPERTIES ${OUTPUT_DIR})
 
     get_target_property(gtest_include GTest::gtest_main INTERFACE_INCLUDE_DIRECTORIES)
+
     # There should be googletest available
     target_link_libraries(${test_name}_test PUBLIC gtest gtest_main)
     target_link_libraries(${test_name}_test PUBLIC ${UCG_TEST_LIBS})
@@ -42,7 +43,7 @@ function(UCG_ADD_TEST)
     target_compile_definitions(${test_name}_test PUBLIC NOMINMAX=1)
 
     # Check if the test source is a CUDA file and set CUDA properties if so
-    if (USTC_CG_WITH_CUDA AND UCG_TEST_SRC MATCHES "\\.cu$")
+    if(USTC_CG_WITH_CUDA AND UCG_TEST_SRC MATCHES "\\.cu$")
         Set_CUDA_Properties(${test_name}_test)
     endif()
 
@@ -53,8 +54,6 @@ function(UCG_ADD_TEST)
         ${test_name}_test
     )
 endfunction(UCG_ADD_TEST)
-
-
 
 function(USTC_CG_ADD_LIB LIB_NAME)
     set(options SHARED WITH_CUDA)
@@ -76,6 +75,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     # Exclude files under ${SRC_DIR}/test, ${USD_RESOURCE_DIRS}, and ${SKIP_DIRS}
     list(FILTER ${name}_src_headers EXCLUDE REGEX "${folder}/tests/.*")
     list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${folder}/tests/.*")
+
     foreach(resource_dir ${USTC_CG_ADD_LIB_USD_RESOURCE_DIRS})
         list(FILTER ${name}_src_headers EXCLUDE REGEX "${resource_dir}/.*")
         list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${resource_dir}/.*")
@@ -85,8 +85,10 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         file(GLOB_RECURSE DIRED_PYTHON_WRAP_SRC ${USTC_CG_ADD_LIB_PYTHON_WRAP_DIR}/*.cpp)
         list(APPEND USTC_CG_ADD_LIB_PYTHON_WRAP_SRC ${DIRED_PYTHON_WRAP_SRC})
     endif()
+
     if(USTC_CG_ADD_LIB_PYTHON_WRAP_SRC)
         list(FILTER USTC_CG_ADD_LIB_PYTHON_WRAP_SRC EXCLUDE REGEX "${folder}/tests/.*")
+
         foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
             list(FILTER USTC_CG_ADD_LIB_PYTHON_WRAP_SRC EXCLUDE REGEX "${skip_dir}/.*")
         endforeach()
@@ -95,6 +97,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     if(USTC_CG_ADD_LIB_PYTHON_WRAP_DIR)
         list(APPEND USTC_CG_ADD_LIB_SKIP_DIRS ${USTC_CG_ADD_LIB_PYTHON_WRAP_DIR})
     endif()
+
     foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
         list(FILTER ${name}_src_headers EXCLUDE REGEX "${skip_dir}/.*")
         list(FILTER ${name}_cpp_sources EXCLUDE REGEX "${skip_dir}/.*")
@@ -111,12 +114,15 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         if(USTC_CG_WITH_CUDA)
             file(GLOB_RECURSE ${name}_cuda_sources ${folder}/*.cu ${folder}/*.cuh)
             list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${folder}/tests/.*")
+
             foreach(resource_dir ${USTC_CG_ADD_LIB_USD_RESOURCE_DIRS})
                 list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${resource_dir}/.*")
             endforeach()
+
             foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
                 list(FILTER ${name}_cuda_sources EXCLUDE REGEX "${skip_dir}/.*")
             endforeach()
+
             set(${name}_sources ${${name}_sources} ${${name}_cuda_sources})
             list(LENGTH ${name}_cuda_sources cuda_file_count)
         endif()
@@ -127,6 +133,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
     else()
         add_library(${name} STATIC ${USTC_CG_ADD_LIB_LIB_FLAGS} ${${name}_sources})
     endif()
+
     target_compile_features(${name} PUBLIC cxx_std_20)
 
     target_include_directories(
@@ -165,12 +172,18 @@ function(USTC_CG_ADD_LIB LIB_NAME)
         if(Python3_LIBRARY MATCHES "_d.lib$")
             target_compile_definitions(${name}_py PRIVATE Py_DEBUG)
         endif()
+
         message("Python3_LIBRARY_DIRS: ${Python3_LIBRARY_DIRS}")
         target_link_directories(${name}_py PRIVATE ${Python3_LIBRARY_DIRS})
 
         message("Output directory: ${OUTPUT_DIR}")
         set_target_properties(${name}_py PROPERTIES ${OUTPUT_DIR})
-        set(Python_EXECUTABLE ${Python3_EXECUTABLE})
+
+        # 仅当Python_EXECUTABLE为空时才设置Python_EXECUTABLE
+        if(NOT Python_EXECUTABLE)
+            set(Python_EXECUTABLE ${Python3_EXECUTABLE})
+        endif()
+
         nanobind_add_stub(
             ${name}_py_stub
             MODULE ${name}_py
@@ -178,25 +191,27 @@ function(USTC_CG_ADD_LIB LIB_NAME)
             PYTHON_PATH ${OUT_BINARY_DIR}
             DEPENDS ${name}_py
         )
-        
     endif()
 
     file(GLOB test_cpp_sources ${folder}/tests/*.cpp)
+
     if(USTC_CG_ADD_LIB_WITH_CUDA)
         if(USTC_CG_WITH_CUDA)
             file(GLOB test_cuda_sources ${folder}/tests/*.cu)
-            set( test_sources ${test_cpp_sources} ${test_cuda_sources} )
+            set(test_sources ${test_cpp_sources} ${test_cuda_sources})
         else()
-            set( test_sources ${test_cpp_sources} )
+            set(test_sources ${test_cpp_sources})
         endif()
     else()
-        set( test_sources ${test_cpp_sources} )
+        set(test_sources ${test_cpp_sources})
     endif()
 
-    set( test_sources ${test_cpp_sources} ${test_cuda_sources} )
+    set(test_sources ${test_cpp_sources} ${test_cuda_sources})
+
     foreach(skip_dir ${USTC_CG_ADD_LIB_SKIP_DIRS})
         list(FILTER test_sources EXCLUDE REGEX "${skip_dir}/.*")
     endforeach()
+
     foreach(source ${test_sources})
         UCG_ADD_TEST(
             SRC ${source}
@@ -206,6 +221,7 @@ function(USTC_CG_ADD_LIB LIB_NAME)
             ${USTC_CG_ADD_LIB_PRIVATE_LIBS}
         )
     endforeach()
+
     # Ensure the copy target directory exists only if RESOURCE_COPY_TARGET is specified
     if(USTC_CG_ADD_LIB_RESOURCE_COPY_TARGET)
         file(MAKE_DIRECTORY ${USTC_CG_ADD_LIB_RESOURCE_COPY_TARGET})
