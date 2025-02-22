@@ -272,9 +272,6 @@ class ResourceAllocator {
     template<typename RESOURCE>
     void gc_type(auto& cacheSize, auto&& cache_in)
     {
-        const size_t age = mAge++;
-
-
         if ((cacheSize >= CACHE_CAPACITY)) {
             using ContainerType = std::remove_cvref_t<decltype(cache_in)>;
             using Vector = std::vector<std::pair<

@@ -31,3 +31,19 @@ inline size_t gpu_resource_size<nvrhi::SamplerDesc>(
 {
     return 0;
 }
+
+template<>
+inline size_t gpu_resource_size<nvrhi::FramebufferDesc>(
+    const nvrhi::FramebufferDesc& desc)
+{
+    size_t size = 0;
+    for (const auto& attachment : desc.colorAttachments) {
+        if (attachment.texture) {
+            size += gpu_resource_size(attachment.texture->getDesc());
+        }
+    }
+
+    size += gpu_resource_size(desc.depthAttachment.texture->getDesc());
+
+    return size;
+}
