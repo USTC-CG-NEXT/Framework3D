@@ -232,5 +232,7 @@ struct NodeTreeExecutorDesc {
         Eager,
         Lazy,
     } policy = Policy::Eager;
+
+    bool is_simulation = false;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

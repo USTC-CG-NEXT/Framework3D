@@ -2,6 +2,7 @@
 
 #include "GCore/GOP.h"
 #include "global_stage.hpp"
+#include "stage/stage.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 MeshComponent::MeshComponent(Geometry* attached_operand)

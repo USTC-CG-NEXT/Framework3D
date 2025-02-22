@@ -1,5 +1,8 @@
+#include "stage/stage.hpp"
+
 #include "GCore/Components.h"
 #include "global_stage.hpp"
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 
 GeometryComponent::~GeometryComponent()

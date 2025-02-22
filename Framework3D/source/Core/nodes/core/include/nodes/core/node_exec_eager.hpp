@@ -74,6 +74,9 @@ class NODES_CORE_API EagerNodeTreeExecutor : public NodeTreeExecutor {
    protected:
     std::map<std::string, entt::meta_any> storage;
 };
+
+class EagerNodeTreeExecutorSimulation : public EagerNodeTreeExecutor {
+};
 //
 // struct RenderGlobalParams;
 //

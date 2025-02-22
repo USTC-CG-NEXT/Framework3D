@@ -24,14 +24,18 @@ class GUI_API Window {
     virtual ~Window();
 
     // Enters the main rendering loop.
+    float get_elapsed_time();
     void run();
     void register_widget(std::unique_ptr<IWidget> unique);
-    void register_function_perframe(
+
+    void register_function_before_frame(
+        const std::function<void(Window *)> &callback);
+    void register_function_after_frame(
         const std::function<void(Window *)> &callback);
 
     void register_openable_widget(
         std::unique_ptr<IWidgetFactory> window_factory,
-        const std::vector<std::string>& menu_item);
+        const std::vector<std::string> &menu_item);
     IWidget *get_widget(const std::string &unique_name) const;
     std::vector<IWidget *> get_widgets() const;
 
@@ -39,5 +43,9 @@ class GUI_API Window {
 
    protected:
     std::unique_ptr<DockingImguiRenderer> imguiRenderPass;
+    float elapsedTimeSeconds;
+    friend class DockingImguiRenderer;
 };
+
+
 USTC_CG_NAMESPACE_CLOSE_SCOPE

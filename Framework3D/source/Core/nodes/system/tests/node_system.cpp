@@ -31,7 +31,6 @@ TEST(NodeSystem, CreateSystem)
 TEST(NodeSystem, LoadDyLib)
 {
     auto dl_load_system = create_dynamic_loading_system();
-    dl_load_system->register_cpp_types<int>();
 
     auto loaded = dl_load_system->load_configuration("test_nodes.json");
 
@@ -42,7 +41,6 @@ TEST(NodeSystem, LoadDyLib)
 TEST(NodeSystem, LoadDyLibExecution)
 {
     auto dl_load_system = create_dynamic_loading_system();
-    dl_load_system->register_cpp_types<int>();
 
     auto loaded = dl_load_system->load_configuration("test_nodes.json");
 
@@ -62,7 +60,6 @@ void print_tree_info(const NodeTree* tree)
 TEST(NodeSystem, DynamicSockets)
 {
     auto dl_load_system = create_dynamic_loading_system();
-    dl_load_system->register_cpp_types<int>();
     auto loaded = dl_load_system->load_configuration("test_nodes.json");
     ASSERT_TRUE(loaded);
     dl_load_system->init();

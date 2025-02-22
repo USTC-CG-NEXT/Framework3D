@@ -1,6 +1,7 @@
 #include "GCore/Components/CurveComponent.h"
 
 #include "global_stage.hpp"
+#include "stage/stage.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 std::string CurveComponent::to_string() const

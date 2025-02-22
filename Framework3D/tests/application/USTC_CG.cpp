@@ -4,8 +4,8 @@
 #include "GCore/geom_payload.hpp"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
-//#include "diff_optics/diff_optics.hpp"
-//#include "diff_optics/lens_system.hpp"
+// #include "diff_optics/diff_optics.hpp"
+// #include "diff_optics/lens_system.hpp"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
 #include "pxr/usd/usd/stage.h"
@@ -26,6 +26,9 @@ int main()
 
     auto stage = create_global_stage();
     init(stage.get());
+
+    window->register_function_before_frame(
+        [&stage](Window* window) { stage->tick(window->get_elapsed_time()); });
     // Add a sphere
 
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
@@ -52,12 +55,11 @@ int main()
     window->register_widget(std::move(render));
     window->register_widget(std::move(usd_file_viewer));
 
-    window->register_function_perframe([&stage](Window* window) {
+    window->register_function_after_frame([&stage](Window* window) {
         pxr::SdfPath json_path;
         if (stage->consume_editor_creation(json_path)) {
             auto system = create_dynamic_loading_system();
 
-            system->register_cpp_types<int>();
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
             system->init();
@@ -82,25 +84,29 @@ int main()
         }
     });
 
-    //std::unique_ptr<LensSystem> lens_system = std::make_unique<LensSystem>();
+    // std::unique_ptr<LensSystem> lens_system = std::make_unique<LensSystem>();
 
     //// Check existence of lens.json
-    //if (std::filesystem::exists("lens.json")) {
-    //    lens_system->deserialize(std::filesystem::path("lens.json"));
-    //}
-    //else {
-    //    lens_system->set_default();
-    //}
+    // if (std::filesystem::exists("lens.json")) {
+    //     lens_system->deserialize(std::filesystem::path("lens.json"));
+    // }
+    // else {
+    //     lens_system->set_default();
+    // }
 
-    //window->register_openable_widget(
-    //    createDiffOpticsGUIFactory(), { "Plugins", "Physical Lens System" });
+    // window->register_openable_widget(
+    //     createDiffOpticsGUIFactory(), { "Plugins", "Physical Lens System" });
 
-    //render_bare->set_renderer_setting(
-    //    pxr::TfToken("lens_system_ptr"),
-    //    pxr::VtValue(static_cast<void*>(lens_system.get())));
+    // render_bare->set_renderer_setting(
+    //     pxr::TfToken("lens_system_ptr"),
+    //     pxr::VtValue(static_cast<void*>(lens_system.get())));
 
-    window->register_function_perframe(
+    window->register_function_after_frame(
         [render_bare](Window* window) { render_bare->finish_render(); });
+
+    window->register_function_after_frame(
+        [&stage](Window* window) { stage->finish_tick(); });
+
     window->run();
 
     unregister_cpp_type();

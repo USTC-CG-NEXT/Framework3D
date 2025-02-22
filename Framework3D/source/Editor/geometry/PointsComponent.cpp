@@ -4,6 +4,7 @@
 
 #include "global_stage.hpp"
 #include "GCore/GOP.h"
+#include "stage/stage.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 PointsComponent::PointsComponent(Geometry* attached_operand): GeometryComponent(attached_operand)

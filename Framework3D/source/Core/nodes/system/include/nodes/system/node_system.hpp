@@ -15,9 +15,6 @@ class NODES_SYSTEM_API NodeSystem {
     virtual ~NodeSystem();
     void finalize();
 
-    template<typename T1, typename... T>
-    static void register_cpp_types();
-
     template<typename T>
     void set_global_params(T global_params);
 
@@ -30,20 +27,12 @@ class NODES_SYSTEM_API NodeSystem {
 
     bool allow_ui_execution = true;
 
-   protected:
     virtual std::shared_ptr<NodeTreeDescriptor> node_tree_descriptor() = 0;
+
+   protected:
     std::unique_ptr<NodeTree> node_tree;
     std::unique_ptr<NodeTreeExecutor> node_tree_executor;
 };
-
-template<typename T1, typename... T>
-void NodeSystem::register_cpp_types()
-{
-    register_cpp_type<T1>();
-    if constexpr (sizeof...(T) > 0) {
-        register_cpp_types<T...>();
-    }
-}
 
 template<typename T>
 void NodeSystem::set_global_params(T global_params)

@@ -34,7 +34,9 @@ class DockingImguiRenderer final : public ImGui_Renderer {
     bool MouseScrollUpdate(double xoffset, double yoffset) override;
     bool MouseButtonUpdate(int button, int action, int mods) override;
     void Animate(float elapsedTimeSeconds) override;
-    void register_function_perframe(
+    void register_function_before_frame(
+        const std::function<void(Window*)>& callback);
+    void register_function_after_frame(
         const std::function<void(Window*)>& callback);
     void register_openable_widget(
         std::unique_ptr<IWidgetFactory>& widget_factory,
@@ -47,7 +49,8 @@ class DockingImguiRenderer final : public ImGui_Renderer {
 
     std::vector<std::unique_ptr<IWidget>> widgets_;
     Window* window_;
-    std::vector<std::function<void(Window*)>> callbacks_;
+    std::vector<std::function<void(Window*)>> callbacks_before_frame_;
+    std::vector<std::function<void(Window*)>> callbacks_after_frame_;
 
     struct MenuNode {
         std::unordered_map<std::string, std::unique_ptr<MenuNode>> children;
@@ -79,7 +82,7 @@ class DockingImguiRenderer final : public ImGui_Renderer {
 
 DockingImguiRenderer::~DockingImguiRenderer()
 {
-    callbacks_.clear();
+    callbacks_after_frame_.clear();
 
     // widgets_ should be cleared from the last to the first instead of using
     // widgets_.clear();
@@ -169,12 +172,19 @@ void DockingImguiRenderer::Animate(float elapsedTimeSeconds)
         widget->Animate(elapsedTimeSeconds);
     }
     ImGui_Renderer::Animate(elapsedTimeSeconds);
+    window_->elapsedTimeSeconds = elapsedTimeSeconds;
 }
 
-void DockingImguiRenderer::register_function_perframe(
+void DockingImguiRenderer::register_function_before_frame(
     const std::function<void(Window*)>& callback)
 {
-    callbacks_.push_back(callback);
+    callbacks_before_frame_.push_back(callback);
+}
+
+void DockingImguiRenderer::register_function_after_frame(
+    const std::function<void(Window*)>& callback)
+{
+    callbacks_after_frame_.push_back(callback);
 }
 
 void DockingImguiRenderer::register_openable_widget(
@@ -208,6 +218,9 @@ void DockingImguiRenderer::drawMenuBar()
 
 void DockingImguiRenderer::buildUI()
 {
+    for (auto&& callback : callbacks_before_frame_) {
+        callback(window_);
+    }
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -273,7 +286,7 @@ void DockingImguiRenderer::buildUI()
     }
     ImGui::End();
 
-    for (auto&& callback : callbacks_) {
+    for (auto&& callback : callbacks_after_frame_) {
         callback(window_);
     }
 }
@@ -326,6 +339,11 @@ Window::~Window()
     RHI::shutdown();
 }
 
+float Window::get_elapsed_time()
+{
+    return elapsedTimeSeconds;
+}
+
 void Window::run()
 {
     auto manager = RHI::internal::get_device_manager();
@@ -338,10 +356,16 @@ void Window::register_widget(std::unique_ptr<IWidget> unique)
     imguiRenderPass->register_widget(std::move(unique));
 }
 
-void Window::register_function_perframe(
+void Window::register_function_before_frame(
     const std::function<void(Window*)>& callback)
 {
-    imguiRenderPass->register_function_perframe(callback);
+    imguiRenderPass->register_function_before_frame(callback);
+}
+
+void Window::register_function_after_frame(
+    const std::function<void(Window*)>& callback)
+{
+    imguiRenderPass->register_function_after_frame(callback);
 }
 
 void Window::register_openable_widget(

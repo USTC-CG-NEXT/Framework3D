@@ -35,7 +35,6 @@ class CreateWindowTest : public ::testing::Test {
         log::EnableOutputToConsole(true);
 
         system_ = create_dynamic_loading_system();
-        system_->register_cpp_types<int>();
 
         auto loaded = system_->load_configuration("test_nodes.json");
 
@@ -71,7 +70,6 @@ int main()
     log::EnableOutputToConsole(true);
 
     system_ = create_dynamic_loading_system();
-    system_->register_cpp_types<int>();
 
     auto loaded = system_->load_configuration("test_nodes.json");
 

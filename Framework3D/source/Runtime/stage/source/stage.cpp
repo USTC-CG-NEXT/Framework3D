@@ -3,14 +3,16 @@
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/payloads.h>
 #include <pxr/usd/usd/prim.h>
+#include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/sphere.h>
 #include <pxr/usd/usdGeom/xform.h>
 
-USTC_CG_NAMESPACE_OPEN_SCOPE
+#include "animation.h"
 
+USTC_CG_NAMESPACE_OPEN_SCOPE
 #define SAVE_ALL_THE_TIME 0
 
 Stage::Stage()
@@ -37,6 +39,19 @@ void Stage::tick(float ellapsed_time)
     auto current = current_time_code.GetValue();
     current += ellapsed_time;
     current_time_code = pxr::UsdTimeCode(current);
+
+    // for each prim, if it is animatable, update it
+    for (auto&& prim : stage->Traverse()) {
+        if (animation::WithDynamicLogicPrim::is_animatable(prim)) {
+            if (animatable_prims.find(prim.GetPath()) ==
+                animatable_prims.end()) {
+                animatable_prims[prim.GetPath()] =
+                    std::move(animation::WithDynamicLogicPrim(prim));
+            }
+
+            animatable_prims[prim.GetPath()].update(ellapsed_time);
+        }
+    }
 }
 
 pxr::UsdTimeCode Stage::get_current_time()
@@ -99,7 +114,12 @@ pxr::UsdGeomMesh Stage::create_mesh(const pxr::SdfPath& path) const
 
 void Stage::remove_prim(const pxr::SdfPath& path)
 {
-    stage->RemovePrim(path);
+    stage->RemovePrim(path);  // This operation is in fact not recommended! In
+                              // Omniverse applications, they set the prim to
+                              // invisible instead of removing it.
+    if (animatable_prims.find(path) != animatable_prims.end()) {
+        animatable_prims.erase(path);
+    }
 #if SAVE_ALL_THE_TIME
     stage->Save();
 #endif

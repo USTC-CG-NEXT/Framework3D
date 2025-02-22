@@ -1,4 +1,5 @@
 #pragma once
+#include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/stage.h>
 
 #include "pxr/usd/usdGeom/cube.h"
@@ -9,6 +10,9 @@
 #include "stage/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+namespace animation {
+class WithDynamicLogicPrim;
+}
 
 class STAGE_API Stage {
    public:
@@ -16,6 +20,7 @@ class STAGE_API Stage {
     ~Stage();
 
     void tick(float ellapsed_time);
+    void finish_tick();
 
     pxr::UsdTimeCode get_current_time();
     void set_current_time(pxr::UsdTimeCode time);
@@ -55,6 +60,12 @@ class STAGE_API Stage {
     pxr::UsdTimeCode current_time_code = pxr::UsdTimeCode::Default();
     template<typename T>
     T create_prim(const pxr::SdfPath& path, const std::string& baseName) const;
+
+    pxr::TfHashMap<
+        pxr::SdfPath,
+        animation::WithDynamicLogicPrim,
+        pxr::SdfPath::Hash>
+        animatable_prims;
 };
 
 STAGE_API std::unique_ptr<Stage> create_global_stage();

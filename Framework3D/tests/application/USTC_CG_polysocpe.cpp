@@ -44,7 +44,7 @@ int main()
     window->register_widget(std::move(polyscope_info_viewer));
     // When the input transform is triggered,
     // set all the node systems dirty.
-    window->register_function_perframe([](Window* window) {
+    window->register_function_after_frame([](Window* window) {
         auto polyscope_render = static_cast<PolyscopeRenderer*>(
             window->get_widget("Polyscope Renderer"));
         if (polyscope_render) {
@@ -56,12 +56,11 @@ int main()
         }
     });
 
-    window->register_function_perframe([&stage](Window* window) {
+    window->register_function_after_frame([&stage](Window* window) {
         pxr::SdfPath json_path;
         if (stage->consume_editor_creation(json_path)) {
             auto system = create_dynamic_loading_system();
 
-            system->register_cpp_types<int>();
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
             loaded = system->load_configuration("polyscope_nodes.json");

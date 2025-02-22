@@ -7,9 +7,9 @@
 #include <string>
 
 #include "GCore/api.h"
-#include "stage/stage.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+class Stage;
 struct GeometryComponent;
 class Geometry;
 using GeometryHandle = std::shared_ptr<Geometry>;

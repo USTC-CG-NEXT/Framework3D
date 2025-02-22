@@ -53,7 +53,10 @@ std::unique_ptr<NodeTreeExecutor> create_node_tree_executor(
 {
     switch (desc.policy) {
         case NodeTreeExecutorDesc::Policy::Eager:
-            return std::make_unique<EagerNodeTreeExecutor>();
+            if (!desc.is_simulation)
+                return std::make_unique<EagerNodeTreeExecutor>();
+            else
+                return std::make_unique<EagerNodeTreeExecutorSimulation>();
         case NodeTreeExecutorDesc::Policy::Lazy: return nullptr;
     }
     return nullptr;
