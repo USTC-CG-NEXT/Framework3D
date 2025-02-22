@@ -15,6 +15,11 @@ class STAGE_API Stage {
     Stage();
     ~Stage();
 
+    void tick(float ellapsed_time);
+
+    pxr::UsdTimeCode get_current_time();
+    void set_current_time(pxr::UsdTimeCode time);
+
     pxr::UsdPrim add_prim(const pxr::SdfPath& path);
 
     pxr::UsdGeomSphere create_sphere(
@@ -40,11 +45,14 @@ class STAGE_API Stage {
         bool fully_consume = true);
     void save_string_to_usd(const pxr::SdfPath& path, const std::string& data);
     std::string load_string_from_usd(const pxr::SdfPath& path);
-    void import_usd(const std::string& path_string, const pxr::SdfPath& sdf_path);
+    void import_usd(
+        const std::string& path_string,
+        const pxr::SdfPath& sdf_path);
 
-private:
+   private:
     pxr::UsdStageRefPtr stage;
     pxr::SdfPath create_editor_pending_path;
+    pxr::UsdTimeCode current_time_code = pxr::UsdTimeCode::Default();
     template<typename T>
     T create_prim(const pxr::SdfPath& path, const std::string& baseName) const;
 };

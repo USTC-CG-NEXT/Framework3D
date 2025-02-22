@@ -19,6 +19,7 @@ class GUI_API IWidget {
     virtual bool BuildUI() = 0;
 
     virtual void SetCallBack(const std::function<void(Window*, IWidget*)>&);
+
     void CallBack();
 
     [[nodiscard]] unsigned Width() const;

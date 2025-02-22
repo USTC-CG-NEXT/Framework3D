@@ -32,6 +32,19 @@ Stage::~Stage()
     stage->Save();
 }
 
+void Stage::tick(float ellapsed_time)
+{
+}
+
+pxr::UsdTimeCode Stage::get_current_time()
+{
+    return current_time_code;
+}
+
+void Stage::set_current_time(pxr::UsdTimeCode time)
+{
+}
+
 template<typename T>
 T Stage::create_prim(const pxr::SdfPath& path, const std::string& baseName)
     const
