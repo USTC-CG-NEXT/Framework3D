@@ -12,6 +12,7 @@
 #include "RHI/api.h"
 #include "RHI/internal/nvrhi_equality.hpp"
 #include "RHI/internal/nvrhi_hash.hpp"
+#include "RHI/internal/nvrhi_sizes.hpp"
 #include "RHI/internal/resources.hpp"
 
 #ifdef USTC_CG_BACKEND_NVRHI
@@ -236,9 +237,9 @@ class ResourceAllocator {
     }
 
     template<typename RESOURCE>
-    uint32_t calcSize(desc<RESOURCE>& key)
+    auto calcSize(desc<RESOURCE>& key)
     {
-        return 0;
+        return gpu_resource_size(key);
     }
 
     template<typename RESOURCE>
@@ -273,18 +274,6 @@ class ResourceAllocator {
     {
         const size_t age = mAge++;
 
-        for (auto it = cache_in.begin(); it != cache_in.end();) {
-            const size_t ageDiff = age - it->second.age;
-            if (ageDiff >= CACHE_MAX_AGE) {
-                it = purge(it);
-                if (cacheSize < CACHE_CAPACITY) {
-                    break;
-                }
-            }
-            else {
-                ++it;
-            }
-        }
 
         if ((cacheSize >= CACHE_CAPACITY)) {
             using ContainerType = std::remove_cvref_t<decltype(cache_in)>;
@@ -319,7 +308,6 @@ class ResourceAllocator {
     }
 
     static constexpr size_t CACHE_CAPACITY = 64u << 20u;  // 64 MiB
-    static constexpr size_t CACHE_MAX_AGE = 30u;
 
     template<typename T>
     struct Hasher {
