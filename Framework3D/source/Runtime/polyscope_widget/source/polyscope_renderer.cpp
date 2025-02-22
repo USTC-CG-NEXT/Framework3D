@@ -229,7 +229,7 @@ void PolyscopeRenderer::DrawFrame()
 
     ImGui::Image(
         static_cast<ImTextureID>(nvrhi_texture),
-        ImVec2(width, height),
+        ImVec2(polyscope::view::windowWidth, polyscope::view::windowHeight),
         ImVec2(0, 1),
         ImVec2(1, 0));
 

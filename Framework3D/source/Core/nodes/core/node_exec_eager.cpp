@@ -125,15 +125,15 @@ void EagerNodeTreeExecutor::forward_output_to_input(Node* node)
                         directly_linked_input_socket->node
                             ->execution_failed = {};
 
-                        // if (is_last_target) {
-                        //     input_state.value = std::move(value_to_forward);
-                        // }
-                        // else {
-                        //     input_state.value = value_to_forward;
-                        // }
+                        if (is_last_target) {
+                            input_state.value = std::move(value_to_forward);
+                        }
+                        else {
+                            input_state.value = value_to_forward;
+                        }
                         // Move is better in efficiency,
                         // but it bothers the visualization of input and output.
-                        input_state.value = value_to_forward;
+                        // input_state.value = value_to_forward;
                         input_state.is_forwarded = true;
                     }
                 }

@@ -6,7 +6,6 @@
 #include "GCore/geom_payload.hpp"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
-#include "imgui.h"
 #include "nodes/system/node_system.hpp"
 #include "nodes/ui/imgui.hpp"
 #include "polyscope_widget/polyscope_info_viewer.h"
@@ -22,27 +21,40 @@ using namespace USTC_CG;
 
 int main()
 {
+#ifdef _DEBUG
     log::SetMinSeverity(Severity::Debug);
+#endif
     log::EnableOutputToConsole(true);
 
     // Polyscope need to be initialized before window, or it cannot load opengl
     // backend correctly.
     auto polyscope_render = std::make_unique<PolyscopeRenderer>();
-    polyscope_render->Set2dMode();
-    // auto polyscope_info_viewer = std::make_unique<PolyscopeInfoViewer>();
+    auto polyscope_info_viewer = std::make_unique<PolyscopeInfoViewer>();
 
     auto window = std::make_unique<Window>();
 
     auto stage = create_global_stage();
     init(stage.get());
-    // Add a path for 2d processing
 
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
 
     window->register_widget(std::move(usd_file_viewer));
 
     window->register_widget(std::move(polyscope_render));
-    // window->register_widget(std::move(polyscope_info_viewer));
+    window->register_widget(std::move(polyscope_info_viewer));
+    // When the input transform is triggered,
+    // set all the node systems dirty.
+    window->register_function_perframe([](Window* window) {
+        auto polyscope_render = static_cast<PolyscopeRenderer*>(
+            window->get_widget("Polyscope Renderer"));
+        if (polyscope_render) {
+            bool input_transform_triggered =
+                polyscope_render->GetInputTransformTriggered();
+            if (input_transform_triggered) {
+                window->set_all_node_system_dirty();
+            }
+        }
+    });
 
     window->register_function_perframe([&stage](Window* window) {
         pxr::SdfPath json_path;
@@ -53,16 +65,15 @@ int main()
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
             loaded = system->load_configuration("polyscope_nodes.json");
-            loaded = system->load_configuration("image_warping_nodes.json");
-            loaded = system->load_configuration("convert_nodes.json");
+            loaded = system->load_configuration("optimization.json");
             system->init();
             system->set_node_tree_executor(create_node_tree_executor({}));
 
-            GeomPayload global_params;
-            global_params.stage = stage->get_usd_stage();
-            global_params.prim_path = json_path;
+            GeomPayload geom_global_params;
+            geom_global_params.stage = stage->get_usd_stage();
+            geom_global_params.prim_path = json_path;
 
-            system->set_global_params(global_params);
+            system->set_global_params(geom_global_params);
 
             UsdBasedNodeWidgetSettings desc;
 
