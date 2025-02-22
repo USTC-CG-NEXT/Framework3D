@@ -34,6 +34,9 @@ Stage::~Stage()
 
 void Stage::tick(float ellapsed_time)
 {
+    auto current = current_time_code.GetValue();
+    current += ellapsed_time;
+    current_time_code = pxr::UsdTimeCode(current);
 }
 
 pxr::UsdTimeCode Stage::get_current_time()
@@ -43,6 +46,7 @@ pxr::UsdTimeCode Stage::get_current_time()
 
 void Stage::set_current_time(pxr::UsdTimeCode time)
 {
+    current_time_code = time;
 }
 
 template<typename T>
