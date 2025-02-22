@@ -18,60 +18,6 @@ bool IWidget::Begin()
     return ret;
 }
 
-void IWidget::DrawCircle(
-    ImVec2 center,
-    float radius,
-    float thickness,
-    ImColor color,
-    int segments)
-{
-    // draw a circle in the window
-    draw_list->AddCircle(
-        center + window_pos, radius, color, segments, thickness);
-}
-
-void IWidget::DrawLine(ImVec2 p1, ImVec2 p2, float thickness, ImColor color)
-{
-    // draw a line in the window
-    draw_list->AddLine(p1 + window_pos, p2 + window_pos, color, thickness);
-}
-
-void IWidget::DrawRect(ImVec2 p1, ImVec2 p2, float thickness, ImColor color)
-{
-    // draw a rectangle in the window
-    draw_list->AddRect(
-        p1 + window_pos, p2 + window_pos, color, 0, 0, thickness);
-}
-
-void IWidget::DrawArc(
-    ImVec2 center,
-    float radius,
-    float a_min,
-    float a_max,
-    float thickness,
-    ImColor color,
-    int segments)
-{
-    draw_list->PathArcTo(center + window_pos, radius, a_min, a_max, segments);
-    draw_list->PathStroke(color, false, thickness);
-}
-
-void IWidget::DrawFunction(
-    const std::function<float(float)>& f,
-    ImVec2 range,
-    ImVec2 origin_pos)
-{
-    // draw a function in the window
-    const float step = 2.f;
-    ImVec2 p1 = ImVec2(range.x, -f(range.x)) + origin_pos;
-    for (float x = range.x + step; x <= range.y; x += step) {
-        ImVec2 p2 = ImVec2(x, -f(x)) + origin_pos;
-
-        DrawLine(p1, p2);
-        p1 = p2;
-    }
-}
-
 void IWidget::End()
 {
     ImGui::End();
@@ -201,6 +147,68 @@ bool IWidget::SizeChanged()
 
 void IWidget::SetNodeSystemDirty(bool dirty)
 {
+}
+
+void IWidgetDrawable::DrawCircle(
+    ImVec2 center,
+    float radius,
+    float thickness,
+    ImColor color,
+    int segments)
+{
+    // draw a circle in the window
+    draw_list->AddCircle(
+        center + window_pos, radius, color, segments, thickness);
+}
+
+void IWidgetDrawable::DrawLine(
+    ImVec2 p1,
+    ImVec2 p2,
+    float thickness,
+    ImColor color)
+{
+    // draw a line in the window
+    draw_list->AddLine(p1 + window_pos, p2 + window_pos, color, thickness);
+}
+
+void IWidgetDrawable::DrawRect(
+    ImVec2 p1,
+    ImVec2 p2,
+    float thickness,
+    ImColor color)
+{
+    // draw a rectangle in the window
+    draw_list->AddRect(
+        p1 + window_pos, p2 + window_pos, color, 0, 0, thickness);
+}
+
+void IWidgetDrawable::DrawArc(
+    ImVec2 center,
+    float radius,
+    float a_min,
+    float a_max,
+    float thickness,
+    ImColor color,
+    int segments)
+{
+    draw_list->PathArcTo(center + window_pos, radius, a_min, a_max, segments);
+    draw_list->PathStroke(color, false, thickness);
+}
+
+void IWidgetDrawable::DrawFunction(
+    const std::function<float(float)>& f,
+    ImVec2 range,
+    ImVec2 origin_pos)
+{
+    // draw a function in the window
+    const float step = 2.f;
+    ImVec2 p1 = ImVec2(range.x, -f(range.x)) + origin_pos;
+    for (float x = range.x + step; x <= range.y; x += step) {
+        ImVec2 p2 = ImVec2(x, -f(x)) + origin_pos;
+
+        DrawLine(p1, p2);
+        p1 = p2;
+    }
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

@@ -24,39 +24,6 @@ class GUI_API IWidget {
     [[nodiscard]] unsigned Width() const;
     [[nodiscard]] unsigned Height() const;
 
-    void DrawCircle(
-        ImVec2 center,
-        float radius,
-        float thickness = 3,
-        ImColor color = ImColor(0.9f, 0.9f, 0.9f),
-        int segments = 0);
-
-    void DrawLine(
-        ImVec2 p1,
-        ImVec2 p2,
-        float thickness = 3,
-        ImColor color = ImColor(0.9f, 0.9f, 0.9f));
-
-    void DrawRect(
-        ImVec2 p1,
-        ImVec2 p2,
-        float thickness = 3,
-        ImColor color = ImColor(0.9f, 0.9f, 0.9f));
-
-    void DrawArc(
-        ImVec2 center,
-        float radius,
-        float a_min,
-        float a_max,
-        float thickness = 3,
-        ImColor color = ImColor(0.9f, 0.9f, 0.9f),
-        int segments = 0);
-
-    void DrawFunction(
-        const std::function<float(float)>& f,
-        ImVec2 range,
-        ImVec2 origin_pos);
-
    protected:
     /**
      * End() is only called if Begin() returns true.
@@ -105,6 +72,41 @@ class GUI_API IWidget {
 
     void SetStatus();
     bool SizeChanged();
+};
+
+class GUI_API IWidgetDrawable : public IWidget {
+    void DrawCircle(
+        ImVec2 center,
+        float radius,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f),
+        int segments = 0);
+
+    void DrawLine(
+        ImVec2 p1,
+        ImVec2 p2,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f));
+
+    void DrawRect(
+        ImVec2 p1,
+        ImVec2 p2,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f));
+
+    void DrawArc(
+        ImVec2 center,
+        float radius,
+        float a_min,
+        float a_max,
+        float thickness = 3,
+        ImColor color = ImColor(0.9f, 0.9f, 0.9f),
+        int segments = 0);
+
+    void DrawFunction(
+        const std::function<float(float)>& f,
+        ImVec2 range,
+        ImVec2 origin_pos);
 };
 
 class IWidgetFactory {
