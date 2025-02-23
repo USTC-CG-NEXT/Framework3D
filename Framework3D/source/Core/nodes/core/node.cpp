@@ -78,6 +78,24 @@ Node::Node(NodeTree* node_tree, int id, const char* idname)
     valid_ = pre_init_node(idname);
 }
 
+SocketGroup* Node::find_socket_group(
+    const std::string& group_name,
+    PinKind inout)
+{
+    auto group = std::find_if(
+        socket_groups.begin(),
+        socket_groups.end(),
+        [&group_name, inout](const auto& group) {
+            return group->identifier == group_name && group->in_out == inout;
+        });
+
+    if (group == socket_groups.end()) {
+        return nullptr;
+    }
+
+    return group->get();
+}
+
 Node::Node(NodeTree* node_tree, const char* idname)
     : ui_name("Unknown"),
       tree_(node_tree)
@@ -110,6 +128,10 @@ void Node::serialize(nlohmann::json& value)
 
         for (int i = 0; i < outputs.size(); ++i) {
             output_socket_json[std::to_string(i)] = outputs[i]->ID.Get();
+        }
+
+        for (int i = 0; i < socket_groups.size(); ++i) {
+            socket_groups[i]->serialize(node);
         }
     }
 }
@@ -471,6 +493,10 @@ void Node::deserialize(const nlohmann::json& node_json)
         assert(tree_->find_pin(output_id.get<unsigned>()));
         register_socket_to_node(
             tree_->find_pin(output_id.get<unsigned>()), PinKind::Output);
+    }
+
+    for (auto&& group : socket_groups) {
+        group->deserialize(node_json);
     }
 
     refresh_node();

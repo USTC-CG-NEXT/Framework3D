@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <unordered_set>
 
 #include "id.hpp"
@@ -121,10 +122,12 @@ struct SocketGroup {
         const char* identifier,
         bool need_to_propagate_sync = true);
     void remove_socket(NodeSocket* socket, bool need_to_propagate_sync = true);
+    void serialize(nlohmann::json& value);
+    void deserialize(const nlohmann::json& json);
 
     // Sometimes, we would like the some socket groups to always have the same
     // inputs or outputs
-    std::vector<SocketGroup*> synchronized_groups;
+    std::set<SocketGroup*> synchronized_groups;
 
    private:
     std::vector<NodeSocket*> sockets;

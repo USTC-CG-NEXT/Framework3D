@@ -21,8 +21,9 @@ void NodeSocket::Serialize(nlohmann::json& value)
     auto& socket = value[std::to_string(ID.Get())];
 
     // Socket group treatment
-    if (!socket_group_identifier.empty() && !std::string(ui_name).empty())
+    if (!socket_group_identifier.empty() && !std::string(ui_name).empty()) {
         socket["socket_group_identifier"] = socket_group_identifier;
+    }
 
     // Repeated storage. Simpler code for iteration.
     socket["ID"] = ID.Get();
@@ -124,8 +125,8 @@ NodeSocket* SocketGroup::add_socket(
 
 void SocketGroup::set_sync_group(SocketGroup* group)
 {
-    synchronized_groups.push_back(group);
-    group->synchronized_groups.push_back(this);
+    synchronized_groups.emplace(group);
+    group->synchronized_groups.emplace(this);
     for (int i = 0; i < synchronized_groups.size(); i++) {
         assert(synchronized_groups[i]->sockets.size() == sockets.size());
     }
@@ -196,6 +197,43 @@ void SocketGroup::remove_socket(NodeSocket* socket, bool need_to_propagate_sync)
 
         sockets.erase(it);
         node->refresh_node();
+    }
+}
+
+void SocketGroup::serialize(nlohmann::json& value)
+{
+    auto& group = value["socket_groups"][identifier];
+
+    int i = 0;
+    for (auto other_group : synchronized_groups) {
+        auto other_group_node_id = other_group->node->ID.Get();
+        auto other_group_inout = other_group->kind;
+        auto other_group_name = other_group->identifier;
+
+        group["synchronized_groups"][std::to_string(i)] = {
+            { "node_id", other_group_node_id },
+            { "in_out", other_group_inout },
+            { "name", other_group_name },
+        };
+        ++i;
+    }
+}
+
+void SocketGroup::deserialize(const nlohmann::json& json)
+{
+    auto& group = json["socket_groups"][identifier];
+
+    for (int i = 0; i < group["synchronized_groups"].size(); ++i) {
+        auto& other_group = group["synchronized_groups"][std::to_string(i)];
+        auto other_group_node_id = other_group["node_id"].get<unsigned>();
+        auto other_group_inout = other_group["in_out"].get<PinKind>();
+        auto other_group_name = other_group["name"].get<std::string>();
+
+        auto other_group_node = node->tree_->find_node(other_group_node_id);
+        SocketGroup* other_group_ptr = other_group_node->find_socket_group(
+            other_group_name, other_group_inout);
+
+        set_sync_group(other_group_ptr);
     }
 }
 
