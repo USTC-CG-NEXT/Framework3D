@@ -62,7 +62,9 @@ struct NODES_CORE_API Node {
 
     Node(const Node&) = delete;
     Node& operator=(const Node&) = delete;
-    SocketGroup* find_socket_group(const std::string& group_name, PinKind inout);
+    SocketGroup* find_socket_group(
+        const std::string& group_name,
+        PinKind inout);
 
     Node(NodeTree* node_tree, const char* idname);
     virtual ~Node();

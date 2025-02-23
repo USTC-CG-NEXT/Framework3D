@@ -197,10 +197,11 @@ void SocketGroup::remove_socket(NodeSocket* socket, bool need_to_propagate_sync)
 
 void SocketGroup::serialize(nlohmann::json& value)
 {
+    auto& group = value["socket_groups"][identifier];
+
     if (synchronized_groups.empty()) {
         return;
     }
-    auto& group = value["socket_groups"][identifier];
 
     int i = 0;
     for (auto other_group : synchronized_groups) {
@@ -230,11 +231,20 @@ void SocketGroup::deserialize(const nlohmann::json& json)
         auto other_group_inout = other_group["in_out"].get<PinKind>();
         auto other_group_name = other_group["name"].get<std::string>();
 
-        auto other_group_node = node->tree_->find_node(other_group_node_id);
-        SocketGroup* other_group_ptr = other_group_node->find_socket_group(
-            other_group_name, other_group_inout);
+        Node* other_group_node = nullptr;
+        if (this->node->ID == NodeId(other_group_node_id)) {
+            other_group_node = this->node;
+        }
+        else {
+            other_group_node = node->tree_->find_node(other_group_node_id);
+        }
 
-        add_sync_group(other_group_ptr);
+        if (other_group_node) {
+            SocketGroup* other_group_ptr = other_group_node->find_socket_group(
+                other_group_name, other_group_inout);
+
+            add_sync_group(other_group_ptr);
+        }
     }
 }
 
