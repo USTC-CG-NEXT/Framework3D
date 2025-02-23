@@ -1,3 +1,4 @@
 add_subdirectory(geometry)
 add_subdirectory(geometry_nodes)
+add_subdirectory(simulation_nodes)
 add_subdirectory(GUI)

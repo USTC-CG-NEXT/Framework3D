@@ -101,6 +101,10 @@ struct SocketGroup {
 
     void remove_socket(const char* identifier);
     void remove_socket(NodeSocket* socket);
+
+
+    // Sometimes, we would like the some socket groups to always have the same inputs or outputs
+    std::vector<SocketGroup*> synchronized_groups;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

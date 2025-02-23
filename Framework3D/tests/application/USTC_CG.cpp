@@ -62,6 +62,7 @@ int main()
 
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
+            loaded = system->load_configuration("simulation_nodes.json");
             system->init();
             system->set_node_tree_executor(create_node_tree_executor({}));
 

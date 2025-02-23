@@ -54,6 +54,10 @@ void Stage::tick(float ellapsed_time)
     }
 }
 
+void Stage::finish_tick()
+{
+}
+
 pxr::UsdTimeCode Stage::get_current_time()
 {
     return current_time_code;
