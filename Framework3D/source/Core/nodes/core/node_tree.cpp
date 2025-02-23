@@ -831,12 +831,12 @@ void NodeTree::delete_node(NodeId nodeId, bool allow_repeat_delete)
         return node->ID == nodeId;
     });
 
-    auto paired = (*id)->paired_node;
-    if (paired)
-        paired->paired_node = nullptr;
-
     if (id != nodes.end()) {
         auto node = id->get();
+
+        auto paired = node->paired_node;
+        if (paired)
+            paired->paired_node = nullptr;
 
         for (auto& socket : node->get_inputs()) {
             delete_socket(socket->ID, true);  // iterator may be invalidated
@@ -852,13 +852,13 @@ void NodeTree::delete_node(NodeId nodeId, bool allow_repeat_delete)
             });
 
         nodes.erase(new_iter);
+
+        if (paired) {
+            delete_node(paired, true);
+        }
     }
     else if (!allow_repeat_delete)
         throw std::runtime_error("Node not found when deleting.");
-
-    if (paired) {
-        delete_node(paired, true);
-    }
 
     ensure_topology_cache();
 }
