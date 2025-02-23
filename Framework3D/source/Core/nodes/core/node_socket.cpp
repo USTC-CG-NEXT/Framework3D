@@ -167,10 +167,10 @@ void SocketGroup::remove_socket(
     else
         throw std::runtime_error(
             "Socket not found when deleting from a group.");
-
-    for (auto sync_group : synchronized_groups) {
-        assert(sync_group->sockets.size() == sockets.size());
-    }
+    if (need_to_propagate_sync)
+        for (auto sync_group : synchronized_groups) {
+            assert(sync_group->sockets.size() == sockets.size());
+        }
 }
 
 void SocketGroup::remove_socket(NodeSocket* socket, bool need_to_propagate_sync)

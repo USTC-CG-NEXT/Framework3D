@@ -312,11 +312,15 @@ void Node::generate_socket_groups_socket(
             old_sockets.end(),
             [&socket_in_group](NodeSocket* socket) {
                 return std::string(socket->identifier) ==
-                       socket_in_group->identifier;
+                           socket_in_group->identifier &&
+                       socket->in_out == socket_in_group->in_out;
             });
         if (old_socket != old_sockets.end()) {
             (*old_socket)->node = this;
             new_sockets.push_back(*old_socket);
+        }
+        else {
+            log::info("Creating new socket in the group.");
         }
     }
 }
@@ -360,8 +364,7 @@ NodeSocket* Node::group_add_socket(
         throw std::runtime_error("Socket group not found.");
     }
 
-    auto socket = (*group)->add_socket(
-        type_name, (socket_group_identifier + "_" + identifier).c_str(), name);
+    auto socket = (*group)->add_socket(type_name, identifier, name);
 
     refresh_node();
 
@@ -391,20 +394,23 @@ void Node::group_remove_socket(
         (*group)->node->typeinfo->id_name == NODE_GROUP_OUT_IDENTIFIER) {
         auto parent_node = (*group)->node->tree_->parent_node;
 
-        if (in_out == PinKind::Input) {
-            assert(group_identifier == InsideInputsPH);
+        if (parent_node) {
+            if (in_out == PinKind::Input) {
+                assert(group_identifier == InsideInputsPH);
 
-            parent_node->group_remove_socket(
-                OutsideOutputsPH, identifier, in_out, true);
-        }
-        else {
-            assert(group_identifier == InsideOutputsPH);
-            parent_node->group_remove_socket(
-                OutsideInputsPH, identifier, in_out, true);
+                parent_node->group_remove_socket(
+                    OutsideOutputsPH, identifier, in_out, true);
+            }
+            else {
+                assert(group_identifier == InsideOutputsPH);
+                parent_node->group_remove_socket(
+                    OutsideInputsPH, identifier, in_out, true);
+            }
         }
     }
-    else
+    else {
         (*group)->remove_socket(identifier);
+    }
 }
 
 void Node::remove_outdated_socket(NodeSocket* socket, PinKind kind)

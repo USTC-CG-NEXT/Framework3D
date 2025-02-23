@@ -122,9 +122,6 @@ void util::BlueprintNodeBuilder::EndHeader()
 
 void util::BlueprintNodeBuilder::Input(USTC_CG::SocketID id)
 {
-    if(id == USTC_CG::SocketID(17)) {
-        std::cout<<"17!";
-    }
     if (CurrentStage == Stage::Begin)
         SetStage(Stage::Content);
 
