@@ -127,6 +127,7 @@ struct NODES_CORE_API Node {
     void refresh_node();
 
     bool pre_init_node(const char* idname);
+    Node* paired_node = nullptr;
 
    private:
     void remove_outdated_socket(NodeSocket* socket, PinKind kind);

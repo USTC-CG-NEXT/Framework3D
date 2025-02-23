@@ -657,6 +657,11 @@ std::vector<Node*> NodeWidget::add_node(const std::string& id_name)
         }
     }
 
+    if (nodes.size() == 2) {
+        nodes[0]->paired_node = nodes[1];
+        nodes[1]->paired_node = nodes[0];
+    }
+
     return nodes;
 }
 

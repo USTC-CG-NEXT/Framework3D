@@ -831,6 +831,10 @@ void NodeTree::delete_node(NodeId nodeId, bool allow_repeat_delete)
         return node->ID == nodeId;
     });
 
+    auto paired = (*id)->paired_node;
+    if (paired)
+        paired->paired_node = nullptr;
+
     if (id != nodes.end()) {
         auto node = id->get();
 
@@ -851,6 +855,10 @@ void NodeTree::delete_node(NodeId nodeId, bool allow_repeat_delete)
     }
     else if (!allow_repeat_delete)
         throw std::runtime_error("Node not found when deleting.");
+
+    if (paired) {
+        delete_node(paired, true);
+    }
 
     ensure_topology_cache();
 }

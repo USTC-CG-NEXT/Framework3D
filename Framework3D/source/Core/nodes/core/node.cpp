@@ -130,6 +130,10 @@ void Node::serialize(nlohmann::json& value)
             output_socket_json[std::to_string(i)] = outputs[i]->ID.Get();
         }
 
+        if (paired_node) {
+            node["paired_node"] = paired_node->ID.Get();
+        }
+
         for (int i = 0; i < socket_groups.size(); ++i) {
             socket_groups[i]->serialize(node);
         }
@@ -503,6 +507,15 @@ void Node::deserialize(const nlohmann::json& node_json)
 
     for (auto&& group : socket_groups) {
         group->deserialize(node_json);
+    }
+
+    if (node_json.contains("paired_node")) {
+        auto find_node =
+            tree_->find_node(node_json["paired_node"].get<unsigned>());
+        if (find_node) {
+            paired_node = find_node;
+            find_node->paired_node = this;
+        }
     }
 
     refresh_node();
