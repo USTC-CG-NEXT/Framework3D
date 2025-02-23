@@ -69,9 +69,6 @@ struct NODES_CORE_API Node {
     virtual bool is_node_group();
 
     virtual void serialize(nlohmann::json& value);
-    // During deserialization, we first deserialize all the sockets, then
-    // according the info of the node, we record the information.
-    void register_socket_to_node(NodeSocket* socket, PinKind in_out);
 
     NodeSocket* get_output_socket(const char* identifier) const;
     NodeSocket* get_input_socket(const char* identifier) const;
@@ -147,6 +144,10 @@ struct NODES_CORE_API Node {
     // Each Node manages its own socket groups.
     std::vector<std::unique_ptr<SocketGroup>> socket_groups;
     NodeTree* tree_;
+
+    // During deserialization, we first deserialize all the sockets, then
+    // according the info of the node, we record the information.
+    void register_socket_to_node(NodeSocket* socket, PinKind in_out);
 
     friend class NodeTree;
 };

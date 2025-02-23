@@ -98,9 +98,17 @@ void NodeSocket::DeserializeValue(const nlohmann::json& value)
 NodeSocket* SocketGroup::add_socket(
     const char* type_name,
     const char* socket_identifier,
-    const char* name)
+    const char* name,
+    bool need_to_propagate_sync)
 {
     assert(!std::string(identifier).empty());
+
+    if (need_to_propagate_sync && !synchronized_groups.empty()) {
+        for (int i = 0; i < synchronized_groups.size(); i++) {
+            synchronized_groups[i]->add_socket(
+                type_name, socket_identifier, name, false);
+        }
+    }
 
     auto socket = node->add_socket(type_name, socket_identifier, name, kind);
     socket->socket_group = this;
@@ -114,7 +122,18 @@ NodeSocket* SocketGroup::add_socket(
     return socket;
 }
 
-void SocketGroup::remove_socket(const char* socket_identifier)
+void SocketGroup::set_sync_group(SocketGroup* group)
+{
+    synchronized_groups.push_back(group);
+    group->synchronized_groups.push_back(this);
+    for (int i = 0; i < synchronized_groups.size(); i++) {
+        assert(synchronized_groups[i]->sockets.size() == sockets.size());
+    }
+}
+
+void SocketGroup::remove_socket(
+    const char* socket_identifier,
+    bool need_to_propagate_sync)
 {
     auto it = std::find_if(
         sockets.begin(),
@@ -123,19 +142,61 @@ void SocketGroup::remove_socket(const char* socket_identifier)
             return strcmp(socket->identifier, socket_identifier) == 0;
         });
 
+    auto id = std::distance(sockets.begin(), it);
+
     if (it != sockets.end()) {
+        bool can_delete = true;
+        if (need_to_propagate_sync && !synchronized_groups.empty()) {
+            for (int i = 0; i < synchronized_groups.size(); i++) {
+                auto socket_in_other = synchronized_groups[i]->sockets[id];
+                if (!socket_in_other->directly_linked_links.empty()) {
+                    can_delete = false;
+                }
+            }
+
+            if (!can_delete)
+                return;
+
+            else {
+                for (int i = 0; i < synchronized_groups.size(); i++) {
+                    synchronized_groups[i]->remove_socket(
+                        socket_identifier, false);
+                }
+            }
+        }
+
         sockets.erase(it);
+        node->refresh_node();
     }
-    node->refresh_node();
+    else
+        throw std::runtime_error(
+            "Socket not found when deleting from a group.");
+
+    for (int i = 0; i < synchronized_groups.size(); i++) {
+        assert(synchronized_groups[i]->sockets.size() == sockets.size());
+    }
 }
 
-void SocketGroup::remove_socket(NodeSocket* socket)
+void SocketGroup::remove_socket(NodeSocket* socket, bool need_to_propagate_sync)
 {
     auto it = std::find(sockets.begin(), sockets.end(), socket);
     if (it != sockets.end()) {
+        if (need_to_propagate_sync && !synchronized_groups.empty()) {
+            for (int i = 0; i < synchronized_groups.size(); i++) {
+                auto socket_in_other =
+                    synchronized_groups[i]->sockets[it - sockets.begin()];
+                if (!socket_in_other->directly_linked_links.empty()) {
+                    return;
+                }
+            }
+            for (int i = 0; i < synchronized_groups.size(); i++) {
+                synchronized_groups[i]->remove_socket(socket, false);
+            }
+        }
+
         sockets.erase(it);
+        node->refresh_node();
     }
-    node->refresh_node();
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

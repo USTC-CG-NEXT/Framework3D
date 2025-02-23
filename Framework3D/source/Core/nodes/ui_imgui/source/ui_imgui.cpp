@@ -417,7 +417,6 @@ bool NodeWidget::BuildUI()
             tree_->group_up(selectedNodes);
         }
 
-
         if (ImGui::MenuItem("UnGroup")) {
             auto node = tree_->find_node(contextNodeId);
             if (node) {

@@ -135,6 +135,17 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion_name(
     return *this;
 }
 
+NodeTreeDescriptor& NodeTreeDescriptor::add_socket_group_syncronization(
+    const std::string& fromnode,
+    const std::string& fromgroup,
+    const std::string& tonode,
+    const std::string& togroup)
+{
+    socket_group_syncronization.emplace_back(
+        fromnode, fromgroup, tonode, togroup);
+    return *this;
+}
+
 const NodeTypeInfo* NodeTreeDescriptor::get_node_type(
     const std::string& name) const
 {
@@ -161,6 +172,23 @@ bool NodeTreeDescriptor::can_convert(SocketType from, SocketType to) const
     auto node_name = conversion_node_name(from, to);
     return conversion_node_registry.find(node_name) !=
            conversion_node_registry.end();
+}
+
+bool NodeTreeDescriptor::require_syncronization(
+    const std::string& fromnode,
+    std::string& fromgroup,
+    std::string& tonode,
+    std::string& togroup) const
+{
+    for (auto& sync : socket_group_syncronization) {
+        if (std::get<0>(sync) == fromnode) {
+            fromgroup = std::get<1>(sync);
+            tonode = std::get<2>(sync);
+            togroup = std::get<3>(sync);
+            return true;
+        }
+    }
+    return false;
 }
 
 NodeTree::NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor)

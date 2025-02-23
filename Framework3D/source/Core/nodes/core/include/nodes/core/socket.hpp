@@ -91,20 +91,45 @@ const T& NodeSocket::default_value_typed() const
 // to dynamic modifying the node sockets.
 struct SocketGroup {
     Node* node;
-    std::vector<NodeSocket*> sockets;
     bool runtime_dynamic = false;
     PinKind kind;
     SocketType type_info;
     std::string identifier;
-    NodeSocket*
-    add_socket(const char* type_name, const char* identifier, const char* name);
+    NodeSocket* add_socket(
+        const char* type_name,
+        const char* identifier,
+        const char* name,
+        bool need_to_propagate_sync = true);
 
-    void remove_socket(const char* identifier);
-    void remove_socket(NodeSocket* socket);
+    NodeSocket* find_socket(const char* identifier)
+    {
+        auto it = std::find_if(
+            sockets.begin(), sockets.end(), [identifier](NodeSocket* socket) {
+                return strcmp(socket->identifier, identifier) == 0;
+            });
+        if (it == sockets.end()) {
+            return nullptr;
+        }
+        return *it;
+    }
 
+    void set_sync_group(
+        SocketGroup* group);  // TODO: later, the group inside and outside sync
+                              // logic can be redo with this.
 
-    // Sometimes, we would like the some socket groups to always have the same inputs or outputs
+    void remove_socket(
+        const char* identifier,
+        bool need_to_propagate_sync = true);
+    void remove_socket(NodeSocket* socket, bool need_to_propagate_sync = true);
+
+    // Sometimes, we would like the some socket groups to always have the same
+    // inputs or outputs
     std::vector<SocketGroup*> synchronized_groups;
+
+   private:
+    std::vector<NodeSocket*> sockets;
+
+    friend class Node;
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
