@@ -160,6 +160,11 @@ void EagerNodeTreeExecutor::forward_output_to_input(Node* node)
             }
         }
     }
+
+    if (node->typeinfo->id_name == "simulation_out") {
+        auto simulation_in = node->paired_node;
+        simulation_in->storage = node->storage;
+    }
 }
 
 void EagerNodeTreeExecutor::clear()

@@ -1,4 +1,5 @@
 
+#include "../../system/tests/test_node/test_payload.hpp"
 #include "GUI/window.h"
 #include "Logger/Logger.h"
 #include "gtest/gtest.h"
@@ -89,6 +90,20 @@ int main()
     widget_desc.json_path = "testtest.json";
     std::unique_ptr<IWidget> node_widget =
         std::move(create_node_imgui_widget(widget_desc));
+
+    system_->get_node_tree_executor()->get_global_payload<TestGlobalPayload&>();
+
+    window.register_function_before_frame([system_](Window* window) {
+        if (system_->get_node_tree()->GetDirty()) {
+            system_->get_node_tree_executor()
+                ->get_global_payload<TestGlobalPayload&>() = { false };
+        }
+        else {
+            system_->get_node_tree_executor()
+                ->get_global_payload<TestGlobalPayload&>() = { true };
+            system_->get_node_tree()->SetDirty(true);
+        }
+    });
 
     window.register_widget(std::move(node_widget));
     window.run();

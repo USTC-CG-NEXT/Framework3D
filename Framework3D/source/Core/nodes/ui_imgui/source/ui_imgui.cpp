@@ -166,6 +166,11 @@ bool NodeWidget::BuildUI()
     //     ImGui::SameLine(0.0f, 12.0f);
     // }
 
+    if (tree_->GetDirty()) {
+        system_->execute(true);
+        tree_->SetDirty(false);
+    }
+
     ed::Begin(GetWindowUniqueName().c_str(), ImGui::GetContentRegionAvail());
     {
         auto cursorTopLeft = ImGui::GetCursorScreenPos();
@@ -517,11 +522,6 @@ bool NodeWidget::BuildUI()
     ed::Resume();
 
     ed::End();
-
-    if (tree_->GetDirty()) {
-        system_->execute(true);
-        tree_->SetDirty(false);
-    }
 
     return true;
 }
