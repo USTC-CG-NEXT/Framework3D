@@ -35,21 +35,16 @@ class NODES_CORE_API NodeTreeDescriptor {
     NodeTreeDescriptor& register_conversion_name(
         const std::string& conversion_name);
 
-    NodeTreeDescriptor& add_socket_group_syncronization(
-        const std::string& fromnode,
-        const std::string& fromgroup,
-        const std::string& tonode,
-        const std::string& togroup);
-
     const NodeTypeInfo* get_node_type(const std::string& name) const;
 
     static std::string conversion_node_name(SocketType from, SocketType to);
     bool can_convert(SocketType from, SocketType to) const;
-    bool require_syncronization(
-        const std::string& fromnode,
-        std::string& fromgroup,
-        std::string& tonode,
-        std::string& togroup) const;
+
+    using GROUP_DESC = std::tuple<std::string, std::string, PinKind>;
+    NodeTreeDescriptor& add_socket_group_syncronization(
+        const std::vector<GROUP_DESC>&);
+    std::vector<GROUP_DESC> require_syncronization(
+        const std::string& fromnode) const;
 
     NodeTreeDescriptor(const NodeTreeDescriptor&) = delete;
 
@@ -61,8 +56,7 @@ class NODES_CORE_API NodeTreeDescriptor {
 
     std::unordered_set<std::string> conversion_node_registry;
 
-    std::vector<std::tuple<std::string, std::string, std::string, std::string>>
-        socket_group_syncronization;
+    std::vector<std::vector<GROUP_DESC>> socket_group_syncronization;
 };
 
 template<typename FROM, typename TO>

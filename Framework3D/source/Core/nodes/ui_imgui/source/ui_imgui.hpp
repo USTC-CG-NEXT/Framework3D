@@ -33,7 +33,7 @@ class NodeWidget : public IWidget {
     explicit NodeWidget(const NodeWidgetSettings& desc);
 
     ~NodeWidget() override;
-    Node* create_node_menu();
+    std::vector<Node*> create_node_menu();
     bool BuildUI() override;
 
    protected:
@@ -93,6 +93,8 @@ class NodeWidget : public IWidget {
     void ShowInputOrOutput(
         const NodeSocket& socket,
         const entt::meta_any& value);
+
+    std::vector<Node*> add_node(const std::string& id_name);
 };
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

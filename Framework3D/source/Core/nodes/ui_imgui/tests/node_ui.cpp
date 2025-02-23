@@ -38,6 +38,12 @@ class CreateWindowTest : public ::testing::Test {
 
         auto loaded = system_->load_configuration("test_nodes.json");
 
+        system_->node_tree_descriptor()->add_socket_group_syncronization(
+            { { "simulation_in", "Simulation In", PinKind::Input },
+              { "simulation_in", "Simulation Out", PinKind::Output },
+              { "simulation_out", "Simulation In", PinKind::Input },
+              { "simulation_out", "Simulation Out", PinKind::Output } });
+
         ASSERT_TRUE(loaded);
         system_->init();
     }
@@ -72,6 +78,11 @@ int main()
     system_ = create_dynamic_loading_system();
 
     auto loaded = system_->load_configuration("test_nodes.json");
+    system_->node_tree_descriptor()->add_socket_group_syncronization(
+        { { "simulation_in", "Simulation In", PinKind::Input },
+          { "simulation_in", "Simulation Out", PinKind::Output },
+          { "simulation_out", "Simulation In", PinKind::Input },
+          { "simulation_out", "Simulation Out", PinKind::Output } });
 
     system_->init();
 

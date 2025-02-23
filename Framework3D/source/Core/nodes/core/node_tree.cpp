@@ -136,13 +136,9 @@ NodeTreeDescriptor& NodeTreeDescriptor::register_conversion_name(
 }
 
 NodeTreeDescriptor& NodeTreeDescriptor::add_socket_group_syncronization(
-    const std::string& fromnode,
-    const std::string& fromgroup,
-    const std::string& tonode,
-    const std::string& togroup)
+    const std::vector<GROUP_DESC>& sync)
 {
-    socket_group_syncronization.emplace_back(
-        fromnode, fromgroup, tonode, togroup);
+    socket_group_syncronization.push_back(sync);
     return *this;
 }
 
@@ -174,21 +170,21 @@ bool NodeTreeDescriptor::can_convert(SocketType from, SocketType to) const
            conversion_node_registry.end();
 }
 
-bool NodeTreeDescriptor::require_syncronization(
-    const std::string& fromnode,
-    std::string& fromgroup,
-    std::string& tonode,
-    std::string& togroup) const
+// using GROUP_DESC = std::tuple<std::string, std::string, PinKind>;
+// std::vector<std::vector<GROUP_DESC>> socket_group_syncronization
+
+// TODO: currently we assume for a single node there is only one active group
+// seeking synchronization to other groups. Later we could add more complex
+// return methods to support multiple groups.
+std::vector<NodeTreeDescriptor::GROUP_DESC>
+NodeTreeDescriptor::require_syncronization(const std::string& fromnode) const
 {
-    for (auto& sync : socket_group_syncronization) {
-        if (std::get<0>(sync) == fromnode) {
-            fromgroup = std::get<1>(sync);
-            tonode = std::get<2>(sync);
-            togroup = std::get<3>(sync);
-            return true;
+    for (auto& group : socket_group_syncronization) {
+        if (std::get<0>(group[0]) == fromnode) {
+            return group;
         }
     }
-    return false;
+    return {};
 }
 
 NodeTree::NodeTree(std::shared_ptr<NodeTreeDescriptor> descriptor)

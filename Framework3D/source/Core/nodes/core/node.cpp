@@ -86,7 +86,7 @@ SocketGroup* Node::find_socket_group(
         socket_groups.begin(),
         socket_groups.end(),
         [&group_name, inout](const auto& group) {
-            return group->identifier == group_name && group->in_out == inout;
+            return group->identifier == group_name && group->kind == inout;
         });
 
     if (group == socket_groups.end()) {

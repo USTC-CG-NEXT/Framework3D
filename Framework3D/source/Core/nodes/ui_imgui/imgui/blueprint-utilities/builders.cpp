@@ -7,9 +7,12 @@
 // CREDITS
 //   Written by Michal Cichon
 //------------------------------------------------------------------------------
-# define IMGUI_DEFINE_MATH_OPERATORS
-# include "builders.h"
-# include <imgui_internal.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "builders.h"
+
+#include <imgui_internal.h>
+
+#include <iostream>
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
 //------------------------------------------------------------------------------
@@ -50,27 +53,22 @@ void util::BlueprintNodeBuilder::End()
 
     ed::EndNode();
 
-    if (ImGui::IsItemVisible())
-    {
+    if (ImGui::IsItemVisible()) {
         auto alpha = static_cast<int>(255 * ImGui::GetStyle().Alpha);
 
         auto drawList = ed::GetNodeBackgroundDrawList(CurrentNodeId);
 
         const auto halfBorderWidth = ed::GetStyle().NodeBorderWidth * 0.5f;
 
-        auto headerColor = IM_COL32(0, 0, 0, alpha) | (HeaderColor & IM_COL32(
-                               255,
-                               255,
-                               255,
-                               0));
+        auto headerColor = IM_COL32(0, 0, 0, alpha) |
+                           (HeaderColor & IM_COL32(255, 255, 255, 0));
         if ((HeaderMax.x > HeaderMin.x) && (HeaderMax.y > HeaderMin.y) &&
-            HeaderTextureId)
-        {
+            HeaderTextureId) {
             const auto uv = ImVec2(
-                (HeaderMax.x - HeaderMin.x) / (float)(
-                    4.0f * HeaderTextureWidth),
-                (HeaderMax.y - HeaderMin.y) / (float)(
-                    4.0f * HeaderTextureHeight));
+                (HeaderMax.x - HeaderMin.x) /
+                    (float)(4.0f * HeaderTextureWidth),
+                (HeaderMax.y - HeaderMin.y) /
+                    (float)(4.0f * HeaderTextureHeight));
 
             drawList->AddImageRounded(
                 HeaderTextureId,
@@ -83,11 +81,12 @@ void util::BlueprintNodeBuilder::End()
                 GetStyle().NodeRounding,
                 ImDrawFlags_RoundCornersTop);
 #else
-                headerColor, GetStyle().NodeRounding, 1 | 2);
+                headerColor,
+                GetStyle().NodeRounding,
+                1 | 2);
 #endif
 
-            if (ContentMin.y > HeaderMax.y)
-            {
+            if (ContentMin.y > HeaderMax.y) {
                 drawList->AddLine(
                     ImVec2(
                         HeaderMin.x - (8 - halfBorderWidth),
@@ -123,6 +122,9 @@ void util::BlueprintNodeBuilder::EndHeader()
 
 void util::BlueprintNodeBuilder::Input(USTC_CG::SocketID id)
 {
+    if(id == USTC_CG::SocketID(17)) {
+        std::cout<<"17!";
+    }
     if (CurrentStage == Stage::Begin)
         SetStage(Stage::Content);
 
@@ -186,48 +188,54 @@ bool util::BlueprintNodeBuilder::SetStage(Stage stage)
     CurrentStage = stage;
 
     ImVec2 cursor;
-    switch (oldStage)
-    {
+    switch (oldStage) {
         case Stage::Begin: break;
 
-        case Stage::Header: ImGui::EndHorizontal();
+        case Stage::Header:
+            ImGui::EndHorizontal();
             HeaderMin = ImGui::GetItemRectMin();
             HeaderMax = ImGui::GetItemRectMax();
 
-        // spacing between header and content
+            // spacing between header and content
             ImGui::Spring(0, ImGui::GetStyle().ItemSpacing.y * 2.0f);
 
             break;
 
         case Stage::Content: break;
 
-        case Stage::Input: ed::PopStyleVar(2);
+        case Stage::Input:
+            ed::PopStyleVar(2);
 
             ImGui::Spring(1, 0);
             ImGui::EndVertical();
 
-        // #debug
-        // ImGui::GetWindowDrawList()->AddRect(
-        //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+            // #debug
+            // ImGui::GetWindowDrawList()->AddRect(
+            //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+            //     IM_COL32(255, 0, 0, 255));
 
             break;
 
-        case Stage::Middle: ImGui::EndVertical();
+        case Stage::Middle:
+            ImGui::EndVertical();
 
-        // #debug
-        // ImGui::GetWindowDrawList()->AddRect(
-        //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+            // #debug
+            // ImGui::GetWindowDrawList()->AddRect(
+            //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+            //     IM_COL32(255, 0, 0, 255));
 
             break;
 
-        case Stage::Output: ed::PopStyleVar(2);
+        case Stage::Output:
+            ed::PopStyleVar(2);
 
             ImGui::Spring(1, 0);
             ImGui::EndVertical();
 
-        // #debug
-        // ImGui::GetWindowDrawList()->AddRect(
-        //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+            // #debug
+            // ImGui::GetWindowDrawList()->AddRect(
+            //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+            //     IM_COL32(255, 0, 0, 255));
 
             break;
 
@@ -236,24 +244,25 @@ bool util::BlueprintNodeBuilder::SetStage(Stage stage)
         case Stage::Invalid: break;
     }
 
-    switch (stage)
-    {
-        case Stage::Begin: ImGui::BeginVertical("node");
-            break;
+    switch (stage) {
+        case Stage::Begin: ImGui::BeginVertical("node"); break;
 
-        case Stage::Header: HasHeader = true;
+        case Stage::Header:
+            HasHeader = true;
 
             ImGui::BeginHorizontal("header");
             break;
 
-        case Stage::Content: if (oldStage == Stage::Begin)
+        case Stage::Content:
+            if (oldStage == Stage::Begin)
                 ImGui::Spring(0);
 
             ImGui::BeginHorizontal("content");
             ImGui::Spring(0, 0);
             break;
 
-        case Stage::Input: ImGui::BeginVertical("inputs", ImVec2(0, 0), 0.0f);
+        case Stage::Input:
+            ImGui::BeginVertical("inputs", ImVec2(0, 0), 0.0f);
 
             ed::PushStyleVar(ed::StyleVar_PivotAlignment, ImVec2(0, 0.5f));
             ed::PushStyleVar(ed::StyleVar_PivotSize, ImVec2(0, 0));
@@ -262,12 +271,13 @@ bool util::BlueprintNodeBuilder::SetStage(Stage stage)
                 ImGui::Spring(1, 0);
             break;
 
-        case Stage::Middle: ImGui::Spring(1);
+        case Stage::Middle:
+            ImGui::Spring(1);
             ImGui::BeginVertical("middle", ImVec2(0, 0), 1.0f);
             break;
 
-        case Stage::Output: if (oldStage == Stage::Middle || oldStage ==
-                                Stage::Input)
+        case Stage::Output:
+            if (oldStage == Stage::Middle || oldStage == Stage::Input)
                 ImGui::Spring(1);
             else
                 ImGui::Spring(1, 0);
@@ -280,14 +290,15 @@ bool util::BlueprintNodeBuilder::SetStage(Stage stage)
                 ImGui::Spring(1, 0);
             break;
 
-        case Stage::End: if (oldStage == Stage::Input)
+        case Stage::End:
+            if (oldStage == Stage::Input)
                 ImGui::Spring(1, 0);
             if (oldStage != Stage::Begin)
                 ImGui::EndHorizontal();
             ContentMin = ImGui::GetItemRectMin();
             ContentMax = ImGui::GetItemRectMax();
 
-        //ImGui::Spring(0);
+            // ImGui::Spring(0);
             ImGui::EndVertical();
             NodeMin = ImGui::GetItemRectMin();
             NodeMax = ImGui::GetItemRectMax();
@@ -310,7 +321,8 @@ void util::BlueprintNodeBuilder::EndPin()
 
     // #debug
     // ImGui::GetWindowDrawList()->AddRectFilled(
-    //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 64));
+    //     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0,
+    //     64));
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

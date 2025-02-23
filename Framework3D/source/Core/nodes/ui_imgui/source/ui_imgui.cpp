@@ -133,19 +133,21 @@ NodeWidget::~NodeWidget()
     ed::DestroyEditor(m_Editor);
 }
 
-Node* NodeWidget::create_node_menu()
+std::vector<Node*> NodeWidget::create_node_menu()
 {
     auto& node_registry = tree_->get_descriptor()->node_registry;
 
-    Node* node = nullptr;
+    std::vector<Node*> nodes = {};
 
     for (auto&& value : node_registry) {
         auto name = value.second.ui_name;
+
+        auto id_name = value.second.id_name;
         if (ImGui::MenuItem(name.c_str()))
-            node = tree_->add_node(value.second.id_name.c_str());
+            nodes = add_node(id_name);
     }
 
-    return node;
+    return nodes;
 }
 
 bool NodeWidget::BuildUI()
@@ -474,34 +476,38 @@ bool NodeWidget::BuildUI()
             location_remembered = true;
         }
 
-        Node* node = create_node_menu();
+        std::vector<Node*> nodes = create_node_menu();
         // ImGui::Separator();
         // if (ImGui::MenuItem("Comment"))
         //     node = SpawnComment();
+        for (auto node : nodes)
+            if (node) {
+                location_remembered = false;
+                createNewNode = false;
+                tree_->SetDirty();
 
-        if (node) {
-            location_remembered = false;
-            createNewNode = false;
-            tree_->SetDirty();
+                ed::SetNodePosition(node->ID, newNodePostion);
 
-            ed::SetNodePosition(node->ID, newNodePostion);
+                newNodePostion += ImVec2(200, 0);
 
-            if (auto startPin = newNodeLinkPin) {
-                auto& pins = startPin->in_out == PinKind::Input
-                                 ? node->get_outputs()
-                                 : node->get_inputs();
+                if (auto startPin = newNodeLinkPin) {
+                    auto& pins = startPin->in_out == PinKind::Input
+                                     ? node->get_outputs()
+                                     : node->get_inputs();
 
-                for (auto& pin : pins) {
-                    if (tree_->can_create_link(startPin, pin)) {
-                        auto endPin = pin;
+                    for (auto& pin : pins) {
+                        if (tree_->can_create_link(startPin, pin)) {
+                            auto endPin = pin;
 
-                        tree_->add_link(startPin->ID, endPin->ID);
+                            tree_->add_link(startPin->ID, endPin->ID);
 
-                        break;
+                            break;
+                        }
                     }
                 }
+
+                newNodeLinkPin = nullptr;
             }
-        }
 
         ImGui::EndPopup();
     }
@@ -607,6 +613,51 @@ void NodeWidget::ShowInputOrOutput(
     else {
         ImGui::Text("%s: %s", socket.ui_name, "Not Executed");
     }
+}
+
+std::vector<Node*> NodeWidget::add_node(const std::string& id_name)
+{
+    std::vector<Node*> nodes;
+
+    auto from_node = tree_->add_node(id_name.c_str());
+    nodes.push_back(from_node);
+
+    auto synchronization =
+        system_->node_tree_descriptor()->require_syncronization(id_name);
+
+    if (!synchronization.empty()) {
+        assert(synchronization.size() > 1);
+        std::map<std::string, Node*> related_node_created;
+        related_node_created[id_name] = from_node;
+        for (auto& group : synchronization) {
+            auto node_name = std::get<0>(group);
+
+            if (related_node_created.find(node_name) ==
+                related_node_created.end()) {
+                auto node = tree_->add_node(node_name.c_str());
+                nodes.push_back(node);
+                related_node_created[node_name] = node;
+            }
+        }
+
+        for (auto it1 = synchronization.begin(); it1 != synchronization.end();
+             ++it1) {
+            for (auto it2 = std::next(it1); it2 != synchronization.end();
+                 ++it2) {
+                auto& [nodeName1, groupName1, groupKind1] = *it1;
+                auto& [nodeName2, groupName2, groupKind2] = *it2;
+                auto* from_node = related_node_created[nodeName1];
+                auto* to_node = related_node_created[nodeName2];
+                auto* from_group =
+                    from_node->find_socket_group(groupName1, groupKind1);
+                auto* to_group =
+                    to_node->find_socket_group(groupName2, groupKind2);
+                from_group->add_sync_group(to_group);
+            }
+        }
+    }
+
+    return nodes;
 }
 
 void NodeWidget::ShowLeftPane(float paneWidth)

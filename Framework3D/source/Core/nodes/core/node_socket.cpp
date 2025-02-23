@@ -1,5 +1,3 @@
-
-
 #include "Logger/Logger.h"
 #include "nodes/core/api.h"
 #include "nodes/core/api.hpp"
@@ -61,7 +59,6 @@ void NodeSocket::DeserializeInfo(nlohmann::json& socket_json)
 
     type_info =
         get_socket_type(socket_json["id_name"].get<std::string>().c_str());
-    // socketTypeFind(socket_json["id_name"].get<std::string>().c_str());
     in_out = socket_json["in_out"].get<PinKind>();
     strcpy(ui_name, socket_json["ui_name"].get<std::string>().c_str());
     strcpy(identifier, socket_json["identifier"].get<std::string>().c_str());
@@ -105,9 +102,9 @@ NodeSocket* SocketGroup::add_socket(
     assert(!std::string(identifier).empty());
 
     if (need_to_propagate_sync && !synchronized_groups.empty()) {
-        for (int i = 0; i < synchronized_groups.size(); i++) {
-            synchronized_groups[i]->add_socket(
-                type_name, socket_identifier, name, false);
+        for (auto sync_group : synchronized_groups) {
+            sync_group->add_socket(type_name, socket_identifier, name, false);
+            sync_group->node->refresh_node();
         }
     }
 
@@ -123,12 +120,12 @@ NodeSocket* SocketGroup::add_socket(
     return socket;
 }
 
-void SocketGroup::set_sync_group(SocketGroup* group)
+void SocketGroup::add_sync_group(SocketGroup* group)
 {
     synchronized_groups.emplace(group);
     group->synchronized_groups.emplace(this);
-    for (int i = 0; i < synchronized_groups.size(); i++) {
-        assert(synchronized_groups[i]->sockets.size() == sockets.size());
+    for (auto sync_group : synchronized_groups) {
+        assert(sync_group->sockets.size() == sockets.size());
     }
 }
 
@@ -148,8 +145,8 @@ void SocketGroup::remove_socket(
     if (it != sockets.end()) {
         bool can_delete = true;
         if (need_to_propagate_sync && !synchronized_groups.empty()) {
-            for (int i = 0; i < synchronized_groups.size(); i++) {
-                auto socket_in_other = synchronized_groups[i]->sockets[id];
+            for (auto sync_group : synchronized_groups) {
+                auto socket_in_other = sync_group->sockets[id];
                 if (!socket_in_other->directly_linked_links.empty()) {
                     can_delete = false;
                 }
@@ -157,11 +154,9 @@ void SocketGroup::remove_socket(
 
             if (!can_delete)
                 return;
-
             else {
-                for (int i = 0; i < synchronized_groups.size(); i++) {
-                    synchronized_groups[i]->remove_socket(
-                        socket_identifier, false);
+                for (auto sync_group : synchronized_groups) {
+                    sync_group->remove_socket(socket_identifier, false);
                 }
             }
         }
@@ -173,8 +168,8 @@ void SocketGroup::remove_socket(
         throw std::runtime_error(
             "Socket not found when deleting from a group.");
 
-    for (int i = 0; i < synchronized_groups.size(); i++) {
-        assert(synchronized_groups[i]->sockets.size() == sockets.size());
+    for (auto sync_group : synchronized_groups) {
+        assert(sync_group->sockets.size() == sockets.size());
     }
 }
 
@@ -183,15 +178,15 @@ void SocketGroup::remove_socket(NodeSocket* socket, bool need_to_propagate_sync)
     auto it = std::find(sockets.begin(), sockets.end(), socket);
     if (it != sockets.end()) {
         if (need_to_propagate_sync && !synchronized_groups.empty()) {
-            for (int i = 0; i < synchronized_groups.size(); i++) {
-                auto socket_in_other =
-                    synchronized_groups[i]->sockets[it - sockets.begin()];
+            size_t index = std::distance(sockets.begin(), it);
+            for (auto sync_group : synchronized_groups) {
+                auto socket_in_other = sync_group->sockets[index];
                 if (!socket_in_other->directly_linked_links.empty()) {
                     return;
                 }
             }
-            for (int i = 0; i < synchronized_groups.size(); i++) {
-                synchronized_groups[i]->remove_socket(socket, false);
+            for (auto sync_group : synchronized_groups) {
+                sync_group->remove_socket(socket, false);
             }
         }
 
@@ -202,6 +197,9 @@ void SocketGroup::remove_socket(NodeSocket* socket, bool need_to_propagate_sync)
 
 void SocketGroup::serialize(nlohmann::json& value)
 {
+    if (synchronized_groups.empty()) {
+        return;
+    }
     auto& group = value["socket_groups"][identifier];
 
     int i = 0;
@@ -221,6 +219,9 @@ void SocketGroup::serialize(nlohmann::json& value)
 
 void SocketGroup::deserialize(const nlohmann::json& json)
 {
+    if (!json.contains("socket_groups")) {
+        return;
+    }
     auto& group = json["socket_groups"][identifier];
 
     for (int i = 0; i < group["synchronized_groups"].size(); ++i) {
@@ -233,7 +234,7 @@ void SocketGroup::deserialize(const nlohmann::json& json)
         SocketGroup* other_group_ptr = other_group_node->find_socket_group(
             other_group_name, other_group_inout);
 
-        set_sync_group(other_group_ptr);
+        add_sync_group(other_group_ptr);
     }
 }
 

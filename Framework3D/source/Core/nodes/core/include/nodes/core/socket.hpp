@@ -90,7 +90,7 @@ const T& NodeSocket::default_value_typed() const
 
 // Socket group is not a core component, rather a UI layer, giving the ability
 // to dynamic modifying the node sockets.
-struct SocketGroup {
+struct NODES_CORE_API SocketGroup {
     Node* node;
     bool runtime_dynamic = false;
     PinKind kind;
@@ -114,7 +114,7 @@ struct SocketGroup {
         return *it;
     }
 
-    void set_sync_group(
+    void add_sync_group(
         SocketGroup* group);  // TODO: later, the group inside and outside sync
                               // logic can be redo with this.
 
@@ -125,11 +125,11 @@ struct SocketGroup {
     void serialize(nlohmann::json& value);
     void deserialize(const nlohmann::json& json);
 
+   private:
     // Sometimes, we would like the some socket groups to always have the same
     // inputs or outputs
     std::set<SocketGroup*> synchronized_groups;
 
-   private:
     std::vector<NodeSocket*> sockets;
 
     friend class Node;
