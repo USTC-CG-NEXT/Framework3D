@@ -197,11 +197,11 @@ void SocketGroup::remove_socket(NodeSocket* socket, bool need_to_propagate_sync)
 
 void SocketGroup::serialize(nlohmann::json& value)
 {
-    auto& group = value["socket_groups"][identifier];
-
     if (synchronized_groups.empty()) {
         return;
     }
+
+    auto& group = value["socket_groups"][identifier];
 
     int i = 0;
     for (auto other_group : synchronized_groups) {

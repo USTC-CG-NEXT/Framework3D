@@ -115,6 +115,12 @@ NodeTreeDescriptor::NodeTreeDescriptor()
             })
             .set_execution_function([](ExeParams params) { return true; })
             .set_always_required(true));
+
+    add_socket_group_syncronization(
+        { { "simulation_in", "Simulation In", PinKind::Input },
+          { "simulation_in", "Simulation Out", PinKind::Output },
+          { "simulation_out", "Simulation In", PinKind::Input },
+          { "simulation_out", "Simulation Out", PinKind::Output } });
 }
 
 NodeTreeDescriptor::~NodeTreeDescriptor()

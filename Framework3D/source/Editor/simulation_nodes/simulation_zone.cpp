@@ -10,6 +10,16 @@ NODE_DECLARATION_FUNCTION(simulation_in)
 
 NODE_EXECUTION_FUNCTION(simulation_in)
 {
+    auto inputs = params.get_input_group("Simulation In");
+
+    std::vector<entt::meta_any> outputs;
+
+    for (auto& input : inputs) {
+        outputs.push_back(*input);
+    }
+
+    params.set_output_group("Simulation Out", outputs);
+
     return true;
 }
 
@@ -21,6 +31,15 @@ NODE_DECLARATION_FUNCTION(simulation_out)
 
 NODE_EXECUTION_FUNCTION(simulation_out)
 {
+    auto inputs = params.get_input_group("Simulation In");
+
+    std::vector<entt::meta_any> outputs;
+
+    for (auto& input : inputs) {
+        outputs.push_back(*input);
+    }
+
+    params.set_output_group("Simulation Out", outputs);
     return true;
 }
 

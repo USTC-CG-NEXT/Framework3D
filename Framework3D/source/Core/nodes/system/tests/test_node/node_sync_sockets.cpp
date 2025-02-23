@@ -25,8 +25,8 @@ NODE_EXECUTION_FUNCTION(simulation_in)
 
 NODE_DECLARATION_FUNCTION(simulation_out)
 {
-    b.add_input_group("Simulation In").set_runtime_dynamic(false);
-    b.add_output_group("Simulation Out").set_runtime_dynamic(false);
+    b.add_input_group("Simulation In");
+    b.add_output_group("Simulation Out");
 }
 
 NODE_EXECUTION_FUNCTION(simulation_out)
