@@ -1,51 +1,48 @@
-[submodule "Framework2D/third_party/imgui"]
-	path = Framework2D/third_party/imgui
-	url = https://github.com/ocornut/imgui.git
-[submodule "Framework2D/third_party/glfw"]
-	path = Framework2D/third_party/glfw
-	url = https://github.com/glfw/glfw.git
-[submodule "Framework2D/third_party/ImGuiFileDialog"]
-	path = Framework2D/third_party/ImGuiFileDialog
-	url = https://github.com/aiekick/ImGuiFileDialog.git
-[submodule "Framework3D/external/eigen"]
-	path = Framework3D/external/eigen
+[submodule "external/eigen"]
+	path = external/eigen
 	url = https://gitlab.com/libeigen/eigen.git
-[submodule "Framework3D/external/glfw"]
-	path = Framework3D/external/glfw
+[submodule "external/glfw"]
+	path = external/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "Framework3D/external/googletest"]
-	path = Framework3D/external/googletest
+[submodule "external/googletest"]
+	path = external/googletest
 	url = https://github.com/google/googletest.git
-[submodule "Framework3D/external/imgui"]
-	path = Framework3D/external/imgui
+[submodule "external/imgui"]
+	path = external/imgui
 	url = https://github.com/thedmd/imgui.git
-[submodule "Framework3D/external/OpenMesh"]
-	path = Framework3D/external/OpenMesh
+[submodule "external/OpenMesh"]
+	path = external/OpenMesh
 	url = https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
-[submodule "Framework3D/external/entt"]
-	path = Framework3D/external/entt
+[submodule "external/entt"]
+	path = external/entt
 	url = https://github.com/Jerry-Shen0527/entt.git
-[submodule "Framework3D/external/nvrhi"]
-	path = Framework3D/external/nvrhi
+[submodule "external/nvrhi"]
+	path = external/nvrhi
 	url = https://github.com/NVIDIAGameWorks/nvrhi.git
-[submodule "Framework3D/external/nvapi"]
-	path = Framework3D/external/nvapi
+[submodule "external/nvapi"]
+	path = external/nvapi
 	url = https://github.com/NVIDIA/nvapi.git
-[submodule "Framework3D/external/glm"]
-	path = Framework3D/external/glm
+[submodule "external/glm"]
+	path = external/glm
 	url = https://github.com/USTC-CG-NEXT/glm.git
-[submodule "Framework3D/external/nanobind"]
-	path = Framework3D/external/nanobind
+[submodule "external/nanobind"]
+	path = external/nanobind
 	url = https://github.com/wjakob/nanobind.git
-[submodule "Framework3D/external/libigl"]
-	path = Framework3D/external/libigl
+[submodule "external/libigl"]
+	path = external/libigl
 	url = https://github.com/libigl/libigl.git
-[submodule "Framework3D/external/autodiff"]
-	path = Framework3D/external/autodiff
+[submodule "external/autodiff"]
+	path = external/autodiff
 	url = https://github.com/autodiff/autodiff.git
-[submodule "Framework3D/external/polyscope"]
-	path = Framework3D/external/polyscope
+[submodule "external/polyscope"]
+	path = external/polyscope
 	url = https://github.com/USTC-CG-NEXT/polyscope.git
-[submodule "Framework3D/external/libigl"]
-	path = Framework3D/external/libigl
+[submodule "external/libigl"]
+	path = external/libigl
 	url = https://github.com/libigl/libigl.git
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest.git
+[submodule "external/OpenMesh"]
+	path = external/OpenMesh
+	url = https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git

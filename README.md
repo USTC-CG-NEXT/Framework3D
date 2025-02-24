@@ -1,42 +1,146 @@
-# 中国科学技术大学《计算机图形学》课程作业（2024年春）
+# USTC_CG_2024
+The assignments for the computer graphics course for 2024，Spring.
 
-## 0. 课程简介
+# Build
+首先执行git系列操作
+```
+git fetch upstream
+git merge upstream/main
+git submodule update --init --recursive
+```
+然后安装下方依赖。
 
-这里是中国科学技术大学本科课程《计算机图形学》（课程编号：00106501）的课程作业网站。
+# Dependencies
 
-- 课程主页：[Computer Graphics 2024 (Spring Summer)](http://staff.ustc.edu.cn/~lgliu/Courses/ComputerGraphics_2024_spring-summer/default.htm) 
-- 授课教师：[刘利刚教授](http://staff.ustc.edu.cn/~lgliu) 
-- 助教
-  - 沈鹏飞 [jerry_shen@mail.ustc.edu.cn](mailto:jerry_shen@mail.ustc.edu.cn) 
-  - 李喆昊 [zhehaoli@mail.ustc.edu.cn](mailto:zhehaoli@mail.ustc.edu.cn) 
-  - 吴汶政 [wuwzh@mail.ustc.edu.cn](mailto:wuwzh@mail.ustc.edu.cn) 
+## Windows + MSVC
+强烈建议在Windows系统下使用本框架，并使用最新版MSVC进行构建和编译。
 
-课程的每个作业是作为一个 Github 项目来进行发布（如下第 1 部分），如下第 2 部分提供了课程所需的相关软件的下载链接及使用说明，第 3 部分提供了课程相关的辅助资料。
+### Python 3.10.11 
+[下载地址](https://www.python.org/downloads/release/python-31011/)
 
-## 1. 课程作业 [->](Homeworks/) 
+安装时无需勾选Debug库，需要加入path。
+### 其他依赖
+> 本框架依赖于 https://github.com/Jerry-Shen0527/USTC_CG_2024_Dependencies 。 
+>
+> 我们为使用Windows操作系统的同学提供了预构建的依赖库：https://rec.ustc.edu.cn/share/4d6a6e00-e04a-11ee-bd1a-2561f5e1cc93 ，因此使用Windows的同学无需clone Dependencies仓库，只需下载并执行以下步骤。
+>
+> 下载SDK，解压到此README所在的文件夹，执行
+> ```
+> python.exe configure.py
+> ```
+> 最后使用编辑器/IDE打开文件夹，或cmake后打开sln文件，即配置完成。
 
-本课程将通过精心设计的系统性编程作业（每周一个），来系统地理解和熟悉计算机图形学的基本内容及发展。通过这些编程作业，同学们能够学习到：
-- 计算机图形学的主要内容及算法实现
-- OpenGL 图形渲染管线及 GPU shader 编程
-- 图像处理算法及实现
-- C++ 面向对象编程思想和方法，了解基础的设计模式和架构思维
-- 快速看懂及使用网上的代码、库及各种资料
-- 从问题到抽象、到数学建模再到算法实现的方法
+本框架依赖于OpenUSD和slang，你有两种方式来构建依赖
 
-## 2. 相关软件
+- 打开终端。如果你在使用Windows，打开VS附带的**Developer PowerShell for VS 2022**，以确保默认使用的编译器是MSVC。将当前的目录记作`path/to/Framework3D`，执行以下命令
 
-- Git：[官网](https://git-scm.com/)，[下载链接](https://git-scm.com/download/win)，[简易说明](Softwares/Github.md) 
-- GitHub Desktop：[官网](https://desktop.github.com/)，[下载链接](https://central.github.com/deployments/desktop/desktop/latest/win32)，[官方文档](https://help.github.com/en/desktop)，[简易说明](Softwares/Github.md) 
-- Visual Studio Community 2022: [官网](https://visualstudio.microsoft.com/zh-hans/vs/) 
-- CMake 3.27+：[官网](https://cmake.org/), [官方教程](https://cmake.org/cmake/help/latest/guide/tutorial/index.html)，[官方文档](https://cmake.org/documentation/) 
+  ```shell
+  # 移动到当前目录
+  cd path/to/Framework3D
+  # 构建Debug模式依赖，你也可以将以下命令修改为python configure.py --all --build_variant Debug Release RelWithDebInfo
+  python configure.py --all --build_variant Debug
+  ```
 
-## 3. 辅助资料
+  以上的方法对网络和性能要求较高，且耗时较长
 
-- [[菜鸟教程] C 语言教程](https://www.runoob.com/cprogramming/c-tutorial.html) 
-- [[菜鸟教程] C++ 教程](https://www.runoob.com/cplusplus/cpp-tutorial.html) 
-- C++ Primer：[链接] [https://pan.baidu.com/s/1hmWNmL-KglaRGGbVOuPl5A](https://pan.baidu.com/s/1hmWNmL-KglaRGGbVOuPl5A)，[提取码] h959
-- [廖雪峰 Git 教程](https://www.liaoxuefeng.com/wiki/896043488029600) 
-- [Git 教程 | 菜鸟教程](https://www.runoob.com/git/git-tutorial.html) 
-- OpenGL 教程: [LearnOpenGL](https://learnopengl-cn.github.io/) 
-- [中文技术文档的写作规范](https://github.com/ruanyf/document-style-guide) 
+- 如果你在使用Windows，可以直接下载提供的依赖库**（暂无）**，将其解压到当前文件夹，形如
 
+  ```
+  Framework3D
+  ├── SDK
+  │   ├── OpenUSD
+  │   └── slang
+  └── ...
+  ```
+  
+  然后打开终端，执行以下命令
+  
+  ```shell
+  # 构建Debug模式依赖，你也可以将以下命令修改为python configure.py --all --build_variant Debug Release RelWithDebInfo
+  python configure.py --all --copy-only --build_variant Debug
+  ```
+
+最后用编辑器/IDE打开文件夹，或cmake后打开sln文件即配置完成
+
+### 可选
+python依赖：PyOpenGL PySide6 PySide2 numpy
+
+推荐使用pip安装。
+
+> ## Other Platform
+> clone (recursive) https://github.com/Jerry-Shen0527/USTC_CG_2024_Dependencies
+>
+> 在该系统下执行该仓库的build.py，检查过程中报出的依赖缺失，并安装该依赖在该平台的对应版本。欢迎同学们向该仓库提交跨平台构建脚本所需的改动。
+>
+> 将生成的SDK文件夹转移到本目录下，并执行
+> ```
+> python.exe configure.py
+> ```
+>
+> # Remark
+>
+> - 由于注册节点时使用了简易的代码生成机制，添加新节点时对于namespace行的要求比较严格，需要大括号和namespace声明在同一行，需要中间有空格，且代码中不能出现中文变量和注释。类似这样
+>
+> ![alt text](images/c3be37d50ecefccb00a6332d16870819.png)
+>
+> - 稍后助教会对此限制进行改进。
+>
+> # Update at HW5
+>
+> 默认相机是第一人称相机，使用QWWASD进行交互，鼠标滚轮可以调速度。上方菜单栏可以改回第三人称相机。
+>
+> # Usage (Kick Start for HW4)
+>
+> 构建并执行 `engine_test.exe`
+>
+> 你将看到
+>
+> ![alt text](images/hw4_kick_start/image.png)
+>
+> 对其进行摆放，在节点系统中单击右键，放置如图节点：
+>
+> ![alt text](images/hw4_kick_start/image-1.png)
+>
+> 你应该看到如图所示的结果。添加首个节点后可以点击Zoom to Content，来将节点居中（首次启动时会有一个初始缩放数值，并不能看到你添加的节点。后续使用将有正常的初始值。）
+>
+> 节点和渲染窗口都可用左右键进行交互。
+>
+> 读取输入网格：
+> ![alt text](images/hw4_kick_start/image-2.png)
+>
+> HW4 极小曲面
+> ![alt text](images/hw4_kick_start/image-3.png)
+>
+> HW4 参数化 （不完整，请按照理解完成节点图连接）
+> ![alt text](images/hw4_kick_start/image-5.png)
+>
+> 实现节点时，移除节点中的"not implemeted"的throw，即可以正常执行。
+>
+> # Trouble Shoot
+> 1. 添加新节点时编译错误：
+>
+> - 由于注册节点时使用了简易的代码生成机制，添加新节点时对于namespace行的要求比较严格，需要大括号和namespace声明在同一行，需要中间有空格，且代码中不能出现中文变量和注释。类似这样
+>
+> ![alt text](images/c3be37d50ecefccb00a6332d16870819.png)
+>
+> - 稍后助教会对此限制进行改进。
+>
+> 2. vscode在Release模式下无法找到SDK.
+>
+> ![alt text](images/image3.png)
+>
+> 3. Python version mismatch
+>
+> ![alt text](images/image.png)
+>
+> 检查Python版本是否为3.10，如果不是，将排在3.10之前的设法移除（修改环境变量，或将排在前面的临时改名为python_bak.exe）。
+>
+> 4. 对于使用双显卡笔记本的同学，如果渲染窗口没有渲染结果且Debug Console有关于GL的报错输出，请分别测试两个显卡的运行结果，通常有一个可以正常执行。
+>
+> # 自行构建依赖过程中出现的问题
+>
+> 这个文档肯定需要重写，这些内容我就先放在这里，请写文档的同学自行整理
+>
+> - 由于 USD 的构建脚本中 GCC 的优先级啊更高，为了保证使用 MSVC 编译，configure.py 须在 Developer PowerShell for VS 2022 下运行
+>
+> - 确保 CMake 的版本为最新，3.31.5 过测
