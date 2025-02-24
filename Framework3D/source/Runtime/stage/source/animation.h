@@ -26,6 +26,8 @@ class WithDynamicLogicPrim : public WithDynamicLogic {
     static bool is_animatable(const pxr::UsdPrim& prim);
 
    private:
+    mutable bool simulation_begun = false;
+
     pxr::UsdPrim prim;
 
     std::shared_ptr<NodeTree> node_tree;

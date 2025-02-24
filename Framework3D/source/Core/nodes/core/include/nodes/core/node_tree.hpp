@@ -99,6 +99,12 @@ class NODES_CORE_API NodeTree {
 
     ~NodeTree();
 
+    std::shared_ptr<NodeTree> get_inverse_tree()
+    {
+        // TODO
+        throw std::runtime_error("Not implemented");
+    }
+
     std::vector<std::unique_ptr<NodeLink>> links;
     std::vector<std::unique_ptr<Node>> nodes;
     bool has_available_link_cycle;

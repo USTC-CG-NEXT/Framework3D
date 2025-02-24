@@ -130,6 +130,8 @@ NODE_EXECUTION_FUNCTION(points_to_mesh)
     mesh_component->set_face_vertex_indices(mesh_faceVertexIndices);
 
     params.set_output("Mesh", std::move(mesh_geometry));
+
+    return true;
 }
 
 NODE_DECLARATION_UI(points_to_mesh);

@@ -451,3 +451,58 @@ TEST_F(NodeCoreTest, NodeGroupCase2)
     ASSERT_EQ(tree->nodes.size(), 7);
     ASSERT_EQ(tree->links.size(), 6);
 }
+
+TEST_F(NodeCoreTest, Inverse_Tree)
+{
+    std::shared_ptr<NodeTreeDescriptor> descriptor =
+        std::make_shared<NodeTreeDescriptor>();
+
+    descriptor->register_conversion<float, int>([](const float& from, int& to) {
+        to = from;
+        return true;
+    });
+
+    // Register one kind of Node
+    NodeTypeInfo node_type_info("test_node");
+    register_cpp_type<float>();
+    register_cpp_type<std::string>();
+    node_type_info.set_declare_function([](NodeDeclarationBuilder& b) {
+        b.add_input<int>("test_socket2").min(-15).max(3).default_val(1);
+        b.add_output<float>("output");
+    });
+    descriptor->register_node(std::move(node_type_info));
+
+    auto tree = create_node_tree(descriptor);
+
+    auto node = tree->add_node("test_node");
+    ASSERT_NE(node, nullptr);
+    auto node2 = tree->add_node("test_node");
+    auto node3 = tree->add_node("test_node");
+    auto node4 = tree->add_node("test_node");
+
+    // Make some links
+    auto link1 = tree->add_link(
+        node->get_output_socket("output"),
+        node2->get_input_socket("test_socket2"));
+
+    ASSERT_NE(link1, nullptr);
+
+    auto link2 = tree->add_link(
+        node2->get_output_socket("output"),
+        node3->get_input_socket("test_socket2"));
+    ASSERT_NE(link2, nullptr);
+
+    auto link3 = tree->add_link(
+        node3->get_output_socket("output"),
+        node4->get_input_socket("test_socket2"));
+    ASSERT_NE(link3, nullptr);
+
+    auto inverse_tree = tree->get_inverse_tree();
+
+    ASSERT_EQ(inverse_tree->nodes.size(), tree->nodes.size());
+    ASSERT_EQ(inverse_tree->links.size(), tree->links.size());
+
+    ASSERT_EQ(
+        inverse_tree->nodes[0]->get_output_socket("output")->ID,
+        tree->nodes[0]->get_output_socket("output")->ID);
+}

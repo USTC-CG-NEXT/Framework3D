@@ -32,6 +32,7 @@ Stage::~Stage()
 {
     remove_prim(pxr::SdfPath("/scratch_buffer"));
     stage->Save();
+    animatable_prims.clear();
 }
 
 void Stage::tick(float ellapsed_time)
@@ -118,12 +119,13 @@ pxr::UsdGeomMesh Stage::create_mesh(const pxr::SdfPath& path) const
 
 void Stage::remove_prim(const pxr::SdfPath& path)
 {
-    stage->RemovePrim(path);  // This operation is in fact not recommended! In
-                              // Omniverse applications, they set the prim to
-                              // invisible instead of removing it.
     if (animatable_prims.find(path) != animatable_prims.end()) {
         animatable_prims.erase(path);
     }
+    stage->RemovePrim(path);  // This operation is in fact not recommended! In
+                              // Omniverse applications, they set the prim to
+                              // invisible instead of removing it.
+
 #if SAVE_ALL_THE_TIME
     stage->Save();
 #endif

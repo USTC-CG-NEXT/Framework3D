@@ -70,7 +70,12 @@ void WithDynamicLogicPrim::update(float delta_time) const
 
     auto& payload = node_tree_executor->get_global_payload<GeomPayload&>();
     payload.delta_time = delta_time;
-    payload.is_simulating = true;
+    payload.stage = prim.GetStage();
+    payload.prim_path = prim.GetPath();
+    if (simulation_begun)
+        payload.is_simulating = true;
+    else
+        simulation_begun = true;
 
     node_tree_executor->execute(node_tree.get());
 }
