@@ -32,6 +32,7 @@ class WithDynamicLogicPrim : public WithDynamicLogic {
 
     std::shared_ptr<NodeTree> node_tree;
     std::unique_ptr<NodeTreeExecutor> node_tree_executor;
+    mutable std::string tree_desc_cache;
 
     static std::shared_ptr<NodeTreeDescriptor> node_tree_descriptor;
     static std::once_flag init_once;

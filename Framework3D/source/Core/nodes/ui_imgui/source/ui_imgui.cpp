@@ -92,8 +92,7 @@ NodeWidget::NodeWidget(const NodeWidgetSettings& desc)
                              ax::NodeEditor::SaveReasonFlags reason,
                              void* userPointer) -> bool {
         if (static_cast<bool>(
-                reason & (NodeEditor::SaveReasonFlags::Navigation |
-                          NodeEditor::SaveReasonFlags::Selection))) {
+                reason & (NodeEditor::SaveReasonFlags::Navigation))) {
             return true;
         }
         auto ptr = static_cast<NodeWidget*>(userPointer);

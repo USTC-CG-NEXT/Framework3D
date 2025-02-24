@@ -36,7 +36,9 @@ WithDynamicLogicPrim::WithDynamicLogicPrim(const pxr::UsdPrim& prim)
 
     auto json = pxr::VtValue();
     json_path.Get(&json);
-    node_tree->deserialize(json.Get<std::string>());
+
+    tree_desc_cache = json.Get<std::string>();
+    node_tree->deserialize(tree_desc_cache);
 }
 
 WithDynamicLogicPrim::WithDynamicLogicPrim(const WithDynamicLogicPrim& prim)
@@ -65,6 +67,22 @@ WithDynamicLogicPrim& WithDynamicLogicPrim::operator=(
 
 void WithDynamicLogicPrim::update(float delta_time) const
 {
+    auto json_path = prim.GetAttribute(pxr::TfToken("node_json"));
+    if (!json_path) {
+        return;
+    }
+
+    auto json = pxr::VtValue();
+    json_path.Get(&json);
+
+    auto new_tree_desc = json.Get<std::string>();
+
+    if (tree_desc_cache != new_tree_desc) {
+        tree_desc_cache = new_tree_desc;
+        node_tree->deserialize(tree_desc_cache);
+        simulation_begun = false;
+    }
+
     assert(node_tree);
     assert(node_tree_executor);
 
@@ -72,10 +90,13 @@ void WithDynamicLogicPrim::update(float delta_time) const
     payload.delta_time = delta_time;
     payload.stage = prim.GetStage();
     payload.prim_path = prim.GetPath();
+    payload.has_simulation = false;
     if (simulation_begun)
         payload.is_simulating = true;
-    else
+    else {
+        payload.is_simulating = false;
         simulation_begun = true;
+    }
 
     node_tree_executor->execute(node_tree.get());
 }

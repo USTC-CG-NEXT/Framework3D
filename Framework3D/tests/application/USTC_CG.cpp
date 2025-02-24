@@ -69,6 +69,8 @@ int main()
             geom_global_params.stage = stage->get_usd_stage();
             geom_global_params.prim_path = json_path;
 
+            geom_global_params.has_simulation = false;
+
             system->set_global_params(geom_global_params);
 
             UsdBasedNodeWidgetSettings desc;

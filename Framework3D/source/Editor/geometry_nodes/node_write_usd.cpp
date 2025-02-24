@@ -211,6 +211,12 @@ NODE_EXECUTION_FUNCTION(write_usd)
                 pxr::TfToken("Animatable"), pxr::SdfValueTypeNames->Bool)
             .Set(true);
     }
+    else {
+        pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);
+        prim.CreateAttribute(
+                pxr::TfToken("Animatable"), pxr::SdfValueTypeNames->Bool)
+            .Set(false);
+    }
 
     pxr::UsdGeomImageable(stage->GetPrimAtPath(sdf_path)).MakeVisible();
     return true;
