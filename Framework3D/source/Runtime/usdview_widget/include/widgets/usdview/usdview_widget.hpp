@@ -6,6 +6,7 @@
 #include "pxr/base/tf/token.h"
 #include "pxr/usd/usd/stage.h"
 #include "pxr/usdImaging/usdImagingGL/engine.h"
+#include "stage/stage.hpp"
 #include "widgets/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
@@ -17,7 +18,7 @@ struct UsdviewEnginePrivateData;
 
 class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
    public:
-    explicit UsdviewEngine(pxr::UsdStageRefPtr root_stage);
+    explicit UsdviewEngine(Stage* stage);
     void ChooseRenderer(
         const pxr::TfTokenVector& available_renderers,
         unsigned i);
@@ -50,7 +51,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     struct Status {
         CamType cam_type =
             CamType::First;  // 0 for 1st personal, 1 for 3rd personal
-        unsigned renderer_id = 1;
+        unsigned renderer_id = 0;
     } engine_status;
 
     bool is_editing_ = false;
@@ -62,7 +63,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     pxr::UsdImagingGLRenderParams _renderParams;
     pxr::GfVec2i render_buffer_size_;
 
-    pxr::UsdStageRefPtr root_stage_;
+    Stage* stage_;
     pxr::HgiUniquePtr hgi;
     std::vector<uint8_t> texture_data_;
     const void* renderer_ui_control = nullptr;
@@ -71,6 +72,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
 
     void DrawMenuBar();
     void OnFrame(float delta_time);
+    void time_controller();
 
     static void CreateGLContext();
 
@@ -86,5 +88,8 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     void copy_to_presentation();
 
     std::unique_ptr<UsdviewEnginePrivateData> data_;
+
+    float timecode = 0;
+    float time_code_max = 250;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

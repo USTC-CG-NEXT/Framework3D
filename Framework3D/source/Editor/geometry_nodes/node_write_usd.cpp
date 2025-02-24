@@ -38,7 +38,7 @@ bool legal(const std::string& string)
 
 NODE_EXECUTION_FUNCTION(write_usd)
 {
-    auto global_payload = params.get_global_payload<GeomPayload>();
+    auto global_payload = params.get_global_payload<GeomPayload&>();
 
     auto geometry = params.get_input<Geometry>("Geometry");
 
@@ -203,6 +203,13 @@ NODE_EXECUTION_FUNCTION(write_usd)
             xform_op = usdgeom.AddTransformOp();
         }
         xform_op.Set(pxr::GfMatrix4d(1), time);
+    }
+
+    if (global_payload.has_simulation) {
+        pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);
+        prim.CreateAttribute(
+                pxr::TfToken("Animatable"), pxr::SdfValueTypeNames->Bool)
+            .Set(true);
     }
 
     pxr::UsdGeomImageable(stage->GetPrimAtPath(sdf_path)).MakeVisible();

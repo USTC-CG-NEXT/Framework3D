@@ -38,8 +38,7 @@ struct UsdviewEnginePrivateData {
     nvrhi::Format present_format = nvrhi::Format::RGBA32_FLOAT;
 };
 
-UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
-    : root_stage_(root_stage)
+UsdviewEngine::UsdviewEngine(Stage* stage) : stage_(stage)
 {
     data_ = std::make_unique<UsdviewEnginePrivateData>();
     // Initialize OpenGL context using WGL
@@ -62,15 +61,15 @@ UsdviewEngine::UsdviewEngine(pxr::UsdStageRefPtr root_stage)
     renderer_->SetEnablePresentation(false);
     free_camera_ = std::make_unique<FirstPersonCamera>();
 
-    auto prim =
-        pxr::UsdGeomCamera::Get(root_stage_, pxr::SdfPath("/FreeCamera"));
+    auto prim = pxr::UsdGeomCamera::Get(
+        stage_->get_usd_stage(), pxr::SdfPath("/FreeCamera"));
     if (prim) {
         *free_camera_ = prim;
     }
     else {
         static_cast<pxr::UsdGeomCamera&>(*free_camera_) =
             pxr::UsdGeomCamera::Define(
-                root_stage_, pxr::SdfPath("/FreeCamera"));
+                stage_->get_usd_stage(), pxr::SdfPath("/FreeCamera"));
 
         static_cast<FirstPersonCamera*>(free_camera_.get())
             ->LookAt(
@@ -252,7 +251,7 @@ void UsdviewEngine::OnFrame(float delta_time)
         renderer_->SetRendererSetting(setting.first, setting.second);
     }
 
-    UsdPrim root = root_stage_->GetPseudoRoot();
+    UsdPrim root = stage_->get_usd_stage()->GetPseudoRoot();
 
     // First try is there a hack?
     renderer_->Render(root, _renderParams);
@@ -323,25 +322,25 @@ void UsdviewEngine::OnFrame(float delta_time)
     ImGui::GetIO().WantCaptureMouse = true;
 
     ImGui::EndChild();
+    time_controller();
 }
 
-//
-// void UsdviewEngine::time_controller(float delta_time)
-//{
-//    if (is_active_ && ImGui::IsKeyPressed(ImGuiKey_Space)) {
-//        playing = !playing;
-//    }
-//    if (playing) {
-//        timecode += delta_time * GlobalUsdStage::timeCodesPerSecond;
-//        if (timecode > time_code_max) {
-//            timecode = 0;
-//        }
-//    }
-//
-//    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-//    if (ImGui::SliderFloat("Time##timecode", &timecode, 0, time_code_max)) {
-//    }
-//}
+void UsdviewEngine::time_controller()
+{
+    // if (is_active_ && ImGui::IsKeyPressed(ImGuiKey_Space)) {
+    //     playing = !playing;
+    // }
+    // if (playing) {
+    //     timecode += delta_time * GlobalUsdStage::timeCodesPerSecond;
+    //     if (timecode > time_code_max) {
+    //         timecode = 0;
+    //     }
+    // }
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::SliderFloat("Time##timecode", &timecode, 0, time_code_max)) {
+    }
+}
 
 // std::unique_ptr<USTC_CG::PickEvent> UsdviewEngine::get_pick_event()
 //{
@@ -464,6 +463,8 @@ bool UsdviewEngine::BuildUI()
 
     if (size_changed) {
         auto size = ImGui::GetContentRegionAvail();
+        if (size.y > 26)
+            size.y -= 26;
         RenderBackBufferResized(size.x, size.y);
     }
 

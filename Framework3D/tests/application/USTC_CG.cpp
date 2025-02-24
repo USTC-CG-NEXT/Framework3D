@@ -32,7 +32,7 @@ int main()
     // Add a sphere
 
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
-    auto render = std::make_unique<UsdviewEngine>(stage->get_usd_stage());
+    auto render = std::make_unique<UsdviewEngine>(stage.get());
 
     auto render_bare = render.get();
 
@@ -62,7 +62,6 @@ int main()
 
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
-            loaded = system->load_configuration("simulation_nodes.json");
             system->init();
             system->set_node_tree_executor(create_node_tree_executor({}));
 

@@ -7,4 +7,5 @@ struct GeomPayload {
 
     float delta_time = 0.0f;
     bool has_simulation = false;
+    bool is_simulating = false;
 };

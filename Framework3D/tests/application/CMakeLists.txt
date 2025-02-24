@@ -8,7 +8,6 @@ foreach(source ${test_sources})
 endforeach()
 
 add_dependencies(USTC_CG_test geometry_nodes)
-add_dependencies(USTC_CG_test simulation_nodes)
 add_dependencies(USTC_CG_test basic_nodes)
 add_dependencies(USTC_CG_test polyscope_nodes)
 add_dependencies(USTC_CG_test optimization)

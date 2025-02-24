@@ -26,8 +26,17 @@ WithDynamicLogicPrim::WithDynamicLogicPrim(const pxr::UsdPrim& prim)
     node_tree = std::make_shared<NodeTree>(node_tree_descriptor);
     NodeTreeExecutorDesc executor_desc;
     executor_desc.policy = NodeTreeExecutorDesc::Policy::Eager;
-    executor_desc.is_simulation = true;
+
     node_tree_executor = create_node_tree_executor(executor_desc);
+
+    auto json_path = prim.GetAttribute(pxr::TfToken("node_json"));
+    if (!json_path) {
+        return;
+    }
+
+    auto json = pxr::VtValue();
+    json_path.Get(&json);
+    node_tree->deserialize(json.Get<std::string>());
 }
 
 WithDynamicLogicPrim::WithDynamicLogicPrim(const WithDynamicLogicPrim& prim)
@@ -37,7 +46,7 @@ WithDynamicLogicPrim::WithDynamicLogicPrim(const WithDynamicLogicPrim& prim)
     NodeTreeExecutorDesc executor_desc;
 
     executor_desc.policy = NodeTreeExecutorDesc::Policy::Eager;
-    executor_desc.is_simulation = true;
+
     this->node_tree_executor = create_node_tree_executor(executor_desc);
 }
 
@@ -49,7 +58,7 @@ WithDynamicLogicPrim& WithDynamicLogicPrim::operator=(
     NodeTreeExecutorDesc executor_desc;
 
     executor_desc.policy = NodeTreeExecutorDesc::Policy::Eager;
-    executor_desc.is_simulation = true;
+
     this->node_tree_executor = create_node_tree_executor(executor_desc);
     return *this;
 }
@@ -61,6 +70,7 @@ void WithDynamicLogicPrim::update(float delta_time) const
 
     auto& payload = node_tree_executor->get_global_payload<GeomPayload&>();
     payload.delta_time = delta_time;
+    payload.is_simulating = true;
 
     node_tree_executor->execute(node_tree.get());
 }
