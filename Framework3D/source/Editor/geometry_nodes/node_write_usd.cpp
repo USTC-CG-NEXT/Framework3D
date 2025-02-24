@@ -20,7 +20,6 @@ NODE_DEF_OPEN_SCOPE
 NODE_DECLARATION_FUNCTION(write_usd)
 {
     b.add_input<Geometry>("Geometry");
-    b.add_input<float>("Time Code").default_val(0).min(0).max(240);
 }
 
 bool legal(const std::string& string)
@@ -38,7 +37,7 @@ bool legal(const std::string& string)
 
 NODE_EXECUTION_FUNCTION(write_usd)
 {
-    auto global_payload = params.get_global_payload<GeomPayload&>();
+    auto& global_payload = params.get_global_payload<GeomPayload&>();
 
     auto geometry = params.get_input<Geometry>("Geometry");
 
@@ -50,11 +49,7 @@ NODE_EXECUTION_FUNCTION(write_usd)
 
     assert(!(points && mesh));
 
-    auto t = params.get_input<float>("Time Code");
-    pxr::UsdTimeCode time = pxr::UsdTimeCode(t);
-    if (t == 0) {
-        time = pxr::UsdTimeCode::Default();
-    }
+    pxr::UsdTimeCode time = global_payload.current_time;
 
     auto stage = global_payload.stage;
     auto sdf_path = global_payload.prim_path;

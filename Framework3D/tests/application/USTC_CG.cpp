@@ -65,14 +65,6 @@ int main()
             system->init();
             system->set_node_tree_executor(create_node_tree_executor({}));
 
-            GeomPayload geom_global_params;
-            geom_global_params.stage = stage->get_usd_stage();
-            geom_global_params.prim_path = json_path;
-
-            geom_global_params.has_simulation = false;
-
-            system->set_global_params(geom_global_params);
-
             UsdBasedNodeWidgetSettings desc;
 
             desc.json_path = json_path;
@@ -81,6 +73,17 @@ int main()
 
             std::unique_ptr<IWidget> node_widget =
                 std::move(create_node_imgui_widget(desc));
+
+            node_widget->SetCallBack(
+                [&stage, json_path, system](Window*, IWidget*) {
+                    GeomPayload geom_global_params;
+                    geom_global_params.stage = stage->get_usd_stage();
+                    geom_global_params.prim_path = json_path;
+
+                    geom_global_params.has_simulation = false;
+
+                    system->set_global_params(geom_global_params);
+                });
 
             window->register_widget(std::move(node_widget));
         }

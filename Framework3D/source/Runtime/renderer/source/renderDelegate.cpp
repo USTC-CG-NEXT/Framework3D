@@ -237,9 +237,6 @@ HdRenderPassSharedPtr Hd_USTC_CG_RenderDelegate::CreateRenderPass(
     HdRenderIndex* index,
     const HdRprimCollection& collection)
 {
-    std::cout << "Create RenderPass with Collection=" << collection.GetName()
-              << std::endl;
-
     return std::make_shared<Hd_USTC_CG_RenderPass>(
         index, collection, &_renderThread, _renderer.get(), &_sceneVersion);
 }
@@ -250,7 +247,7 @@ HdRprim* Hd_USTC_CG_RenderDelegate::CreateRprim(
 {
     if (typeId == HdPrimTypeTokens->mesh) {
         auto mesh = new Hd_USTC_CG_Mesh(rprimId);
-        log::info(("Create Rprim id=" + rprimId.GetString()).c_str());
+        // log::info(("Create Rprim id=" + rprimId.GetString()).c_str());
 
         meshes.push_back(mesh);
         return mesh;
@@ -262,7 +259,7 @@ HdRprim* Hd_USTC_CG_RenderDelegate::CreateRprim(
 
 void Hd_USTC_CG_RenderDelegate::DestroyRprim(HdRprim* rPrim)
 {
-    log::info(("Destroy Rprim id=" + rPrim->GetId().GetString()).c_str());
+    // log::info(("Destroy Rprim id=" + rPrim->GetId().GetString()).c_str());
     meshes.erase(
         std::remove(meshes.begin(), meshes.end(), rPrim), meshes.end());
     delete rPrim;
@@ -342,7 +339,7 @@ HdSprim* Hd_USTC_CG_RenderDelegate::CreateFallbackSprim(const TfToken& typeId)
 
 void Hd_USTC_CG_RenderDelegate::DestroySprim(HdSprim* sPrim)
 {
-    log::info((sPrim->GetId().GetAsString() + " destroyed").c_str());
+    //log::info((sPrim->GetId().GetAsString() + " destroyed").c_str());
     lights.erase(
         std::remove(lights.begin(), lights.end(), sPrim), lights.end());
     cameras.erase(
@@ -356,9 +353,9 @@ HdBprim* Hd_USTC_CG_RenderDelegate::CreateBprim(
     const SdfPath& bprimId)
 {
     if (typeId == HdPrimTypeTokens->renderBuffer) {
-        log::info(("Create bprim: type id=" + typeId.GetString() +
-                   ",prim id = " + bprimId.GetString())
-                      .c_str());
+        //log::info(("Create bprim: type id=" + typeId.GetString() +
+        //           ",prim id = " + bprimId.GetString())
+        //              .c_str());
 
         return new Hd_USTC_CG_RenderBuffer(bprimId);
     }
@@ -382,7 +379,7 @@ void Hd_USTC_CG_RenderDelegate::DestroyBprim(HdBprim* bPrim)
     if (!bprim_name.empty()) {
         sentence += " id=" + bprim_name;
     }
-    log::info(sentence.c_str());
+    //log::info(sentence.c_str());
     delete bPrim;
 }
 
@@ -395,10 +392,10 @@ HdInstancer* Hd_USTC_CG_RenderDelegate::CreateInstancer(
 
 void Hd_USTC_CG_RenderDelegate::DestroyInstancer(HdInstancer* instancer)
 {
-    //TF_CODING_ERROR("Destroy instancer not supported");
+    // TF_CODING_ERROR("Destroy instancer not supported");
 
-    log::info(
-        ("Destroy Instancer id=" + instancer->GetId().GetString()).c_str());
+    //log::info(
+    //    ("Destroy Instancer id=" + instancer->GetId().GetString()).c_str());
 }
 
 HdRenderParam* Hd_USTC_CG_RenderDelegate::GetRenderParam() const
