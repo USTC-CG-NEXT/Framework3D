@@ -350,7 +350,7 @@ class ResourceAllocator {
         }
     }
 
-    static constexpr size_t CACHE_CAPACITY = 1u << 25u;  // 1 GiB
+    static constexpr size_t CACHE_CAPACITY = 1u << 30u;  // 1 GiB
 
     template<typename T>
     struct Hasher {
