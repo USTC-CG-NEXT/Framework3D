@@ -49,6 +49,7 @@ class GUI_API IWidget {
     std::function<void(Window*, IWidget*)> call_back_;
     ImDrawList* draw_list;
     ImVec2 window_pos;
+    bool is_focused = false;
 
     virtual void FirstUseEver() const;
 

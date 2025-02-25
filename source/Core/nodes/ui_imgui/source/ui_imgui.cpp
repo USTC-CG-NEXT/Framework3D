@@ -15,6 +15,7 @@
 #include "imgui/blueprint-utilities/images.inl"
 #include "imgui/blueprint-utilities/widgets.h"
 #include "imgui/imgui-node-editor/imgui_node_editor.h"
+#include "imgui_internal.h"
 #include "nodes/core/node_link.hpp"
 #include "nodes/core/node_tree.hpp"
 #include "nodes/core/socket.hpp"
@@ -132,18 +133,54 @@ NodeWidget::~NodeWidget()
     ed::DestroyEditor(m_Editor);
 }
 
-std::vector<Node*> NodeWidget::create_node_menu()
+std::vector<Node*> NodeWidget::create_node_menu(bool cursor)
 {
+    bool open_AddPopup = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow) &&
+                         ImGui::IsKeyReleased(ImGuiKey_Tab);
+
     auto& node_registry = tree_->get_descriptor()->node_registry;
 
     std::vector<Node*> nodes = {};
+
+    static char input[32]{ "" };
+
+    ImGui::Text("Add Node");
+    ImGui::Separator();
+    if (cursor)
+        ImGui::SetKeyboardFocusHere();
+    ImGui::InputText("##input", input, sizeof(input));
+    std::string subs(input);
 
     for (auto&& value : node_registry) {
         auto name = value.second.ui_name;
 
         auto id_name = value.second.id_name;
-        if (ImGui::MenuItem(name.c_str()))
-            nodes = add_node(id_name);
+        std::ranges::replace(subs, ' ', '_');
+
+        if (subs.size() > 0) {
+            ImGui::SetNextWindowSizeConstraints(
+                ImVec2(250.0f, 300.0f), ImVec2(-1.0f, 500.0f));
+
+            if (name.find(subs) != std::string::npos) {
+                if (ImGui::MenuItem(name.c_str()) ||
+                    (ImGui::IsItemFocused() &&
+                     ImGui::IsKeyPressed(ImGuiKey_Enter))) {
+                    nodes = add_node(id_name);
+                    memset(input, '\0', sizeof(input));
+                    ImGui::CloseCurrentPopup();
+                    break;
+                }
+            }
+        }
+        else {
+            ImGui::SetNextWindowSizeConstraints(
+                ImVec2(100, 10), ImVec2(-1, 300));
+
+            if (ImGui::MenuItem(name.c_str())) {
+                nodes = add_node(id_name);
+                break;
+            }
+        }
     }
 
     return nodes;
@@ -157,6 +194,8 @@ bool NodeWidget::BuildUI()
     }
     auto& io = ImGui::GetIO();
 
+    io.ConfigFlags =
+        ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable;
     ed::SetCurrentEditor(m_Editor);
 
     // if (ed::GetSelectedObjectCount() > 0) {
@@ -340,6 +379,7 @@ bool NodeWidget::BuildUI()
                         newNodeLinkPin = tree_->find_pin(pinId);
                         newLinkPin = nullptr;
                         ed::Suspend();
+                        create_new_node_search_cursor = true;
                         ImGui::OpenPopup("Create New Node");
                         ed::Resume();
                     }
@@ -390,6 +430,7 @@ bool NodeWidget::BuildUI()
         ImGui::OpenPopup("Link Context Menu");
     else if (ed::ShowBackgroundContextMenu()) {
         ImGui::OpenPopup("Create New Node");
+        create_new_node_search_cursor = true;
         newNodeLinkPin = nullptr;
     }
     ed::Resume();
@@ -480,7 +521,9 @@ bool NodeWidget::BuildUI()
             location_remembered = true;
         }
 
-        std::vector<Node*> nodes = create_node_menu();
+        std::vector<Node*> nodes =
+            create_node_menu(create_new_node_search_cursor);
+        create_new_node_search_cursor = false;
         // ImGui::Separator();
         // if (ImGui::MenuItem("Comment"))
         //     node = SpawnComment();
@@ -521,6 +564,9 @@ bool NodeWidget::BuildUI()
     ed::Resume();
 
     ed::End();
+
+    // None
+    // io.ConfigFlags = ImGuiConfigFlags_None;
 
     return true;
 }

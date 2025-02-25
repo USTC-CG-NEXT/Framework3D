@@ -85,6 +85,8 @@ bool ImGui_Renderer::Init(std::shared_ptr<ShaderFactory> shaderFactory)
     io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
     io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
     io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
+    io.KeyMap[ImGuiKey_Space] = GLFW_KEY_SPACE;
+
     // io.KeyMap[ImGuiKey_A] = 'A';
     // io.KeyMap[ImGuiKey_C] = 'C';
     // io.KeyMap[ImGuiKey_V] = 'V';
