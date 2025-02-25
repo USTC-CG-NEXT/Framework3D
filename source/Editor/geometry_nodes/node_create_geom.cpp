@@ -88,7 +88,14 @@ NODE_EXECUTION_FUNCTION(create_circle)
         points.push_back(point);
     }
 
+    pxr::VtArray<pxr::GfVec3f> normals;
+
+    for (int i = 0; i < resolution; ++i) {
+        normals.push_back(pxr::GfVec3f(0.0f, 0.0f, 1.0f));
+    }
+
     curve->set_vertices(points);
+    curve->set_curve_normals(normals);
     curve->set_vert_count({ resolution });
 
     curve->set_periodic(true);
@@ -135,8 +142,15 @@ NODE_EXECUTION_FUNCTION(create_spiral)
         points.push_back(point);
     }
 
+    pxr::VtArray<pxr::GfVec3f> normals;
+
+    for (int i = 0; i < resolution; ++i) {
+        normals.push_back(pxr::GfVec3f(0.0f, 0.0f, 1.0f));
+    }
+
     curve->set_vertices(points);
     curve->set_vert_count({ resolution });
+    curve->set_curve_normals(normals);
 
     // Since a spiral is not periodic, we don't set a wrap attribute like we did
     // for the circle.
