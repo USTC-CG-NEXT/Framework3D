@@ -423,12 +423,12 @@ bool NodeWidget::BuildUI()
             tree_->group_up(selectedNodes);
         }
 
-        if (ImGui::MenuItem("UnGroup")) {
-            auto node = tree_->find_node(contextNodeId);
-            if (node) {
-                tree_->ungroup(node);
+        if (node->is_node_group())
+            if (ImGui::MenuItem("UnGroup")) {
+                if (node) {
+                    tree_->ungroup(node);
+                }
             }
-        }
 
         if (ImGui::MenuItem("Delete"))
             ed::DeleteNode(contextNodeId);

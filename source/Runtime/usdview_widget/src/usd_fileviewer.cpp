@@ -353,18 +353,19 @@ void UsdFileViewer::show_right_click_menu()
             ImGui::EndMenu();
         }
 
-        if (ImGui::MenuItem("Import...")) {
-            is_selecting_file = true;
-            selecting_file_base = selected;
-        }
+        if (selected != pxr::SdfPath("/")) {
+            if (ImGui::MenuItem("Import...")) {
+                is_selecting_file = true;
+                selecting_file_base = selected;
+            }
+            if (ImGui::MenuItem("Edit")) {
+                stage->create_editor_at_path(selected);
+            }
 
-        if (ImGui::MenuItem("Edit")) {
-            stage->create_editor_at_path(selected);
-        }
-
-        if (ImGui::MenuItem("Delete")) {
-            to_delete = selected;
-            delete_pass_id = 3;
+            if (ImGui::MenuItem("Delete")) {
+                to_delete = selected;
+                delete_pass_id = 3;
+            }
         }
 
         ImGui::EndPopup();
