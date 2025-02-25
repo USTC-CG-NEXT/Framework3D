@@ -35,8 +35,7 @@ struct NODES_CORE_API ExeParams {
         }
         else {
             const int index = this->get_input_index(identifier);
-            const T& value = inputs_[index]->cast<const T&>();
-            return value;
+            return std::move(inputs_[index]->cast<T&&>());
         }
     }
 
@@ -134,7 +133,25 @@ struct NODES_CORE_API ExeParams {
 
     void set_output_group(
         const char* identifier,
-        const std::vector<entt::meta_any>& outputs);
+        const std::vector<entt::meta_any>& outputs) const
+    {
+        const auto indices = get_output_group_indices(identifier);
+        assert(indices.size() == outputs.size());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            *outputs_[indices[i]] = outputs[i];
+        }
+    }
+
+    void set_output_group(
+        const char* identifier,
+        std::vector<entt::meta_any>&& outputs) const
+    {
+        const auto indices = get_output_group_indices(identifier);
+        assert(indices.size() == outputs.size());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            *outputs_[indices[i]] = std::move(outputs[i]);
+        }
+    }
 
    private:
     int get_input_index(const char* identifier) const;
@@ -232,6 +249,5 @@ struct NodeTreeExecutorDesc {
         Eager,
         Lazy,
     } policy = Policy::Eager;
-
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

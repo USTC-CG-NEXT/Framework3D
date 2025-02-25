@@ -9,6 +9,9 @@
 #include "GCore/api.h"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
+
+#define USE_USD_SCRATCH_BUFFER 0
+
 class Stage;
 struct GeometryComponent;
 class Geometry;
@@ -78,6 +81,8 @@ std::shared_ptr<OperandType> Geometry::get_component(size_t idx) const
 
 void GEOMETRY_API init(Stage* stage);
 
+#if USE_USD_SCRATCH_BUFFER
 void GEOMETRY_API copy_prim(const pxr::UsdPrim& from, const pxr::UsdPrim& to);
+#endif
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
