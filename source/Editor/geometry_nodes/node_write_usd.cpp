@@ -57,7 +57,39 @@ NODE_EXECUTION_FUNCTION(write_usd)
     if (mesh) {
         pxr::UsdGeomMesh usdgeom = pxr::UsdGeomMesh::Define(stage, sdf_path);
         if (usdgeom) {
+#if USE_USD_SCRATCH_BUFFER
             copy_prim(mesh->get_usd_mesh().GetPrim(), usdgeom.GetPrim());
+#else
+            usdgeom.CreatePointsAttr().Set(mesh->get_vertices());
+            usdgeom.CreateFaceVertexCountsAttr().Set(
+                mesh->get_face_vertex_counts());
+            usdgeom.CreateFaceVertexIndicesAttr().Set(
+                mesh->get_face_vertex_indices());
+            usdgeom.CreateNormalsAttr().Set(mesh->get_normals());
+            if (!mesh->get_display_color().empty()) {
+                auto primVarAPI = pxr::UsdGeomPrimvarsAPI(usdgeom);
+                auto colorPrimvar = primVarAPI.CreatePrimvar(
+                    pxr::TfToken("displayColor"),
+                    pxr::SdfValueTypeNames->Color3fArray);
+                colorPrimvar.SetInterpolation(pxr::UsdGeomTokens->vertex);
+                colorPrimvar.Set(mesh->get_display_color());
+            }
+            if (!mesh->get_texcoords_array().empty()) {
+                auto primVarAPI = pxr::UsdGeomPrimvarsAPI(usdgeom);
+                auto primvar = primVarAPI.CreatePrimvar(
+                    pxr::TfToken("UVMap"),
+                    pxr::SdfValueTypeNames->TexCoord2fArray);
+                primvar.Set(mesh->get_texcoords_array());
+                if (mesh->get_texcoords_array().size() ==
+                    mesh->get_vertices().size()) {
+                    primvar.SetInterpolation(pxr::UsdGeomTokens->vertex);
+                }
+                else {
+                    primvar.SetInterpolation(pxr::UsdGeomTokens->faceVarying);
+                }
+            }
+
+#endif
             usdgeom.CreateDoubleSidedAttr().Set(true);
         }
     }
@@ -84,7 +116,19 @@ NODE_EXECUTION_FUNCTION(write_usd)
         pxr::UsdGeomBasisCurves usd_curve =
             pxr::UsdGeomBasisCurves::Define(stage, sdf_path);
         if (usd_curve) {
+#if USE_USD_SCRATCH_BUFFER
             copy_prim(curve->get_usd_curve().GetPrim(), usd_curve.GetPrim());
+#else
+            usd_curve.CreatePointsAttr().Set(curve->get_vertices());
+            usd_curve.CreateWidthsAttr().Set(curve->get_width());
+            usd_curve.CreateCurveVertexCountsAttr().Set(
+                curve->get_vert_count());
+            usd_curve.CreateNormalsAttr().Set(curve->get_curve_normals());
+            usd_curve.CreateDisplayColorAttr().Set(curve->get_display_color());
+            usd_curve.CreateWrapAttr().Set(
+                curve->get_periodic() ? pxr::UsdGeomTokens->periodic
+                                      : pxr::UsdGeomTokens->nonperiodic);
+#endif
         }
     }
 

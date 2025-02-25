@@ -26,56 +26,80 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
     }
 
     std::string to_string() const override;
-
     GeometryComponentHandle copy(Geometry* operand) const override;
+
     [[nodiscard]] pxr::VtArray<pxr::GfVec3f> get_vertices() const
     {
+#if USE_USD_SCRATCH_BUFFER
         pxr::VtArray<pxr::GfVec3f> vertices;
         if (mesh.GetPointsAttr())
             mesh.GetPointsAttr().Get(&vertices);
         return vertices;
+#else
+        return vertices;
+#endif
     }
 
     [[nodiscard]] pxr::VtArray<int> get_face_vertex_counts() const
     {
+#if USE_USD_SCRATCH_BUFFER
         pxr::VtArray<int> faceVertexCounts;
         if (mesh.GetFaceVertexCountsAttr())
             mesh.GetFaceVertexCountsAttr().Get(&faceVertexCounts);
         return faceVertexCounts;
+#else
+        return faceVertexCounts;
+#endif
     }
 
     [[nodiscard]] pxr::VtArray<int> get_face_vertex_indices() const
     {
+#if USE_USD_SCRATCH_BUFFER
         pxr::VtArray<int> faceVertexIndices;
         if (mesh.GetFaceVertexIndicesAttr())
             mesh.GetFaceVertexIndicesAttr().Get(&faceVertexIndices);
         return faceVertexIndices;
+#else
+        return faceVertexIndices;
+#endif
     }
 
     [[nodiscard]] pxr::VtArray<pxr::GfVec3f> get_normals() const
     {
+#if USE_USD_SCRATCH_BUFFER
         pxr::VtArray<pxr::GfVec3f> normals;
         if (mesh.GetNormalsAttr())
             mesh.GetNormalsAttr().Get(&normals);
         return normals;
+#else
+        return normals;
+#endif
     }
 
     [[nodiscard]] pxr::VtArray<pxr::GfVec3f> get_display_color() const
     {
+#if USE_USD_SCRATCH_BUFFER
         pxr::VtArray<pxr::GfVec3f> displayColor;
         if (mesh.GetDisplayColorAttr())
             mesh.GetDisplayColorAttr().Get(&displayColor);
         return displayColor;
+#else
+        return displayColor;
+#endif
     }
 
     [[nodiscard]] pxr::VtArray<pxr::GfVec2f> get_texcoords_array() const
     {
+#if USE_USD_SCRATCH_BUFFER
         pxr::VtArray<pxr::GfVec2f> texcoordsArray;
         auto PrimVarAPI = pxr::UsdGeomPrimvarsAPI(mesh);
         auto primvar = PrimVarAPI.GetPrimvar(pxr::TfToken("UVMap"));
         if (primvar)
             primvar.Get(&texcoordsArray);
         return texcoordsArray;
+#else
+        return texcoordsArray;
+#endif
     }
 
     [[nodiscard]] pxr::VtArray<pxr::VtArray<float>>
@@ -125,49 +149,72 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
     {
         return vertex_parameterization_quantities;
     }
-
     void set_vertices(const pxr::VtArray<pxr::GfVec3f>& vertices)
     {
+#if USE_USD_SCRATCH_BUFFER
         mesh.CreatePointsAttr().Set(vertices);
+#else
+        this->vertices = vertices;
+#endif
     }
 
     void set_face_vertex_counts(const pxr::VtArray<int>& face_vertex_counts)
     {
+#if USE_USD_SCRATCH_BUFFER
         mesh.CreateFaceVertexCountsAttr().Set(face_vertex_counts);
+#else
+        this->faceVertexCounts = face_vertex_counts;
+#endif
     }
 
     void set_face_vertex_indices(const pxr::VtArray<int>& face_vertex_indices)
     {
+#if USE_USD_SCRATCH_BUFFER
         mesh.CreateFaceVertexIndicesAttr().Set(face_vertex_indices);
+#else
+        this->faceVertexIndices = face_vertex_indices;
+#endif
     }
 
     void set_normals(const pxr::VtArray<pxr::GfVec3f>& normals)
     {
+#if USE_USD_SCRATCH_BUFFER
         mesh.CreateNormalsAttr().Set(normals);
+#else
+        this->normals = normals;
+#endif
     }
+
     void set_texcoords_array(const pxr::VtArray<pxr::GfVec2f>& texcoords_array)
     {
+#if USE_USD_SCRATCH_BUFFER
         auto PrimVarAPI = pxr::UsdGeomPrimvarsAPI(mesh);
         auto primvar = PrimVarAPI.CreatePrimvar(
             pxr::TfToken("UVMap"), pxr::SdfValueTypeNames->TexCoord2fArray);
         primvar.Set(texcoords_array);
 
-        // Here only consider two modes
         if (get_texcoords_array().size() == get_vertices().size()) {
             primvar.SetInterpolation(pxr::UsdGeomTokens->vertex);
         }
         else {
             primvar.SetInterpolation(pxr::UsdGeomTokens->faceVarying);
         }
+#else
+        this->texcoordsArray = texcoords_array;
+#endif
     }
 
     void set_display_color(const pxr::VtArray<pxr::GfVec3f>& display_color)
     {
+#if USE_USD_SCRATCH_BUFFER
         auto PrimVarAPI = pxr::UsdGeomPrimvarsAPI(mesh);
         pxr::UsdGeomPrimvar colorPrimvar = PrimVarAPI.CreatePrimvar(
             pxr::TfToken("displayColor"), pxr::SdfValueTypeNames->Color3fArray);
         colorPrimvar.SetInterpolation(pxr::UsdGeomTokens->vertex);
         colorPrimvar.Set(display_color);
+#else
+        this->displayColor = display_color;
+#endif
     }
 
     void set_vertex_scalar_quantities(
@@ -260,12 +307,25 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
         vertex_parameterization_quantities.push_back(parameterization);
     }
 
+#if USE_USD_SCRATCH_BUFFER
     void set_mesh_geom(const pxr::UsdGeomMesh& usdgeom);
     pxr::UsdGeomMesh get_usd_mesh() const;
+#endif
     void append_mesh(const std::shared_ptr<MeshComponent>& mesh);
 
    private:
+#if USE_USD_SCRATCH_BUFFER
     pxr::UsdGeomMesh mesh;
+
+#else
+    // Local cache for mesh attributes when USD cache is not enabled
+    pxr::VtArray<pxr::GfVec3f> vertices;
+    pxr::VtArray<int> faceVertexCounts;
+    pxr::VtArray<int> faceVertexIndices;
+    pxr::VtArray<pxr::GfVec3f> normals;
+    pxr::VtArray<pxr::GfVec3f> displayColor;
+    pxr::VtArray<pxr::GfVec2f> texcoordsArray;
+#endif
 
     // After adding these quantities, you need to modify the copy() function
 

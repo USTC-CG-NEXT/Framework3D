@@ -56,9 +56,49 @@ NODE_EXECUTION_FUNCTION(read_usd)
         // Here 'c_str' call is necessary since prim_path
         auto sdf_path = pxr::SdfPath(prim_path.c_str());
         pxr::UsdGeomMesh usdgeom = pxr::UsdGeomMesh::Get(stage, sdf_path);
-        
+
         if (usdgeom) {
+#if USE_USD_SCRATCH_BUFFER
             mesh->set_mesh_geom(usdgeom);
+#else
+            {
+                pxr::VtArray<pxr::GfVec3f> points;
+                if (usdgeom.GetPointsAttr())
+                    usdgeom.GetPointsAttr().Get(&points, time);
+                mesh->set_vertices(points);
+
+                pxr::VtArray<int> counts;
+                if (usdgeom.GetFaceVertexCountsAttr())
+                    usdgeom.GetFaceVertexCountsAttr().Get(&counts, time);
+                mesh->set_face_vertex_counts(counts);
+
+                pxr::VtArray<int> indices;
+                if (usdgeom.GetFaceVertexIndicesAttr())
+                    usdgeom.GetFaceVertexIndicesAttr().Get(&indices, time);
+                mesh->set_face_vertex_indices(indices);
+
+                pxr::VtArray<pxr::GfVec3f> norms;
+                if (usdgeom.GetNormalsAttr())
+                    usdgeom.GetNormalsAttr().Get(&norms, time);
+                mesh->set_normals(norms);
+
+                pxr::VtArray<pxr::GfVec3f> colors;
+                if (usdgeom.GetDisplayColorAttr())
+                    usdgeom.GetDisplayColorAttr().Get(&colors, time);
+                mesh->set_display_color(colors);
+
+                {
+                    pxr::UsdGeomPrimvarsAPI primVarAPI(usdgeom);
+                    auto primvar = primVarAPI.GetPrimvar(pxr::TfToken("UVMap"));
+                    if (primvar) {
+                        pxr::VtArray<pxr::GfVec2f> texcoords;
+                        primvar.Get(&texcoords, time);
+                        mesh->set_texcoords_array(texcoords);
+                    }
+                }
+            }
+
+#endif
 
             pxr::GfMatrix4d final_transform =
                 usdgeom.ComputeLocalToWorldTransform(time);
