@@ -94,20 +94,34 @@ NODE_EXECUTION_FUNCTION(curve_to_mesh)
 
         for (int j = 0; j < profile_curve_verts.size(); ++j) {
             auto new_pos = tbn * profile_curve_verts[j] + guide_curve_verts[i];
+            verticies.push_back(new_pos);
         }
+        // Removed per-iteration face count; faces will be built after vertex
+        // generation.
+    }
 
-        if (!last_of_nonperiodic) {
+    // Build face indices and face counts from the swept vertices.
+    int profileCount = profile_curve_verts.size();
+    int rings = guide_curve_verts.size();
+    for (int i = 0; i < rings - 1; i++) {
+        int ring1Index = i * profileCount;
+        int ring2Index = (i + 1) * profileCount;
+        for (int j = 0; j < profileCount; j++) {
+            int next_j = (j + 1) % profileCount;
+            face_vertex_indices.push_back(ring1Index + j);
+            face_vertex_indices.push_back(ring2Index + j);
+            face_vertex_indices.push_back(ring2Index + next_j);
+            face_vertex_indices.push_back(ring1Index + next_j);
             face_vertex_counts.push_back(4);
         }
     }
-
     mesh->set_vertices(verticies);
-
     mesh->set_face_vertex_counts(face_vertex_counts);
 
     mesh->set_face_vertex_indices(face_vertex_indices);
 
     mesh->set_texcoords_array(texcoords_array);
+    params.set_output("Mesh", mesh_geom);
     return true;
 }
 
