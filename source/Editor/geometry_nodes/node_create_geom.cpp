@@ -91,8 +91,7 @@ NODE_EXECUTION_FUNCTION(create_circle)
     curve->set_vertices(points);
     curve->set_vert_count({ resolution });
 
-    curve->get_usd_curve().CreateWrapAttr(
-        pxr::VtValue(pxr::UsdGeomTokens->periodic));
+    curve->set_periodic(true);
 
     params.set_output("Circle", std::move(geometry));
     return true;

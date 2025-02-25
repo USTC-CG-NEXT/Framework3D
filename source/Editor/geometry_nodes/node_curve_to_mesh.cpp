@@ -29,16 +29,13 @@ NODE_EXECUTION_FUNCTION(curve_to_mesh)
     // Calculate the transformation
 
     // The curve must have a normal.
-    pxr::VtArray<GfVec3f> curve_normals;
-    curve->get_usd_curve().GetNormalsAttr().Get(&curve_normals);
+    pxr::VtArray<GfVec3f> curve_normals = curve->get_curve_normals();
     // Only rotation is needed here.
 
     auto guide_curve_verts = curve->get_vertices();
     auto profile_curve_verts = profile_curve->get_vertices();
 
-    VtValue periodic;
-    curve->get_usd_curve().GetWrapAttr().Get(&periodic);
-    bool guide_curve_periodic = periodic == UsdGeomTokens->periodic;
+    bool guide_curve_periodic = curve->get_periodic();
 
     auto vert_count = guide_curve_verts.size();
 

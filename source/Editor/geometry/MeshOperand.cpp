@@ -15,10 +15,8 @@ MeshComponent::MeshComponent(Geometry* attached_operand)
         std::to_string(reinterpret_cast<long long>(this)));
     mesh =
         pxr::UsdGeomMesh::Define(g_stage->get_usd_stage(), scratch_buffer_path);
-#else
-
-#endif
     pxr::UsdGeomImageable(mesh).MakeInvisible();
+#endif
 }
 
 MeshComponent::~MeshComponent()
@@ -81,11 +79,19 @@ void copy_prim(const pxr::UsdPrim& from, const pxr::UsdPrim& to)
     }
 }
 #endif
-
 GeometryComponentHandle MeshComponent::copy(Geometry* operand) const
 {
     auto ret = std::make_shared<MeshComponent>(operand);
-    copy_prim(this->mesh.GetPrim(), ret->mesh.GetPrim());
+#if USE_USD_SCRATCH_BUFFER
+    copy_prim(mesh.GetPrim(), ret->mesh.GetPrim());
+    pxr::UsdGeomImageable(mesh).MakeInvisible();
+#else
+    ret->set_vertices(this->vertices);
+    ret->set_face_vertex_counts(this->faceVertexCounts);
+    ret->set_face_vertex_indices(this->faceVertexIndices);
+    ret->set_normals(this->normals);
+    ret->set_display_color(this->displayColor);
+#endif
     ret->set_vertex_scalar_quantities(this->vertex_scalar_quantities);
     ret->set_face_scalar_quantities(this->face_scalar_quantities);
     ret->set_vertex_color_quantities(this->vertex_color_quantities);
@@ -99,10 +105,10 @@ GeometryComponentHandle MeshComponent::copy(Geometry* operand) const
     return ret;
 }
 
+#if USE_USD_SCRATCH_BUFFER
 void MeshComponent::set_mesh_geom(const pxr::UsdGeomMesh& usdgeom)
 {
     copy_prim(usdgeom.GetPrim(), mesh.GetPrim());
-
     pxr::UsdGeomImageable(mesh).MakeInvisible();
 }
 
@@ -110,6 +116,7 @@ pxr::UsdGeomMesh MeshComponent::get_usd_mesh() const
 {
     return mesh;
 }
+#endif
 
 void MeshComponent::append_mesh(const std::shared_ptr<MeshComponent>& mesh)
 
