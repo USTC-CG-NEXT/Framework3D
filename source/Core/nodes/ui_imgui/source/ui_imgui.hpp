@@ -33,7 +33,7 @@ class NodeWidget : public IWidget {
     explicit NodeWidget(const NodeWidgetSettings& desc);
 
     ~NodeWidget() override;
-    std::vector<Node*> create_node_menu();
+    std::vector<Node*> create_node_menu(bool cursor);
     bool BuildUI() override;
 
    protected:
@@ -65,6 +65,7 @@ class NodeWidget : public IWidget {
     ImVec2 newNodePostion;
     bool location_remembered = false;
     std::shared_ptr<NodeSystem> system_;
+    bool create_new_node_search_cursor;
     static const int m_PinIconSize = 20;
 
     std::string widget_name;

@@ -137,6 +137,7 @@ void IWidget::SetStatus()
         size_changed = true;
         width = ImGui::GetWindowWidth();
         height = ImGui::GetWindowHeight();
+        is_focused = ImGui::IsWindowFocused();
     }
 }
 
