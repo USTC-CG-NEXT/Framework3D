@@ -8,11 +8,16 @@ USTC_CG_NAMESPACE_OPEN_SCOPE
 MeshComponent::MeshComponent(Geometry* attached_operand)
     : GeometryComponent(attached_operand)
 {
+#if USE_USD_SCRATCH_BUFFER
+
     scratch_buffer_path = pxr::SdfPath(
         "/scratch_buffer/mesh_component_" +
         std::to_string(reinterpret_cast<long long>(this)));
     mesh =
         pxr::UsdGeomMesh::Define(g_stage->get_usd_stage(), scratch_buffer_path);
+#else
+
+#endif
     pxr::UsdGeomImageable(mesh).MakeInvisible();
 }
 
@@ -32,6 +37,8 @@ std::string MeshComponent::to_string() const
 }
 
 using namespace pxr;
+#if USE_USD_SCRATCH_BUFFER
+
 void CopyPrimvar(const UsdGeomPrimvar& sourcePrimvar, const UsdPrim& destPrim)
 {
     // Create or get the corresponding primvar on the destination prim
@@ -73,6 +80,7 @@ void copy_prim(const pxr::UsdPrim& from, const pxr::UsdPrim& to)
         }
     }
 }
+#endif
 
 GeometryComponentHandle MeshComponent::copy(Geometry* operand) const
 {

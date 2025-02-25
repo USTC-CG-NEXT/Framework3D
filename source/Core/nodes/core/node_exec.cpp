@@ -6,16 +6,6 @@
 #include "nodes/core/socket.hpp"
 
 USTC_CG_NAMESPACE_OPEN_SCOPE
-void ExeParams::set_output_group(
-    const char* identifier,
-    const std::vector<entt::meta_any>& outputs)
-{
-    const auto indices = get_output_group_indices(identifier);
-    assert(indices.size() == outputs.size());
-    for (size_t i = 0; i < indices.size(); ++i) {
-        *outputs_[indices[i]] = outputs[i];
-    }
-}
 
 int ExeParams::get_input_index(const char* identifier) const
 {
