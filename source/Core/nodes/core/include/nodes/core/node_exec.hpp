@@ -35,7 +35,7 @@ struct NODES_CORE_API ExeParams {
         }
         else {
             const int index = this->get_input_index(identifier);
-            return std::move(inputs_[index]->cast<T&&>());
+            return inputs_[index]->cast<T>();
         }
     }
 

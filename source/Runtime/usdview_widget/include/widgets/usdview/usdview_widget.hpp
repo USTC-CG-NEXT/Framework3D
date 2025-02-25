@@ -51,7 +51,7 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     struct Status {
         CamType cam_type =
             CamType::First;  // 0 for 1st personal, 1 for 3rd personal
-        unsigned renderer_id = 0;
+        unsigned renderer_id = 1;
     } engine_status;
 
     bool is_editing_ = false;
