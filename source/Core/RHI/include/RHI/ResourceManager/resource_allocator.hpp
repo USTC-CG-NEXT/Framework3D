@@ -52,6 +52,7 @@ class ResourceAllocator {
             payload,                                  \
             CACHE_NAME(RESOURCE),                     \
             INUSE_NAME(RESOURCE));                    \
+        return;                                       \
     }
 
 #define RESOLVE_DESTROY(RESOURCE)                       \
@@ -232,7 +233,14 @@ class ResourceAllocator {
         }
         else {
             handle = create_resource<RESOURCE>(desc, rest...);
+
+            if constexpr (std::is_same_v<BindingSetHandle, RESOURCE>) {
+                for (auto& resource : desc.bindings) {
+                    mRelatedBindingSets.emplace(resource.resourceHandle, desc);
+                }
+            }
         }
+
         inUseCache.emplace(handle, desc);
     }
 
@@ -292,6 +300,44 @@ class ResourceAllocator {
 
             auto curr = cache.begin();
             while (cacheSize >= CACHE_CAPACITY) {
+                if constexpr (
+                    std::is_same_v<TextureHandle, RESOURCE> ||
+                    std::is_same_v<BufferHandle, RESOURCE> ||
+                    std::is_same_v<SamplerHandle, RESOURCE>) {
+                    auto resource = curr->second.handle;
+
+                    auto related_binding_set =
+                        mRelatedBindingSets.find(resource);
+
+                    if (related_binding_set != mRelatedBindingSets.end()) {
+                        auto pointed_binding_set_desc =
+                            related_binding_set->second;
+
+                        auto binding_set_outdated =
+                            mBindingSetCache.find(related_binding_set->second);
+
+                        // At least, in the beginning, the binding set should be
+                        // in the cache
+                        assert(binding_set_outdated != mBindingSetCache.end());
+                        auto binding_set = binding_set_outdated->second;
+
+                        while (binding_set_outdated != mBindingSetCache.end()) {
+                            mBindingSetCache.erase(binding_set_outdated);
+                            binding_set_outdated = mBindingSetCache.find(
+                                related_binding_set->second);
+                        }
+
+                        // remove the related binding set, whose value is
+                        // related_binding_set->second
+
+                        std::erase_if(
+                            mRelatedBindingSets,
+                            [&pointed_binding_set_desc](const auto& pair) {
+                                return pair.second == pointed_binding_set_desc;
+                            });
+                    }
+                }
+
                 purge(cache_in.find(curr->first));
                 ++curr;
             }
@@ -304,7 +350,7 @@ class ResourceAllocator {
         }
     }
 
-    static constexpr size_t CACHE_CAPACITY = 64u << 20u;  // 64 MiB
+    static constexpr size_t CACHE_CAPACITY = 1u << 25u;  // 1 GiB
 
     template<typename T>
     struct Hasher {
@@ -316,7 +362,7 @@ class ResourceAllocator {
 
     void dump(bool brief = false, uint32_t cacheSize = 0) const noexcept;
 
-#define USE_STD_MAP
+// #define USE_STD_MAP
 #ifdef USE_STD_MAP
     template<typename Key, typename Value>
     using AssociativeContainer = std::unordered_multimap<Key, Value>;
@@ -383,6 +429,9 @@ class ResourceAllocator {
 
     size_t mAge = 0;
     static constexpr bool mEnabled = true;
+
+    std::unordered_multimap<nvrhi::IResource*, nvrhi::BindingSetDesc>
+        mRelatedBindingSets;
 };
 
 #ifndef USE_STD_MAP
