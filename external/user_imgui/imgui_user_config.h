@@ -28,7 +28,7 @@
 // #define IMGUI_API __declspec( dllimport )
 // #endif
 #ifndef IMGUI_API
-if defined(_WIN32) 
+#if defined(_WIN32)
 #define IMGUI_API __declspec(dllimport)
 #else
 #define IMGUI_API
