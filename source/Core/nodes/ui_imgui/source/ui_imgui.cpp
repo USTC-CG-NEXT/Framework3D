@@ -421,6 +421,14 @@ bool NodeWidget::BuildUI()
     }
 
     auto openPopupPosition = ImGui::GetMousePos();
+
+    std::vector<NodeId> selectedNodes;
+    selectedNodes.resize(ed::GetSelectedObjectCount());
+
+    int nodeCount = ed::GetSelectedNodes(
+        selectedNodes.data(), static_cast<int>(selectedNodes.size()));
+    selectedNodes.resize(nodeCount);
+
     ed::Suspend();
     if (ed::ShowNodeContextMenu(&contextNodeId))
         ImGui::OpenPopup("Node Context Menu");
@@ -433,9 +441,7 @@ bool NodeWidget::BuildUI()
         create_new_node_search_cursor = true;
         newNodeLinkPin = nullptr;
     }
-    ed::Resume();
 
-    ed::Suspend();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
     if (ImGui::BeginPopup("Node Context Menu")) {
         auto node = tree_->find_node(contextNodeId);
@@ -453,21 +459,19 @@ bool NodeWidget::BuildUI()
         if (ImGui::MenuItem("Run")) {
             system_->execute(true, node);
         }
-        if (ImGui::MenuItem("Group")) {
-            std::vector<NodeId> selectedNodes;
-            selectedNodes.resize(ed::GetSelectedObjectCount());
-
-            int nodeCount = ed::GetSelectedNodes(
-                selectedNodes.data(), static_cast<int>(selectedNodes.size()));
-            selectedNodes.resize(nodeCount);
-
-            tree_->group_up(selectedNodes);
-        }
-
         if (node->is_node_group())
             if (ImGui::MenuItem("UnGroup")) {
                 if (node) {
                     tree_->ungroup(node);
+                }
+            }
+
+        if (selectedNodes.size() > 1)
+            if (ImGui::MenuItem("Group")) {
+                auto group_node = tree_->group_up(selectedNodes);
+                if (group_node) {
+                    tree_->SetDirty();
+                    ed::SetNodePosition(group_node->ID, openPopupPosition);
                 }
             }
 

@@ -509,8 +509,8 @@ NodeGroup* NodeTree::group_up(std::vector<Node*> nodes_to_group)
     auto group_node = create_group_node(this);
 
     // TODO: keep the outside UI subsettings
-    auto serialized =
-        tree_serialize(nodes_to_group, links_to_group, sockets_to_group, "");
+    auto serialized = tree_serialize(
+        nodes_to_group, links_to_group, sockets_to_group, ui_settings);
     group_node->sub_tree->deserialize(serialized);
 
     group_node->group_in = create_group_node_in(group_node->sub_tree.get());
