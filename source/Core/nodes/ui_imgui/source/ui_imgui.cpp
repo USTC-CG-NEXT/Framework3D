@@ -462,6 +462,7 @@ bool NodeWidget::BuildUI()
         if (node->is_node_group())
             if (ImGui::MenuItem("UnGroup")) {
                 if (node) {
+                    ed::DeleteNode(node->ID);
                     tree_->ungroup(node);
                 }
             }
