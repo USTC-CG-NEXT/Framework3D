@@ -31,7 +31,7 @@ int init(bool with_window, bool use_dx12)
     DeviceCreationParameters params;
 
     params.enableRayTracingExtensions = true;
-    params.enableComputeQueue = true;
+    params.enableComputeQueue = false;
     params.enableCopyQueue = true;
     //params.adapterIndex = 0;
 
