@@ -32,7 +32,7 @@ int init(bool with_window, bool use_dx12)
 
     params.enableRayTracingExtensions = true;
     params.enableComputeQueue = false;
-    params.enableCopyQueue = true;
+    params.enableCopyQueue = false;
     //params.adapterIndex = 0;
 
     params.optionalVulkanInstanceExtensions = {
