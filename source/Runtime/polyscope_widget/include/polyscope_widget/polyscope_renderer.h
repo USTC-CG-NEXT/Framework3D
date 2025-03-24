@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <memory>
+#include <vector>
 
 #include "GUI/widget.h"
 #include "imgui.h"
@@ -50,6 +51,20 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
         return pick_result;
     }
 
+    static std::vector<size_t> GetControlPoints(
+        const std::string& structure_name)
+    {
+        std::vector<size_t> control_points;
+        for (const auto& [pickResult, structure] :
+             visualization_structure_map) {
+            if (pickResult.first->getName() == structure_name &&
+                structure != nullptr) {
+                control_points.push_back(pickResult.second);
+            }
+        }
+        return control_points;
+    }
+
    protected:
     ImGuiWindowFlags GetWindowFlag() override;
     const char* GetWindowName() override;
@@ -86,7 +101,11 @@ class POLYSCOPE_WIDGET_API PolyscopeRenderer final : public IWidget {
     void DrawFrame();
 
     static std::vector<std::pair<polyscope::Structure*, size_t>> pick_result;
-    polyscope::Structure* curr_visualization_structure = nullptr;
+    // polyscope::Structure* curr_visualization_structure = nullptr;
+
+    static std::
+        map<std::pair<polyscope::Structure*, size_t>, polyscope::Structure*>
+            visualization_structure_map;
 
     void VisualizePickVertexGizmo(
         std::pair<polyscope::Structure*, size_t> pickResult);
