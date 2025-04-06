@@ -222,7 +222,7 @@ void UsdviewEngine::OnFrame(float delta_time)
     _renderParams.enableSceneMaterials = true;
     _renderParams.showRender = true;
     if (timecode == 0)
-        _renderParams.frame = UsdTimeCode::Default();
+        _renderParams.frame = UsdTimeCode(0);
     else {
         _renderParams.frame = std::min(
             UsdTimeCode(stage_->get_current_time()),
