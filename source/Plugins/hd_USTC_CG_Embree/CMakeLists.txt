@@ -18,4 +18,5 @@ if (ENABLE_EMBREE_BASED_RENDERER)
 		RESOURCE_COPY_TARGET ${OUT_BINARY_DIR}/usd/hd_USTC_CG_Embree/resources
 	)
 
+
 endif()

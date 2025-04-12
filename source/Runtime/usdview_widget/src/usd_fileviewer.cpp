@@ -5,7 +5,7 @@
 #include <future>
 #include <iostream>
 #include <vector>
-
+#include <filesystem>
 #include "GUI/ImGuiFileDialog.h"
 #include "Logger/Logger.h"
 #include "imgui.h"
@@ -486,7 +486,8 @@ void UsdFileViewer::show_right_click_menu()
 
         if (ImGui::BeginMenu("Create Light")) {
             if (ImGui::MenuItem("Dome Light")) {
-                stage->create_dome_light(selected);
+                is_config_dome = true;
+                selected_for_dome = selected;
             }
             if (ImGui::MenuItem("Disk Light")) {
                 stage->create_disk_light(selected);
@@ -502,6 +503,8 @@ void UsdFileViewer::show_right_click_menu()
             }
             ImGui::EndMenu();
         }
+
+
 
         if (selected != pxr::SdfPath("/")) {
             if (ImGui::MenuItem("Import...")) {
@@ -520,6 +523,38 @@ void UsdFileViewer::show_right_click_menu()
 
         ImGui::EndPopup();
     }
+}
+
+void UsdFileViewer::conf_dome(){
+    if (!is_config_dome) return ;
+    ImGui::Begin("Config dome");
+
+    ImGui::InputTextWithHint("Envmap path", "Input the relative path to the env map", buf, 255);
+    std::string relative_path(buf);
+    namespace fs = std::filesystem;
+
+    bool invalid = false;
+    ImGui::Text(selected_for_dome.GetText());
+    // check the path
+    if (!fs::is_regular_file(relative_path)) {ImGui::Text("This is not a FILE!"); invalid=true;}
+    if (!invalid && !fs::exists(relative_path)){ImGui::Text("File not exists!"); invalid=true;}
+    if (!invalid && (!relative_path.ends_with(".exr") && !relative_path.ends_with(".hdr"))){ImGui::Text("Only exr/hdr file is supported!");}
+
+    if (!invalid){
+        // the path is valid
+        ImGui::Text("Valid path!");
+        if (ImGui::Button("OK")){
+            auto dome = stage->create_dome_light(selected_for_dome);
+            auto asset_path = pxr::SdfAssetPath(relative_path.c_str());
+             dome.CreateTextureFileAttr().Set(pxr::VtValue(asset_path));
+            is_config_dome=false;
+        }
+    }
+
+    if(ImGui::Button("Exit")){
+        is_config_dome=false;
+    }
+    ImGui::End();
 }
 
 void UsdFileViewer::DrawChild(const pxr::UsdPrim& prim, bool is_root)
@@ -592,6 +627,7 @@ bool UsdFileViewer::BuildUI()
     EditValue();
     ImGui::End();
     remove_prim_logic();
+    conf_dome();
 
     return true;
 }
