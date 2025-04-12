@@ -204,23 +204,48 @@ void UsdFileViewer::EditValue()
             bool rst_stack;
             auto xform_op = xformable.GetOrderedXformOps(&rst_stack);
             if (xform_op.size() == 0){ // no trans
-                GfMatrix4d mat = GfMatrix4d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
-                auto trans = xformable.AddTransformOp();
-                trans.Set(mat);
-                xformable.SetXformOpOrder({trans});
+                auto trans = xformable.AddTranslateOp(UsdGeomXformOp::PrecisionFloat);
+                auto rot = xformable.AddRotateXYZOp(UsdGeomXformOp::PrecisionFloat);
+                auto sca = xformable.AddScaleOp(UsdGeomXformOp::PrecisionFloat);
+                trans.Set(GfVec3f{0,0,0});
+                rot.Set(GfVec3f{0,0,0});
+                sca.Set(GfVec3f{1,1,1});
+                xformable.SetXformOpOrder({trans, rot,sca});
             }
-            else if (xform_op.size() == 1 && xform_op[0].GetOpType() == UsdGeomXformOp::TypeTransform){
+            else if (xform_op.size() == 3 && xform_op[0].GetOpType() == UsdGeomXformOp::TypeTranslate
+                     && xform_op[1].GetOpType() == UsdGeomXformOp::TypeRotateXYZ
+                     && xform_op[2].GetOpType() == UsdGeomXformOp::TypeScale){
 
                 auto trans = xform_op[0];
-                GfMatrix4d mat;
-                trans.Get(&mat);
-                float tmp[3]={static_cast<float>(mat[3][0]), static_cast<float>(mat[3][1]), static_cast<float>(mat[3][2])};
-                bool modified_flag = false;
-                if (ImGui::SliderFloat("translate X", tmp, -10.f, 10.f)) mat[3][0] = tmp[0];
-                 if   (ImGui::SliderFloat("translate Y", tmp+1, -10.f, 10.f))mat[3][1] = tmp[1];
-                    if(ImGui::SliderFloat("translate Z", tmp+2, -10.f, 10.f))mat[3][2] = tmp[2];
-                trans.Set(mat);
-                xformable.SetXformOpOrder({trans});
+                auto rot = xform_op[1];
+                auto sca = xform_op[2];
+
+                GfVec3f trans_vec; trans.Get(&trans_vec);
+                GfVec3f rot_vec; rot.Get(&rot_vec);
+                GfVec3f sca_vec; sca.Get(&sca_vec);
+
+                const auto FloatSliderAndInputSetterForArray = [](auto& vec, int pos, float slow, float fast, float sliderminimum, float slidermaximum, std::string name){
+                  float value = vec[pos];
+                  if (ImGui::SliderFloat((name + "(Slider)").c_str(), &value, sliderminimum, slidermaximum)){vec[pos] = value;}
+                  if (ImGui::InputFloat((name + "(Input)").c_str(), &value, slow, fast)){vec[pos] = value;}
+
+                };
+
+                FloatSliderAndInputSetterForArray(trans_vec, 0, 0.01, 1, -10, 10, "Tran X");
+                FloatSliderAndInputSetterForArray(trans_vec, 1, 0.01, 1, -10, 10, "Tran Y");
+                FloatSliderAndInputSetterForArray(trans_vec, 2, 0.01, 1, -10, 10, "Tran Z");
+                FloatSliderAndInputSetterForArray(rot_vec, 0, 0.1, 1, -180, 180, "Rot X");
+                FloatSliderAndInputSetterForArray(rot_vec, 1, 0.1, 1, -180, 180, "Rot Y");
+                FloatSliderAndInputSetterForArray(rot_vec, 2, 0.1, 1, -180, 180, "Rot Z");
+                FloatSliderAndInputSetterForArray(sca_vec, 0, 0.01, 0.5, 0, 10, "Sca X");
+                FloatSliderAndInputSetterForArray(sca_vec, 1, 0.01, 0.5, 0, 10, "Sca Y");
+                FloatSliderAndInputSetterForArray(sca_vec, 2, 0.01, 0.5, 0, 10, "Sca Z");
+
+                trans.Set(trans_vec);
+                rot.Set(rot_vec);
+                sca.Set(sca_vec);
+
+                xformable.SetXformOpOrder({trans, rot, sca});
             }
             // else: do nothing
         }
@@ -242,7 +267,9 @@ void UsdFileViewer::EditValue()
             if (v.IsHolding<double>()) {
                 double value = v.Get<double>();
                 double min_double = 0;
-                double max_double = 1;
+                double max_double = 100;
+                double step_slow = 0.1;
+                double step_fast = 1;
                 if (ImGui::SliderScalar(
                         label.c_str(),
                         ImGuiDataType_Double,
@@ -251,15 +278,36 @@ void UsdFileViewer::EditValue()
                         &max_double)) {
                     attr.Set(value);
                 }
+
+                if (ImGui::InputScalar(
+                        (label+" (Input)").c_str(),
+                    ImGuiDataType_Double,
+                        &value, &step_slow, &step_fast
+                        )){
+                    value = std::max(min_double, value);
+                    attr.Set(value);
+                }
+
             }
             else if (v.IsHolding<float>()) {
                 float value = v.Get<float>();
                 float min_float = 0;
-                float max_float = 1;
+                float max_float = 100;
+                float step_slow = 0.1;
+                float step_fast = 1;
                 if (ImGui::SliderFloat(
                         label.c_str(), &value, min_float, max_float)) {
                     attr.Set(value);
                 }
+                 if (ImGui::InputScalar(
+                        (label+" (Input)").c_str(),
+                    ImGuiDataType_Float,
+                        &value, &step_slow, &step_fast
+                        )){
+                    value = std::max(min_float, value);
+                    attr.Set(value);
+                }
+
             }
             else if (v.IsHolding<int>()) {
                 int value = v.Get<int>();
