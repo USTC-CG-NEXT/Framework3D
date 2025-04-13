@@ -15,6 +15,7 @@ add_dependencies(USTC_CG_test optimization)
 add_dependencies(USTC_CG_test hd_USTC_CG)
 add_dependencies(USTC_CG_test render_nodes)
 add_dependencies(USTC_CG_test gl_based_render_nodes)
+add_dependencies(USTC_CG_test hd_USTC_CG_Embree)
 
 
 add_dependencies(USTC_CG_polyscope_test geometry_nodes)

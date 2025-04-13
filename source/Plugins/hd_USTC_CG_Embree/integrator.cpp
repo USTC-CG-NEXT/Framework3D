@@ -263,7 +263,7 @@ Color Integrator::EstimateDirectLight(
             abs(GfDot(si.shadingNormal, wi)) / sample_light_pdf;
     }
 
-    // HW7_TODO: Sample BRDF (optional)
+    // TODO: Sample BRDF (optional)
 
     return contribution_by_sample_lights;
 }

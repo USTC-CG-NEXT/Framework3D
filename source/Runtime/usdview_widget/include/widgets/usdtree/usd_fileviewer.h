@@ -37,7 +37,11 @@ class USDVIEW_WIDGET_API UsdFileViewer : public IWidget {
     void show_right_click_menu();
     void DrawChild(const pxr::UsdPrim& prim, bool is_root = false);
 
+    void conf_dome();
+
     pxr::SdfPath selected;
+    pxr::SdfPath selected_for_dome;
+    char buf[256] = {0};
 
     pxr::SdfPath to_delete;  // workaround for deleting prims. usdview has cache
                              // that cannot be safely deleted
@@ -46,5 +50,8 @@ class USDVIEW_WIDGET_API UsdFileViewer : public IWidget {
     Stage* stage;
     bool is_selecting_file = false;
     pxr::SdfPath selecting_file_base;
+
+    bool is_config_dome = false;
+
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE
