@@ -489,6 +489,9 @@ void UsdFileViewer::show_right_click_menu()
                 is_config_dome = true;
                 selected_for_dome = selected;
             }
+            if (ImGui::MenuItem("Dome Light (Pure)")) {
+                stage->create_dome_light(selected);
+            }
             if (ImGui::MenuItem("Disk Light")) {
                 stage->create_disk_light(selected);
             }
