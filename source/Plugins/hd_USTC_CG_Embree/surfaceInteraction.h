@@ -44,13 +44,17 @@ SurfaceInteraction::Sample(GfVec3f& dir, float& pdf, const std::function<float()
     dir = TangentToWorld(sampled_dir);
     return color;
 }
-
+// TODO: (Optional) If you are going to use this function,
+//  you may need to make some minor changes to it
+//  What specific things need to be changed please ANALYSE THE CODE YOURSELF
 inline Color SurfaceInteraction::Eval(GfVec3f wi) const
 {
     auto wo = WorldToTangent(this->wo);
     return material->Eval(wi, wo, texcoord);
 }
-
+// TODO: (Optional) If you are going to use this function,
+//  you may need to make some minor changes to it
+//  What specific things need to be changed please ANALYSE THE CODE YOURSELF
 inline float SurfaceInteraction::Pdf(GfVec3f wi, GfVec3f wo) const
 {
     return material->Pdf(wi, wo, texcoord);

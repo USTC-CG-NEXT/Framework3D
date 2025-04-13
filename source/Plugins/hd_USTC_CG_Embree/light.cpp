@@ -276,7 +276,6 @@ void Hd_USTC_CG_Dome_Light::Finalize(HdRenderParam* renderParam)
     Hd_USTC_CG_Light::Finalize(renderParam);
 }
 
-// HW7_TODO: write the following, you should refer to the sphere light.
 
 void Hd_USTC_CG_Distant_Light::Sync(
     HdSceneDelegate* sceneDelegate,
@@ -333,7 +332,7 @@ Color Hd_USTC_CG_Distant_Light::Intersect(const GfRay& ray, float& depth)
     }
     return Color(0);
 }
-
+// TODO: write the following, you should refer to the sphere light.
 Color Hd_USTC_CG_Rect_Light::Sample(
     const GfVec3f& pos,
     GfVec3f& dir,
@@ -379,7 +378,7 @@ void Hd_USTC_CG_Rect_Light::Sync(
                 .Get<GfVec3f>() *
             diffuse;
 
-    // HW7_TODO: calculate irradiance
+    // TODO: calculate irradiance
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE

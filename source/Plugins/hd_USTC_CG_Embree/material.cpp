@@ -217,6 +217,7 @@ void Hd_USTC_CG_Material::Finalize(HdRenderParam* renderParam)
     HdMaterial::Finalize(renderParam);
 }
 
+// TODO: (Optional) Modify this function to support more types of BRDF
 Color Hd_USTC_CG_Material::Sample(
     const GfVec3f& wo,
     GfVec3f& wi,
@@ -226,21 +227,43 @@ Color Hd_USTC_CG_Material::Sample(
 {
     auto sample2D = GfVec2f{ uniform_float(), uniform_float() };
 
+    // Given below are some of the variables you may need to guide your sampling
+    // For the simplest ideal diffuse reflection, none of this is necessary
+    auto record = SampleMaterialRecord(texcoord);
+    auto roughness = std::clamp(record.roughness, 0.04f, 1.0f);
+    auto ior = record.ior;
+    auto metallic = record.metallic;
+    GfVec3f diffuseColor = record.diffuseColor;
+
+
     wi = CosineWeightedDirection(sample2D, pdf);
     return Eval(wi, wo, texcoord);
 }
 
+// TODO: (Optional) Modify this function to support more types of BRDF
 Color Hd_USTC_CG_Material::Eval(GfVec3f wi, GfVec3f wo, GfVec2f texcoord)
 {
     auto record = SampleMaterialRecord(texcoord);
 
     GfVec3f diffuseColor = record.diffuseColor;
 
+    // Given below are some of the variables you may need to calculate the brdf
+    // For the simplest ideal diffuse reflection, none of this is necessary
+    auto roughness = std::clamp(record.roughness, 0.04f, 1.0f);
+    auto ior = record.ior;
+    auto metallic = record.metallic;
+
+
     GfVec3f result = diffuseColor / M_PI;
 
     return result;
 }
 
+// TODO: (Optional) Modify this function to support MIS
+// If you do not use multiple importance sampling,
+// then this function is actually not very meaningful,
+// because you have already got the corresponding PDF when you sample,
+// and you do not need to call this function for evaluation
 float Hd_USTC_CG_Material::Pdf(GfVec3f wi, GfVec3f wo, GfVec2f texcoord)
 {
     return 0;

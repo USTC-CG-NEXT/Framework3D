@@ -16,7 +16,9 @@ VtValue PathIntegrator::Li(const GfRay& ray, std::default_random_engine& random)
 
     return VtValue(GfVec3f(color[0], color[1], color[2]));
 }
-
+/*
+ * TODO: You need to complete this function to achieve the estimate of the outgoing Radiance
+ * */
 GfVec3f PathIntegrator::EstimateOutGoingRadiance(
     const GfRay& ray,
     const std::function<float()>& uniform_float,

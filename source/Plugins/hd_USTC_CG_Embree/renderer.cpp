@@ -48,7 +48,7 @@ void Hd_USTC_CG_Renderer::Render(HdRenderThread* renderThread)
 
 //    auto integrator = std::make_shared<AOIntegrator>(
 //        camera_, static_cast<Hd_USTC_CG_RenderBuffer*>(_aovBindings[0].renderBuffer), renderThread);
-
+    // TODO: Change this to `PathIntegrator`
      auto integrator = std::make_shared<DirectLightIntegrator>(
         camera_, static_cast<Hd_USTC_CG_RenderBuffer*>(_aovBindings[0].renderBuffer), renderThread);
 
