@@ -1,4 +1,5 @@
 #include "animation.h"
+#include <regex>
 
 #include "../../../Editor/geometry/include/GCore/geom_payload.hpp"
 #include "pxr/usd/usd/attribute.h"
@@ -28,6 +29,15 @@ WithDynamicLogicPrim::WithDynamicLogicPrim(
 
         auto loaded = node_system->load_configuration("geometry_nodes.json");
         loaded = node_system->load_configuration("basic_nodes.json");
+        namespace fs = std::filesystem;
+        std::regex submission_suffix(R"(.*_nodes_hw_submissions\.json)");
+        log::info("LOADING SUBMISSIONS");
+        for (auto& itr : fs::directory_iterator(".")) {
+            if (std::regex_match(itr.path().string(), submission_suffix)) {
+                log::info("Found: %s", itr.path().string().c_str());
+                loaded = node_system->load_configuration(itr.path());
+            }
+        }
         node_tree_descriptor = node_system->node_tree_descriptor();
     });
 

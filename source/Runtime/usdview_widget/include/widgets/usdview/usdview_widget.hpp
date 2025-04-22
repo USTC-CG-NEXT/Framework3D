@@ -92,6 +92,6 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     std::unique_ptr<UsdviewEnginePrivateData> data_;
 
     float timecode = 0;
-    float time_code_max = 8;
+    float time_code_max = 250;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE
