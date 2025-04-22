@@ -55,6 +55,20 @@ int main()
 
             window->register_widget(std::move(node_widget));
         }
+
+        auto selection_node_system = static_cast<const std::shared_ptr<NodeSystem>*>(
+            dynamic_cast<UsdviewEngine*>(render_widget)
+                ->emit_create_selection_renderer_ui_control());
+        if (selection_node_system) {
+            FileBasedNodeWidgetSettings desc;
+            desc.system = *selection_node_system;
+            desc.json_path = "../../Assets/selection_render_nodes.json";
+
+            std::unique_ptr<IWidget> node_widget =
+                std::move(create_node_imgui_widget(desc));
+
+            window->register_widget(std::move(node_widget));
+        }
     });
 
     window->register_widget(std::move(render));

@@ -16,6 +16,10 @@ class NodeTree;
 
 struct UsdviewEnginePrivateData;
 
+struct PickEvent {
+    std::vector<std::pair<unsigned int, unsigned int>> selected_points;
+};
+
 class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
    public:
     explicit UsdviewEngine(Stage* stage);
@@ -30,6 +34,13 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     {
         auto temp = renderer_ui_control;
         renderer_ui_control = nullptr;
+        return temp;
+    }
+    // For point selection renderer
+    const void* emit_create_selection_renderer_ui_control()
+    {
+        auto temp = selection_renderer_ui_control;
+        selection_renderer_ui_control = nullptr;
         return temp;
     }
 
@@ -71,6 +82,18 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     const void* renderer_ui_control = nullptr;
     bool first_draw = true;
     pxr::TfHashMap<pxr::TfToken, pxr::VtValue, pxr::TfHash> settings;
+
+    // Enable point selection (Create another renderer for color mapping)
+    pxr::HgiTextureDesc selection_aovDesc;
+    std::unique_ptr<pxr::UsdImagingGLEngine> selection_renderer_;
+    const void* selection_renderer_ui_control = nullptr;
+    PickEvent pick_event_;
+    pxr::GfVec2i start_selection, end_selection;
+    std::vector<uint8_t> selection_texture_data_;
+    void DecodeSelection();
+    pxr::GfVec2f ScreenToUV(
+        const pxr::GfVec2i& point,
+        const pxr::GfVec2i& textureSize) const;
 
     void DrawMenuBar();
     void OnFrame(float delta_time);

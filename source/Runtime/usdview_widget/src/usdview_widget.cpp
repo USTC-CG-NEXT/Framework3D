@@ -36,6 +36,7 @@ struct UsdviewEnginePrivateData {
     nvrhi::TextureHandle nvrhi_texture = nullptr;
     nvrhi::StagingTextureHandle staging = nullptr;
     nvrhi::Format present_format = nvrhi::Format::RGBA32_FLOAT;
+    nvrhi::Format selection_format = nvrhi::Format::RGBA8_UINT;
 };
 
 UsdviewEngine::UsdviewEngine(Stage* stage) : stage_(stage)
@@ -80,6 +81,26 @@ UsdviewEngine::UsdviewEngine(Stage* stage) : stage_(stage)
     auto plugins = renderer_->GetRendererPlugins();
 
     ChooseRenderer(plugins, engine_status.renderer_id);
+
+    // Set another renderer for point selection
+    //selection_aovDesc.format = pxr::HgiFormatUNorm8Vec4;
+    //selection_aovDesc.usage = pxr::HgiTextureUsageBitsColorTarget;
+    selection_renderer_ = std::make_unique<pxr::UsdImagingGLEngine>(params);
+
+    selection_renderer_->SetEnablePresentation(false);
+
+    // Set the renderer type of this renderer
+    selection_renderer_->SetRendererPlugin(selection_renderer_->GetRendererPlugins()[2]);
+    selection_renderer_ui_control =
+        selection_renderer_->GetRendererSetting(pxr::TfToken("RenderNodeSystem"))
+            .Get<const void*>();
+    selection_renderer_->SetRenderBufferSize(render_buffer_size_);
+    selection_renderer_->SetRenderViewport(
+        pxr::GfVec4d{ 0.0,
+                      0.0,
+                      double(render_buffer_size_[0]),
+                      double(render_buffer_size_[1]) });
+    selection_renderer_->SetEnablePresentation(false);
 
     free_camera_->CreateFocusDistanceAttr().Set(10.0f);
     free_camera_->CreateClippingRangeAttr(
@@ -197,6 +218,20 @@ void UsdviewEngine::copy_to_presentation()
                 texture_data_.data());
         }
     }
+    // For selection
+    auto hgi_texture_selection =
+        selection_renderer_->GetAovTexture(pxr::HdAovTokens->depth);
+    if (hgi_texture_selection) {
+        pxr::HgiBlitCmdsUniquePtr blitCmds = hgi->CreateBlitCmds();
+        pxr::HgiTextureGpuToCpuOp copyOp;
+        copyOp.gpuSourceTexture = hgi_texture_selection;
+        copyOp.cpuDestinationBuffer = selection_texture_data_.data();
+        copyOp.destinationBufferByteSize = selection_texture_data_.size();
+        blitCmds->CopyTextureGpuToCpu(copyOp);
+
+        hgi->SubmitCmds(
+            blitCmds.get(), pxr::HgiSubmitWaitTypeWaitUntilCompleted);
+    }
 }
 
 void UsdviewEngine::OnFrame(float delta_time)
@@ -217,6 +252,8 @@ void UsdviewEngine::OnFrame(float delta_time)
     GfMatrix4d viewMatrix = frustum.ComputeViewMatrix();
 
     renderer_->SetCameraState(viewMatrix, projectionMatrix);
+    // For point selection
+    selection_renderer_->SetCameraState(viewMatrix, projectionMatrix);
 
     _renderParams.enableLighting = true;
     _renderParams.enableSceneMaterials = true;
@@ -258,15 +295,21 @@ void UsdviewEngine::OnFrame(float delta_time)
     GfVec4f sceneAmbient = { 0.01, 0.01, 0.01, 1.0 };
     renderer_->SetLightingState(lights, material, sceneAmbient);
     renderer_->SetRendererAov(HdAovTokens->color);
+    // For point selection
+    selection_renderer_->SetLightingState(lights, material, sceneAmbient);
+    selection_renderer_->SetRendererAov(HdAovTokens->color);
 
     for (auto&& setting : settings) {
         renderer_->SetRendererSetting(setting.first, setting.second);
+        // For point selection
+        selection_renderer_->SetRendererSetting(setting.first, setting.second);
     }
 
     UsdPrim root = stage_->get_usd_stage()->GetPseudoRoot();
 
     // First try is there a hack?
     renderer_->Render(root, _renderParams);
+    selection_renderer_->Render(root, _renderParams);
 
     auto imgui_frame_size =
         ImVec2(render_buffer_size_[0], render_buffer_size_[1]);
@@ -331,10 +374,95 @@ void UsdviewEngine::OnFrame(float delta_time)
 
     //    log::info("Picked prim " + path.GetAsString(), Info);
     //}
+
+    if (is_hovered && !is_editing_ &&
+        ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+        auto mouse_pos_rel = ImGui::GetMousePos() - ImGui::GetItemRectMin();
+        start_selection = pxr::GfVec2i(mouse_pos_rel.x, mouse_pos_rel.y);
+        end_selection = start_selection;
+        is_editing_ = true;
+    }
+    if (is_hovered && is_editing_ &&
+        ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+        auto mouse_pos_rel = ImGui::GetMousePos() - ImGui::GetItemRectMin();
+        end_selection = pxr::GfVec2i(mouse_pos_rel.x, mouse_pos_rel.y);
+        auto draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddRectFilled(
+            ImVec2(start_selection[0], start_selection[1]) +
+                ImGui::GetItemRectMin(),
+            ImVec2(end_selection[0], end_selection[1]) +
+                ImGui::GetItemRectMin(),
+            IM_COL32(255, 0, 0, 50));
+    }
+    if (is_hovered && is_editing_ &&
+        ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+        is_editing_ = false;
+    }
     ImGui::GetIO().WantCaptureMouse = true;
 
     ImGui::EndChild();
     time_controller();
+}
+
+pxr::GfVec2f UsdviewEngine::ScreenToUV(
+    const pxr::GfVec2i& point,
+    const pxr::GfVec2i& textureSize) const
+{
+    return pxr::GfVec2f(
+        float(point[0]) / textureSize[0],
+        1.0f - float(point[1]) / textureSize[1]);
+}
+
+void UsdviewEngine::DecodeSelection()
+{
+    auto hgi_texture =
+        selection_renderer_->GetAovTexture(pxr::HdAovTokens->color);
+    if (!hgi_texture)
+        return;
+    
+    const pxr::HgiTextureDesc& hgiDesc = hgi_texture->GetDescriptor();
+    const uint32_t width = hgiDesc.dimensions[0];
+    const uint32_t height = hgiDesc.dimensions[1];
+    const pxr::GfVec2i textureSize(width, height);
+
+    // Selected rect
+    pxr::GfVec2i uvMin = pxr::GfVec2i(
+        std::min(start_selection[0], end_selection[0]),
+        std::min(start_selection[1], end_selection[1]));
+
+    pxr::GfVec2i uvMax = pxr::GfVec2i(
+        std::max(start_selection[0], end_selection[0]),
+        std::max(start_selection[1], end_selection[1]));
+
+    std::unordered_set<uint64_t> uniqueIDs;
+    int count_all = 0;
+    int count_vert = 0;
+    const int32_t* pixel =
+        reinterpret_cast<const int32_t*>(selection_texture_data_.data());
+    for (int y = uvMin[1]; y < uvMax[1]; ++y) {
+        for (int x = uvMin[0]; x < uvMax[0]; ++x) {
+            count_all++;
+            const int32_t combined = pixel[y * width + x];
+            if (combined == 0)
+                continue;
+            count_vert++;
+            const uint32_t primID = combined >> 20;
+            if (primID == 1) {
+                std::cout << "primID == 1" << std::endl;
+            }
+            const uint32_t vertexID = combined & 0x000FFFFF;
+            uniqueIDs.insert((uint64_t(primID) << 32) | vertexID);
+        }
+    }
+    log::info(
+        "DecodeSelection: " + std::to_string(count_all) + " " +
+        std::to_string(count_vert) + " " + std::to_string(uniqueIDs.size()));
+    pick_event_.selected_points.reserve(uniqueIDs.size());
+    for (const auto& id : uniqueIDs) {
+        const uint32_t primID = id >> 32;
+        const uint32_t vertexID = id & 0x00FFFFFF;
+        pick_event_.selected_points.emplace_back(primID, vertexID);
+    }
 }
 
 void UsdviewEngine::time_controller()
@@ -473,6 +601,7 @@ UsdviewEngine::~UsdviewEngine()
     data_.reset();
     assert(RHI::get_device());
     renderer_.reset();
+    selection_renderer_.reset();
     hgi.reset();
 }
 
@@ -510,11 +639,13 @@ void UsdviewEngine::set_renderer_setting(
 {
     settings[id] = value;
     renderer_->SetRendererSetting(id, value);
+    selection_renderer_->SetRendererSetting(id, value);
 }
 
 void UsdviewEngine::finish_render()
 {
     renderer_->StopRenderer();
+    selection_renderer_->StopRenderer();
     auto hacked_handle =
         renderer_->GetRendererSetting(pxr::TfToken("VulkanColorAov"));
 
@@ -528,6 +659,8 @@ void UsdviewEngine::finish_render()
     else {
         copy_to_presentation();
     }
+    //copy_to_presentation();
+    DecodeSelection();
 }
 
 ImGuiWindowFlags UsdviewEngine::GetWindowFlag()
@@ -558,11 +691,21 @@ void UsdviewEngine::RenderBackBufferResized(float x, float y)
                       double(render_buffer_size_[0]),
                       double(render_buffer_size_[1]) });
 
+    selection_renderer_->SetRenderBufferSize(render_buffer_size_);
+    selection_renderer_->SetRenderViewport(
+        pxr::GfVec4d{ 0.0,
+                      0.0,
+                      double(render_buffer_size_[0]),
+                      double(render_buffer_size_[1]) });
+
     data_->nvrhi_texture = nullptr;
     data_->staging = nullptr;
     texture_data_.resize(
         render_buffer_size_[0] * render_buffer_size_[1] *
         RHI::calculate_bytes_per_pixel(data_->present_format));
+    selection_texture_data_.resize(
+        render_buffer_size_[0] * render_buffer_size_[1] *
+        RHI::calculate_bytes_per_pixel(data_->selection_format));
 }
 
 USTC_CG_NAMESPACE_CLOSE_SCOPE
