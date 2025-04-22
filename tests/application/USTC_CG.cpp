@@ -28,8 +28,13 @@ int main()
     auto stage = create_global_stage();
     init(stage.get());
 
+#ifdef REAL_TIME
     window->register_function_before_frame(
         [&stage](Window* window) { stage->tick(window->get_elapsed_time()); });
+#else
+    window->register_function_before_frame(
+        [&stage](Window* window) { stage->tick(1.0f / 30.f); });
+#endif
     // Add a sphere
 
     auto usd_file_viewer = std::make_unique<UsdFileViewer>(stage.get());
@@ -63,8 +68,8 @@ int main()
             /* Load the node system */
             auto loaded = system->load_configuration("geometry_nodes.json");
             loaded = system->load_configuration("basic_nodes.json");
-            loaded = system->load_configuration("render_nodes.json");
-
+            // loaded = system->load_configuration("render_nodes.json");
+            
             // loading the submission from students
             namespace fs = std::filesystem;
             std::regex submission_suffix(R"(.*_nodes_hw_submissions\.json)");
@@ -76,7 +81,8 @@ int main()
                 }
             }
             // finished
-            //            loaded = system->load_configuration("polyscope_nodes.json");
+            //            loaded =
+            //            system->load_configuration("polyscope_nodes.json");
 
 //
 //            namespace fs = std::filesystem;

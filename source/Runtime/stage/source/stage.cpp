@@ -93,21 +93,23 @@ Stage::~Stage()
 
 void Stage::tick(float ellapsed_time)
 {
-    auto current = current_time_code.GetValue();
-    current += ellapsed_time;
-    current_time_code = pxr::UsdTimeCode(current);
-
     // for each prim, if it is animatable, update it
     for (auto&& prim : stage->Traverse()) {
         if (animation::WithDynamicLogicPrim::is_animatable(prim)) {
             if (animatable_prims.find(prim.GetPath()) ==
                 animatable_prims.end()) {
-                animatable_prims[prim.GetPath()] =
-                    std::move(animation::WithDynamicLogicPrim(prim));
+                animatable_prims.emplace(
+                    prim.GetPath(),
+                    std::move(animation::WithDynamicLogicPrim(prim, this)));
             }
 
-            animatable_prims[prim.GetPath()].update(ellapsed_time);
+            animatable_prims.at(prim.GetPath()).update(ellapsed_time);
         }
+    }
+    if (should_simulate()) {
+        auto current = current_time_code.GetValue();
+        current += ellapsed_time;
+        current_time_code = pxr::UsdTimeCode(current);
     }
 }
 
@@ -123,6 +125,16 @@ pxr::UsdTimeCode Stage::get_current_time()
 void Stage::set_current_time(pxr::UsdTimeCode time)
 {
     current_time_code = time;
+}
+
+pxr::UsdTimeCode Stage::get_render_time()
+{
+    return render_time_code;
+}
+
+void Stage::set_render_time(pxr::UsdTimeCode time)
+{
+    render_time_code = time;
 }
 
 template<typename T>

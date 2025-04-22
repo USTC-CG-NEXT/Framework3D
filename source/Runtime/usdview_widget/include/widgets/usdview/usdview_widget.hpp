@@ -58,6 +58,8 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     bool is_active = false;
     bool is_hovered = false;
 
+    bool playing = false;
+
     std::unique_ptr<BaseCamera> free_camera_;
     std::unique_ptr<pxr::UsdImagingGLEngine> renderer_;
     pxr::UsdImagingGLRenderParams _renderParams;
@@ -90,6 +92,6 @@ class USDVIEW_WIDGET_API UsdviewEngine final : public IWidget {
     std::unique_ptr<UsdviewEnginePrivateData> data_;
 
     float timecode = 0;
-    float time_code_max = 250;
+    float time_code_max = 8;
 };
 USTC_CG_NAMESPACE_CLOSE_SCOPE

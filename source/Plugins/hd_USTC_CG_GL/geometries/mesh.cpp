@@ -28,7 +28,6 @@
 
 #include "../api.h"
 #include "Logger/Logger.h"
-#include "context.h"
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/imaging/hd/extComputationUtils.h"
 #include "pxr/imaging/hd/instancer.h"

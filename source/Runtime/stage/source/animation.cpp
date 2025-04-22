@@ -3,6 +3,7 @@
 #include "../../../Editor/geometry/include/GCore/geom_payload.hpp"
 #include "pxr/usd/usd/attribute.h"
 #include "pxr/usd/usdGeom/xform.h"
+#include "stage/stage.hpp"
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace animation {
 
@@ -10,8 +11,15 @@ std::once_flag WithDynamicLogicPrim::init_once;
 std::shared_ptr<NodeTreeDescriptor> WithDynamicLogicPrim::node_tree_descriptor =
     nullptr;
 
-WithDynamicLogicPrim::WithDynamicLogicPrim(const pxr::UsdPrim& prim)
-    : prim(prim)
+WithDynamicLogic::WithDynamicLogic(Stage* stage) : stage_(stage)
+{
+}
+
+WithDynamicLogicPrim::WithDynamicLogicPrim(
+    const pxr::UsdPrim& prim,
+    Stage* stage)
+    : WithDynamicLogic(stage),
+      prim(prim)
 {
     std::call_once(init_once, [&] {
         // Only using this to initialize the node descriptor
@@ -42,6 +50,7 @@ WithDynamicLogicPrim::WithDynamicLogicPrim(const pxr::UsdPrim& prim)
 }
 
 WithDynamicLogicPrim::WithDynamicLogicPrim(const WithDynamicLogicPrim& prim)
+    : WithDynamicLogic(prim.stage_)
 {
     this->prim = prim.prim;
     this->node_tree = prim.node_tree;
@@ -80,8 +89,13 @@ void WithDynamicLogicPrim::update(float delta_time) const
     if (tree_desc_cache != new_tree_desc) {
         tree_desc_cache = new_tree_desc;
         node_tree->deserialize(tree_desc_cache);
+        stage_->set_current_time(0);
+        stage_->set_render_time(0);
         simulation_begun = false;
     }
+
+    if (!stage_->should_simulate())
+        return;
 
     assert(node_tree);
     assert(node_tree_executor);
@@ -98,6 +112,7 @@ void WithDynamicLogicPrim::update(float delta_time) const
         simulation_begun = true;
     }
 
+    payload.current_time = stage_->get_current_time();
     node_tree_executor->execute(node_tree.get());
 }
 

@@ -8,7 +8,7 @@ struct GeomPayload {
     float delta_time = 0.0f;
     bool has_simulation = false;
     bool is_simulating = false;
-    pxr::UsdTimeCode current_time = pxr::UsdTimeCode::Default();
+    pxr::UsdTimeCode current_time = pxr::UsdTimeCode(0);
 
     std::string stage_filepath_;
 };

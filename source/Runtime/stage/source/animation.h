@@ -5,19 +5,29 @@
 #include "nodes/core/node_exec.hpp"
 #include "nodes/system/node_system.hpp"
 
+namespace USTC_CG {
+class Stage;
+}
+
 USTC_CG_NAMESPACE_OPEN_SCOPE
 namespace animation {
 
 class WithDynamicLogic {
    public:
+    WithDynamicLogic(Stage* stage);
     virtual ~WithDynamicLogic() = default;
     virtual void update(float delta_time) const = 0;
+
+   protected:
+    Stage* stage_;
 };
 
 class WithDynamicLogicPrim : public WithDynamicLogic {
    public:
-    WithDynamicLogicPrim() { };
-    WithDynamicLogicPrim(const pxr::UsdPrim& prim);
+    WithDynamicLogicPrim(Stage* stage) : WithDynamicLogic(stage)
+    {
+    }
+    WithDynamicLogicPrim(const pxr::UsdPrim& prim, Stage* stage);
 
     WithDynamicLogicPrim(const WithDynamicLogicPrim& prim);
     WithDynamicLogicPrim& operator=(const WithDynamicLogicPrim& prim);
