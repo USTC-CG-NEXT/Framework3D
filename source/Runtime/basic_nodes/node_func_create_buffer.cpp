@@ -209,7 +209,7 @@ NODE_EXECUTION_FUNCTION(create_float3f)
 };
 NODE_EXECUTION_FUNCTION(create_int3)
 {
-    float val[3];
+    int val[3];
     for (int i = 0; i < 3; ++i) {
         val[i] = params.get_input<int>(socket_name(i).c_str());
     }

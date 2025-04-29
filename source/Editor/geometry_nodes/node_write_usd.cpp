@@ -69,7 +69,7 @@ NODE_EXECUTION_FUNCTION(write_usd)
             usdgeom.CreateFaceVertexCountsAttr().Set(
                 mesh->get_face_vertex_counts(), time);
             usdgeom.CreateFaceVertexIndicesAttr().Set(
-                mesh->get_face_vertex_indices());
+                mesh->get_face_vertex_indices(), time);
             usdgeom.CreateNormalsAttr().Set(mesh->get_normals(), time);
             if (!mesh->get_display_color().empty()) {
                 auto primVarAPI = pxr::UsdGeomPrimvarsAPI(usdgeom);

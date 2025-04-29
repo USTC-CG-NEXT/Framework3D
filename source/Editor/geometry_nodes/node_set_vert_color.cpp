@@ -25,7 +25,7 @@ NODE_EXECUTION_FUNCTION(set_vert_color)
         mesh->set_display_color(color);
     }
     else if (points) {
-        points->get_display_color() = color;
+        points->set_display_color(color);
     }
     else {
         return false;
