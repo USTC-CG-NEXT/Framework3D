@@ -22,7 +22,12 @@ NODE_DECLARATION_FUNCTION(time_code)
 NODE_EXECUTION_FUNCTION(time_code)
 {
     // This is for external write. Do nothing.
+    auto& global_payload = params.get_global_payload<GeomPayload&>();
+    global_payload.has_simulation = true;
+    auto current_time = global_payload.current_time;
+    params.set_output("time", (float)current_time.GetValue());
     return true;
 }
+NODE_DECLARATION_REQUIRED(time_code)
 
 NODE_DEF_CLOSE_SCOPE

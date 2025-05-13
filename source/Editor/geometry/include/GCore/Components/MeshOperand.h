@@ -102,6 +102,20 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
 #endif
     }
 
+    [[nodiscard]] pxr::VtArray<float> get_control_points() const
+    {
+#if USE_USD_SCRATCH_BUFFER
+        pxr::VtArray<float> control_points;
+        auto PrimVarAPI = pxr::UsdGeomPrimvarsAPI(mesh);
+        auto primvar = PrimVarAPI.GetPrimvar(pxr::TfToken("ControlPoints"));
+        if (primvar)
+            primvar.Get(&control_points);
+        return control_points;
+#else
+        return controlPoints;
+#endif
+    }
+
     [[nodiscard]] pxr::VtArray<float> get_vertex_scalar_quantity(
         const std::string& name) const
     {
@@ -316,6 +330,19 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
 #endif
     }
 
+    void set_control_points(const pxr::VtArray<float>& control_points)
+    {
+#if USE_USD_SCRATCH_BUFFER
+        // TODO: not implemented
+        auto PrimVarAPI = pxr::UsdGeomPrimvarsAPI(mesh);
+        auto primvar = PrimVarAPI.CreatePrimvar(
+            pxr::TfToken("ControlPoints"), pxr::SdfValueTypeNames->FloatArray);
+        primvar.Set(control_points);
+#else
+        this->controlPoints = control_points;
+#endif
+    }
+
     void set_display_color(const pxr::VtArray<pxr::GfVec3f>& display_color)
     {
 #if USE_USD_SCRATCH_BUFFER
@@ -453,6 +480,7 @@ struct GEOMETRY_API MeshComponent : public GeometryComponent {
     pxr::VtArray<pxr::GfVec3f> normals;
     pxr::VtArray<pxr::GfVec3f> displayColor;
     pxr::VtArray<pxr::GfVec2f> texcoordsArray;
+    pxr::VtArray<float> controlPoints;
 #endif
 
     // After adding these quantities, you need to modify the copy() function

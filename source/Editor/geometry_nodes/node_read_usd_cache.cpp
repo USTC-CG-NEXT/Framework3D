@@ -24,9 +24,18 @@
 #include "pxr/usd/usdSkel/bindingAPI.h"
 #include "pxr/usd/usdSkel/skeletonQuery.h"
 
+struct ReadUsdCache {
+    static constexpr bool has_storage = false;
+    USTC_CG::Geometry read_geometry;
+    std::string file_name;
+    std::string prim_path;
+
+    float time_code = 0;
+};
+
 NODE_DEF_OPEN_SCOPE
 
-NODE_DECLARATION_FUNCTION(read_usd)
+NODE_DECLARATION_FUNCTION(read_usd_cache)
 {
     b.add_input<std::string>("File Name").default_val("Default");
     b.add_input<std::string>("Prim Path").default_val("geometry");
@@ -34,17 +43,25 @@ NODE_DECLARATION_FUNCTION(read_usd)
     b.add_output<Geometry>("Geometry");
 }
 
-NODE_EXECUTION_FUNCTION(read_usd)
+NODE_EXECUTION_FUNCTION(read_usd_cache)
 {
     auto file_name = params.get_input<std::string>("File Name");
     auto prim_path = params.get_input<std::string>("Prim Path");
+    auto t = params.get_input<float>("Time Code");
+
+    auto& cache = params.get_storage<ReadUsdCache&>();
+
+    if (file_name == cache.file_name && prim_path == cache.prim_path &&
+        t == cache.time_code) {
+        params.set_output("Geometry", cache.read_geometry);
+        return true;
+    }
 
     Geometry geometry;
     std::shared_ptr<MeshComponent> mesh =
         std::make_shared<MeshComponent>(&geometry);
     geometry.attach_component(mesh);
 
-    auto t = params.get_input<float>("Time Code");
     pxr::UsdTimeCode time = pxr::UsdTimeCode(t);
     if (t == 0) {
         time = pxr::UsdTimeCode::Default();
@@ -126,11 +143,19 @@ NODE_EXECUTION_FUNCTION(read_usd)
                         primvar.Get(&texcoords, time);
                         mesh->set_texcoords_array(texcoords);
                     }
+
+                    primvar = primVarAPI.GetPrimvar(pxr::TfToken("st"));
+                    if (primvar) {
+                        pxr::VtArray<pxr::GfVec2f> texcoords;
+                        primvar.Get(&texcoords, time);
+                        mesh->set_texcoords_array(texcoords);
+                    }
                 }
 
                 {
                     pxr::UsdGeomPrimvarsAPI primVarAPI(usdgeom);
-                    auto primvar = primVarAPI.GetPrimvar(pxr::TfToken("ControlPoints"));
+                    auto primvar =
+                        primVarAPI.GetPrimvar(pxr::TfToken("ControlPoints"));
                     if (primvar) {
                         pxr::VtArray<float> control_points;
                         primvar.Get(&control_points, time);
@@ -212,9 +237,15 @@ NODE_EXECUTION_FUNCTION(read_usd)
     else {
         // TODO: throw something
     }
-    params.set_output("Geometry", std::move(geometry));
+
+    cache.file_name = file_name;
+    cache.prim_path = prim_path;
+    cache.time_code = t;
+    cache.read_geometry = geometry;
+
+    params.set_output("Geometry", geometry);
     return true;
 }
 
-NODE_DECLARATION_UI(read_usd);
+NODE_DECLARATION_UI(read_usd_cache);
 NODE_DEF_CLOSE_SCOPE
