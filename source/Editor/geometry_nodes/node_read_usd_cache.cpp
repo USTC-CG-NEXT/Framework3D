@@ -27,6 +27,7 @@
 struct ReadUsdCache {
     static constexpr bool has_storage = false;
     USTC_CG::Geometry read_geometry;
+    pxr::UsdStageRefPtr stage;
     std::string file_name;
     std::string prim_path;
 
@@ -98,7 +99,13 @@ NODE_EXECUTION_FUNCTION(read_usd_cache)
     }
     abs_path = abs_path.lexically_normal();
 
-    auto stage = pxr::UsdStage::Open(abs_path.string().c_str());
+    pxr::UsdStageRefPtr stage;
+    if (file_name == cache.file_name && prim_path == cache.prim_path){
+        stage = cache.stage;
+    }
+    else {
+        stage = pxr::UsdStage::Open(abs_path.string().c_str());
+    }
 
     if (stage) {
         // Here 'c_str' call is necessary since prim_path
@@ -109,6 +116,7 @@ NODE_EXECUTION_FUNCTION(read_usd_cache)
 #if USE_USD_SCRATCH_BUFFER
             mesh->set_mesh_geom(usdgeom);
 #else
+
             {
                 pxr::VtArray<pxr::GfVec3f> points;
                 if (usdgeom.GetPointsAttr())
@@ -151,7 +159,6 @@ NODE_EXECUTION_FUNCTION(read_usd_cache)
                         mesh->set_texcoords_array(texcoords);
                     }
                 }
-
                 {
                     pxr::UsdGeomPrimvarsAPI primVarAPI(usdgeom);
                     auto primvar =
@@ -242,6 +249,7 @@ NODE_EXECUTION_FUNCTION(read_usd_cache)
     cache.prim_path = prim_path;
     cache.time_code = t;
     cache.read_geometry = geometry;
+    cache.stage = stage;
 
     params.set_output("Geometry", geometry);
     return true;
