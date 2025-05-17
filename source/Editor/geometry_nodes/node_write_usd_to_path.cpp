@@ -58,9 +58,12 @@ NODE_EXECUTION_FUNCTION(write_usd_to_path)
     pxr::UsdTimeCode time = global_payload.current_time;
 
     auto stage = global_payload.stage;
-    auto sdf_path = pxr::SdfPath(global_payload.prim_path.GetString() + "/" + prim_path.c_str());
+    auto sdf_path = pxr::SdfPath(
+        global_payload.prim_path.GetString() + "/" + prim_path.c_str());
+    auto root_path = pxr::SdfPath(
+        global_payload.prim_path.GetString());
 
-    // stage->RemovePrim(sdf_path);
+    //stage->RemovePrim(sdf_path);
 
     if (mesh) {
         pxr::UsdGeomMesh usdgeom = pxr::UsdGeomMesh::Define(stage, sdf_path);
@@ -356,13 +359,13 @@ NODE_EXECUTION_FUNCTION(write_usd_to_path)
     }
 
     if (global_payload.has_simulation) {
-        pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);
+        pxr::UsdPrim prim = stage->GetPrimAtPath(root_path);
         prim.CreateAttribute(
                 pxr::TfToken("Animatable"), pxr::SdfValueTypeNames->Bool)
             .Set(true);
     }
     else {
-        pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);
+        pxr::UsdPrim prim = stage->GetPrimAtPath(root_path);
         prim.CreateAttribute(
                 pxr::TfToken("Animatable"), pxr::SdfValueTypeNames->Bool)
             .Set(false);

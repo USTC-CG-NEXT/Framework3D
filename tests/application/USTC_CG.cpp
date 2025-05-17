@@ -17,6 +17,8 @@
 #include "widgets/usdview/usdview_widget.hpp"
 using namespace USTC_CG;
 
+//#define REAL_TIME
+
 int main()
 {
 #ifdef _DEBUG
@@ -29,11 +31,16 @@ int main()
     init(stage.get());
 
 #ifdef REAL_TIME
-    window->register_function_before_frame(
-        [&stage](Window* window) { stage->tick(window->get_elapsed_time()); });
+    window->register_function_before_frame([&stage](Window* window) {
+        int timecode_per_second = 30;
+        stage->set_delta_time(window->get_elapsed_time() * timecode_per_second);
+        stage->tick(stage->get_delta_time());
+    });
 #else
-    window->register_function_before_frame(
-        [&stage](Window* window) { stage->tick(1.0f / 30.f); });
+    window->register_function_before_frame([&stage](Window* window) {
+        stage->set_delta_time(0.15f);
+        stage->tick(stage->get_delta_time());
+    });
 #endif
     // Add a sphere
 

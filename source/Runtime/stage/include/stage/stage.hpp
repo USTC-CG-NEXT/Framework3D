@@ -42,6 +42,9 @@ class STAGE_API Stage {
     pxr::UsdTimeCode get_render_time();
     void set_render_time(pxr::UsdTimeCode time);
 
+    float get_delta_time();
+    void set_delta_time(float dt);
+
     pxr::UsdPrim add_prim(const pxr::SdfPath& path);
 
     pxr::UsdGeomSphere create_sphere(
@@ -98,6 +101,7 @@ class STAGE_API Stage {
     pxr::SdfPath create_editor_pending_path;
     pxr::UsdTimeCode current_time_code = pxr::UsdTimeCode(0.0f);
     pxr::UsdTimeCode render_time_code = pxr::UsdTimeCode(0.0f);
+    float delta_time_code = 1.0f;
     template<typename T>
     T create_prim(const pxr::SdfPath& path, const std::string& baseName) const;
 

@@ -127,6 +127,16 @@ void Stage::set_current_time(pxr::UsdTimeCode time)
     current_time_code = time;
 }
 
+float Stage::get_delta_time()
+{
+    return delta_time_code;
+}
+
+void Stage::set_delta_time(float dt)
+{
+    delta_time_code = dt;
+}
+
 pxr::UsdTimeCode Stage::get_render_time()
 {
     return render_time_code;
